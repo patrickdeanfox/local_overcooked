@@ -29,6 +29,16 @@ const THEMES: Readonly<Record<string, ThemeDressing>> = {
   'savoury-seas': { backdropColor: 0x2e6b8a, floorColor: 0xc99a63, backWall: false },
 };
 const WALL = { span: 2, height: 2, depth: 0.25, windowEvery: 3 } as const; // tiles, at the manifest scale
+/** A road that reaches the grid edge continues as asphalt into the backdrop, with parked cars up the street. */
+const STREET = {
+  asphalt: 0x55565c,
+  lift: 0.0005,
+  cars: ['carSedan', 'carTaxi', 'carVan', 'carDelivery'] as const,
+  firstCar: 1.6,          // tiles beyond the top edge
+  carGap: 2.3,
+  carsPerRun: 2,
+  laneWobble: 0.18,       // sideways offset so the cars are not perfectly aligned
+} as const;
 /** Wall height in tiles, for the camera fit; 0 when the theme has no wall. */
 export function themeSceneHeight(theme: string | undefined): number {
   return (THEMES[theme ?? 'default'] ?? THEMES.default).backWall ? WALL.height : 0;
@@ -153,6 +163,53 @@ function backdrop(width: number, height: number, color: number): THREE.Mesh {
   return plane;
 }
 
+/** Contiguous column ranges of road tiles in one row: [first, last] inclusive. */
+function roadRuns(state: Readonly<SimState>, row: number): [number, number][] {
+  const runs: [number, number][] = [];
+  for (let x = 0; x < state.width; x++) {
+    const tile = state.tiles[row * state.width + x];
+    if (!tile || tile.type !== 'road') continue;
+    const last = runs[runs.length - 1];
+    if (last && last[1] === x - 1) last[1] = x;
+    else runs.push([x, x]);
+  }
+  return runs;
+}
+
+function asphaltStrip(run: [number, number], zFrom: number, zTo: number): THREE.Mesh {
+  const width = run[1] - run[0] + 1;
+  const strip = new THREE.Mesh(
+    new THREE.PlaneGeometry(width, Math.abs(zTo - zFrom)),
+    new THREE.MeshStandardMaterial({ color: STREET.asphalt, roughness: 1 }),
+  );
+  strip.rotation.x = -Math.PI / 2;
+  strip.position.set(run[0] + width / 2, STREET.lift, (zFrom + zTo) / 2);
+  strip.receiveShadow = true;
+  return strip;
+}
+
+/** Asphalt off both ends of every edge road, and a few parked cars up the street beyond the top edge. */
+function streetDressing(state: Readonly<SimState>): THREE.Group {
+  const group = new THREE.Group();
+  let carIndex = 0;
+  for (const run of roadRuns(state, 0)) {
+    group.add(asphaltStrip(run, -BACKDROP.margin, 0));
+    const centre = (run[0] + run[1] + 1) / 2;
+    for (let i = 0; i < STREET.carsPerRun; i++) {
+      const car = modelInstance(STREET.cars[carIndex % STREET.cars.length]);
+      const side = (i % 2 === 0 ? -1 : 1) * STREET.laneWobble;
+      car.position.set(centre + side, 0, -(STREET.firstCar + i * STREET.carGap));
+      car.rotation.y = i % 2 === 0 ? 0 : Math.PI; // one nose towards the kitchen, one away
+      group.add(car);
+      carIndex++;
+    }
+  }
+  for (const run of roadRuns(state, state.height - 1)) {
+    group.add(asphaltStrip(run, state.height, state.height + BACKDROP.margin));
+  }
+  return group;
+}
+
 const SOLID_FOR_WALL: ReadonlySet<TileType> = new Set<TileType>([
   'counter', 'crate', 'board', 'stove', 'sink', 'drying', 'plateReturn', 'serve', 'trash', 'plateStack',
 ]);
@@ -233,6 +290,7 @@ export class TileSet {
     const groundGeometry = new THREE.PlaneGeometry(1, 1);
     this.root.add(backdrop(state.width, state.height, dressing.backdropColor));
     if (dressing.backWall) this.root.add(backWall(state));
+    this.root.add(streetDressing(state));
     state.tiles.forEach((tile, index) => {
       const cx = tile.x + 0.5;
       const cz = tile.y + 0.5;
