@@ -1,0 +1,43 @@
+{
+  "id": "oc1-1-2",
+  "name": "1-2",
+  "game": "oc1",
+  "world": 1,
+  "index": 2,
+  "theme": "treacle-town",
+  "source": "https://overcooked.fandom.com/wiki/1-2_(Overcooked!)",
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "recipes": ["onion_soup", "tomato_soup"],
+  "orders": { "initial": 2, "intervalSec": 18, "max": 5, "timeSec": 70 },
+  "stars": { "1": [20, 60, 80], "2": [20, 60, 150] },
+  "plates": { "mode": "sink", "count": 2 },
+  "grid": [
+    "##S#S#~~~###EX.#",
+    ".....#~~~......V",
+    "D....p~~~p.....V",
+    "W.....~~~#.....R",
+    "......~~~#......",
+    "##B#B#~~~#T#O##."
+  ],
+  "spawns": [{ "x": 3, "y": 4 }, { "x": 11, "y": 2 }],
+  "dynamics": [
+    {
+      "type": "pedestrians",
+      "lanes": [
+        { "from": { "x": 6, "y": 0 }, "to": { "x": 6, "y": 5 } },
+        { "from": { "x": 8, "y": 0 }, "to": { "x": 8, "y": 5 } }
+      ],
+      "intervalSec": 4,
+      "speed": 2.5,
+      "firstDelaySec": 1.5
+    },
+    {
+      "type": "pedestrians",
+      "lanes": [{ "from": { "x": 7, "y": 5 }, "to": { "x": 7, "y": 0 } }],
+      "intervalSec": 4,
+      "speed": 2.5,
+      "firstDelaySec": 3.5
+    }
+  ]
+}
