@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import {
   ACTIONS, BINDINGS_VERSION, NO_PAD, PAD_BUTTON, STICK_DEADZONE,
-  applyRadialDeadzone, axisEdge, createHeldState, createPlayerInput, copyHeldState,
+  applyRadialDeadzone, axisEdge, clearEdgeLatch, createEdgeLatch, createHeldState,
+  createPlayerInput, copyHeldState,
   defaultGamepadBinding, defaultKeyboardBinding, defaultPlayerBindings,
-  keyCodeLabel, labelForAction, mergeHeldState, padButtonLabel, padKindFromId,
+  keyCodeLabel, labelForAction, latchEdges, mergeHeldState, padButtonLabel, padKindFromId,
   parseBindings, readGamepad, readKeyboard, readMenuInput, serialiseBindings, writePlayerInput,
+  writeStepInput,
   type PadSnapshot, type Vec2,
 } from '../src/input/mapping';
+import type { PlayerInput } from '../src/sim/types';
 import type { GameAction, PlayerBindings } from '../src/input/types';
 
 // ─── Fixtures ───────────────────────────────────────────────────────────────
@@ -314,6 +317,79 @@ describe('menu helpers', () => {
     expect(axisEdge(0, 0.4)).toBe(0);
     expect(axisEdge(0.4, 0.6)).toBe(1);
     expect(axisEdge(1, 0)).toBe(0);
+  });
+});
+
+// ─── Fixed-step edge latch ──────────────────────────────────────────────────
+describe('edge latch', () => {
+  const STEP = 1 / 60;
+
+  /** Mirrors GameScene.runSim: latch the frame's edges, then feed whole fixed steps. */
+  function loop() {
+    const latch = createEdgeLatch();
+    const out = createPlayerInput();
+    let accumulator = 0;
+    return function frame(input: PlayerInput, deltaSec: number): PlayerInput[] {
+      accumulator += deltaSec;
+      latchEdges(latch, input);
+      const stepped: PlayerInput[] = [];
+      while (accumulator >= STEP) {
+        const first = stepped.length === 0;
+        writeStepInput(input, latch, first, out);
+        stepped.push({ ...out });
+        if (first) clearEdgeLatch(latch);
+        accumulator -= STEP;
+      }
+      return stepped;
+    };
+  }
+
+  function press(): PlayerInput {
+    const input = createPlayerInput();
+    input.pickupPressed = true;
+    input.interactPressed = true;
+    input.interactHeld = true;
+    return input;
+  }
+
+  it('keeps a press polled on a frame that runs no step', () => {
+    const frame = loop();
+    expect(frame(press(), STEP / 2)).toEqual([]); // short frame: nothing stepped
+    const stepped = frame(createPlayerInput(), STEP / 2);
+    expect(stepped.length).toBe(1);
+    expect(stepped[0].pickupPressed).toBe(true);
+    expect(stepped[0].interactPressed).toBe(true);
+  });
+
+  it('fires a press on the first sub-step only', () => {
+    const frame = loop();
+    const stepped = frame(press(), STEP * 3);
+    expect(stepped.length).toBe(3);
+    expect(stepped.map((s) => s.pickupPressed)).toEqual([true, false, false]);
+    expect(stepped.map((s) => s.interactHeld)).toEqual([true, true, true]);
+  });
+
+  it('does not repeat a press on later frames', () => {
+    const frame = loop();
+    expect(frame(press(), STEP)[0].pickupPressed).toBe(true);
+    expect(frame(createPlayerInput(), STEP)[0].pickupPressed).toBe(false);
+  });
+
+  it('takes movement and held state from the live poll, not the latch', () => {
+    const latch = createEdgeLatch();
+    const src = createPlayerInput();
+    src.moveX = -0.5;
+    src.moveY = 0.25;
+    src.interactHeld = true;
+    src.pausePressed = true;
+    src.backPressed = true;
+    const out = writeStepInput(src, latch, true, createPlayerInput());
+    expect(out.moveX).toBe(-0.5);
+    expect(out.moveY).toBe(0.25);
+    expect(out.interactHeld).toBe(true);
+    expect(out.pickupPressed).toBe(false); // nothing latched
+    expect(out.pausePressed).toBe(false);  // menu edges never reach the sim
+    expect(out.backPressed).toBe(false);
   });
 });
 

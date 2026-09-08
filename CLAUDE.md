@@ -35,6 +35,12 @@ These files are the shared interface between modules. **Additive changes only** 
 - Sim code must be deterministic and JSON-snapshot friendly (no Maps/Sets in SimState, no Date.now()).
 - Every tuned number lives in `src/sim/constants.ts` or the level JSON, never inline.
 
+## Playtesting from a session
+The claude-in-chrome extension tab stays hidden here (no animation frames), so Phaser never runs in it. Use the headless harness instead: start `npx vite --host --port 5173` in the background, then `node tools/playtest.mjs --url http://localhost:5173/ --out <dir> --file <script>` (commands: goto, wait, tap, hold, holduntil, until, shot, eval, logs, errors). Dev builds expose `window.__oc = { sim, level, scene }` for `eval`/`holduntil` conditions. Read screenshots with the Read tool. Scripted scenarios live in `tools/playtests/`.
+
+## Level loading
+Scenes read levels through `src/game/levelHotReload.ts` (`currentLevels()`, `defaultLevelId()`), never by importing `src/levels` directly, otherwise a JSON edit triggers a full page reload instead of an in-place rebuild.
+
 ## Research source
 Overcooked wiki: https://overcooked.fandom.com. WebFetch is blocked (402). Use the MediaWiki API with curl and a browser User-Agent:
 `curl -s -A "Mozilla/5.0" "https://overcooked.fandom.com/api.php?action=parse&page=1-1%20(Overcooked!)&prop=wikitext|images&format=json"`

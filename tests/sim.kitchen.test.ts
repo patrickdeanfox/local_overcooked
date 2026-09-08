@@ -9,7 +9,7 @@ import {
   NO_INPUT,
   type Chef, type Facing, type PlayerInput, type PotItem, type SimEvent, type SimState,
 } from '../src/sim/types';
-import type { LevelDef } from '../src/levels/schema';
+import { SOLID_TILES, type LevelDef } from '../src/levels/schema';
 
 // ─── Fixtures ───────────────────────────────────────────────────────────────
 // A compact 13x8 kitchen. Every station sits on the outer ring so a chef can reach it
@@ -398,6 +398,61 @@ describe('burning and fire', () => {
     expect(st.fires.length).toBe(1);
     expect(st.fires[0].health).toBe(1);
     expect(chef.holding).toMatchObject({ kind: 'extinguisher' });
+  });
+
+  it('stops cooking and burning while the stove is on fire, and resumes once it is out', () => {
+    const sim = new Sim(makeLevel(), { players: 1, seed: 3 });
+    const st = mutable(sim);
+    const pot = potOnStove(sim);
+    pot.contents.push('onion', 'onion', 'onion');
+    st.fires.push({ x: 11, y: 2, health: 1, spreadTimer: FIRE_SPREAD_TIME });
+
+    const events = stepFor(sim, COOK_TIME + BURN_TIME + 1);
+    expect(pot.cookProgress).toBe(0);
+    expect(pot.state).toBe('empty');
+    expect(types(events)).not.toContain('cookStart');
+    expect(types(events)).not.toContain('burnt');
+
+    st.fires.length = 0;
+    stepFor(sim, COOK_TIME + 0.1);
+    expect(pot.state).toBe('cooked');
+  });
+
+  it('never spreads onto a tile no chef can stand next to', () => {
+    // The board at (11,1) backs onto the wall at (11,0) and (12,1), neither of which has a
+    // walkable neighbour: a fire there could never be sprayed and would re-light the
+    // kitchen every FIRE_SPREAD_TIME for the rest of the level.
+    const sim = new Sim(makeLevel(), { players: 1, seed: 5 });
+    const st = mutable(sim);
+    st.fires.push({ x: 11, y: 1, health: 1, spreadTimer: FIRE_SPREAD_TIME });
+    stepFor(sim, FIRE_SPREAD_TIME * 12);
+    expect(st.fires.length).toBeGreaterThan(1);
+    for (const fire of st.fires) {
+      const walkable = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => {
+        const tile = sim.tileAt(fire.x + dx, fire.y + dy);
+        return tile !== null && !SOLID_TILES.has(tile.type);
+      });
+      expect(walkable, `fire at ${fire.x},${fire.y} is unreachable`).toBe(true);
+    }
+  });
+
+  it('never spreads onto the tile the extinguisher is resting on', () => {
+    const sim = new Sim(makeLevel(), { players: 1, seed: 7 });
+    const st = mutable(sim);
+    expect(sim.itemAt(11, 6)).toMatchObject({ kind: 'extinguisher' });
+    st.fires.push({ x: 11, y: 5, health: 1, spreadTimer: FIRE_SPREAD_TIME });
+    stepFor(sim, FIRE_SPREAD_TIME * 12);
+    expect(st.fires.length).toBeGreaterThan(1); // it did spread, just not onto the cure
+    expect(sim.fireAt(11, 6)).toBe(false);
+  });
+
+  it('spreads onto that tile once the extinguisher has been taken off it', () => {
+    const sim = new Sim(makeLevel(), { players: 1, seed: 7 });
+    const st = mutable(sim);
+    st.tileItems[6 * st.width + 11] = null;
+    st.fires.push({ x: 11, y: 5, health: 1, spreadTimer: FIRE_SPREAD_TIME });
+    stepFor(sim, FIRE_SPREAD_TIME * 12);
+    expect(sim.fireAt(11, 6)).toBe(true);
   });
 });
 
