@@ -1,0 +1,219 @@
+{
+  "id": "oc2-6-2",
+  "game": "oc2",
+  "world": 6,
+  "index": 2,
+  "name": "6-2",
+  "theme": "Gourmet Galaxy",
+  "wiki": "https://overcooked.fandom.com/wiki/6-2_(Overcooked!_2)",
+  "screenshots": [
+    "oc2/6-2.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 70,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "pancake",
+    "chocolate_pancake",
+    "cake",
+    "carrot_cake",
+    "chocolate_cake"
+  ],
+  "orderVariants": 5,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 20,
+    "max": 5,
+    "timeSec": 100
+  },
+  "stars": {
+    "1": [
+      160,
+      200,
+      280
+    ],
+    "2": [
+      180,
+      220,
+      300
+    ],
+    "3": [
+      200,
+      240,
+      340
+    ],
+    "4": [
+      200,
+      240,
+      340
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 3
+  },
+  "grid": {
+    "cols": 15,
+    "rows": 10,
+    "confidence": "low",
+    "ascii": [
+      "______#NNR#____",
+      "______&...!____",
+      "______!...#____",
+      "_______=_______",
+      "#K#K#__=___V..#",
+      "W...F__=___#..X",
+      "E...=======...#",
+      "p...F______$..#",
+      "p...#______!..#",
+      "#BpB#______####"
+    ]
+  },
+  "legendExtensions": {
+    "N": "oven",
+    "K": "mixer",
+    "&": "flour crate (6,1)",
+    "$": "egg crate (11,7)",
+    "!": "honey crate (10,1), carrot crate (6,2), chocolate crate (11,8)",
+    "_": "the water between the islands",
+    "=": "one of the platforms that rises for ~13 s and sinks for ~5 s; their shapes cycle through a fixed sequence, so this ASCII is one snapshot only"
+  },
+  "stations": {
+    "board": 2,
+    "potBurner": 0,
+    "panBurner": 2,
+    "fryer": 0,
+    "oven": 2,
+    "mixer": 2,
+    "steamer": 0,
+    "sink": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plate": 3,
+    "counter": 18,
+    "crates": {
+      "carrot": 1,
+      "chocolate": 1,
+      "egg": 1,
+      "flour": 1,
+      "honey": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 2,
+      "y": 6
+    },
+    {
+      "x": 3,
+      "y": 6
+    }
+  ],
+  "zones": [
+    {
+      "name": "left island (start)",
+      "stations": [
+        "mixer x2",
+        "panBurner x2",
+        "board x2",
+        "sink",
+        "extinguisher",
+        "plate x3"
+      ],
+      "links": [
+        {
+          "to": "top island",
+          "via": "sinking platform"
+        },
+        {
+          "to": "right island",
+          "via": "sinking platform"
+        },
+        {
+          "to": "top island",
+          "via": "throw from halfway across"
+        }
+      ]
+    },
+    {
+      "name": "top island",
+      "stations": [
+        "oven x2",
+        "plateReturn",
+        "flour crate",
+        "honey crate",
+        "carrot crate"
+      ],
+      "links": [
+        {
+          "to": "left island",
+          "via": "sinking platform / throw"
+        }
+      ]
+    },
+    {
+      "name": "right island",
+      "stations": [
+        "serve",
+        "trash",
+        "egg crate",
+        "chocolate crate"
+      ],
+      "links": [
+        {
+          "to": "left island",
+          "via": "sinking platform"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "sinking-platforms",
+      "detail": "platforms surface for about 13 s and sink for about 5 s, cycling through a fixed sequence of shapes from wide land to narrow paths",
+      "periodSec": 18
+    }
+  ],
+  "hazards": [
+    "water: anything carried is lost, chefs respawn; bowls dropped in water respawn at their stand after 5 s"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": true,
+    "movingPlatforms": true,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 39,
+    "counterTiles": 39,
+    "stationTiles": 21,
+    "longestWalkTiles": 14,
+    "chokepointWidth": 1,
+    "recipeSteps": 5
+  },
+  "missingMechanics": [
+    "platforms that rise and sink on a schedule",
+    "cookware that respawns at its stand when dropped in water",
+    "oven",
+    "mixer",
+    "flour / egg / honey / carrot / chocolate",
+    "cake and pancake recipes"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "plates.count",
+    "spawns",
+    "grid.ascii"
+  ]
+}

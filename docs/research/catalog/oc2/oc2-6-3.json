@@ -1,0 +1,228 @@
+{
+  "id": "oc2-6-3",
+  "game": "oc2",
+  "world": 6,
+  "index": 3,
+  "name": "6-3",
+  "theme": "Gourmet Galaxy",
+  "wiki": "https://overcooked.fandom.com/wiki/6-3_(Overcooked!_2)",
+  "screenshots": [
+    "oc2/6-3.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 74,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "pancake",
+    "chocolate_pancake",
+    "cake",
+    "chocolate_cake"
+  ],
+  "orderVariants": 4,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 20,
+    "max": 5,
+    "timeSec": 100
+  },
+  "stars": {
+    "1": [
+      280,
+      360,
+      520
+    ],
+    "2": [
+      380,
+      480,
+      640
+    ],
+    "3": [
+      540,
+      680,
+      920
+    ],
+    "4": [
+      540,
+      680,
+      920
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 3
+  },
+  "grid": {
+    "cols": 13,
+    "rows": 11,
+    "confidence": "low",
+    "ascii": [
+      "#K#KE#v#N#NW#",
+      "#.....v.....#",
+      "#..###v###..#",
+      "?..#__v__#..?",
+      "#..#__v__#..#",
+      "#..#__v__#..#",
+      "#..###v###..#",
+      "#.....v.....#",
+      "#B#B#&v$#F#F#",
+      "#.p.p.v..p..#",
+      "##!#!#X#V#R##"
+    ]
+  },
+  "legendExtensions": {
+    "N": "oven",
+    "K": "mixer",
+    "&": "flour dispenser (5,8)",
+    "$": "egg dispenser (7,8)",
+    "!": "chocolate dispenser (2,10), honey dispenser (4,10)",
+    "_": "the pit in the middle of the room",
+    "v": "conveyor belt; every ingredient rides one toward a bin unless a button diverts it",
+    "?": "button; the left one diverts flour and chocolate, the right one eggs and honey"
+  },
+  "stations": {
+    "board": 2,
+    "potBurner": 0,
+    "panBurner": 2,
+    "fryer": 0,
+    "oven": 2,
+    "mixer": 2,
+    "steamer": 0,
+    "sink": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plate": 3,
+    "counter": 52,
+    "crates": {
+      "chocolate": 1,
+      "egg": 1,
+      "flour": 1,
+      "honey": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 2,
+      "y": 4
+    },
+    {
+      "x": 10,
+      "y": 4
+    }
+  ],
+  "zones": [
+    {
+      "name": "top-left corner",
+      "stations": [
+        "mixer x2",
+        "extinguisher"
+      ],
+      "links": [
+        {
+          "to": "bottom-left corner",
+          "via": "walk"
+        },
+        {
+          "to": "top-right corner",
+          "via": "walk (bottom of the room)"
+        }
+      ]
+    },
+    {
+      "name": "bottom-left corner",
+      "stations": [
+        "board x2",
+        "flour dispenser",
+        "chocolate dispenser",
+        "left button"
+      ],
+      "links": [
+        {
+          "to": "bottom-right corner",
+          "via": "walk"
+        }
+      ]
+    },
+    {
+      "name": "top-right corner",
+      "stations": [
+        "oven x2",
+        "sink"
+      ],
+      "links": [
+        {
+          "to": "bottom-right corner",
+          "via": "walk"
+        }
+      ]
+    },
+    {
+      "name": "bottom-right corner",
+      "stations": [
+        "panBurner x2",
+        "serve",
+        "plateReturn",
+        "egg dispenser",
+        "honey dispenser",
+        "right button"
+      ],
+      "links": [
+        {
+          "to": "bottom-left corner",
+          "via": "walk"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "belt-and-button",
+      "detail": "ingredients ride belts into bins; pressing a side's button diverts that side's two ingredients into reach until it pops back up. Eggs are the only ingredient grabbable without a press, right before they drop",
+      "periodSec": null
+    }
+  ],
+  "hazards": [
+    "ingredients are binned if nobody presses the button",
+    "central pit"
+  ],
+  "features": {
+    "splitKitchen": false,
+    "throwRequired": false,
+    "movingPlatforms": false,
+    "conveyors": true,
+    "portals": false,
+    "floorTiles": 59,
+    "counterTiles": 72,
+    "stationTiles": 20,
+    "longestWalkTiles": 3,
+    "chokepointWidth": 1,
+    "recipeSteps": 5
+  },
+  "missingMechanics": [
+    "ingredient dispensers feeding conveyor belts",
+    "buttons that divert a belt",
+    "belts that end in bins",
+    "oven",
+    "mixer",
+    "flour / egg / honey / chocolate",
+    "cake and pancake recipes"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "plates.count",
+    "spawns",
+    "grid.ascii",
+    "dynamics[0].periodSec"
+  ]
+}
