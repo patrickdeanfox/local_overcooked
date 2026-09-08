@@ -24,6 +24,7 @@ import { Hud } from '../ui/Hud';
 import { KeyboardNav, MenuInput, mergeNav } from '../ui/menuInput';
 import { PauseMenu } from '../ui/PauseMenu';
 import { DEFAULT_PRESET, loadSettings, presetModifiers, presetName, seedFor, type PresetId } from '../settings';
+import { createEventRing, isPlayNotesOpen, setPlayNotesContext } from '../playnotes';
 import { COLOR, TEXT_COLOR, textStyle } from '../ui/theme';
 import type { GameSceneData, ResultsSceneData } from '../types';
 
@@ -82,6 +83,7 @@ export class GameScene extends Phaser.Scene {
   private seed = 0;
   private modifiers: Modifiers = {};
   private preset: PresetId = DEFAULT_PRESET;
+  private readonly recentEvents = createEventRing();
   private accumulator = 0;
   private ending = false;
   private escQueued = false;
@@ -125,14 +127,38 @@ export class GameScene extends Phaser.Scene {
     this.debugOverlay = new DebugOverlay(this, this.kitchen);
     this.installKeys();
     this.disposers.push(onLevelsHotReload((next) => this.onLevelsChanged(next)));
+    this.disposers.push(setPlayNotesContext(() => this.playNotesContext()));
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.cleanup, this);
     this.ready = true;
     log.info('level started', this.levelId, `${this.players}P`, 'seed', this.seed, this.preset);
   }
 
+  /** What an F8 play note records about this run. */
+  private playNotesContext(): Record<string, unknown> {
+    const st = this.sim.getState();
+    return {
+      levelId: this.levelId,
+      seed: this.seed,
+      preset: this.preset,
+      players: this.players,
+      phase: st.phase,
+      elapsed: Number(st.elapsed.toFixed(1)),
+      timeLeft: Number(st.timeLeft.toFixed(1)),
+      score: st.score,
+      orders: st.orders.map((o) => o.recipeId),
+      chefs: st.chefs.map((c) => ({ x: Number(c.x.toFixed(2)), y: Number(c.y.toFixed(2)), holding: c.holding?.kind ?? null })),
+      recentEvents: this.recentEvents.list(),
+      paused: this.pauseMenu.isOpen,
+    };
+  }
+
   override update(_time: number, deltaMs: number): void {
     if (!this.ready) return;
     const inputs = this.inputMgr.poll();
+    if (isPlayNotesOpen()) { // the reporter has the keyboard: hold the kitchen still
+      this.render(this.sim.getState(), [], { steps: 0, ms: 0 }, deltaMs);
+      return;
+    }
     const nav = mergeNav(this.menuInput.poll(inputs), this.keyboardNav.poll());
     this.handlePauseEdge(inputs);
 
@@ -144,6 +170,7 @@ export class GameScene extends Phaser.Scene {
     } else if (!this.ending) {
       stepped = this.runSim(inputs, deltaMs, events);
       for (const event of events) {
+        this.recentEvents.push(event.type);
         const sfx = sfxForEvent(event);
         if (sfx) this.audio.play(sfx);
       }

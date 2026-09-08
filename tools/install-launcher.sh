@@ -21,6 +21,7 @@ rm -rf "$INSTALL_DIR/dist"
 cp -r "$ROOT/dist" "$INSTALL_DIR/dist"
 cp "$ROOT/server.mjs" "$INSTALL_DIR/server.mjs"
 cp "$ROOT/tools/make-cert.mjs" "$INSTALL_DIR/tools/make-cert.mjs"
+cp "$ROOT/tools/playnotes-store.mjs" "$INSTALL_DIR/tools/playnotes-store.mjs"
 cp "$ROOT/tools/launch.sh" "$INSTALL_DIR/launch.sh"
 chmod +x "$INSTALL_DIR/launch.sh"
 

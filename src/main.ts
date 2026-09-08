@@ -5,9 +5,10 @@ import { TitleScene } from './game/scenes/TitleScene';
 import { ControllerScene } from './game/scenes/ControllerScene';
 import { GameScene } from './game/scenes/GameScene';
 import { ResultsScene } from './game/scenes/ResultsScene';
+import { installPlayNotes } from './game/playnotes';
 
 // Owned by the integrator. Scenes register here in flow order.
-new Phaser.Game({
+const game = new Phaser.Game({
   type: Phaser.AUTO,
   parent: 'game',
   width: GAME_WIDTH,
@@ -19,3 +20,6 @@ new Phaser.Game({
   input: { gamepad: true, keyboard: true },
   scene: [BootScene, TitleScene, ControllerScene, GameScene, ResultsScene],
 });
+
+// Bug / idea reporter on every screen (F8 or the corner button).
+installPlayNotes(game);
