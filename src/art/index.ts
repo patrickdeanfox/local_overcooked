@@ -1,25 +1,44 @@
-// STUB: art+audio agent replaces with real code-drawn art. Must generate every key in ALL_TEXTURE_KEYS().
+// ─── Art module ─────────────────────────────────────────────────────────────
+// Every texture the game uses is drawn here with a 2D canvas context at boot —
+// there are no image files. generateTextures() must produce every key in
+// ALL_TEXTURE_KEYS() and is idempotent: keys that already exist are skipped, so
+// a scene restart costs nothing.
+//
+// Layout convention: tiles are 64x64 with a fake 3/4 view (lit top face, ~10 px
+// darker front edge), items are 40x40 centred and transparent, chefs are 64x80
+// with their feet on the bottom edge, icons are 32x32.
 import type Phaser from 'phaser';
-import { ALL_TEXTURE_KEYS, TEXTURE_SIZES } from './keys';
+import { log } from '../log';
+import { ALL_TEXTURE_KEYS } from './keys';
+import { generateTileTextures } from './tiles';
+import { generateItemTextures } from './items';
+import { generateChefTextures } from './chefs';
+import { generateUiTextures } from './ui';
+
 export * from './keys';
+export { PALETTE, PALETTE_INT, hexToInt, type PaletteName } from './palette';
+export { drawIngredient, drawPlate, drawPot, soupColor } from './items';
+export { FONT_STACK } from './draw';
 
-const STUB_COLORS: Record<string, number> = {
-  'tile.void': 0x1a1210, 'tile.floor': 0x3b3b46, 'tile.road': 0x55555e, 'tile.counter': 0xc9a06a, 'tile.board': 0xe0c58c,
-  'tile.stove': 0x444444, 'tile.sink': 0x8fb8c8, 'tile.drying': 0xa8c4d0, 'tile.plateReturn': 0x777777, 'tile.serve': 0x7ac36a,
-  'tile.trash': 0x2e6b2e, 'tile.plateStack': 0xd8d8d8, 'tile.slider': 0x7f9a7f,
-};
+// ─── Timing ─────────────────────────────────────────────────────────────────
 
+function nowMs(): number {
+  return typeof performance !== 'undefined' ? performance.now() : Date.now();
+}
+
+// ─── Entry point ────────────────────────────────────────────────────────────
+
+/** Draw every texture in ALL_TEXTURE_KEYS() into the scene's texture manager. */
 export function generateTextures(scene: Phaser.Scene): void {
-  for (const key of ALL_TEXTURE_KEYS()) {
-    if (scene.textures.exists(key)) continue;
-    const isTile = key.startsWith('tile.');
-    const isChef = key.startsWith('chef.');
-    const w = isTile ? TEXTURE_SIZES.tile : isChef ? TEXTURE_SIZES.chefW : TEXTURE_SIZES.item;
-    const h = isTile ? TEXTURE_SIZES.tile : isChef ? TEXTURE_SIZES.chefH : TEXTURE_SIZES.item;
-    const g = scene.make.graphics({ x: 0, y: 0 }, false);
-    g.fillStyle(STUB_COLORS[key] ?? (key.startsWith('tile.crate') ? 0xb07a3a : 0xff00ff), 1);
-    g.fillRect(0, 0, w, h);
-    g.generateTexture(key, w, h);
-    g.destroy();
-  }
+  const startedAt = nowMs();
+
+  generateTileTextures(scene);
+  generateItemTextures(scene);
+  generateChefTextures(scene);
+  generateUiTextures(scene);
+
+  const keys = ALL_TEXTURE_KEYS();
+  const missing = keys.filter((key) => !scene.textures.exists(key));
+  if (missing.length > 0) log.error('art: textures missing after generation', missing);
+  log.info(`art: ${keys.length - missing.length}/${keys.length} textures in ${Math.round(nowMs() - startedAt)} ms`);
 }
