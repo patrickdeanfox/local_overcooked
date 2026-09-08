@@ -14,6 +14,7 @@ const game = new Phaser.Game({
   width: GAME_WIDTH,
   height: GAME_HEIGHT,
   backgroundColor: '#1a1210',
+  transparent: true, // the 3D kitchen renders on a canvas behind this one
   pixelArt: false,
   antialias: true,
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },

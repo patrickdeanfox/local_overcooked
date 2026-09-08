@@ -13,7 +13,10 @@
     "playtest": "node tools/playtest.mjs",
     "cert": "node tools/make-cert.mjs",
     "install-launcher": "bash tools/install-launcher.sh",
-    "notes": "node tools/playnotes.mjs"
+    "notes": "node tools/playnotes.mjs",
+    "models": "node tools/sync-models.mjs",
+    "skins": "python3 tools/make-chef-skins.py",
+    "chef": "blender -b --python tools/export-chef.py"
   },
   "keywords": [],
   "author": "",
@@ -21,7 +24,9 @@
   "type": "module",
   "private": "true",
   "dependencies": {
-    "phaser": "^3.90.0"
+    "@types/three": "^0.185.4",
+    "phaser": "^3.90.0",
+    "three": "^0.186.0"
   },
   "devDependencies": {
     "typescript": "^7.0.2",

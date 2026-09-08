@@ -1,6 +1,6 @@
 # local_overcooked — project rules
 
-Two-player Overcooked clone in the browser. Phaser 3 + Vite + TypeScript. One screen, two gamepads (or keyboard).
+Two-player Overcooked clone in the browser. Phaser 3 (menus, HUD, input) + Three.js (the 3D kitchen, on a canvas behind Phaser's transparent one) + Vite + TypeScript. One screen, two gamepads (or keyboard).
 
 ## Commands
 - `npm run dev` — Vite dev server with HMR, reachable on the LAN (`--host`).
@@ -22,7 +22,7 @@ These files are the shared interface between modules. **Additive changes only** 
 - `src/sim/**` + `tests/sim*` — simulation agent. Pure TS, no Phaser import, deterministic given inputs + seed.
 - `src/game/**` — presentation agent (scenes, renderer, HUD, debug overlay, level hot reload). Except `ControllerScene.ts`.
 - `src/game/scenes/ControllerScene.ts` + `src/input/**` — input agent.
-- `src/art/**` + `src/audio/**` — art + audio agent.
+- `src/art/**` + `src/audio/**` + `assets/**` + `public/models/**` + `tools/sync-models.mjs`, `tools/export-chef.py`, `tools/make-chef-skins.py` — art + audio agent.
 - `src/levels/**` + `tests/levels*` + `docs/LEVEL_*.md` — levels agent.
 - `docs/research/**` — research agents.
 - `src/main.ts`, `package.json`, configs, `README.md`, `docs/PLAN.md`, `docs/ROADMAP.md` — integrator only.
@@ -30,10 +30,16 @@ These files are the shared interface between modules. **Additive changes only** 
 ## Style
 - Strict TypeScript, no `any`, no non-null assertions except Phaser field initialisation (`!`).
 - File order: constants at top → pure helpers → classes/IO → exports. Section-header comments per block.
-- No new npm dependencies. Phaser, Vite, TypeScript, Vitest only.
+- No new npm dependencies. Phaser, Three.js, Vite, TypeScript, Vitest only.
 - No console.* outside `src/log.ts`. Use `log.info/warn/error`, gated by `DEBUG` in `src/config.ts`.
 - Sim code must be deterministic and JSON-snapshot friendly (no Maps/Sets in SimState, no Date.now()).
 - Every tuned number lives in `src/sim/constants.ts` or the level JSON, never inline.
+
+## 3D assets
+- Source kits (CC0: Kenney Food Kit, Furniture Kit, Animated Characters; KayKit Restaurant Bits) live in `assets/`. `src/art/models.json` maps a role to one glTF file and its normalisation (scale / fit / height); `src/art/models.ts` is the typed contract.
+- `npm run models` copies the referenced files plus their buffers and textures into `public/models/`. Run it after editing the manifest.
+- `npm run chef` bakes the Kenney character rig and its idle/run/jump clips into `public/models/chef/chef.glb` (needs Blender; the clip files have a different bind pose, so the script retargets by world-space constraints). `npm run skins` paints the chef skins from a stock Kenney skin (needs Pillow).
+- Presentation: `src/game/render/KitchenRenderer.ts` (state → scene) and `src/game/render/three/` (stage/camera/lights, loader, tiles, items, chef rigs, effects). Progress bars, badges and the debug grid stay in Phaser, projected through the 3D camera.
 
 ## Playtesting from a session
 The claude-in-chrome extension tab stays hidden here (no animation frames), so Phaser never runs in it. Use the headless harness instead: start `npx vite --host --port 5173` in the background, then `node tools/playtest.mjs --url http://localhost:5173/ --out <dir> --file <script>` (commands: goto, wait, tap, hold, holduntil, until, shot, eval, logs, errors). Dev builds expose `window.__oc = { sim, level, scene }` for `eval`/`holduntil` conditions. Read screenshots with the Read tool. Scripted scenarios live in `tools/playtests/`.

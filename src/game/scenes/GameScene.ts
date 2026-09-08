@@ -108,7 +108,8 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    this.cameras.main.setBackgroundColor(COLOR.bg);
+    // Transparent: the 3D kitchen draws on the canvas behind this one; the page carries COLOR.bg.
+    this.cameras.main.setBackgroundColor('rgba(0,0,0,0)');
     this.buildLevel(level);
 
     this.inputMgr = createInputManager(this, this.players);

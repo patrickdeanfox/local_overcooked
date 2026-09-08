@@ -167,13 +167,22 @@ export class DebugOverlay {
     const graphics = this.scene.add.graphics();
     graphics.lineStyle(GRID_LABEL.lineWidthPx, GRID_LABEL.lineColor, GRID_LABEL.lineAlpha);
     const { width, height } = this.renderer.gridSize;
-    for (let x = 0; x <= width; x++) graphics.lineBetween(x * TILE, 0, x * TILE, height * TILE);
-    for (let y = 0; y <= height; y++) graphics.lineBetween(0, y * TILE, width * TILE, y * TILE);
+    // Each tile is a quad whose corners are projected through the kitchen camera.
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const corners = [
+          this.renderer.tileToScreen(x, y), this.renderer.tileToScreen(x + 1, y),
+          this.renderer.tileToScreen(x + 1, y + 1), this.renderer.tileToScreen(x, y + 1),
+        ];
+        graphics.strokePoints(corners.map((c) => new Phaser.Geom.Point(c.x, c.y)), true);
+      }
+    }
     layer.add(graphics);
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
+        const corner = this.renderer.tileToScreen(x, y);
         const label = this.scene.add
-          .text(x * TILE + GRID_LABEL.offsetXPx, y * TILE + GRID_LABEL.offsetYPx, `${x},${y}`, {
+          .text(corner.x + GRID_LABEL.offsetXPx, corner.y + GRID_LABEL.offsetYPx, `${x},${y}`, {
             fontFamily: FONT_FAMILY,
             fontSize: `${GRID_LABEL.fontPx}px`,
             color: GRID_LABEL.color,
