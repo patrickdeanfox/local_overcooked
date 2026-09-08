@@ -1,0 +1,189 @@
+{
+  "id": "oc2-k-2",
+  "game": "oc2",
+  "world": null,
+  "index": 2,
+  "name": "Kevin 2",
+  "theme": "Kevin Level",
+  "wiki": "https://overcooked.fandom.com/wiki/Kevin_2",
+  "screenshots": [
+    "oc2/kevin-2.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": null,
+  "unlock": "Accessible from 2-2; solo challenge tip combo 3x, team challenge tip combo 5x",
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "steamed_fish",
+    "steamed_beef",
+    "steamed_carrot",
+    "steamed_prawn"
+  ],
+  "orderVariants": 4,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 20,
+    "max": 5,
+    "timeSec": 90
+  },
+  "stars": {
+    "1": [
+      260,
+      320,
+      420,
+      950
+    ],
+    "2": [
+      380,
+      480,
+      640,
+      1300
+    ],
+    "3": [
+      420,
+      540,
+      720,
+      1400
+    ],
+    "4": [
+      420,
+      540,
+      720,
+      1250
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 4
+  },
+  "grid": {
+    "cols": 15,
+    "rows": 12,
+    "confidence": "low",
+    "ascii": [
+      "...............",
+      "...............",
+      "..ZpZ...p#Z....",
+      "..###...###....",
+      "..W#E...ØR&....",
+      "......##.......",
+      ".............V.",
+      "..J!A...KBK....",
+      "..p##...p##....",
+      "..#X#...B#B....",
+      "...............",
+      "..............."
+    ]
+  },
+  "legendExtensions": {
+    "Z": "steamer (burner carrying a bamboo steamer)",
+    "K": "mixer",
+    "&": "flour ingredient box",
+    "J": "fish ingredient box",
+    "Ø": "prawn ingredient box",
+    "!": "carrot ingredient box"
+  },
+  "stations": {
+    "board": 3,
+    "potBurner": 0,
+    "panBurner": 0,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 2,
+    "steamer": 3,
+    "sink": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plate": 4,
+    "counter": 17,
+    "crates": {
+      "prawn": 1,
+      "flour": 1,
+      "fish": 1,
+      "carrot": 1,
+      "beef": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 6,
+      "y": 3
+    },
+    {
+      "x": 6,
+      "y": 8
+    },
+    {
+      "x": 1,
+      "y": 5
+    },
+    {
+      "x": 12,
+      "y": 5
+    }
+  ],
+  "zones": [
+    {
+      "name": "open plaza",
+      "stations": [
+        "everything — the four islands sit in one walkable square"
+      ],
+      "links": [
+        {
+          "to": "itself",
+          "via": "walk; the islands rotate under you"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "rotating-islands",
+      "detail": "the four 3x3 islands are pushed one quarter-turn clockwise around the two centre countertops, then counter-clockwise, starting at 3:00 remaining",
+      "periodSec": 23
+    }
+  ],
+  "hazards": [],
+  "features": {
+    "splitKitchen": false,
+    "throwRequired": false,
+    "movingPlatforms": true,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 141,
+    "counterTiles": 39,
+    "stationTiles": 22,
+    "longestWalkTiles": 10,
+    "chokepointWidth": 2,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "steamer station",
+    "mixer station",
+    "Steamed Food recipe family",
+    "flour / fish / prawn / carrot ingredients",
+    "throwing",
+    "islands that rotate around a pivot"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "spawns",
+    "grid.cols",
+    "grid.rows",
+    "grid.ascii",
+    "dynamics[0].periodSec (wiki says ~23 s)",
+    "stations.serve position"
+  ]
+}

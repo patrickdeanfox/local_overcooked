@@ -1,0 +1,238 @@
+{
+  "id": "oc2-k-7",
+  "game": "oc2",
+  "world": null,
+  "index": 7,
+  "name": "Kevin 7",
+  "theme": "Kevin Level",
+  "wiki": "https://overcooked.fandom.com/wiki/Kevin_7",
+  "screenshots": [
+    "oc2/kevin-7.jpg"
+  ],
+  "timeLimitSec": 270,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": null,
+  "unlock": "Accessible from 5-5; solo challenge tip combo 5x, team challenge tip combo 9x",
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "steamed_fish",
+    "steamed_beef",
+    "steamed_carrot",
+    "steamed_prawn"
+  ],
+  "orderVariants": 4,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 20,
+    "max": 5,
+    "timeSec": 90
+  },
+  "stars": {
+    "1": [
+      240,
+      300,
+      420,
+      800
+    ],
+    "2": [
+      300,
+      360,
+      500,
+      1280
+    ],
+    "3": [
+      320,
+      400,
+      540,
+      1280
+    ],
+    "4": [
+      320,
+      400,
+      540,
+      1280
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 3
+  },
+  "grid": {
+    "cols": 15,
+    "rows": 12,
+    "confidence": "low",
+    "ascii": [
+      "#RXA&#p#BB#####",
+      "...............",
+      "...............",
+      "...............",
+      "...............",
+      "K.............Z",
+      "K      #      Z",
+      "!.............J",
+      "...............",
+      "...............",
+      "..........V....",
+      "#W#BB#pp#Ø#####"
+    ]
+  },
+  "legendExtensions": {
+    "Z": "steamer (burner carrying a bamboo steamer)",
+    "K": "mixer",
+    "&": "flour ingredient box",
+    "J": "fish ingredient box",
+    "Ø": "prawn ingredient box",
+    "!": "carrot ingredient box",
+    "K/Z/!/J at x=0 and x=14": "the two moving platforms; they are drawn in place as counter tiles, but the whole three-tile run travels between the halves"
+  },
+  "stations": {
+    "board": 4,
+    "potBurner": 0,
+    "panBurner": 0,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 2,
+    "steamer": 2,
+    "sink": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 0,
+    "plate": 3,
+    "counter": 18,
+    "crates": {
+      "beef": 1,
+      "flour": 1,
+      "carrot": 1,
+      "fish": 1,
+      "prawn": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 5,
+      "y": 2
+    },
+    {
+      "x": 5,
+      "y": 9
+    },
+    {
+      "x": 9,
+      "y": 2
+    },
+    {
+      "x": 9,
+      "y": 9
+    }
+  ],
+  "zones": [
+    {
+      "name": "top half",
+      "stations": [
+        "plate return",
+        "bin",
+        "beef box",
+        "flour box",
+        "plate",
+        "board x2"
+      ],
+      "links": [
+        {
+          "to": "bottom half",
+          "via": "the single centre countertop, the two moving platforms, or a throw"
+        }
+      ]
+    },
+    {
+      "name": "bottom half",
+      "stations": [
+        "sink",
+        "board x2",
+        "plate x2",
+        "prawn box",
+        "serve"
+      ],
+      "links": [
+        {
+          "to": "top half",
+          "via": "the single centre countertop, the two moving platforms, or a throw"
+        }
+      ]
+    },
+    {
+      "name": "left platform",
+      "stations": [
+        "mixer x2",
+        "carrot box"
+      ],
+      "links": [
+        {
+          "to": "both halves",
+          "via": "it drives between them"
+        }
+      ]
+    },
+    {
+      "name": "right platform",
+      "stations": [
+        "steamer x2",
+        "fish box"
+      ],
+      "links": [
+        {
+          "to": "both halves",
+          "via": "it drives between them"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "moving-platforms",
+      "detail": "one platform on each side carries its stations back and forth between the top and bottom halves; the left one holds both mixers and the carrot box, the right one both steamers and the fish box",
+      "periodSec": null
+    }
+  ],
+  "hazards": [],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": true,
+    "movingPlatforms": true,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 130,
+    "counterTiles": 38,
+    "stationTiles": 20,
+    "longestWalkTiles": 11,
+    "chokepointWidth": 1,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "steamer station",
+    "mixer station",
+    "Steamed Food recipe family",
+    "flour / fish / prawn / carrot ingredients",
+    "throwing",
+    "platforms that carry stations between two isolated halves"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "spawns",
+    "grid.cols",
+    "grid.rows",
+    "grid.ascii",
+    "dynamics[0].periodSec",
+    "the platform travel path",
+    "serve counter tile"
+  ]
+}

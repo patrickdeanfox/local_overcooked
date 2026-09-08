@@ -1,0 +1,234 @@
+{
+  "id": "oc2-k-5",
+  "game": "oc2",
+  "world": null,
+  "index": 5,
+  "name": "Kevin 5",
+  "theme": "Kevin Level",
+  "wiki": "https://overcooked.fandom.com/wiki/Kevin_5",
+  "screenshots": [
+    "oc2/kevin-5.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": null,
+  "unlock": "Accessible from 4-3; solo challenge tip combo 4x, team challenge tip combo 5x",
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "steamed_fish",
+    "steamed_beef",
+    "steamed_carrot",
+    "steamed_prawn"
+  ],
+  "orderVariants": 4,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 20,
+    "max": 5,
+    "timeSec": 90
+  },
+  "stars": {
+    "1": [
+      180,
+      240,
+      320,
+      620
+    ],
+    "2": [
+      260,
+      320,
+      440,
+      1000
+    ],
+    "3": [
+      320,
+      420,
+      560,
+      1100
+    ],
+    "4": [
+      320,
+      420,
+      560,
+      1100
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 3
+  },
+  "grid": {
+    "cols": 16,
+    "rows": 11,
+    "confidence": "low",
+    "ascii": [
+      "pp............W#",
+      "................",
+      ".........K#K##..",
+      ".........J!ØA#..",
+      "................",
+      "~~~~~~~~~~~~~~~V",
+      "................",
+      "..&##ZZ.........",
+      "..BBB##.........",
+      "................",
+      "RX............pE"
+    ]
+  },
+  "legendExtensions": {
+    "Z": "steamer (burner carrying a bamboo steamer)",
+    "K": "mixer",
+    "&": "flour ingredient box",
+    "J": "fish ingredient box",
+    "Ø": "prawn ingredient box",
+    "!": "carrot ingredient box",
+    "~": "the road between the two work areas; cars drive along it"
+  },
+  "stations": {
+    "board": 3,
+    "potBurner": 0,
+    "panBurner": 0,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 2,
+    "steamer": 2,
+    "sink": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plate": 3,
+    "counter": 9,
+    "crates": {
+      "fish": 1,
+      "carrot": 1,
+      "prawn": 1,
+      "beef": 1,
+      "flour": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 4,
+      "y": 7
+    },
+    {
+      "x": 11,
+      "y": 3
+    },
+    {
+      "x": 3,
+      "y": 9
+    },
+    {
+      "x": 10,
+      "y": 2
+    }
+  ],
+  "zones": [
+    {
+      "name": "upper band (mixers and boxes)",
+      "stations": [
+        "mixer x2",
+        "fish box",
+        "carrot box",
+        "prawn box",
+        "beef box"
+      ],
+      "links": [
+        {
+          "to": "lower band (boards and steamers)",
+          "via": "walk across the road, or throw"
+        }
+      ]
+    },
+    {
+      "name": "lower band (boards and steamers)",
+      "stations": [
+        "board x3",
+        "steamer x2",
+        "flour box"
+      ],
+      "links": [
+        {
+          "to": "upper band (mixers and boxes)",
+          "via": "walk across the road, or throw"
+        }
+      ]
+    },
+    {
+      "name": "corners",
+      "stations": [
+        "plates",
+        "sink",
+        "plate return",
+        "bin",
+        "extinguisher",
+        "serve"
+      ],
+      "links": [
+        {
+          "to": "both bands",
+          "via": "walk"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "wind-swap",
+      "detail": "gusts of wind swap the two 2x5 work areas from one side of their band to the other, and push chefs while they blow",
+      "periodSec": null
+    },
+    {
+      "type": "cars",
+      "detail": "cars drive at random along the road between the two bands",
+      "periodSec": null
+    }
+  ],
+  "hazards": [
+    "cars on the road",
+    "wind pushes chefs"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": true,
+    "movingPlatforms": true,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 147,
+    "counterTiles": 29,
+    "stationTiles": 20,
+    "longestWalkTiles": 13,
+    "chokepointWidth": 2,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "steamer station",
+    "mixer station",
+    "Steamed Food recipe family",
+    "flour / fish / prawn / carrot ingredients",
+    "throwing",
+    "wind that both moves stations and pushes chefs",
+    "cars as a moving hazard (the clone has pedestrians, not cars)"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "spawns",
+    "grid.cols",
+    "grid.rows",
+    "grid.ascii",
+    "dynamics[0].periodSec",
+    "dynamics[1].periodSec",
+    "the exact tile layout inside each 2x5 band"
+  ]
+}
