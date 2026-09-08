@@ -11,9 +11,12 @@ One JSON file per level under `src/levels/<game>/`. Type: `LevelDef` in `src/lev
 | `.` | floor | walkable |
 | `~` | road | walkable; pedestrians use it (1-2 crosswalk). Mark the crossing lanes only — street the chefs share with nobody stays `.` |
 | `#` | counter | holds one item |
-| `O` `T` `M` | crate | onion / tomato / mushroom source |
+| `O` `T` `M` | crate | onion / tomato / mushroom source (soups) |
+| `A` `U` `L` | crate | meat (beef) / bun / lettuce source (burgers) |
 | `B` | board | chopping board |
 | `S` | stove | burner, starts with an empty pot |
+| `F` | stove | burner, starts with an empty frying pan (fries one chopped meat) |
+| `G` | gate | floor that is walkable only while gate group `1` is open (1-6 earthquake); needs a `gate` dynamic |
 | `W` | sink | wash dirty plates |
 | `D` | drying | clean plates come out here, must touch the sink |
 | `R` | plateReturn | dirty plates arrive here after a serve (`plates.mode: sink`) |
@@ -34,9 +37,13 @@ One JSON file per level under `src/levels/<game>/`. Type: `LevelDef` in `src/lev
 - `stars`: `{"1": [s1, s2, s3], "2": [s1, s2, s3]}` score thresholds by player count.
 - `plates`: `{mode: 'sink' | 'stack', count}`.
 - `spawns`: chef start tiles, index = player.
+- `unlockStars` (optional): total stars needed before the level appears unlocked (wiki infobox `unlock`). Absent or 0 = always open.
 - `dynamics` (optional):
   - `{type: 'pedestrians', lanes: [{from, to}], intervalSec, speed, firstDelaySec?}`
   - `{type: 'sliders', group, axis, amplitude, periodSec, phase?}`
+  - `{type: 'gate', group, periodSec, openSec, phase?}`: the group's `gate` tiles are walkable for `openSec` of every `periodSec`, starting open.
+
+Validation is recipe-driven: every ingredient of every recipe needs a crate, soups need a stove with a pot (`S`), meat needs a stove with a pan (`F`), chopped ingredients need a board.
 
 ## Authoring method
 1. Download the wiki screenshot (see CLAUDE.md), convert to PNG, view it.

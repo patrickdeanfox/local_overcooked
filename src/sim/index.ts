@@ -18,7 +18,7 @@ import {
   FACING_VECTORS, NO_INPUT,
   type Chef, type ChefAction, type DirtyPlateItem, type IngredientItem, type IngredientType,
   type Item, type PlateItem, type PlayerInput, type PotItem, type SimEvent, type SimState,
-  type SliderGroup, type Tile,
+  type Modifiers, type SliderGroup, type Tile,
 } from './types';
 
 export * from './constants';
@@ -37,8 +37,9 @@ const NEIGHBOURS: readonly { dx: number; dy: number }[] = [
 ];
 
 export interface SimOptions {
-  players: number; // 1 or 2
-  seed: number;    // deterministic order sequence
+  players: number;        // 1 or 2
+  seed: number;           // deterministic order sequence
+  modifiers?: Modifiers;  // difficulty scaling applied to the level's numbers at construction
 }
 
 interface SliderSpec { group: string; axis: 'x' | 'y'; amplitude: number; periodSec: number; phase: number; }
@@ -170,7 +171,7 @@ export class Sim {
           periodSec: Math.max(dyn.periodSec, SIM_DT), phase: dyn.phase ?? 0,
         });
         this.state.sliders.push({ id: dyn.group, offsetX: 0, offsetY: 0 });
-      } else {
+      } else if (dyn.type === 'pedestrians') {
         for (const lane of dyn.lanes) {
           this.pedLanes.push({
             fromX: lane.from.x, fromY: lane.from.y, toX: lane.to.x, toY: lane.to.y,

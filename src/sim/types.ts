@@ -6,8 +6,17 @@
 // Coordinates: tile units, x right, y down, (0,0) is the top-left tile. Chef x/y is the
 // chef's center, so a chef standing in the middle of tile (3,2) has x=3.5, y=2.5.
 
-export type IngredientType = 'onion' | 'tomato' | 'mushroom';
-export const INGREDIENT_TYPES: readonly IngredientType[] = ['onion', 'tomato', 'mushroom'];
+export type IngredientType = 'onion' | 'tomato' | 'mushroom' | 'meat' | 'bun' | 'lettuce';
+export const INGREDIENT_TYPES: readonly IngredientType[] = ['onion', 'tomato', 'mushroom', 'meat', 'bun', 'lettuce'];
+/** Ingredients that go in a pot and make soup. */
+export const SOUP_INGREDIENTS: readonly IngredientType[] = ['onion', 'tomato', 'mushroom'];
+/** Ingredients that need the chopping board before use (buns never do). */
+export const CHOPPED_INGREDIENTS: readonly IngredientType[] = ['onion', 'tomato', 'mushroom', 'meat', 'lettuce'];
+/** Ingredients that go in a pan after chopping and come out cooked. */
+export const FRIED_INGREDIENTS: readonly IngredientType[] = ['meat'];
+
+export type Ware = 'pot' | 'pan'; // cookware that sits on a stove
+export type DishType = 'soup' | 'burger';
 
 export type TileType =
   | 'void'        // outside the kitchen; not walkable, nothing placed
@@ -23,14 +32,15 @@ export type TileType =
   | 'serve'       // solid; serving counter: drop a plated dish to serve it
   | 'trash'       // solid; destroys ingredients/soup dropped on it (plates and pots return empty)
   | 'plateStack'  // solid; 'stack' plate mode: clean plates respawn here after a serve
-  | 'slider';     // solid counter that moves with its slider group (tile.group), 1-3 ship counters
+  | 'slider'      // solid counter that moves with its slider group (tile.group), 1-3 ship counters
+  | 'gate';       // floor that is walkable only while its gate group (tile.group) is open, 1-6 earthquake seam
 
 export interface Tile {
   x: number;
   y: number;
   type: TileType;
   ingredient?: IngredientType; // crate only
-  group?: string;              // slider only
+  group?: string;              // slider and gate tiles
 }
 
 export type Facing = 'up' | 'down' | 'left' | 'right';
@@ -45,17 +55,23 @@ export interface IngredientItem {
   type: IngredientType;
   chopped: boolean;
   chopProgress: number; // 0..1 while on a board
+  cooked?: boolean;     // fried ingredients (meat) after the pan; absent means raw
 }
 export type PotState = 'empty' | 'cooking' | 'cooked' | 'burnt';
+/** Cookware on a stove. ware 'pot' (default) boils up to POT_CAPACITY soup ingredients;
+ *  ware 'pan' fries exactly one chopped FRIED_INGREDIENTS item into a cooked one. */
 export interface PotItem {
   kind: 'pot';
   id: number;
-  contents: IngredientType[]; // max POT_CAPACITY, all chopped
+  ware?: Ware;                // absent means 'pot'
+  contents: IngredientType[]; // max POT_CAPACITY (pot) or 1 (pan), all chopped
   state: PotState;
   cookProgress: number;   // 0..1, advances only while on a stove with contents
   burnProgress: number;   // 0..1 after cooked while still on the stove; 1 → burnt (+ fire)
 }
-export interface Dish { type: 'soup'; ingredients: IngredientType[]; } // sorted alphabetically
+/** What sits on a plate. 'soup' comes from pouring a pot; 'burger' is assembled from bun,
+ *  cooked meat and chopped toppings, in any order. ingredients sorted alphabetically. */
+export interface Dish { type: DishType; ingredients: IngredientType[]; }
 export interface PlateItem {
   kind: 'plate';
   id: number;
@@ -71,6 +87,7 @@ export type ItemKind = Item['kind'];
 export interface Recipe {
   id: string;                    // e.g. 'onion_soup'
   name: string;                  // display name
+  dish?: DishType;               // absent means 'soup'
   ingredients: IngredientType[]; // sorted alphabetically, matches Dish.ingredients
   score: number;                 // base points on serve (before tip)
 }
@@ -96,8 +113,20 @@ export interface Chef {
 export interface Fire { x: number; y: number; health: number; spreadTimer?: number; }
 export interface Pedestrian { id: number; x: number; y: number; vx: number; vy: number; } // solid moving obstacle
 export interface SliderGroup { id: string; offsetX: number; offsetY: number; }     // current tile offset
+/** A gate group (1-6 earthquake seam): its 'gate' tiles are walkable only while open. */
+export interface GateGroup { id: string; open: boolean; secondsToChange: number; }
 
 export type LevelPhase = 'prep' | 'running' | 'ended';
+
+// ─── Difficulty modifiers ───────────────────────────────────────────────────
+// Multiplied into the level's numbers when the Sim is built. All optional; 1 / 0 = unchanged.
+export interface Modifiers {
+  timeLimitScale?: number;     // 0.8 = 20% less time
+  orderIntervalScale?: number; // 0.7 = orders arrive faster
+  orderTimeScale?: number;     // 0.8 = orders expire sooner
+  maxOrdersDelta?: number;     // +1 = one more concurrent ticket
+  chefSpeedScale?: number;     // 1.15 = faster chefs
+}
 
 // ─── Snapshot ────────────────────────────────────────────────────────────────
 // Plain data, JSON-serialisable. Presentation reads this every frame; never mutates it.
@@ -121,6 +150,8 @@ export interface SimState {
   pendingPlateReturns: number[]; // seconds until each dirty plate lands on the plate return
   stars: number;               // 0..3 from score vs level.stars for the player count
   tipStreak: number;           // consecutive successful serves (drives the tip bonus)
+  gates?: GateGroup[];         // one per gate dynamic; absent on levels without gates
+  seed?: number;               // the run's seed, for the results screen
 }
 
 // ─── Input ───────────────────────────────────────────────────────────────────
@@ -148,7 +179,9 @@ export type SimEventType =
   | 'washTick' | 'washDone' | 'plateReturned'
   | 'serve' | 'serveRejected'
   | 'orderNew' | 'orderExpired'
-  | 'timerStart' | 'timerWarning' | 'levelEnd';
+  | 'timerStart' | 'timerWarning' | 'levelEnd'
+  | 'plateAdd'                     // an ingredient joined a plate (burger assembly)
+  | 'gateOpen' | 'gateClose';      // 1-6 earthquake seam
 export interface SimEvent {
   type: SimEventType;
   chef?: number;   // chef index that caused it, if any
