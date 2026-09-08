@@ -10,24 +10,26 @@ const ALL_EVENT_TYPES: readonly SimEventType[] = [
   'pickup', 'drop', 'trash',
   'chopTick', 'chopDone',
   'potAdd', 'cookStart', 'cookDone', 'burnt',
-  'potPour',
+  'potPour', 'plateAdd',
   'fireStart', 'fireSpread', 'fireOut', 'spray',
   'washTick', 'washDone', 'plateReturned',
   'serve', 'serveRejected',
   'orderNew', 'orderExpired',
   'timerStart', 'timerWarning', 'levelEnd',
+  'gateOpen', 'gateClose',
 ];
 
 const ALL_SFX: readonly SfxName[] = [
   'pickup', 'drop', 'trash',
   'chop', 'chopDone',
   'potAdd', 'sizzle', 'cookDone', 'burnAlarm',
-  'pour',
+  'pour', 'plateAdd',
   'fire', 'spray', 'fireOut',
   'wash', 'washDone', 'plateReturn',
   'serve', 'serveBad',
   'orderNew', 'orderFail',
   'timerStart', 'timerWarning', 'levelEnd',
+  'gateOpen', 'gateClose',
   'uiMove', 'uiConfirm', 'uiBack',
 ];
 

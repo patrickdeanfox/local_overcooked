@@ -10,7 +10,7 @@ import {
   drawText, fillCircle, fillEllipse, fillRound, line, makeTexture, radial,
   roundRectPath, starPath, strokeCircle, strokeRound, vGradient, withAlpha,
 } from './draw';
-import { drawIngredient, drawPlate, soupColor } from './items';
+import { drawBurgerStack, drawIngredient, drawPlate, soupColor } from './items';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -122,6 +122,36 @@ function drawStar(ctx: CanvasRenderingContext2D, filled: boolean): void {
   }
   ctx.lineWidth = 2;
   ctx.stroke();
+}
+
+/** Padlock for a level the player has not unlocked yet. */
+function drawLock(ctx: CanvasRenderingContext2D): void {
+  const bodyW = 20;
+  const bodyH = 15;
+  const bodyX = ICON_C - bodyW / 2;
+  const bodyY = ICON_C - 1;
+
+  withAlpha(ctx, 0.3, () => fillRound(ctx, bodyX, bodyY + 2, bodyW, bodyH, 4, '#000000'));
+  // Shackle, drawn before the body so the body covers its feet.
+  ctx.beginPath();
+  ctx.arc(ICON_C, bodyY - 1, 6.5, Math.PI * 1.02, Math.PI * 1.98);
+  ctx.strokeStyle = PALETTE.metalDark;
+  ctx.lineWidth = 5;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(ICON_C, bodyY - 1, 6.5, Math.PI * 1.06, Math.PI * 1.94);
+  ctx.strokeStyle = PALETTE.metalLight;
+  ctx.lineWidth = 2.6;
+  ctx.stroke();
+
+  roundRectPath(ctx, bodyX, bodyY, bodyW, bodyH, 4);
+  ctx.fillStyle = vGradient(ctx, bodyY, bodyY + bodyH, [[0, PALETTE.hudGold], [1, PALETTE.hudGoldDark]]);
+  ctx.fill();
+  strokeRound(ctx, bodyX, bodyY, bodyW, bodyH, 4, PALETTE.textDark, 2);
+  withAlpha(ctx, 0.55, () => line(ctx, bodyX + 3, bodyY + 2.5, bodyX + bodyW - 3, bodyY + 2.5, '#fff3c4', 2));
+  // Keyhole.
+  fillCircle(ctx, ICON_C, bodyY + 6, 2.6, PALETTE.textDark);
+  fillRound(ctx, ICON_C - 1.4, bodyY + 6, 2.8, 5.5, 1.2, PALETTE.textDark);
 }
 
 // ─── Panels ─────────────────────────────────────────────────────────────────
@@ -251,19 +281,8 @@ export function generateUiTextures(scene: Phaser.Scene): void {
   for (const type of SOUP_INGREDIENTS) {
     makeTexture(scene, TEX.iconSoup(type), ICON, ICON, (ctx) => drawSoupBowl(ctx, ICON_C, ICON_C + 2, ICON_R, soupColor(type)));
   }
-  // PLACEHOLDERS until the art pass: burger icon and lock icon.
-  makeTexture(scene, TEX.iconBurger, ICON, ICON, (ctx) => {
-    ctx.fillStyle = '#e0b070';
-    ctx.beginPath(); ctx.ellipse(ICON_C, ICON_C - 5, ICON_R * 0.9, ICON_R * 0.5, 0, Math.PI, 0); ctx.fill();
-    ctx.fillStyle = '#7a4a34'; ctx.fillRect(ICON_C - ICON_R * 0.9, ICON_C - 2, ICON_R * 1.8, 5);
-    ctx.fillStyle = '#7cc25a'; ctx.fillRect(ICON_C - ICON_R * 0.9, ICON_C + 3, ICON_R * 1.8, 3);
-    ctx.fillStyle = '#e0b070'; ctx.fillRect(ICON_C - ICON_R * 0.9, ICON_C + 6, ICON_R * 1.8, 5);
-  });
-  makeTexture(scene, TEX.iconLock, ICON, ICON, (ctx) => {
-    ctx.strokeStyle = '#c9bfae'; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.arc(ICON_C, ICON_C - 3, ICON_R * 0.45, Math.PI, 0); ctx.stroke();
-    ctx.fillStyle = '#c9bfae'; ctx.fillRect(ICON_C - ICON_R * 0.6, ICON_C - 3, ICON_R * 1.2, ICON_R * 0.9);
-  });
+  makeTexture(scene, TEX.iconBurger, ICON, ICON, (ctx) => drawBurgerStack(ctx, ICON_C, ICON_C + 1, ICON_R + 1));
+  makeTexture(scene, TEX.iconLock, ICON, ICON, drawLock);
   makeTexture(scene, TEX.iconPlate, ICON, ICON, (ctx) => drawPlate(ctx, ICON_C, ICON_C, ICON_R + 1, null));
   makeTexture(scene, TEX.iconClock, ICON, ICON, drawClock);
   makeTexture(scene, TEX.iconCoin, ICON, ICON, drawCoin);

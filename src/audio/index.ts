@@ -158,6 +158,7 @@ export function sfxForEvent(event: SimEvent): SfxName | null {
     case 'cookDone': return 'cookDone';
     case 'burnt': return 'burnAlarm';
     case 'potPour': return 'pour';
+    case 'plateAdd': return 'plateAdd';
     case 'fireStart': case 'fireSpread': return 'fire';
     case 'spray': return 'spray';
     case 'fireOut': return 'fireOut';
@@ -171,6 +172,8 @@ export function sfxForEvent(event: SimEvent): SfxName | null {
     case 'timerStart': return 'timerStart';
     case 'timerWarning': return 'timerWarning';
     case 'levelEnd': return 'levelEnd';
+    case 'gateOpen': return 'gateOpen';
+    case 'gateClose': return 'gateClose';
     default: return null;
   }
 }
