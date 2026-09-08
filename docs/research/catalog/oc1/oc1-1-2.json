@@ -1,0 +1,171 @@
+{
+  "id": "oc1-1-2",
+  "game": "oc1",
+  "world": 1,
+  "index": 2,
+  "name": "1-2",
+  "theme": "Treacle Town",
+  "wiki": "https://overcooked.fandom.com/wiki/1-2_(Overcooked!)",
+  "screenshots": [
+    "oc1/1-2.jpg",
+    "oc1/1-2-ayce.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 2,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "onion_soup",
+    "tomato_soup"
+  ],
+  "orderVariants": 2,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 26,
+    "max": 4,
+    "timeSec": 90
+  },
+  "stars": {
+    "1": [
+      20,
+      60,
+      80
+    ],
+    "2": [
+      20,
+      60,
+      150
+    ],
+    "3": [
+      20,
+      60,
+      200
+    ],
+    "4": [
+      20,
+      60,
+      210
+    ]
+  },
+  "starsProvenance": "oc1",
+  "plates": {
+    "mode": "sink",
+    "count": 2
+  },
+  "grid": {
+    "cols": 16,
+    "rows": 6,
+    "confidence": "high",
+    "ascii": [
+      "##S#S#~~~###EX.#",
+      ".....#~~~......V",
+      "D....p~~~p.....V",
+      "W.....~~~#.....R",
+      "......~~~#......",
+      "##B#B#~~~#T#O##."
+    ]
+  },
+  "legendExtensions": {},
+  "stations": {
+    "board": 2,
+    "potBurner": 2,
+    "panBurner": 0,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 1,
+    "serve": 2,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plate": 2,
+    "counter": 21,
+    "crates": {
+      "tomato": 1,
+      "onion": 1
+    },
+    "drying": 1
+  },
+  "spawns": [
+    {
+      "x": 3,
+      "y": 4
+    },
+    {
+      "x": 11,
+      "y": 2
+    }
+  ],
+  "zones": [
+    {
+      "name": "west half",
+      "stations": [
+        "potBurner",
+        "sink",
+        "board",
+        "plate"
+      ],
+      "links": [
+        {
+          "to": "east half",
+          "via": "walk (crossing, columns 6-8)"
+        },
+        {
+          "to": "east half",
+          "via": "walk (open bottom row)"
+        }
+      ]
+    },
+    {
+      "name": "east half",
+      "stations": [
+        "crates",
+        "serve",
+        "plateReturn",
+        "trash",
+        "plate"
+      ],
+      "links": [
+        {
+          "to": "west half",
+          "via": "walk"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "pedestrians",
+      "detail": "walkers cross the three road columns from both sides; two staggered streams",
+      "periodSec": 7
+    }
+  ],
+  "hazards": [
+    "pedestrian collision: knocks the chef back, no time penalty"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": false,
+    "movingPlatforms": false,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 62,
+    "counterTiles": 34,
+    "stationTiles": 13,
+    "longestWalkTiles": 6,
+    "chokepointWidth": 1,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [],
+  "estimates": [
+    "orders",
+    "spawns",
+    "dynamics[0].periodSec"
+  ]
+}

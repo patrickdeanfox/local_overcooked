@@ -1,0 +1,163 @@
+{
+  "id": "oc1-1-4",
+  "game": "oc1",
+  "world": 1,
+  "index": 4,
+  "name": "1-4",
+  "theme": "Treacle Town",
+  "wiki": "https://overcooked.fandom.com/wiki/1-4_(Overcooked!)",
+  "screenshots": [
+    "oc1/1-4.jpg",
+    "oc1/1-4-ayce.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 5,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "meat_burger",
+    "lettuce_burger",
+    "tomato_lettuce_burger"
+  ],
+  "orderVariants": 3,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 20,
+    "max": 4,
+    "timeSec": 100
+  },
+  "stars": {
+    "1": [
+      40,
+      90,
+      160
+    ],
+    "2": [
+      70,
+      160,
+      280
+    ],
+    "3": null,
+    "4": null
+  },
+  "starsProvenance": "oc1",
+  "plates": {
+    "mode": "sink",
+    "count": 5
+  },
+  "grid": {
+    "cols": 13,
+    "rows": 8,
+    "confidence": "high",
+    "ascii": [
+      "##WD####FFFF#",
+      "T....###....E",
+      "A....###....#",
+      "U...........V",
+      "L....###....V",
+      "#....###....R",
+      "X....###....p",
+      "##B#B###pppp#"
+    ]
+  },
+  "legendExtensions": {},
+  "stations": {
+    "board": 2,
+    "potBurner": 0,
+    "panBurner": 4,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 1,
+    "serve": 2,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plate": 5,
+    "counter": 36,
+    "crates": {
+      "tomato": 1,
+      "meat": 1,
+      "bun": 1,
+      "lettuce": 1
+    },
+    "drying": 1
+  },
+  "spawns": [
+    {
+      "x": 2,
+      "y": 2
+    },
+    {
+      "x": 9,
+      "y": 2
+    }
+  ],
+  "zones": [
+    {
+      "name": "west sector",
+      "stations": [
+        "crates",
+        "sink",
+        "board",
+        "trash"
+      ],
+      "links": [
+        {
+          "to": "east sector",
+          "via": "walk (1x3 corridor at row 3)"
+        },
+        {
+          "to": "east sector",
+          "via": "counter hand-off over the divider"
+        }
+      ]
+    },
+    {
+      "name": "east sector",
+      "stations": [
+        "panBurner",
+        "serve",
+        "plateReturn",
+        "extinguisher",
+        "plate"
+      ],
+      "links": [
+        {
+          "to": "west sector",
+          "via": "walk"
+        }
+      ]
+    }
+  ],
+  "dynamics": [],
+  "hazards": [
+    "pan fire if a patty is left cooking: COOK 9 s, BURN a further 13 s in this clone's model"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": false,
+    "movingPlatforms": false,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 51,
+    "counterTiles": 53,
+    "stationTiles": 17,
+    "longestWalkTiles": 12,
+    "chokepointWidth": 1,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [],
+  "estimates": [
+    "orders",
+    "spawns",
+    "stars.2[0]",
+    "stars.2[1]"
+  ]
+}

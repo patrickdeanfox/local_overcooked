@@ -1,0 +1,168 @@
+{
+  "id": "oc1-1-3",
+  "game": "oc1",
+  "world": 1,
+  "index": 3,
+  "name": "1-3",
+  "theme": "Savoury Seas",
+  "wiki": "https://overcooked.fandom.com/wiki/1-3_(Overcooked!)",
+  "screenshots": [
+    "oc1/1-3.jpg",
+    "oc1/1-3-ayce.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 4,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "onion_soup",
+    "tomato_soup",
+    "mushroom_soup"
+  ],
+  "orderVariants": 3,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 20,
+    "max": 4,
+    "timeSec": 85
+  },
+  "stars": {
+    "1": [
+      30,
+      60,
+      100
+    ],
+    "2": [
+      60,
+      120,
+      200
+    ],
+    "3": null,
+    "4": null
+  },
+  "starsProvenance": "oc1",
+  "plates": {
+    "mode": "stack",
+    "count": 3
+  },
+  "grid": {
+    "cols": 12,
+    "rows": 8,
+    "confidence": "high",
+    "ascii": [
+      "...S#S##VVRE",
+      ".#....1.....",
+      ".P....1.....",
+      ".P....1.....",
+      ".P....2.....",
+      ".X....2.....",
+      ".#B#B##OTM..",
+      "............"
+    ]
+  },
+  "legendExtensions": {},
+  "stations": {
+    "board": 2,
+    "potBurner": 2,
+    "panBurner": 0,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 0,
+    "serve": 2,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plate": 3,
+    "counter": 13,
+    "crates": {
+      "onion": 1,
+      "tomato": 1,
+      "mushroom": 1
+    },
+    "plateStack": 3
+  },
+  "spawns": [
+    {
+      "x": 4,
+      "y": 2
+    },
+    {
+      "x": 10,
+      "y": 2
+    }
+  ],
+  "zones": [
+    {
+      "name": "port half",
+      "stations": [
+        "potBurner",
+        "plateStack",
+        "trash",
+        "board"
+      ],
+      "links": [
+        {
+          "to": "starboard half",
+          "via": "counter hand-off over the sliding divider"
+        },
+        {
+          "to": "starboard half",
+          "via": "walk (open bottom deck)"
+        }
+      ]
+    },
+    {
+      "name": "starboard half",
+      "stations": [
+        "crates",
+        "serve",
+        "plateReturn",
+        "extinguisher"
+      ],
+      "links": [
+        {
+          "to": "port half",
+          "via": "walk"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "sliders",
+      "detail": "the five divider tiles split 3 + 2 into two groups sliding along y in opposite phase as the ship sways",
+      "periodSec": 6
+    }
+  ],
+  "hazards": [],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": false,
+    "movingPlatforms": false,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 68,
+    "counterTiles": 28,
+    "stationTiles": 15,
+    "longestWalkTiles": 10,
+    "chokepointWidth": 1,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [],
+  "estimates": [
+    "orders",
+    "spawns",
+    "stars.1[0]",
+    "stars.1[1]",
+    "stars.2[0]",
+    "stars.2[1]",
+    "dynamics[0].periodSec"
+  ]
+}
