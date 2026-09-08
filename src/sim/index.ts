@@ -710,16 +710,21 @@ export class Sim {
       }
     }
     if (matched >= 0) {
+      // Combo rule (wiki: Combos): the tip streak only continues when the dish matches the
+      // OLDEST live order. Serving a later ticket still scores, but breaks the streak.
+      // Tip on an in-order serve is TIP_BASE per prior consecutive serve, so the first pays base only.
       const order = st.orders.splice(matched, 1)[0];
       const recipe = RECIPES[order.recipeId];
-      const tip = Math.min(TIP_MAX, TIP_BASE * (st.tipStreak + 1));
+      const inOrder = matched === 0;
+      const tip = inOrder ? Math.min(TIP_MAX, TIP_BASE * st.tipStreak) : 0;
       const points = (recipe ? recipe.score : 0) + tip;
       st.score += points;
-      st.tipStreak += 1;
+      st.tipStreak = inOrder ? st.tipStreak + 1 : 0;
       st.servedCount += 1;
       this.recomputeStars();
       events.push({ type: 'serve', chef: idx, x: tx, y: ty, value: points });
     } else {
+      st.tipStreak = 0; // an off-menu dish breaks the combo (wiki: Combos)
       events.push({ type: 'serveRejected', chef: idx, x: tx, y: ty, value: 0 });
     }
 

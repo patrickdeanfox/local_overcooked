@@ -280,8 +280,8 @@ describe('onion soup, end to end', () => {
     const served = sim.step([inp({ pickupPressed: true })]);
     const serve = served.find((e) => e.type === 'serve');
     expect(serve).toBeDefined();
-    expect(serve?.value).toBe(RECIPES.onion_soup.score + TIP_BASE);
-    expect(st.score).toBe(RECIPES.onion_soup.score + TIP_BASE);
+    expect(serve?.value).toBe(RECIPES.onion_soup.score); // first serve of a streak pays base only
+    expect(st.score).toBe(RECIPES.onion_soup.score);
     expect(st.servedCount).toBe(1);
     expect(st.tipStreak).toBe(1);
     expect(st.orders.length).toBe(0);
@@ -461,7 +461,7 @@ describe('orders and scoring', () => {
     place(sim, 0, 10.5, 5.5, 'right');
     giveSoupPlate(sim, 0, ['onion', 'onion', 'onion']);
     sim.step([inp({ pickupPressed: true })]);
-    expect(st.score).toBe(RECIPES.onion_soup.score + TIP_BASE);
+    expect(st.score).toBe(RECIPES.onion_soup.score);
     expect(st.tipStreak).toBe(1);
 
     const events = stepFor(sim, 2.1);
@@ -469,8 +469,46 @@ describe('orders and scoring', () => {
     expect(expired).toBeDefined();
     expect(expired?.value).toBe(2); // the second order, the one that was not served
     expect(st.orders.length).toBe(0);
-    expect(st.score).toBe(RECIPES.onion_soup.score + TIP_BASE - ORDER_FAIL_PENALTY);
+    expect(st.score).toBe(RECIPES.onion_soup.score - ORDER_FAIL_PENALTY);
     expect(st.failedCount).toBe(1);
+    expect(st.tipStreak).toBe(0);
+  });
+
+  it('breaks the tip streak on an out-of-order serve and on an off-menu dish', () => {
+    // Two tickets of different soups; find a seed where the first two orders differ.
+    let sim: Sim | null = null;
+    for (let seed = 1; seed < 50 && !sim; seed++) {
+      const candidate = new Sim(
+        makeLevel({ recipes: ['onion_soup', 'tomato_soup'], orders: { initial: 2, intervalSec: 1000, max: 4, timeSec: 120 } }),
+        { players: 1, seed },
+      );
+      const o = candidate.getState().orders;
+      if (o.length === 2 && o[0].recipeId !== o[1].recipeId) sim = candidate;
+    }
+    expect(sim).not.toBeNull();
+    if (!sim) return;
+    const st = mutable(sim);
+    place(sim, 0, 10.5, 5.5, 'right');
+    // Build a streak of one in-order serve.
+    const first = st.orders[0].recipeId === 'onion_soup' ? 'onion' : 'tomato';
+    const second = st.orders[1].recipeId === 'onion_soup' ? 'onion' : 'tomato';
+    giveSoupPlate(sim, 0, [first, first, first]);
+    sim.step([inp({ pickupPressed: true })]);
+    expect(st.tipStreak).toBe(1);
+    // Now two tickets again (spawn one more by hand via a fresh in-order serve setup): serve the
+    // SECOND ticket first → scores base only and resets the streak.
+    st.orders.unshift({ id: 999, recipeId: first === 'onion' ? 'onion_soup' : 'tomato_soup', timeLeft: 120, timeTotal: 120 });
+    const before = st.score;
+    giveSoupPlate(sim, 0, [second, second, second]);
+    const outOfOrder = sim.step([inp({ pickupPressed: true })]).find((e) => e.type === 'serve');
+    expect(outOfOrder?.value).toBe(RECIPES.onion_soup.score); // base only, no tip
+    expect(st.score - before).toBe(RECIPES.onion_soup.score);
+    expect(st.tipStreak).toBe(0);
+    // Off-menu dish: accepted for 0 points, streak stays broken.
+    st.tipStreak = 2;
+    giveSoupPlate(sim, 0, ['mushroom', 'mushroom', 'mushroom']);
+    const rejected = sim.step([inp({ pickupPressed: true })]).find((e) => e.type === 'serveRejected');
+    expect(rejected).toBeDefined();
     expect(st.tipStreak).toBe(0);
   });
 
@@ -486,7 +524,7 @@ describe('orders and scoring', () => {
       sim.step([inp({ pickupPressed: true })]);
     }
     expect(st.tipStreak).toBe(3);
-    expect(st.score).toBe(3 * RECIPES.onion_soup.score + TIP_BASE * (1 + 2 + 3));
+    expect(st.score).toBe(3 * RECIPES.onion_soup.score + TIP_BASE * (0 + 1 + 2)); // tips 0, 2, 4
     expect(st.orders.length).toBe(0);
   });
 
