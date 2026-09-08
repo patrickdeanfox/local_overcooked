@@ -28,16 +28,16 @@
         { "from": { "x": 6, "y": 0 }, "to": { "x": 6, "y": 5 } },
         { "from": { "x": 8, "y": 0 }, "to": { "x": 8, "y": 5 } }
       ],
-      "intervalSec": 4,
+      "intervalSec": 7,
       "speed": 2.5,
-      "firstDelaySec": 1.5
+      "firstDelaySec": 1.0
     },
     {
       "type": "pedestrians",
       "lanes": [{ "from": { "x": 7, "y": 5 }, "to": { "x": 7, "y": 0 } }],
-      "intervalSec": 4,
+      "intervalSec": 7,
       "speed": 2.5,
-      "firstDelaySec": 3.5
+      "firstDelaySec": 4.5
     }
   ]
 }
