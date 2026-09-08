@@ -1,0 +1,221 @@
+{
+  "id": "oc2-2-2",
+  "game": "oc2",
+  "world": 2,
+  "index": 2,
+  "name": "2-2",
+  "theme": "Buffet Balloons",
+  "wiki": "https://overcooked.fandom.com/wiki/2-2_(Overcooked!_2)",
+  "screenshots": [
+    "oc2/2-2.jpg"
+  ],
+  "timeLimitSec": 210,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 8,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "beef_pasta",
+    "fish_and_prawn_pasta"
+  ],
+  "orderVariants": 2,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 26,
+    "max": 4,
+    "timeSec": 100
+  },
+  "stars": {
+    "1": [
+      180,
+      240,
+      340,
+      750
+    ],
+    "2": [
+      260,
+      360,
+      480,
+      1050
+    ],
+    "3": [
+      340,
+      460,
+      620,
+      1250
+    ],
+    "4": [
+      340,
+      460,
+      620,
+      1250
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "return-clean",
+    "count": 3
+  },
+  "grid": {
+    "cols": 17,
+    "rows": 7,
+    "confidence": "low",
+    "ascii": [
+      "            ##Sp#",
+      "      #BB## E...F",
+      "##### #...# F...F",
+      "V....=.....=....p",
+      "#...# #...# R...#",
+      "#...# #...# #XpS#",
+      "#A!## #ØJ##      "
+    ]
+  },
+  "legendExtensions": {
+    "Ø": "prawn crate",
+    "J": "fish crate",
+    "!": "other crate — pasta at (2,6)",
+    "=": "the gap between two balloons; walkable only while the middle balloon is level with its neighbour"
+  },
+  "stations": {
+    "board": 2,
+    "potBurner": 2,
+    "panBurner": 3,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 0,
+    "drying": 0,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plateStack": 0,
+    "plate": 3,
+    "counter": 30,
+    "crates": {
+      "beef": 1,
+      "pasta": 1,
+      "prawn": 1,
+      "fish": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 2,
+      "y": 3
+    },
+    {
+      "x": 14,
+      "y": 3
+    }
+  ],
+  "zones": [
+    {
+      "name": "left balloon",
+      "stations": [
+        "serve",
+        "beef crate",
+        "pasta crate"
+      ],
+      "links": [
+        {
+          "to": "middle balloon",
+          "via": "walk-when-close"
+        },
+        {
+          "to": "right balloon",
+          "via": "throw"
+        }
+      ]
+    },
+    {
+      "name": "middle balloon (moves up and down)",
+      "stations": [
+        "2 chopping boards",
+        "prawn crate",
+        "fish crate"
+      ],
+      "links": [
+        {
+          "to": "left balloon",
+          "via": "walk-when-close"
+        },
+        {
+          "to": "right balloon",
+          "via": "walk-when-close"
+        }
+      ]
+    },
+    {
+      "name": "right balloon",
+      "stations": [
+        "2 pot burners",
+        "3 pan burners",
+        "trash",
+        "extinguisher",
+        "plate return",
+        "3 plates"
+      ],
+      "links": [
+        {
+          "to": "middle balloon",
+          "via": "walk-when-close"
+        },
+        {
+          "to": "left balloon",
+          "via": "throw"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "moving-platforms",
+      "detail": "the middle balloon rides up and down the level, connecting to the left and right balloons only when level with them. Period not on the wiki.",
+      "periodSec": null
+    }
+  ],
+  "hazards": [
+    "fall off a balloon: chef respawns (delay not on the wiki)",
+    "pan/pot fire if food is left cooking"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": true,
+    "movingPlatforms": true,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 39,
+    "counterTiles": 48,
+    "stationTiles": 18,
+    "longestWalkTiles": 9,
+    "chokepointWidth": 1,
+    "recipeSteps": 5
+  },
+  "missingMechanics": [
+    "moving platforms",
+    "throwing",
+    "pasta",
+    "prawn",
+    "fish",
+    "pasta recipe",
+    "clean plate return without a sink"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "spawns",
+    "grid.cols",
+    "grid.rows",
+    "features.chokepointWidth",
+    "dynamics[0].periodSec",
+    "plates.count (wiki lists three by position)"
+  ]
+}

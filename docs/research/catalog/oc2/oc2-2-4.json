@@ -1,0 +1,197 @@
+{
+  "id": "oc2-2-4",
+  "game": "oc2",
+  "world": 2,
+  "index": 4,
+  "name": "2-4",
+  "theme": "Moreish Mines",
+  "wiki": "https://overcooked.fandom.com/wiki/2-4_(Overcooked!_2)",
+  "screenshots": [
+    "oc2/2-4.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 10,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "beef_burrito",
+    "mushroom_burrito"
+  ],
+  "orderVariants": 2,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 26,
+    "max": 4,
+    "timeSec": 100
+  },
+  "stars": {
+    "1": [
+      300,
+      420,
+      560,
+      1250
+    ],
+    "2": [
+      360,
+      480,
+      660,
+      1700
+    ],
+    "3": [
+      500,
+      700,
+      940,
+      2500
+    ],
+    "4": [
+      500,
+      700,
+      940,
+      2600
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 4
+  },
+  "grid": {
+    "cols": 15,
+    "rows": 9,
+    "confidence": "med",
+    "ascii": [
+      "##SS##___##BB##",
+      "!....#___#....A",
+      "M....p___p....I",
+      "p....p___#....#",
+      "#....#___#....W",
+      "#.....===.....D",
+      "#....#___#....#",
+      "V....#___#....X",
+      "#R####___##FFE#"
+    ]
+  },
+  "legendExtensions": {
+    "I": "rice crate",
+    "!": "other crate — tortilla at (0,1)",
+    "_": "mine chasm — a fall hazard, not walkable",
+    "=": "the bridge, the only walkable link between the two halves"
+  },
+  "stations": {
+    "board": 2,
+    "potBurner": 2,
+    "panBurner": 2,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 1,
+    "drying": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plateStack": 0,
+    "plate": 4,
+    "counter": 30,
+    "crates": {
+      "tortilla": 1,
+      "beef": 1,
+      "mushroom": 1,
+      "rice": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 2,
+      "y": 5
+    },
+    {
+      "x": 12,
+      "y": 5
+    }
+  ],
+  "zones": [
+    {
+      "name": "left side",
+      "stations": [
+        "serve",
+        "plate return",
+        "2 pot burners",
+        "tortilla crate",
+        "mushroom crate",
+        "3 plates"
+      ],
+      "links": [
+        {
+          "to": "right side",
+          "via": "walk (single bridge)"
+        },
+        {
+          "to": "right side",
+          "via": "throw"
+        }
+      ]
+    },
+    {
+      "name": "right side",
+      "stations": [
+        "2 chopping boards",
+        "sink",
+        "drying",
+        "2 pan burners",
+        "trash",
+        "extinguisher",
+        "beef crate",
+        "rice crate",
+        "1 plate"
+      ],
+      "links": [
+        {
+          "to": "left side",
+          "via": "walk (single bridge) or throw"
+        }
+      ]
+    }
+  ],
+  "dynamics": [],
+  "hazards": [
+    "fall into the chasm: chef respawns (delay not on the wiki)",
+    "pan fire"
+  ],
+  "features": {
+    "splitKitchen": false,
+    "throwRequired": false,
+    "movingPlatforms": false,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 61,
+    "counterTiles": 50,
+    "stationTiles": 20,
+    "longestWalkTiles": 18,
+    "chokepointWidth": 1,
+    "recipeSteps": 5
+  },
+  "missingMechanics": [
+    "throwing",
+    "tortilla",
+    "rice",
+    "burrito recipe",
+    "fall hazard"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "spawns",
+    "grid.cols",
+    "grid.rows",
+    "features.chokepointWidth"
+  ]
+}
