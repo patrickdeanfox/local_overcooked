@@ -39,4 +39,8 @@ Where the game goes after the first playable build (Overcooked 1 levels 1-1 to 1
 - In-game level JSON hot reload already exists (`npm run dev`, edit the file, the kitchen rebuilds).
 
 ## Known gaps in the first build
-- See the final report in the README "Status" section and open issues on GitHub.
+- Order cadence, timeout and tip amounts are estimates; the wiki publishes none of them (`docs/research/sim-constants-recommendations.md`). Tune by play.
+- 1-3's 1-star and 2-star thresholds are derived, not published (`docs/LEVELS.md`).
+- Pedestrians are grey-tinted chefs; fire, smoke and spray are single frames animated by scale and alpha.
+- Gamepad paths are unit-tested against fake pads only; no physical pad was available while building. Use the Controllers screen to verify yours.
+- One music loop for every level; no per-level themes.
