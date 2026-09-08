@@ -1,65 +1,33 @@
 // ─── Kitchen renderer ───────────────────────────────────────────────────────
-// Draws a SimState snapshot. Owns no game logic and never mutates the state it is
-// given. Sprites are pooled in maps keyed by tile index / entity id, so a frame only
-// updates textures, positions and visibility.
+// Draws a SimState snapshot as a 3D kitchen on the Three.js stage behind Phaser's
+// transparent canvas, plus a thin Phaser overlay for the things that read best flat:
+// progress bars, stack badges and the debug grid. Owns no game logic and never mutates
+// the state it is given. Views are pooled by tile index / entity id, so a frame only
+// updates positions and swaps a view when an item's look changes.
 //
-// Everything lives inside one container placed and scaled to fit the play area, so
-// child coordinates are always native pixels (TILE = 64) regardless of level size.
+// World space: one tile is one unit, x runs right, z runs down the screen (tile y), y is up.
 import Phaser from 'phaser';
-import { BURGER_LAYERS, BURGER_LAYER_STEP_PX, TEX, type BurgerLayer, type PanContentState } from '../../art/keys';
-import { GAME_HEIGHT, GAME_WIDTH, TILE } from '../../config';
-import {
-  FACING_VECTORS,
-  type Chef,
-  type Dish,
-  type GateGroup,
-  type IngredientType,
-  type Item,
-  type PotItem,
-  type SimState,
-  type Tile,
-} from '../../sim/types';
+import * as THREE from 'three';
+import { CHEF_SKIN_URLS, PEDESTRIAN_SKIN_URLS } from '../../art/models';
+import { FACING_VECTORS, type Chef, type GateGroup, type Item, type SimState, type Tile } from '../../sim/types';
 import { CHEF_COLORS, COLOR } from '../ui/theme';
+import { ChefRig } from './three/chefs';
+import { FxPool } from './three/fx';
+import { buildItemView, itemSignature } from './three/items';
+import { acquireStage, type Stage } from './three/stage';
+import { TileSet, themeSceneHeight } from './three/tiles';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
-const LAYOUT = {
-  hudTopPx: 140,    // order cards
-  hudBottomPx: 78,  // score / timer row
-  marginXPx: 24,
-  maxScale: 1,
-} as const;
+const HELD = { scale: 0.9 } as const;
 
-const CHEF_DRAW = {
-  feetOffsetPx: 16,        // sprite bottom sits this far below the chef centre
-  bobPx: 3,
-  bobSpeedRad: 11,         // walk bob, radians per second
-  heldLiftPx: 46,
-  heldFacingOffsetPx: 16,
-  heldScale: 0.85,
-} as const;
+const HIGHLIGHT = { inner: 0.3, outer: 0.42, segments: 40, alpha: 0.85, lift: 0.012 } as const;
 
-const ITEM_DRAW = {
-  liftPx: 6,               // items sit slightly above the tile centre
-  badgeOffsetXPx: 15,
-  badgeOffsetYPx: 12,
-  badgeFontPx: 13,
-} as const;
-
-const PEDESTRIAN_DRAW = { tint: 0x9aa0a8, alpha: 0.95 } as const;
-
-const GATE_DRAW = {
-  closedTint: 0x8b8079,   // a closed seam reads as raised, shadowed floor
-  warnSec: 1,             // pre-close flash starts this long before the gate shuts
-  flashSpeedRad: 14,
-  warnMaxAlpha: 0.6,
-} as const;
-
-const HIGHLIGHT = { lineWidthPx: 3, alpha: 0.9, insetPx: 3, radiusPx: 6 } as const;
+const GATE_DRAW = { warnSec: 1.5, flashSpeedRad: 10, warnMaxAlpha: 0.9 } as const;
 
 const BAR = {
   widthPx: 46,
   heightPx: 8,
-  aboveTilePx: 34,
+  aboveSurface: 0.55,      // tiles above the working surface
   borderPx: 2,
   trackAlpha: 0.85,
   flashSpeedRad: 9,
@@ -68,20 +36,15 @@ const BAR = {
 
 const WARN_ICON = { widthPx: 16, heightPx: 14, aboveBarPx: 10 } as const;
 
-const FIRE_FX = { flickerMs: 220, scaleFrom: 0.82, scaleTo: 1.14, alphaTo: 0.7 } as const;
+const BADGE = { lift: 0.42, fontPx: 13 } as const;
 
-const SPRAY_FX = {
-  intervalSec: 0.05,
-  lifeMs: 240,
-  distancePx: 40,
-  jitterPx: 12,
-  scaleFrom: 0.6,
-  scaleTo: 1.3,
-} as const;
+const SPRAY_FX = { intervalSec: 0.05, distance: 0.38 } as const;
+
+const PEDESTRIAN = { moveEpsilon: 1e-4 } as const;
 
 const BADGE_STYLE: Phaser.Types.GameObjects.Text.TextStyle = {
   fontFamily: 'monospace',
-  fontSize: `${ITEM_DRAW.badgeFontPx}px`,
+  fontSize: `${BADGE.fontPx}px`,
   color: '#ffffff',
   backgroundColor: '#00000099',
   padding: { x: 3, y: 1 },
@@ -89,56 +52,13 @@ const BADGE_STYLE: Phaser.Types.GameObjects.Text.TextStyle = {
 
 export interface TilePos { x: number; y: number; }
 
-// ─── Pure helpers ───────────────────────────────────────────────────────────
-/** The ingredient each burger layer needs on the plate before it is drawn. */
-const BURGER_LAYER_INGREDIENT: Readonly<Record<BurgerLayer, IngredientType>> = {
-  bunBottom: 'bun', meat: 'meat', lettuce: 'lettuce', tomato: 'tomato', bunTop: 'bun',
-};
+interface ItemView { signature: string; view: THREE.Group; }
 
-function tileTexture(tile: Tile): string {
-  if (tile.type === 'crate') return TEX.crate(tile.ingredient ?? 'onion');
-  return TEX.tile(tile.type);
-}
-
-/** What the food in a pan looks like, from the cookware's state. */
-function panContentState(pot: PotItem): PanContentState {
-  if (pot.state === 'burnt') return 'burnt';
-  return pot.state === 'cooked' ? 'cooked' : 'raw';
-}
-
-/** The plated burger on this item, or null: burgers are drawn as stacked layers. */
-function burgerDish(item: Item | null): Dish | null {
-  if (!item || item.kind !== 'plate') return null;
-  return item.dish && item.dish.type === 'burger' ? item.dish : null;
-}
-
-/** Texture for an item resting on a tile or held by a chef. */
-export function itemTexture(item: Item): string {
-  switch (item.kind) {
-    case 'ingredient':
-      // Fried ingredients (meat) come out of the pan cooked, whatever their chopped flag.
-      return item.cooked ? TEX.ingredientCooked(item.type) : TEX.ingredient(item.type, item.chopped);
-    case 'pot':
-      if ((item.ware ?? 'pot') === 'pan') {
-        return item.contents.length > 0 ? TEX.panMeat(panContentState(item)) : TEX.pan;
-      }
-      if (item.state === 'burnt') return TEX.potBurnt;
-      return item.contents.length > 0 ? TEX.potSoup(item.contents[0]) : TEX.pot;
-    case 'plate':
-      if (!item.dish || item.dish.ingredients.length === 0) return TEX.plate;
-      // A burger is the bare plate plus its layers; only soup tints the plate itself.
-      return item.dish.type === 'burger' ? TEX.plate : TEX.plateSoup(item.dish.ingredients[0]);
-    case 'dirtyPlate':
-      return TEX.dirtyPlate;
-    case 'extinguisher':
-      return TEX.extinguisher;
-  }
-}
+// ─── Helpers ────────────────────────────────────────────────────────────────
 
 /** Stack size drawn as a badge, or 1 when the item is not a stack. */
 function itemCount(item: Item): number {
   if (item.kind === 'dirtyPlate') return item.count;
-  // Clean plates stack too, on drying racks and plate stacks; PlateItem.count omits 1.
   if (item.kind === 'plate') return item.count ?? 1;
   return 1;
 }
@@ -149,188 +69,108 @@ function fireKey(x: number, y: number): string {
 
 // ─── Renderer ───────────────────────────────────────────────────────────────
 export class KitchenRenderer {
+  /** Phaser overlay in screen pixels; the debug overlay adds its grid here. */
   readonly container: Phaser.GameObjects.Container;
 
-  private readonly tileLayer: Phaser.GameObjects.Container;
-  private readonly highlightGfx: Phaser.GameObjects.Graphics;
-  private readonly itemLayer: Phaser.GameObjects.Container;
-  private readonly actorLayer: Phaser.GameObjects.Container;
-  private readonly fxLayer: Phaser.GameObjects.Container;
+  private readonly stage: Stage;
   private readonly barsGfx: Phaser.GameObjects.Graphics;
+  private readonly badges = new Map<number, Phaser.GameObjects.Text>();
+  private readonly fx: FxPool;
+  private tiles: TileSet | null = null;
 
-  private readonly tileSprites: Phaser.GameObjects.Image[] = [];
-  private readonly sliderTiles: number[] = [];
-  private readonly sliderFloorSprites: Phaser.GameObjects.Image[] = [];
-  private readonly gateTiles: number[] = [];
-  private readonly gateOverlays: Phaser.GameObjects.Image[] = [];
-  private readonly gateClosedNow: boolean[] = [];
-  private readonly itemSprites = new Map<number, Phaser.GameObjects.Image>();
-  private readonly itemBadges = new Map<number, Phaser.GameObjects.Text>();
-  // Burger layers, pooled per tile index and per chef index so a frame allocates nothing.
-  private readonly tileBurgers = new Map<number, Phaser.GameObjects.Image[]>();
-  private readonly handBurgers = new Map<number, Phaser.GameObjects.Image[]>();
-  private readonly chefSprites = new Map<number, Phaser.GameObjects.Image>();
-  private readonly heldSprites = new Map<number, Phaser.GameObjects.Image>();
-  private readonly pedSprites = new Map<number, Phaser.GameObjects.Image>();
-  private readonly fireSprites = new Map<string, Phaser.GameObjects.Image>();
-  private readonly fireTweens = new Map<string, Phaser.Tweens.Tween>();
-  private readonly sprayTweens = new Set<Phaser.Tweens.Tween>();
-
-  private readonly bobPhase: number[] = [];
+  private readonly tileItems = new Map<number, ItemView>();
+  private readonly chefs = new Map<number, ChefRig>();
+  private readonly held = new Map<number, ItemView>();
+  private readonly pedestrians = new Map<number, ChefRig>();
+  private readonly highlights: THREE.Mesh[] = [];
+  private readonly firePositions = new Map<string, THREE.Vector3>();
+  private readonly choppingBoards = new Set<number>();
+  private readonly steamPositions: THREE.Vector3[] = [];
   private readonly sprayTimer: number[] = [];
   private readonly sliderOffsets = new Map<string, { x: number; y: number }>();
+  private readonly screen = { x: 0, y: 0 };
   private gridW = 0;
   private gridH = 0;
   private elapsed = 0;
-  private scaleFactor = 1;
 
-  constructor(private readonly scene: Phaser.Scene, state: Readonly<SimState>) {
+  constructor(private readonly scene: Phaser.Scene, state: Readonly<SimState>, private readonly theme?: string) {
+    this.stage = acquireStage(scene.game.canvas);
+    this.stage.resetScene();
     this.container = scene.add.container(0, 0);
-    this.tileLayer = scene.add.container(0, 0);
-    this.highlightGfx = scene.add.graphics();
-    this.itemLayer = scene.add.container(0, 0);
-    this.actorLayer = scene.add.container(0, 0);
-    this.fxLayer = scene.add.container(0, 0);
     this.barsGfx = scene.add.graphics();
-    this.container.add([
-      this.tileLayer,
-      this.highlightGfx,
-      this.itemLayer,
-      this.actorLayer,
-      this.fxLayer,
-      this.barsGfx,
-    ]);
+    this.container.add(this.barsGfx);
+    this.fx = new FxPool(scene, this.stage.scene);
     this.buildGrid(state);
   }
 
-  /** Scale applied to the kitchen container, for callers that mix screen and tile space. */
-  get scaleValue(): number { return this.scaleFactor; }
+  /** The overlay is in screen pixels, so no scale applies. */
+  get scaleValue(): number { return 1; }
 
-  /** Grid size the sprites were built for, in tiles. */
+  /** Grid size the kitchen was built for, in tiles. */
   get gridSize(): { width: number; height: number } { return { width: this.gridW, height: this.gridH }; }
 
-  /** Screen position of a tile's top-left corner. */
+  /** Screen position of a tile's top-left floor corner. */
   tileToScreen(tx: number, ty: number): TilePos {
-    return {
-      x: this.container.x + tx * TILE * this.scaleFactor,
-      y: this.container.y + ty * TILE * this.scaleFactor,
-    };
+    return this.stage.project(tx, 0, ty, { x: 0, y: 0 });
   }
 
   draw(state: Readonly<SimState>, targets: readonly (TilePos | null)[], dtSec: number): void {
     if (state.width !== this.gridW || state.height !== this.gridH) this.buildGrid(state);
     this.elapsed += dtSec;
     this.readSliderOffsets(state);
-    this.drawTiles(state);
+    this.drawSliders(state);
     this.drawGates(state);
     this.drawTileItems(state);
     this.drawHighlights(state, targets);
+    this.drawChopping(state, targets);
     this.drawChefs(state, dtSec);
-    this.drawPedestrians(state);
+    this.drawPedestrians(state, dtSec);
     this.drawFires(state);
+    this.drawSteam(state);
     this.drawSpray(state, dtSec);
-    this.actorLayer.sort('depth');
+    this.fx.update(dtSec);
+    this.stage.syncToPhaser();
+    this.stage.render();
     this.drawBars(state, targets);
+    this.drawBadges(state);
   }
 
   destroy(): void {
-    for (const tween of this.fireTweens.values()) tween.remove();
-    this.fireTweens.clear();
-    for (const tween of this.sprayTweens) tween.remove();
-    this.sprayTweens.clear();
+    this.fx.dispose();
+    this.tiles?.dispose();
+    this.tiles = null;
+    for (const view of this.tileItems.values()) view.view.removeFromParent();
+    this.tileItems.clear();
+    for (const rig of this.chefs.values()) rig.dispose();
+    this.chefs.clear();
+    this.held.clear();
+    for (const rig of this.pedestrians.values()) rig.dispose();
+    this.pedestrians.clear();
+    for (const ring of this.highlights) ring.removeFromParent();
+    this.highlights.length = 0;
+    for (const badge of this.badges.values()) badge.destroy();
+    this.badges.clear();
     this.container.destroy(true);
-    this.tileSprites.length = 0;
-    this.sliderFloorSprites.length = 0;
-    this.sliderTiles.length = 0;
-    this.gateTiles.length = 0;
-    this.gateOverlays.length = 0;
-    this.gateClosedNow.length = 0;
-    this.itemSprites.clear();
-    this.itemBadges.clear();
-    this.tileBurgers.clear();
-    this.handBurgers.clear();
-    this.chefSprites.clear();
-    this.heldSprites.clear();
-    this.pedSprites.clear();
-    this.fireSprites.clear();
+    this.stage.resetScene();
+    this.stage.hide();
   }
 
-  // ─── Layout and grid ──────────────────────────────────────────────────────
+  // ─── Layout ───────────────────────────────────────────────────────────────
   private buildGrid(state: Readonly<SimState>): void {
-    for (const sprite of this.tileSprites) sprite.destroy();
-    this.tileSprites.length = 0;
-    for (const sprite of this.sliderFloorSprites) sprite.destroy();
-    this.sliderFloorSprites.length = 0;
-    this.sliderTiles.length = 0;
-    for (const sprite of this.itemSprites.values()) sprite.destroy();
-    this.itemSprites.clear();
-    for (const badge of this.itemBadges.values()) badge.destroy();
-    this.itemBadges.clear();
-    for (const overlay of this.gateOverlays) overlay.destroy();
-    this.gateOverlays.length = 0;
-    this.gateTiles.length = 0;
-    this.gateClosedNow.length = 0;
-    this.destroyBurgerStacks(this.tileBurgers);
-    this.destroyBurgerStacks(this.handBurgers);
-
+    this.tiles?.dispose();
+    for (const view of this.tileItems.values()) view.view.removeFromParent();
+    this.tileItems.clear();
+    for (const badge of this.badges.values()) badge.destroy();
+    this.badges.clear();
     this.gridW = state.width;
     this.gridH = state.height;
-    this.layout(state);
-
-    state.tiles.forEach((tile, i) => {
-      if (tile.type === 'slider') {
-        // Floor shows through where a moving counter has slid away from its resting tile.
-        const floor = this.scene.add
-          .image(tile.x * TILE, tile.y * TILE, TEX.tile('floor'))
-          .setOrigin(0, 0)
-          .setDisplaySize(TILE, TILE);
-        this.tileLayer.add(floor);
-        this.sliderFloorSprites.push(floor);
-      }
-      const sprite = this.scene.add
-        .image(tile.x * TILE, tile.y * TILE, tileTexture(tile))
-        .setOrigin(0, 0)
-        .setDisplaySize(TILE, TILE);
-      this.tileLayer.add(sprite);
-      this.tileSprites.push(sprite);
-      if (tile.type === 'slider') this.sliderTiles.push(i);
-      if (tile.type === 'gate') this.gateTiles.push(i);
-    });
-    // A closed gate gets a raised face over its floor; it is hidden while the gate is open.
-    for (const i of this.gateTiles) {
-      const tile = state.tiles[i];
-      const overlay = this.scene.add
-        .image(tile.x * TILE, tile.y * TILE, TEX.gateClosed)
-        .setOrigin(0, 0)
-        .setDisplaySize(TILE, TILE)
-        .setVisible(false);
-      this.tileLayer.add(overlay);
-      this.gateOverlays.push(overlay);
-      this.gateClosedNow.push(false);
-    }
-    // Moving counters draw above every static tile they slide over.
-    for (const i of this.sliderTiles) this.tileLayer.bringToTop(this.tileSprites[i]);
-  }
-
-  /** Centres the kitchen in the play area, scaling down when it does not fit. */
-  private layout(state: Readonly<SimState>): void {
-    const availW = GAME_WIDTH - LAYOUT.marginXPx * 2;
-    const availH = GAME_HEIGHT - LAYOUT.hudTopPx - LAYOUT.hudBottomPx;
-    const gridW = Math.max(1, state.width * TILE);
-    const gridH = Math.max(1, state.height * TILE);
-    this.scaleFactor = Math.min(LAYOUT.maxScale, availW / gridW, availH / gridH);
-    this.container.setScale(this.scaleFactor);
-    this.container.setPosition(
-      Math.round(LAYOUT.marginXPx + (availW - gridW * this.scaleFactor) / 2),
-      Math.round(LAYOUT.hudTopPx + (availH - gridH * this.scaleFactor) / 2),
-    );
+    this.tiles = new TileSet(this.scene, this.stage.scene, state, this.theme);
+    this.stage.fitToGrid(state.width, state.height, themeSceneHeight(this.theme));
   }
 
   private readSliderOffsets(state: Readonly<SimState>): void {
     this.sliderOffsets.clear();
-    for (const group of state.sliders) {
-      this.sliderOffsets.set(group.id, { x: group.offsetX * TILE, y: group.offsetY * TILE });
-    }
+    for (const group of state.sliders) this.sliderOffsets.set(group.id, { x: group.offsetX, y: group.offsetY });
   }
 
   private offsetFor(tile: Tile): { x: number; y: number } {
@@ -338,42 +178,42 @@ export class KitchenRenderer {
     return this.sliderOffsets.get(tile.group) ?? { x: 0, y: 0 };
   }
 
+  /** World position of the item slot on a tile, following sliders. */
+  private slotPosition(state: Readonly<SimState>, index: number, out: THREE.Vector3): THREE.Vector3 {
+    const tile = state.tiles[index];
+    const view = this.tiles?.views[index];
+    const off = this.offsetFor(tile);
+    const itemOffset = view?.itemOffset;
+    out.set(
+      tile.x + 0.5 + off.x + (itemOffset?.x ?? 0),
+      view?.surfaceY ?? 0,
+      tile.y + 0.5 + off.y + (itemOffset?.z ?? 0),
+    );
+    return out;
+  }
+
   // ─── Layers ───────────────────────────────────────────────────────────────
-  private drawTiles(state: Readonly<SimState>): void {
-    for (const i of this.sliderTiles) {
-      const tile = state.tiles[i];
-      const sprite = this.tileSprites[i];
-      if (!tile || !sprite) continue;
+  private drawSliders(state: Readonly<SimState>): void {
+    if (!this.tiles) return;
+    for (const index of this.tiles.sliderIndices) {
+      const tile = state.tiles[index];
+      if (!tile) continue;
       const off = this.offsetFor(tile);
-      sprite.setPosition(tile.x * TILE + off.x, tile.y * TILE + off.y);
+      this.tiles.setSliderOffset(index, off.x, off.y, tile);
     }
   }
 
-  /** Gate seams: a closed group shows its raised face and darkens, and flashes before it shuts. */
+  /** Gate seams: a closed group shows its risen slab, and flashes before it shuts. */
   private drawGates(state: Readonly<SimState>): void {
-    if (this.gateTiles.length === 0) return;
+    if (!this.tiles || this.tiles.gateIndices.length === 0) return;
     const flash = 0.5 + 0.5 * Math.sin(this.elapsed * GATE_DRAW.flashSpeedRad);
-    for (let n = 0; n < this.gateTiles.length; n++) {
-      const index = this.gateTiles[n];
+    for (const index of this.tiles.gateIndices) {
       const tile = state.tiles[index];
-      const sprite = this.tileSprites[index];
-      const overlay = this.gateOverlays[n];
-      if (!tile || !sprite || !overlay) continue;
+      if (!tile) continue;
       const group = this.gateGroup(state, tile.group);
       const closed = group ? !group.open : false;
-      if (closed !== this.gateClosedNow[n]) {
-        this.gateClosedNow[n] = closed;
-        if (closed) sprite.setTint(GATE_DRAW.closedTint);
-        else sprite.clearTint();
-      }
-      if (closed) {
-        overlay.setVisible(true);
-        overlay.setAlpha(1);
-        continue;
-      }
-      const warning = group !== null && group.secondsToChange <= GATE_DRAW.warnSec;
-      overlay.setVisible(warning);
-      if (warning) overlay.setAlpha(flash * GATE_DRAW.warnMaxAlpha);
+      const warning = !closed && group !== null && group.secondsToChange <= GATE_DRAW.warnSec;
+      this.tiles.setGate(index, closed, warning ? flash * GATE_DRAW.warnMaxAlpha : 0);
     }
   }
 
@@ -385,220 +225,138 @@ export class KitchenRenderer {
   }
 
   private drawTileItems(state: Readonly<SimState>): void {
+    const position = new THREE.Vector3();
     for (let i = 0; i < state.tileItems.length; i++) {
       const item = state.tileItems[i];
-      const sprite = this.itemSprites.get(i);
-      const badge = this.itemBadges.get(i);
+      const current = this.tileItems.get(i);
       if (!item) {
-        sprite?.setVisible(false);
-        badge?.setVisible(false);
-        this.hideBurger(this.tileBurgers, i);
+        if (current) current.view.visible = false;
         continue;
       }
-      const tile = state.tiles[i];
-      const off = this.offsetFor(tile);
-      const cx = tile.x * TILE + TILE / 2 + off.x;
-      const cy = tile.y * TILE + TILE / 2 - ITEM_DRAW.liftPx + off.y;
-      const view = sprite ?? this.makeItemSprite(i);
-      view.setTexture(itemTexture(item));
-      view.setPosition(cx, cy);
-      view.setVisible(true);
-
-      const burger = burgerDish(item);
-      if (burger) this.drawBurger(this.tileBurgers, i, this.itemLayer, burger, cx, cy, 1, null);
-      else this.hideBurger(this.tileBurgers, i);
-
-      const count = itemCount(item);
-      if (count > 1) {
-        const label = badge ?? this.makeBadge(i);
-        label.setText(`x${count}`);
-        label.setPosition(cx + ITEM_DRAW.badgeOffsetXPx, cy + ITEM_DRAW.badgeOffsetYPx);
-        label.setVisible(true);
-      } else {
-        badge?.setVisible(false);
-      }
+      const view = this.viewFor(current, item, (built) => {
+        this.stage.scene.add(built);
+        this.tileItems.set(i, { signature: itemSignature(item), view: built });
+      });
+      view.position.copy(this.slotPosition(state, i, position));
+      view.visible = true;
     }
   }
 
+  /** Reuses the pooled view when the item still looks the same, otherwise builds a new one. */
+  private viewFor(current: ItemView | undefined, item: Item, install: (built: THREE.Group) => void): THREE.Group {
+    const signature = itemSignature(item);
+    if (current && current.signature === signature) return current.view;
+    current?.view.removeFromParent();
+    const built = buildItemView(item);
+    install(built);
+    return built;
+  }
+
   private drawHighlights(state: Readonly<SimState>, targets: readonly (TilePos | null)[]): void {
-    const g = this.highlightGfx;
-    g.clear();
+    const position = new THREE.Vector3();
+    state.chefs.forEach((chef, i) => {
+      const ring = this.highlights[i] ?? this.makeHighlight(i, chef.index);
+      const target = targets[i];
+      if (!target) {
+        ring.visible = false;
+        return;
+      }
+      const index = target.y * state.width + target.x;
+      if (!state.tiles[index]) {
+        ring.visible = false;
+        return;
+      }
+      const tile = state.tiles[index];
+      const off = this.offsetFor(tile);
+      const surface = this.tiles?.views[index]?.surfaceY ?? 0;
+      position.set(tile.x + 0.5 + off.x, surface + HIGHLIGHT.lift, tile.y + 0.5 + off.y);
+      ring.position.copy(position);
+      ring.visible = true;
+    });
+  }
+
+  /** Boards a chef is chopping on right now, so their knives move. */
+  private drawChopping(state: Readonly<SimState>, targets: readonly (TilePos | null)[]): void {
+    if (!this.tiles) return;
+    this.choppingBoards.clear();
     state.chefs.forEach((chef, i) => {
       const target = targets[i];
-      if (!target) return;
-      const tile = state.tiles[target.y * state.width + target.x];
-      if (!tile) return;
-      const off = this.offsetFor(tile);
-      const color = CHEF_COLORS[chef.index] ?? CHEF_COLORS[0];
-      g.lineStyle(HIGHLIGHT.lineWidthPx, color, HIGHLIGHT.alpha);
-      g.strokeRoundedRect(
-        target.x * TILE + HIGHLIGHT.insetPx + off.x,
-        target.y * TILE + HIGHLIGHT.insetPx + off.y,
-        TILE - HIGHLIGHT.insetPx * 2,
-        TILE - HIGHLIGHT.insetPx * 2,
-        HIGHLIGHT.radiusPx,
-      );
+      if (chef.action !== 'chopping' || !target) return;
+      this.choppingBoards.add(target.y * state.width + target.x);
     });
+    this.tiles.animateKnives(this.choppingBoards, this.elapsed);
   }
 
   private drawChefs(state: Readonly<SimState>, dtSec: number): void {
     const seen = new Set<number>();
     for (const chef of state.chefs) {
       seen.add(chef.index);
-      const sprite = this.chefSprites.get(chef.index) ?? this.makeChefSprite(chef.index);
-      const px = chef.x * TILE;
-      const py = chef.y * TILE;
-      const phase = (this.bobPhase[chef.index] ?? 0) + (chef.action === 'walking' ? dtSec * CHEF_DRAW.bobSpeedRad : 0);
-      this.bobPhase[chef.index] = phase;
-      const bob = chef.action === 'walking' ? -Math.abs(Math.sin(phase)) * CHEF_DRAW.bobPx : 0;
-      sprite.setTexture(TEX.chef(chef.index, chef.facing));
-      sprite.setPosition(px, py + CHEF_DRAW.feetOffsetPx + bob);
-      sprite.setDepth(py);
-      sprite.setVisible(true);
-      this.drawHeldItem(chef, px, py + bob);
+      const rig = this.chefs.get(chef.index) ?? this.makeChef(chef.index);
+      rig.setPosition(chef.x, chef.y);
+      rig.setFacing(chef.facing);
+      rig.setMoving(chef.action === 'walking');
+      rig.update(dtSec);
+      this.drawHeldItem(chef, rig);
     }
-    for (const [index, sprite] of this.chefSprites) {
-      if (seen.has(index)) continue;
-      sprite.setVisible(false);
-      this.heldSprites.get(index)?.setVisible(false);
-      this.hideBurger(this.handBurgers, index);
+    for (const [index, rig] of this.chefs) {
+      rig.group.visible = seen.has(index);
     }
   }
 
-  private drawHeldItem(chef: Chef, px: number, py: number): void {
-    const held = this.heldSprites.get(chef.index) ?? this.makeHeldSprite(chef.index);
+  private drawHeldItem(chef: Chef, rig: ChefRig): void {
+    const current = this.held.get(chef.index);
     if (!chef.holding) {
-      held.setVisible(false);
-      this.hideBurger(this.handBurgers, chef.index);
+      if (current) current.view.visible = false;
       return;
     }
-    const facing = FACING_VECTORS[chef.facing];
-    const hx = px + facing.dx * CHEF_DRAW.heldFacingOffsetPx;
-    const hy = py - CHEF_DRAW.heldLiftPx + facing.dy * CHEF_DRAW.heldFacingOffsetPx;
-    held.setTexture(itemTexture(chef.holding));
-    held.setPosition(hx, hy);
-    held.setScale(CHEF_DRAW.heldScale);
-    held.setDepth(py + 1);
-    held.setVisible(true);
-
-    const burger = burgerDish(chef.holding);
-    if (burger) {
-      this.drawBurger(this.handBurgers, chef.index, this.actorLayer, burger, hx, hy, CHEF_DRAW.heldScale, py + 2);
-    } else {
-      this.hideBurger(this.handBurgers, chef.index);
-    }
-  }
-
-  // ─── Burger layers ────────────────────────────────────────────────────────
-  /** Draws the plated burger's layers bottom to top, centred on its plate. */
-  private drawBurger(
-    pool: Map<number, Phaser.GameObjects.Image[]>,
-    key: number,
-    layer: Phaser.GameObjects.Container,
-    dish: Dish,
-    cx: number,
-    cy: number,
-    scale: number,
-    depth: number | null,
-  ): void {
-    const sprites = pool.get(key) ?? this.makeBurgerStack(pool, key, layer);
-    let present = 0;
-    for (const name of BURGER_LAYERS) if (dish.ingredients.includes(BURGER_LAYER_INGREDIENT[name])) present++;
-    const step = BURGER_LAYER_STEP_PX * scale;
-    let drawn = 0;
-    for (const name of BURGER_LAYERS) {
-      if (!dish.ingredients.includes(BURGER_LAYER_INGREDIENT[name])) continue;
-      const sprite = sprites[drawn];
-      sprite.setTexture(TEX.burgerLayer(name));
-      sprite.setPosition(cx, cy + ((present - 1) / 2 - drawn) * step);
-      sprite.setScale(scale);
-      if (depth !== null) sprite.setDepth(depth);
-      sprite.setVisible(true);
-      drawn++;
-    }
-    for (let i = drawn; i < sprites.length; i++) sprites[i].setVisible(false);
-  }
-
-  private hideBurger(pool: Map<number, Phaser.GameObjects.Image[]>, key: number): void {
-    const sprites = pool.get(key);
-    if (!sprites) return;
-    for (const sprite of sprites) sprite.setVisible(false);
-  }
-
-  private makeBurgerStack(
-    pool: Map<number, Phaser.GameObjects.Image[]>,
-    key: number,
-    layer: Phaser.GameObjects.Container,
-  ): Phaser.GameObjects.Image[] {
-    const sprites = BURGER_LAYERS.map((name) => {
-      const sprite = this.scene.add.image(0, 0, TEX.burgerLayer(name)).setOrigin(0.5, 0.5).setVisible(false);
-      layer.add(sprite);
-      return sprite;
+    const item = chef.holding;
+    const view = this.viewFor(current, item, (built) => {
+      built.scale.setScalar(HELD.scale);
+      rig.heldSlot.add(built);
+      this.held.set(chef.index, { signature: itemSignature(item), view: built });
     });
-    pool.set(key, sprites);
-    return sprites;
+    view.visible = true;
   }
 
-  private destroyBurgerStacks(pool: Map<number, Phaser.GameObjects.Image[]>): void {
-    for (const sprites of pool.values()) for (const sprite of sprites) sprite.destroy();
-    pool.clear();
-  }
-
-  private drawPedestrians(state: Readonly<SimState>): void {
+  private drawPedestrians(state: Readonly<SimState>, dtSec: number): void {
     const seen = new Set<number>();
     for (const ped of state.pedestrians) {
       seen.add(ped.id);
-      const sprite = this.pedSprites.get(ped.id) ?? this.makePedSprite(ped.id);
-      const py = ped.y * TILE;
-      sprite.setPosition(ped.x * TILE, py + CHEF_DRAW.feetOffsetPx);
-      sprite.setDepth(py);
-      sprite.setVisible(true);
+      const rig = this.pedestrians.get(ped.id) ?? this.makePedestrian(ped.id);
+      rig.setPosition(ped.x, ped.y);
+      rig.setHeading(ped.vx, ped.vy);
+      rig.setMoving(Math.abs(ped.vx) + Math.abs(ped.vy) > PEDESTRIAN.moveEpsilon);
+      rig.update(dtSec);
     }
-    for (const [id, sprite] of this.pedSprites) {
+    for (const [id, rig] of this.pedestrians) {
       if (seen.has(id)) continue;
-      sprite.destroy();
-      this.pedSprites.delete(id);
+      rig.dispose();
+      this.pedestrians.delete(id);
     }
   }
 
+  /** Steam rises from pots and pans that are cooking or done on a stove. */
+  private drawSteam(state: Readonly<SimState>): void {
+    this.steamPositions.length = 0;
+    for (let i = 0; i < state.tileItems.length; i++) {
+      const item = state.tileItems[i];
+      if (!item || item.kind !== 'pot' || state.tiles[i].type !== 'stove') continue;
+      if (item.state !== 'cooking' && item.state !== 'cooked') continue;
+      this.steamPositions.push(this.slotPosition(state, i, new THREE.Vector3()));
+    }
+    this.fx.setSteamSources(this.steamPositions);
+  }
+
   private drawFires(state: Readonly<SimState>): void {
-    const seen = new Set<string>();
+    this.firePositions.clear();
     for (const fire of state.fires) {
-      const key = fireKey(fire.x, fire.y);
-      seen.add(key);
-      // A fire on a moving counter has to ride with it, so the position is set every frame.
-      const tile = state.tiles[fire.y * state.width + fire.x];
+      const index = fire.y * state.width + fire.x;
+      const tile = state.tiles[index];
       const off = tile ? this.offsetFor(tile) : { x: 0, y: 0 };
-      const fx = fire.x * TILE + TILE / 2 + off.x;
-      const fy = fire.y * TILE + TILE / 2 + off.y;
-      const existing = this.fireSprites.get(key);
-      if (existing) {
-        existing.setPosition(fx, fy);
-        continue;
-      }
-      const sprite = this.scene.add.image(fx, fy, TEX.fire).setOrigin(0.5, 0.5);
-      this.fxLayer.add(sprite);
-      this.fireSprites.set(key, sprite);
-      this.fireTweens.set(
-        key,
-        this.scene.tweens.add({
-          targets: sprite,
-          scale: { from: FIRE_FX.scaleFrom, to: FIRE_FX.scaleTo },
-          alpha: { from: 1, to: FIRE_FX.alphaTo },
-          duration: FIRE_FX.flickerMs,
-          yoyo: true,
-          repeat: -1,
-          ease: 'Sine.easeInOut',
-        }),
-      );
+      const surface = this.tiles?.views[index]?.surfaceY ?? 0;
+      this.firePositions.set(fireKey(fire.x, fire.y), new THREE.Vector3(fire.x + 0.5 + off.x, surface, fire.y + 0.5 + off.y));
     }
-    for (const [key, sprite] of this.fireSprites) {
-      if (seen.has(key)) continue;
-      this.fireTweens.get(key)?.remove();
-      this.fireTweens.delete(key);
-      sprite.destroy();
-      this.fireSprites.delete(key);
-    }
+    this.fx.syncFires(this.firePositions);
   }
 
   private drawSpray(state: Readonly<SimState>, dtSec: number): void {
@@ -613,36 +371,13 @@ export class KitchenRenderer {
         continue;
       }
       this.sprayTimer[chef.index] = SPRAY_FX.intervalSec;
-      this.spawnSpray(chef);
+      const facing = FACING_VECTORS[chef.facing];
+      const origin = new THREE.Vector3(chef.x + facing.dx * SPRAY_FX.distance, 0, chef.y + facing.dy * SPRAY_FX.distance);
+      this.fx.spawnSpray(origin, new THREE.Vector3(facing.dx, 0, facing.dy));
     }
   }
 
-  private spawnSpray(chef: Chef): void {
-    const facing = FACING_VECTORS[chef.facing];
-    const jitter = (Math.random() - 0.5) * SPRAY_FX.jitterPx;
-    const sprite = this.scene.add
-      .image(
-        chef.x * TILE + facing.dx * SPRAY_FX.distancePx - facing.dy * jitter,
-        chef.y * TILE + facing.dy * SPRAY_FX.distancePx - facing.dx * jitter,
-        TEX.spray,
-      )
-      .setOrigin(0.5, 0.5)
-      .setScale(SPRAY_FX.scaleFrom);
-    this.fxLayer.add(sprite);
-    const tween = this.scene.tweens.add({
-      targets: sprite,
-      scale: SPRAY_FX.scaleTo,
-      alpha: 0,
-      duration: SPRAY_FX.lifeMs,
-      onComplete: () => {
-        this.sprayTweens.delete(tween);
-        sprite.destroy();
-      },
-    });
-    this.sprayTweens.add(tween);
-  }
-
-  // ─── Progress bars ────────────────────────────────────────────────────────
+  // ─── Overlay: progress bars and badges ────────────────────────────────────
   private drawBars(state: Readonly<SimState>, targets: readonly (TilePos | null)[]): void {
     const g = this.barsGfx;
     g.clear();
@@ -651,14 +386,14 @@ export class KitchenRenderer {
       const item = state.tileItems[i];
       if (!item) continue;
       if (tile.type === 'board' && item.kind === 'ingredient' && item.chopProgress > 0 && item.chopProgress < 1) {
-        this.bar(tile, item.chopProgress, COLOR.barWarn, 1);
+        this.bar(state, i, item.chopProgress, COLOR.barWarn, 1);
       }
       if (tile.type === 'stove' && item.kind === 'pot') {
-        if (item.state === 'cooking') this.bar(tile, item.cookProgress, COLOR.barGood, 1);
+        if (item.state === 'cooking') this.bar(state, i, item.cookProgress, COLOR.barGood, 1);
         else if (item.state === 'cooked') {
           const flash = BAR.flashMinAlpha + (1 - BAR.flashMinAlpha) * (0.5 + 0.5 * Math.sin(this.elapsed * BAR.flashSpeedRad));
-          this.bar(tile, item.burnProgress, COLOR.barDanger, flash);
-          this.warningIcon(tile, flash);
+          this.bar(state, i, item.burnProgress, COLOR.barDanger, flash);
+          this.warningIcon(state, i, flash);
         }
       }
     }
@@ -666,16 +401,23 @@ export class KitchenRenderer {
       if (chef.action !== 'washing') continue;
       const target = targets[chef.index];
       if (!target) continue;
-      const tile = state.tiles[target.y * state.width + target.x];
+      const index = target.y * state.width + target.x;
+      const tile = state.tiles[index];
       if (!tile || tile.type !== 'sink') continue;
-      this.bar(tile, chef.actionProgress, COLOR.barWash, 1);
+      this.bar(state, index, chef.actionProgress, COLOR.barWash, 1);
     }
   }
 
-  private bar(tile: Tile, progress: number, color: number, alpha: number): void {
-    const off = this.offsetFor(tile);
-    const x = tile.x * TILE + (TILE - BAR.widthPx) / 2 + off.x;
-    const y = tile.y * TILE + TILE / 2 - BAR.aboveTilePx + off.y;
+  /** Screen anchor above a tile's working surface. */
+  private barAnchor(state: Readonly<SimState>, index: number): { x: number; y: number } {
+    const position = this.slotPosition(state, index, new THREE.Vector3());
+    return this.stage.project(position.x, position.y + BAR.aboveSurface, position.z, this.screen);
+  }
+
+  private bar(state: Readonly<SimState>, index: number, progress: number, color: number, alpha: number): void {
+    const anchor = this.barAnchor(state, index);
+    const x = anchor.x - BAR.widthPx / 2;
+    const y = anchor.y - BAR.heightPx / 2;
     const g = this.barsGfx;
     g.fillStyle(COLOR.barTrack, BAR.trackAlpha * alpha);
     g.fillRect(x - BAR.borderPx, y - BAR.borderPx, BAR.widthPx + BAR.borderPx * 2, BAR.heightPx + BAR.borderPx * 2);
@@ -683,52 +425,66 @@ export class KitchenRenderer {
     g.fillRect(x, y, BAR.widthPx * Phaser.Math.Clamp(progress, 0, 1), BAR.heightPx);
   }
 
-  private warningIcon(tile: Tile, alpha: number): void {
-    const off = this.offsetFor(tile);
-    const cx = tile.x * TILE + TILE / 2 + off.x;
-    const top = tile.y * TILE + TILE / 2 - BAR.aboveTilePx - WARN_ICON.aboveBarPx + off.y;
+  private warningIcon(state: Readonly<SimState>, index: number, alpha: number): void {
+    const anchor = this.barAnchor(state, index);
+    const cx = anchor.x;
+    const top = anchor.y - BAR.heightPx / 2 - WARN_ICON.aboveBarPx;
     const g = this.barsGfx;
     g.fillStyle(COLOR.barWarn, alpha);
     g.fillTriangle(cx, top - WARN_ICON.heightPx, cx - WARN_ICON.widthPx / 2, top, cx + WARN_ICON.widthPx / 2, top);
   }
 
-  // ─── Sprite pools ─────────────────────────────────────────────────────────
-  private makeItemSprite(index: number): Phaser.GameObjects.Image {
-    const sprite = this.scene.add.image(0, 0, TEX.plate).setOrigin(0.5, 0.5);
-    this.itemLayer.add(sprite);
-    this.itemSprites.set(index, sprite);
-    return sprite;
+  private drawBadges(state: Readonly<SimState>): void {
+    const position = new THREE.Vector3();
+    for (let i = 0; i < state.tileItems.length; i++) {
+      const item = state.tileItems[i];
+      const badge = this.badges.get(i);
+      const count = item ? itemCount(item) : 1;
+      if (!item || count <= 1) {
+        badge?.setVisible(false);
+        continue;
+      }
+      this.slotPosition(state, i, position);
+      const anchor = this.stage.project(position.x, position.y + BADGE.lift, position.z, this.screen);
+      const label = badge ?? this.makeBadge(i);
+      label.setText(`x${count}`);
+      label.setPosition(anchor.x, anchor.y);
+      label.setVisible(true);
+    }
+  }
+
+  // ─── Pools ────────────────────────────────────────────────────────────────
+  private makeHighlight(slot: number, chefIndex: number): THREE.Mesh {
+    const color = CHEF_COLORS[chefIndex] ?? CHEF_COLORS[0];
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(HIGHLIGHT.inner, HIGHLIGHT.outer, HIGHLIGHT.segments),
+      new THREE.MeshBasicMaterial({ color, transparent: true, opacity: HIGHLIGHT.alpha, depthWrite: false, side: THREE.DoubleSide }),
+    );
+    ring.rotation.x = -Math.PI / 2;
+    ring.visible = false;
+    this.stage.scene.add(ring);
+    this.highlights[slot] = ring;
+    return ring;
+  }
+
+  private makeChef(index: number): ChefRig {
+    const rig = new ChefRig(CHEF_SKIN_URLS[index % CHEF_SKIN_URLS.length], true);
+    this.stage.scene.add(rig.group);
+    this.chefs.set(index, rig);
+    return rig;
+  }
+
+  private makePedestrian(id: number): ChefRig {
+    const rig = new ChefRig(PEDESTRIAN_SKIN_URLS[Math.abs(id) % PEDESTRIAN_SKIN_URLS.length], false);
+    this.stage.scene.add(rig.group);
+    this.pedestrians.set(id, rig);
+    return rig;
   }
 
   private makeBadge(index: number): Phaser.GameObjects.Text {
     const badge = this.scene.add.text(0, 0, '', BADGE_STYLE).setOrigin(0.5, 0.5);
-    this.itemLayer.add(badge);
-    this.itemBadges.set(index, badge);
+    this.container.add(badge);
+    this.badges.set(index, badge);
     return badge;
-  }
-
-  private makeChefSprite(index: number): Phaser.GameObjects.Image {
-    const sprite = this.scene.add.image(0, 0, TEX.chef(index, 'down')).setOrigin(0.5, 1);
-    this.actorLayer.add(sprite);
-    this.chefSprites.set(index, sprite);
-    return sprite;
-  }
-
-  private makeHeldSprite(index: number): Phaser.GameObjects.Image {
-    const sprite = this.scene.add.image(0, 0, TEX.plate).setOrigin(0.5, 0.5);
-    this.actorLayer.add(sprite);
-    this.heldSprites.set(index, sprite);
-    return sprite;
-  }
-
-  private makePedSprite(id: number): Phaser.GameObjects.Image {
-    const sprite = this.scene.add
-      .image(0, 0, TEX.chef(0, 'down'))
-      .setOrigin(0.5, 1)
-      .setTint(PEDESTRIAN_DRAW.tint)
-      .setAlpha(PEDESTRIAN_DRAW.alpha);
-    this.actorLayer.add(sprite);
-    this.pedSprites.set(id, sprite);
-    return sprite;
   }
 }

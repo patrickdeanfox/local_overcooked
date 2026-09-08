@@ -1,6 +1,6 @@
 # local_overcooked
 
-A two-player Overcooked clone that runs in a browser on your home network. One screen, two Bluetooth gamepads (or the keyboard). Phaser 3 + TypeScript, no image or sound files: every sprite is drawn in code and every sound is synthesised.
+A two-player Overcooked clone that runs in a browser on your home network. One screen, two Bluetooth gamepads (or the keyboard). The kitchen is a real 3D scene (Three.js) built from CC0 low-poly kits by Kenney and KayKit; Phaser 3 draws the menus and HUD on top, and every sound is synthesised.
 
 **Status: Overcooked 1 world 1 complete.** Levels 1-1 to 1-6 are transcribed 1:1 from the wiki: soups (pots), burgers (frying pans, bun, lettuce, tomato), chopping, burning and fire, extinguisher, sink washing with dirty-plate return, plate stacks on the no-sink ship level, orders with tips and the exact-order combo rule, star thresholds and unlocks, the 1-2 pedestrian crosswalk, the 1-3 sliding counters, the 1-5 one-tile ring corridor and the 1-6 earthquake seam. Level select remembers your best scores and stars; difficulty presets and seeded order sequences add replay value.
 
@@ -100,7 +100,10 @@ src/sim/        pure TypeScript kitchen simulation (deterministic, no Phaser)  �
 src/levels/     level JSON (ASCII grid + legend) and the schema/validator      → docs/LEVEL_SCHEMA.md
 src/game/       Phaser scenes, renderer, HUD, pause, results, debug overlay, hot reload
 src/input/      keyboard + Gamepad API manager, bindings, controller screen
-src/art/        code-drawn textures (tiles, items, chefs, icons, prompts)      → keys.ts is the contract
+src/art/        3D model manifest (models.json → models.ts) and code-drawn HUD textures → keys.ts and models.ts are the contracts
+src/game/render/ KitchenRenderer (state → Three.js scene) and three/ (stage, loader, tiles, items, chef rigs, effects)
+assets/         CC0 source kits (Kenney Food Kit, Furniture Kit, Animated Characters; KayKit Restaurant Bits)
+public/models/  the glTF files the game loads, synced from assets/ by `npm run models`
 src/audio/      Web Audio synth SFX and music loop
 tools/          playtest harness
 docs/           PLAN, ROADMAP, LEVELS (the three transcriptions), CONTROLS, research/ (wiki research)
@@ -113,4 +116,4 @@ docs/           PLAN, ROADMAP, LEVELS (the three transcriptions), CONTROLS, rese
 4. Timers and star thresholds come from the level page infobox and star chart; `docs/research/oc1-levels.md` has every OC1 level tabulated.
 
 ## What is not in this build
-Overcooked 1 worlds 2 to 6 (moving trucks, fish and chips, pizza, burritos), throwing and dashing (Overcooked 2), playing from two devices, generated sprites, and Tiled import. The order in which those land, with the files each one touches, is in `docs/ROADMAP.md`.
+Overcooked 1 worlds 2 to 6 (moving trucks, fish and chips, pizza, burritos), throwing and dashing (Overcooked 2), playing from two devices, recorded sound, and Tiled import. The order in which those land, with the files each one touches, is in `docs/ROADMAP.md`.

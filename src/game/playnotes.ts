@@ -113,6 +113,9 @@ function takeScreenshot(): Promise<string | undefined> {
           canvas.height = SHOT_H;
           const ctx = canvas.getContext('2d');
           if (!ctx) { resolve(undefined); return; }
+          // The 3D kitchen lives on its own canvas behind Phaser's; composite it first.
+          const kitchen = document.querySelector<HTMLCanvasElement>('canvas.kitchen3d');
+          if (kitchen && kitchen.style.display !== 'none') ctx.drawImage(kitchen, 0, 0, SHOT_W, SHOT_H);
           ctx.drawImage(image, 0, 0, SHOT_W, SHOT_H);
           resolve(canvas.toDataURL('image/jpeg', SHOT_QUALITY));
         } catch (err) { log.warn('playnotes: screenshot failed', err); resolve(undefined); }

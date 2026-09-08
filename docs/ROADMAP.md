@@ -31,8 +31,9 @@ Done so far: first playable (1-1 to 1-3), research docs, headless playtest harne
 - `server.mjs` grows a WebSocket endpoint (Node's built-in `WebSocket` client exists; the server side needs a small handshake implementation or one dependency, decide then).
 - Host runs the authoritative `Sim`; clients send `PlayerInput` at 60 Hz and receive `SimState` snapshots at 30 Hz. LAN latency is 1-3 ms, so no prediction is needed. The pure `Sim` and JSON-serialisable `SimState` were designed for this.
 
-## 7. Art and sound upgrades
-- Swap code-drawn textures for generated sprites behind `src/art/keys.ts`: a pixel-art MCP (PixelLab or MagicPixel) generates one chef, then `generate_directions` / rotation for the four facings, then variants for the second colour. Load PNGs in `BootScene` and skip `generateTextures` for keys that loaded.
+## 7. Art and sound upgrades (art done: full 3D)
+- Done: the kitchen is a Three.js scene behind Phaser's transparent canvas, built from CC0 Kenney and KayKit glTF kits (`src/art/models.json`, `src/game/render/three/`). Chefs are the Kenney animated character with painted apron skins and baked idle/run clips. Levels dress by `theme` (back wall with windows, ship deck on water).
+- Next art steps: order-card icons rendered from the 3D dishes; steam over cooking pots; a chopping pose for the chef; per-theme props from the kits (fridge, hood, shelves); Kenney Car Kit trucks for world 2.
 - Replace synthesised SFX with recorded CC0 samples behind `src/audio/types.ts`; keep the synth as fallback.
 
 ## 8. Authoring tools
