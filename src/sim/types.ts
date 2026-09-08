@@ -124,9 +124,11 @@ export interface PlayerInput {
   pickupPressed: boolean;  // rising edge this step: pick up / put down
   interactPressed: boolean;// rising edge this step: chop / wash / spray
   interactHeld: boolean;   // held this step: chopping and washing continue while held
+  pausePressed?: boolean;  // rising edge: Start / Options / Escape (menus and pause)
+  backPressed?: boolean;   // rising edge: B / Circle / Backspace (menu back)
 }
 export const NO_INPUT: Readonly<PlayerInput> = Object.freeze({
-  moveX: 0, moveY: 0, pickupPressed: false, interactPressed: false, interactHeld: false,
+  moveX: 0, moveY: 0, pickupPressed: false, interactPressed: false, interactHeld: false, pausePressed: false, backPressed: false,
 });
 
 // ─── Events ──────────────────────────────────────────────────────────────────

@@ -3,8 +3,8 @@
 // the types module, constants, and recipes are the contract.
 import type { LevelDef } from '../levels/schema';
 import { parseGrid } from '../levels/schema';
-import { CHEF_HITBOX, CHEF_SPEED, SIM_DT } from './constants';
-import type { Facing, PlayerInput, SimEvent, SimState, Tile } from './types';
+import { CHEF_HITBOX, CHEF_SPEED, REACH, SIM_DT } from './constants';
+import { FACING_VECTORS, type Facing, type PlayerInput, type SimEvent, type SimState, type Tile } from './types';
 
 export { SIM_DT } from './constants';
 export * from './types';
@@ -53,6 +53,17 @@ export class Sim {
   }
 
   getState(): Readonly<SimState> { return this.state; }
+
+  /** Tile the chef would interact with right now (for the highlight), or null if none / off grid. */
+  getTargetTile(chefIndex: number): { x: number; y: number } | null {
+    const chef = this.state.chefs[chefIndex];
+    if (!chef) return null;
+    const v = FACING_VECTORS[chef.facing];
+    const tx = Math.floor(chef.x + v.dx * (CHEF_HITBOX / 2 + REACH));
+    const ty = Math.floor(chef.y + v.dy * (CHEF_HITBOX / 2 + REACH));
+    if (tx < 0 || ty < 0 || tx >= this.state.width || ty >= this.state.height) return null;
+    return { x: tx, y: ty };
+  }
 
   step(inputs: readonly PlayerInput[], dt: number = SIM_DT): SimEvent[] {
     const events: SimEvent[] = [];
