@@ -1,0 +1,54 @@
+{
+  "id": "oc1-4-4", "game": "oc1", "world": 4, "index": 4, "name": "4-4", "theme": "Munch Mansion",
+  "wiki": "https://overcooked.fandom.com/wiki/4-4_(Overcooked!)", "screenshots": ["oc1/4-4.jpg"],
+  "timeLimitSec": 240, "timerStartsOnFirstServe": false, "unlockStars": 42, "players": [1, 2, 3, 4],
+  "recipes": ["meat_burger", "lettuce_burger", "tomato_lettuce_burger", "pizza", "pepperoni_pizza", "mushroom_pizza"],
+  "orderVariants": 6,
+  "orders": {"initial": 2, "intervalSec": 22, "max": 4, "timeSec": 75},
+  "stars": {"1": [null, null, 100], "2": [null, null, 120], "3": null, "4": null},
+  "starsProvenance": "oc1",
+  "plates": {"mode": "sink", "count": 4},
+  "grid": {
+    "cols": 19, "rows": 12, "confidence": "med",
+    "ascii": [
+      "############N##N###",
+      "#........vB.......#",
+      "W........v........W",
+      "D........v........D",
+      "#........v........#",
+      "#........v........#",
+      "#E#F##F#Bv#AULT#pp#",
+      "R........v........R",
+      "#........v........#",
+      "V........v........V",
+      "V........v........V",
+      "#pp#!M&H#X#########"
+    ]
+  },
+  "legendExtensions": {"N": "oven", "v": "conveyor belt running south", "H": "cheese crate", "&": "dough crate", "!": "pepperoni crate"},
+  "stations": {
+    "board": 2, "potBurner": 0, "panBurner": 2, "fryer": 0, "oven": 2, "mixer": 0, "steamer": 0,
+    "sink": 2, "serve": 2, "plateReturn": 2, "trash": 1, "extinguisher": 1, "plate": 4, "counter": 45,
+    "conveyor": 10,
+    "crates": {"pepperoni": 1, "mushroom": 1, "dough": 1, "cheese": 1, "meat": 1, "bun": 1, "lettuce": 1, "tomato": 1}
+  },
+  "spawns": [{"x": 11, "y": 3}, {"x": 5, "y": 8}],
+  "zones": [
+    {"name": "upper-left", "stations": ["sink", "panBurner", "board", "extinguisher"], "links": [{"to": "lower-left", "via": "height-shift"}, {"to": "upper-right", "via": "conveyor"}]},
+    {"name": "lower-left", "stations": ["serve", "plateReturn", "plate", "pizza crates"], "links": [{"to": "upper-left", "via": "height-shift"}, {"to": "lower-right", "via": "conveyor"}]},
+    {"name": "upper-right", "stations": ["oven", "board", "burger crates", "plate"], "links": [{"to": "lower-right", "via": "height-shift"}, {"to": "upper-left", "via": "conveyor"}]},
+    {"name": "lower-right", "stations": ["sink", "serve", "plateReturn"], "links": [{"to": "upper-right", "via": "height-shift"}, {"to": "lower-left", "via": "conveyor"}]}
+  ],
+  "dynamics": [
+    {"type": "conveyor", "detail": "a single south-running belt down the centre column, ending in a trash bin; the only route between the two halves", "periodSec": null},
+    {"type": "floor-height-shift", "detail": "the kitchen areas rise and fall, so the upper and lower area of each half only connect intermittently", "periodSec": null}
+  ],
+  "hazards": ["conveyor into a bin: uncaught items are destroyed; cookware respawns after 5 s"],
+  "features": {
+    "splitKitchen": true, "throwRequired": true, "movingPlatforms": false, "conveyors": true,
+    "portals": false, "floorTiles": 143, "counterTiles": 85, "stationTiles": 40,
+    "longestWalkTiles": 8, "chokepointWidth": 1, "recipeSteps": 5
+  },
+  "missingMechanics": ["conveyor belts", "oven", "pizza recipe family", "dough/cheese/pepperoni crates", "shifting floor heights between areas", "two serving counters / sinks / plate returns in one level"],
+  "estimates": ["orders.initial", "orders.intervalSec", "orders.max", "orders.timeSec", "orders recipe weighting", "spawns", "dynamics[0].periodSec", "dynamics[1].periodSec", "grid"]
+}

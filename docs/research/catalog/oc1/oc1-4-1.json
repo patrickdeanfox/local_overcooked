@@ -1,0 +1,51 @@
+{
+  "id": "oc1-4-1", "game": "oc1", "world": 4, "index": 1, "name": "4-1", "theme": "Munch Mansion",
+  "wiki": "https://overcooked.fandom.com/wiki/4-1_(Overcooked!)", "screenshots": ["oc1/4-1.jpg"],
+  "timeLimitSec": 240, "timerStartsOnFirstServe": false, "unlockStars": 29, "players": [1, 2, 3, 4],
+  "recipes": ["pizza", "pepperoni_pizza", "mushroom_pizza"], "orderVariants": 3,
+  "orders": {"initial": 2, "intervalSec": 20, "max": 4, "timeSec": 60},
+  "stars": {"1": [null, null, 120], "2": [null, null, 200], "3": null, "4": null},
+  "starsProvenance": "oc1",
+  "plates": {"mode": "sink", "count": 3},
+  "grid": {
+    "cols": 16, "rows": 12, "confidence": "low",
+    "ascii": [
+      "  #E#N#N#N#X#   ",
+      " ............   ",
+      "#............   ",
+      "###.....#ppp####",
+      "W.......#......V",
+      "D.......#......V",
+      "#.......#......R",
+      "#..............#",
+      "####B#B##...####",
+      "............    ",
+      "............    ",
+      "####&THM!###    "
+    ]
+  },
+  "legendExtensions": {"N": "oven", "H": "cheese crate", "&": "dough crate", "!": "pepperoni crate"},
+  "stations": {
+    "board": 2, "potBurner": 0, "panBurner": 0, "fryer": 0, "oven": 3, "mixer": 0, "steamer": 0,
+    "sink": 1, "serve": 1, "plateReturn": 1, "trash": 1, "extinguisher": 1, "plate": 3, "counter": 39,
+    "crates": {"dough": 1, "tomato": 1, "cheese": 1, "mushroom": 1, "pepperoni": 1}
+  },
+  "spawns": [{"x": 4, "y": 5}, {"x": 11, "y": 5}],
+  "zones": [
+    {"name": "north corridor", "stations": ["oven", "trash", "extinguisher"], "links": [{"to": "left room", "via": "walk"}]},
+    {"name": "left room", "stations": ["sink", "board"], "links": [{"to": "north corridor", "via": "walk"}, {"to": "right room", "via": "walk-when-counters-move"}]},
+    {"name": "right room", "stations": ["serve", "plateReturn", "plate"], "links": [{"to": "left room", "via": "walk-when-counters-move"}, {"to": "south corridor", "via": "walk"}]},
+    {"name": "south corridor", "stations": ["crates"], "links": [{"to": "right room", "via": "walk"}]}
+  ],
+  "dynamics": [
+    {"type": "floating-counters", "detail": "a set of counters (2 with chopping stations, 3 carrying plates) drifts freely around the kitchen, alternating which chef can reach the sink and which the serving counter", "periodSec": null}
+  ],
+  "hazards": [],
+  "features": {
+    "splitKitchen": true, "throwRequired": false, "movingPlatforms": false, "conveyors": false,
+    "portals": false, "floorTiles": 109, "counterTiles": 59, "stationTiles": 20,
+    "longestWalkTiles": 15, "chokepointWidth": 3, "recipeSteps": 5
+  },
+  "missingMechanics": ["oven", "pizza recipe family (assemble on dough, then bake)", "dough/cheese/pepperoni crates", "free-floating counters with items riding along"],
+  "estimates": ["orders.initial", "orders.intervalSec", "orders.max", "orders.timeSec", "spawns", "dynamics[0].periodSec", "grid", "features.chokepointWidth"]
+}
