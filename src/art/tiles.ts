@@ -346,7 +346,24 @@ const TILE_DRAWERS: Record<Exclude<TileType, 'crate'>, TileDraw> = {
   trash: drawTrash,
   plateStack: drawPlateStack,
   slider: drawSlider,
+  gate: drawGate,
 };
+
+/** PLACEHOLDER until the art pass: an open gate is floor with a faint seam. */
+function drawGate(ctx: CanvasRenderingContext2D): void {
+  drawFloor(ctx);
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  ctx.fillRect(0, 0, 3, T);
+  ctx.fillRect(T - 3, 0, 3, T);
+}
+
+/** PLACEHOLDER until the art pass: a closed gate reads as a raised ledge. */
+function drawGateClosed(ctx: CanvasRenderingContext2D): void {
+  ctx.fillStyle = PALETTE.counterTop;
+  ctx.fillRect(0, 0, T, T);
+  ctx.fillStyle = 'rgba(0,0,0,0.35)';
+  ctx.fillRect(0, T - 12, T, 12);
+}
 
 export function generateTileTextures(scene: Phaser.Scene): void {
   for (const type of TILE_TYPES) {
@@ -354,6 +371,7 @@ export function generateTileTextures(scene: Phaser.Scene): void {
     const draw = TILE_DRAWERS[type];
     makeTexture(scene, TEX.tile(type), T, T, (ctx) => draw(ctx));
   }
+  makeTexture(scene, TEX.gateClosed, T, T, (ctx) => drawGateClosed(ctx));
   for (const ingredient of INGREDIENT_TYPES) {
     makeTexture(scene, TEX.crate(ingredient), T, T, (ctx) => drawCrate(ctx, ingredient));
   }

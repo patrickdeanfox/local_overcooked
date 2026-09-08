@@ -4,8 +4,8 @@
 // drawn from shape helpers that take a radius so the 40 px item sprites and the
 // 32 px HUD icons share one set of shapes.
 import type Phaser from 'phaser';
-import { INGREDIENT_TYPES, type IngredientType } from '../sim/types';
-import { TEX, TEXTURE_SIZES } from './keys';
+import { FRIED_INGREDIENTS, INGREDIENT_TYPES, SOUP_INGREDIENTS, type IngredientType } from '../sim/types';
+import { BURGER_LAYERS, TEX, TEXTURE_SIZES, type BurgerLayer } from './keys';
 import { PALETTE } from './palette';
 import {
   fillCircle, fillEllipse, fillPolygon, fillRound, makeTexture, radial, roundRectPath,
@@ -23,7 +23,20 @@ const SOUP_COLORS: Record<IngredientType, string> = {
   onion: PALETTE.soupOnion,
   tomato: PALETTE.soupTomato,
   mushroom: PALETTE.soupMushroom,
+  // Burger ingredients never become soup; colours only keep the table total.
+  meat: '#8a4b3a',
+  bun: '#e0b070',
+  lettuce: '#7cc25a',
 };
+
+// PLACEHOLDER burger ingredient colours until the art pass.
+const MEAT_RAW = '#c0504a';
+const MEAT_COOKED = '#7a4a34';
+const BUN = '#e0b070';
+const BUN_DARK = '#b8894c';
+const LETTUCE = '#7cc25a';
+const PAN_BODY = '#4a4a50';
+const PAN_HANDLE = '#2c2c30';
 
 /** Extinguisher mist: [angle from straight up, distance, radius, alpha], all as fractions. */
 const SPRAY_DROPS: readonly (readonly [number, number, number, number])[] = [
@@ -190,11 +203,55 @@ function drawMushroomChopped(ctx: CanvasRenderingContext2D, cx: number, cy: numb
 
 type ShapeFn = (ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number) => void;
 
+// ─── PLACEHOLDER burger ingredient shapes (until the art pass) ──────────────
+function drawMeatRaw(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  fillRound(ctx, cx - r * 0.9, cy - r * 0.6, r * 1.8, r * 1.2, r * 0.3, MEAT_RAW);
+  withAlpha(ctx, 0.35, () => fillEllipse(ctx, cx - r * 0.2, cy - r * 0.15, r * 0.35, r * 0.2, '#ffffff'));
+}
+function drawMeatChopped(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  fillEllipse(ctx, cx, cy, r * 0.95, r * 0.6, MEAT_RAW);
+  withAlpha(ctx, 0.3, () => fillEllipse(ctx, cx, cy - r * 0.12, r * 0.6, r * 0.28, '#ffffff'));
+}
+export function drawMeatCooked(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  fillEllipse(ctx, cx, cy, r * 0.95, r * 0.6, MEAT_COOKED);
+  ctx.strokeStyle = '#4a2a1c';
+  ctx.lineWidth = Math.max(1, r * 0.1);
+  for (const dx of [-0.4, 0, 0.4]) {
+    ctx.beginPath(); ctx.moveTo(cx + dx * r - r * 0.15, cy - r * 0.4); ctx.lineTo(cx + dx * r + r * 0.15, cy + r * 0.4); ctx.stroke();
+  }
+}
+function drawBun(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  fillEllipse(ctx, cx, cy + r * 0.35, r * 0.95, r * 0.35, BUN_DARK);
+  ctx.fillStyle = BUN;
+  ctx.beginPath(); ctx.ellipse(cx, cy + r * 0.1, r * 0.95, r * 0.75, 0, Math.PI, 0); ctx.fill();
+  withAlpha(ctx, 0.6, () => { for (const [dx, dy] of [[-0.3, -0.25], [0.15, -0.4], [0.4, -0.1]]) fillEllipse(ctx, cx + dx * r, cy + dy * r, r * 0.08, r * 0.05, '#fff6e0'); });
+}
+function drawLettuceRaw(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  fillCircle(ctx, cx, cy, r * 0.85, LETTUCE);
+  withAlpha(ctx, 0.35, () => fillCircle(ctx, cx - r * 0.25, cy - r * 0.25, r * 0.35, '#ffffff'));
+}
+function drawLettuceChopped(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  for (const [dx, dy, rot] of [[-0.45, 0.1, 0.4], [0.1, -0.3, -0.5], [0.4, 0.3, 0.9], [-0.05, 0.4, -0.2]]) {
+    ctx.save(); ctx.translate(cx + dx * r, cy + dy * r); ctx.rotate(rot);
+    fillRound(ctx, -r * 0.4, -r * 0.2, r * 0.8, r * 0.4, r * 0.15, LETTUCE);
+    ctx.restore();
+  }
+}
+/** Frying pan seen from above; `content` draws inside the pan when given. */
+export function drawPan(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, content: ShapeFn | null): void {
+  fillRound(ctx, cx + r * 0.7, cy - r * 0.12, r * 0.85, r * 0.24, r * 0.1, PAN_HANDLE);
+  fillCircle(ctx, cx, cy, r * 0.85, PAN_HANDLE);
+  fillCircle(ctx, cx, cy, r * 0.7, PAN_BODY);
+  if (content) content(ctx, cx, cy, r * 0.6);
+}
+
 const RAW_SHAPES: Record<IngredientType, ShapeFn> = {
   onion: drawOnionRaw, tomato: drawTomatoRaw, mushroom: drawMushroomRaw,
+  meat: drawMeatRaw, bun: drawBun, lettuce: drawLettuceRaw,
 };
 const CHOPPED_SHAPES: Record<IngredientType, ShapeFn> = {
   onion: drawOnionChopped, tomato: drawTomatoChopped, mushroom: drawMushroomChopped,
+  meat: drawMeatChopped, bun: drawBun, lettuce: drawLettuceChopped,
 };
 
 /** Shared by item sprites, HUD icons and the ingredient shown on a crate. */
@@ -335,9 +392,31 @@ export function generateItemTextures(scene: Phaser.Scene): void {
   for (const type of INGREDIENT_TYPES) {
     makeTexture(scene, TEX.ingredient(type, false), ITEM, ITEM, (ctx) => drawIngredient(ctx, type, false, c, c, ITEM_R));
     makeTexture(scene, TEX.ingredient(type, true), ITEM, ITEM, (ctx) => drawIngredient(ctx, type, true, c, c, ITEM_R));
+  }
+  for (const type of SOUP_INGREDIENTS) {
     makeTexture(scene, TEX.potSoup(type), ITEM, ITEM, (ctx) => drawPot(ctx, c, c, ITEM_R, soupColor(type)));
     makeTexture(scene, TEX.plateSoup(type), ITEM, ITEM, (ctx) => drawPlate(ctx, c, c, ITEM_R, soupColor(type)));
   }
+
+  // PLACEHOLDERS until the art pass: cooked meat, pan states, burger layers.
+  for (const type of FRIED_INGREDIENTS) {
+    makeTexture(scene, TEX.ingredientCooked(type), ITEM, ITEM, (ctx) => drawMeatCooked(ctx, c, c, ITEM_R));
+  }
+  makeTexture(scene, TEX.pan, ITEM, ITEM, (ctx) => drawPan(ctx, c, c, ITEM_R, null));
+  makeTexture(scene, TEX.panMeat('raw'), ITEM, ITEM, (ctx) => drawPan(ctx, c, c, ITEM_R, drawMeatChopped));
+  makeTexture(scene, TEX.panMeat('cooked'), ITEM, ITEM, (ctx) => drawPan(ctx, c, c, ITEM_R, drawMeatCooked));
+  makeTexture(scene, TEX.panMeat('burnt'), ITEM, ITEM, (ctx) => {
+    drawSmokePuff(ctx, c + ITEM_R * 0.15, c - ITEM_R * 0.9, ITEM_R * 0.5, 0.5);
+    drawPan(ctx, c, c, ITEM_R, (cx2, x, y, r) => fillEllipse(cx2, x, y, r * 0.95, r * 0.6, '#2a2320'));
+  });
+  const layerDrawers: Record<BurgerLayer, (ctx: CanvasRenderingContext2D) => void> = {
+    bunBottom: (ctx) => fillRound(ctx, c - ITEM_R * 0.95, c - ITEM_R * 0.25, ITEM_R * 1.9, ITEM_R * 0.5, ITEM_R * 0.2, BUN_DARK),
+    meat: (ctx) => fillEllipse(ctx, c, c, ITEM_R * 0.95, ITEM_R * 0.4, MEAT_COOKED),
+    lettuce: (ctx) => fillEllipse(ctx, c, c, ITEM_R * 1.0, ITEM_R * 0.32, LETTUCE),
+    tomato: (ctx) => fillEllipse(ctx, c, c, ITEM_R * 0.9, ITEM_R * 0.3, PALETTE.soupTomato),
+    bunTop: (ctx) => { ctx.fillStyle = BUN; ctx.beginPath(); ctx.ellipse(c, c + ITEM_R * 0.2, ITEM_R * 0.95, ITEM_R * 0.6, 0, Math.PI, 0); ctx.fill(); },
+  };
+  for (const layer of BURGER_LAYERS) makeTexture(scene, TEX.burgerLayer(layer), ITEM, ITEM, layerDrawers[layer]);
 
   makeTexture(scene, TEX.pot, ITEM, ITEM, (ctx) => drawPot(ctx, c, c, ITEM_R, null));
   makeTexture(scene, TEX.potBurnt, ITEM, ITEM, (ctx) => {

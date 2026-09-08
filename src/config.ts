@@ -19,4 +19,6 @@ export const SCENE = {
 export const STORAGE_KEYS = {
   BINDINGS: 'local-overcooked.bindings.v1',
   MUTED: 'local-overcooked.muted.v1',
+  PROGRESS: 'local-overcooked.progress.v1',  // best score and stars per level id
+  SETTINGS: 'local-overcooked.settings.v1',  // players, difficulty preset, seed mode, free play
 } as const;

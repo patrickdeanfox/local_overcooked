@@ -1,7 +1,8 @@
 // ─── Level definition contract ──────────────────────────────────────────────
 // Levels are JSON files in src/levels/<game>/<name>.json matching LevelDef.
 // Human-readable ASCII grid + fixed legend. See docs/LEVEL_SCHEMA.md.
-import type { IngredientType, Item, ItemKind, Tile, TileType } from '../sim/types';
+import { CHOPPED_INGREDIENTS, FRIED_INGREDIENTS, SOUP_INGREDIENTS, type IngredientType, type Item, type ItemKind, type Tile, type TileType, type Ware } from '../sim/types';
+import { RECIPES, recipeDishType } from '../sim/recipes';
 
 export interface LevelStars { 1: [number, number, number]; 2: [number, number, number]; } // 1-star, 2-star, 3-star score
 
@@ -25,7 +26,7 @@ export interface StationOverride {
   group?: string;
 }
 
-export interface ItemPlacement { x: number; y: number; item: ItemKind; count?: number; }
+export interface ItemPlacement { x: number; y: number; item: ItemKind; count?: number; ware?: Ware; }
 
 export type Dynamic =
   | {
@@ -42,6 +43,13 @@ export type Dynamic =
       amplitude: number;     // tiles, peak offset from the drawn position
       periodSec: number;     // full back-and-forth cycle
       phase?: number;        // 0..1 cycle offset
+    }
+  | {
+      type: 'gate';          // 1-6 earthquake: 'gate' tiles of this group are walkable only while open
+      group: string;         // matches Tile.group ('G' legend tiles are group '1'; use stations for others)
+      periodSec: number;     // full open+closed cycle
+      openSec: number;       // seconds open per cycle
+      phase?: number;        // 0..1 cycle offset; the cycle starts open
     };
 
 export interface LevelDef {
@@ -52,6 +60,7 @@ export interface LevelDef {
   index: number;
   theme: string;         // e.g. 'treacle-town', 'savoury-seas'
   source?: string;       // wiki URL the layout was transcribed from
+  unlockStars?: number;  // total stars needed to unlock (wiki infobox); absent or 0 = always open
   timeLimitSec: number;
   timerStartsOnFirstServe: boolean;
   recipes: string[];     // ids into RECIPES
@@ -65,7 +74,7 @@ export interface LevelDef {
   dynamics?: Dynamic[];
 }
 
-export interface LegendEntry { type: TileType; ingredient?: IngredientType; group?: string; item?: ItemKind; }
+export interface LegendEntry { type: TileType; ingredient?: IngredientType; group?: string; item?: ItemKind; ware?: Ware; }
 
 export const LEGEND: Readonly<Record<string, LegendEntry>> = Object.freeze({
   ' ': { type: 'void' },
@@ -75,8 +84,12 @@ export const LEGEND: Readonly<Record<string, LegendEntry>> = Object.freeze({
   'O': { type: 'crate', ingredient: 'onion' },
   'T': { type: 'crate', ingredient: 'tomato' },
   'M': { type: 'crate', ingredient: 'mushroom' },
+  'A': { type: 'crate', ingredient: 'meat' },
+  'U': { type: 'crate', ingredient: 'bun' },
+  'L': { type: 'crate', ingredient: 'lettuce' },
   'B': { type: 'board' },
-  'S': { type: 'stove', item: 'pot' },
+  'S': { type: 'stove', item: 'pot', ware: 'pot' },
+  'F': { type: 'stove', item: 'pot', ware: 'pan' },
   'W': { type: 'sink' },
   'D': { type: 'drying' },
   'R': { type: 'plateReturn' },
@@ -89,8 +102,10 @@ export const LEGEND: Readonly<Record<string, LegendEntry>> = Object.freeze({
   '2': { type: 'slider', group: '2' },
   '3': { type: 'slider', group: '3' },
   '4': { type: 'slider', group: '4' },
+  'G': { type: 'gate', group: '1' },
 });
 
+/** Tiles a chef can never enter. 'gate' is walkable while open, so it is not listed; the sim closes it. */
 export const SOLID_TILES: ReadonlySet<TileType> = new Set<TileType>([
   'void', 'counter', 'crate', 'board', 'stove', 'sink', 'drying', 'plateReturn', 'serve', 'trash', 'plateStack', 'slider',
 ]);
@@ -99,11 +114,13 @@ export function isWalkable(type: TileType): boolean { return !SOLID_TILES.has(ty
 export interface ParsedGrid { width: number; height: number; tiles: Tile[]; items: (Item | null)[]; }
 
 let nextItemId = 1;
-export function makeItem(kind: ItemKind, count = 1): Item {
+export function makeItem(kind: ItemKind, count = 1, ware?: Ware): Item {
   const id = nextItemId++;
   switch (kind) {
     case 'ingredient': return { kind, id, type: 'onion', chopped: false, chopProgress: 0 };
-    case 'pot': return { kind, id, contents: [], state: 'empty', cookProgress: 0, burnProgress: 0 };
+    case 'pot': return ware === 'pan'
+      ? { kind, id, ware: 'pan', contents: [], state: 'empty', cookProgress: 0, burnProgress: 0 }
+      : { kind, id, contents: [], state: 'empty', cookProgress: 0, burnProgress: 0 };
     case 'plate': return { kind, id, dish: null };
     case 'dirtyPlate': return { kind, id, count };
     case 'extinguisher': return { kind, id };
@@ -125,7 +142,7 @@ export function parseGrid(level: LevelDef): ParsedGrid {
       if (entry.ingredient) tile.ingredient = entry.ingredient;
       if (entry.group) tile.group = entry.group;
       tiles.push(tile);
-      items.push(entry.item ? makeItem(entry.item) : null);
+      items.push(entry.item ? makeItem(entry.item, 1, entry.ware) : null);
     }
   }
   for (const s of level.stations ?? []) {
@@ -138,7 +155,7 @@ export function parseGrid(level: LevelDef): ParsedGrid {
   for (const p of level.items ?? []) {
     const i = p.y * width + p.x;
     if (i < 0 || i >= items.length) continue;
-    items[i] = makeItem(p.item, p.count);
+    items[i] = makeItem(p.item, p.count, p.ware);
   }
   return { width, height, tiles, items };
 }
@@ -161,16 +178,39 @@ export function validateLevel(level: LevelDef): string[] {
     else if (!isWalkable(t.type)) errors.push(`spawn (${s.x},${s.y}) is on a solid tile`);
   }
   const count = (type: TileType) => parsed.tiles.filter((t) => t.type === type).length;
+  const crates = new Set(parsed.tiles.filter((t) => t.type === 'crate').map((t) => t.ingredient));
+  const wares = new Set<Ware>();
+  parsed.items.forEach((item, i) => {
+    if (item?.kind === 'pot' && parsed.tiles[i].type === 'stove') wares.add(item.ware ?? 'pot');
+  });
   if (count('serve') === 0) errors.push('no serve tile');
   if (count('crate') === 0) errors.push('no crate tile');
-  if (count('stove') === 0 && level.recipes.some((r) => r.endsWith('_soup'))) errors.push('soup recipe but no stove');
+  if (!level.recipes?.length) errors.push('no recipes');
+  for (const id of level.recipes ?? []) {
+    const recipe = RECIPES[id];
+    if (!recipe) { errors.push(`unknown recipe '${id}'`); continue; }
+    for (const ingredient of new Set(recipe.ingredients)) {
+      if (!crates.has(ingredient)) errors.push(`recipe '${id}' needs a ${ingredient} crate`);
+    }
+    if (recipeDishType(recipe) === 'soup' && !wares.has('pot')) errors.push(`recipe '${id}' needs a stove with a pot`);
+    if (recipe.ingredients.some((i) => FRIED_INGREDIENTS.includes(i)) && !wares.has('pan')) errors.push(`recipe '${id}' needs a stove with a pan`);
+    if (recipe.ingredients.some((i) => CHOPPED_INGREDIENTS.includes(i)) && count('board') === 0) errors.push(`recipe '${id}' needs a chopping board`);
+    if (recipeDishType(recipe) === 'soup' && recipe.ingredients.some((i) => !SOUP_INGREDIENTS.includes(i))) errors.push(`recipe '${id}' has a non-soup ingredient`);
+  }
   if (level.plates.mode === 'sink' && (count('sink') === 0 || count('plateReturn') === 0)) errors.push("plates.mode 'sink' needs a sink and a plateReturn tile");
   if (level.plates.mode === 'stack' && count('plateStack') === 0) errors.push("plates.mode 'stack' needs a plateStack tile");
-  if (!level.recipes?.length) errors.push('no recipes');
   if (!(level.timeLimitSec > 0)) errors.push('timeLimitSec must be > 0');
+  if (level.unlockStars !== undefined && !(level.unlockStars >= 0)) errors.push('unlockStars must be >= 0');
+  const gateGroups = new Set(parsed.tiles.filter((t) => t.type === 'gate').map((t) => t.group));
   for (const d of level.dynamics ?? []) {
     if (d.type === 'sliders' && !parsed.tiles.some((t) => t.type === 'slider' && t.group === d.group)) errors.push(`sliders group '${d.group}' has no slider tiles`);
     if (d.type === 'pedestrians' && count('road') === 0) errors.push('pedestrians need road tiles');
+    if (d.type === 'gate') {
+      if (!gateGroups.has(d.group)) errors.push(`gate group '${d.group}' has no gate tiles`);
+      if (!(d.openSec > 0 && d.openSec < d.periodSec)) errors.push(`gate group '${d.group}': openSec must be within (0, periodSec)`);
+      gateGroups.delete(d.group);
+    }
   }
+  for (const g of gateGroups) errors.push(`gate tiles of group '${g}' have no gate dynamic`);
   return errors;
 }
