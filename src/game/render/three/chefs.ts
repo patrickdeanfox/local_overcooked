@@ -4,7 +4,7 @@
 // The model faces +Z at rest, so "down" (towards the camera) is yaw 0.
 import * as THREE from 'three';
 import type { Facing } from '../../../sim/types';
-import { modelClips, modelInstance, modelScaleFactor } from './loader';
+import { modelClips, modelInstance, modelSize } from './loader';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 const YAW: Readonly<Record<Facing, number>> = { down: 0, up: Math.PI, right: Math.PI / 2, left: -Math.PI / 2 };
@@ -13,16 +13,20 @@ const RIG = {
   fadeSec: 0.12,          // idle <-> run cross-fade
   runTimeScale: 1.15,
   idleTimeScale: 0.9,
-  heldY: 0.52,            // held item slot, tiles above the feet
-  heldZ: 0.3,             // and in front of the body
+  heldY: 0.48,            // held item slot, fraction of the chef's height above the feet
+  heldZ: 0.28,            // and in front of the body, same unit
 } as const;
+// Toque sizes are fractions of the head bone's length, so the hat follows the chef's scale.
+// The Kenney head is 0.87 bone lengths wide and ends 1.06 bone lengths above the bone root.
 const HAT = {
   color: 0xfaf6ee,
   bandColor: 0xe8e2d6,
-  radius: 0.125,          // tiles
-  bandHeight: 0.06,
-  puffHeight: 0.19,
-  liftAlongBone: 0.85,    // fraction of the head bone's length
+  bandRadius: 0.47,
+  bandHeight: 0.16,
+  bandLift: 1.04,         // band centre along the bone: on the crown, overlapping its rounded top
+  puffRadius: 0.5,
+  puffHeight: 0.5,
+  puffSink: 0.3,          // fraction of the puff's lower half tucked into the band
   segments: 18,
 } as const;
 const CLIP = { idle: 'idle', run: 'run' } as const;
@@ -59,24 +63,23 @@ function applySkin(root: THREE.Object3D, url: string): void {
   });
 }
 
-/** A toque parented to the head bone, sized in the rig's own units. */
-function addHat(root: THREE.Object3D, factor: number): void {
+/** A toque parented to the head bone, sized from the bone's length. */
+function addHat(root: THREE.Object3D): void {
   const head = root.getObjectByName('Head');
-  if (!head) return;
   const tail = root.getObjectByName('Head_end');
-  const length = tail ? tail.position.length() : 0;
-  const scale = 1 / factor;
+  if (!head || !tail) return;
+  const length = tail.position.length();
   const band = new THREE.Mesh(
-    new THREE.CylinderGeometry(HAT.radius * scale, HAT.radius * scale, HAT.bandHeight * scale, HAT.segments),
+    new THREE.CylinderGeometry(HAT.bandRadius * length, HAT.bandRadius * length, HAT.bandHeight * length, HAT.segments),
     new THREE.MeshStandardMaterial({ color: HAT.bandColor }),
   );
   const puff = new THREE.Mesh(
-    new THREE.SphereGeometry(HAT.radius * 1.15 * scale, HAT.segments, HAT.segments / 2),
+    new THREE.SphereGeometry(HAT.puffRadius * length, HAT.segments, HAT.segments / 2),
     new THREE.MeshStandardMaterial({ color: HAT.color }),
   );
-  puff.scale.y = HAT.puffHeight / (HAT.radius * 1.15);
-  band.position.y = length * HAT.liftAlongBone;
-  puff.position.y = band.position.y + (HAT.bandHeight / 2 + HAT.puffHeight * 0.6) * scale;
+  puff.scale.y = HAT.puffHeight / (HAT.puffRadius * 2);
+  band.position.y = HAT.bandLift * length;
+  puff.position.y = band.position.y + (HAT.bandHeight / 2 + (HAT.puffHeight / 2) * (1 - HAT.puffSink)) * length;
   band.castShadow = true;
   puff.castShadow = true;
   head.add(band, puff);
@@ -102,9 +105,10 @@ export class ChefRig {
   constructor(skinUrl: string, withHat: boolean) {
     const model = modelInstance('chef');
     applySkin(model, skinUrl);
-    if (withHat) addHat(model, modelScaleFactor('chef'));
+    if (withHat) addHat(model);
     this.group.add(model);
-    this.heldSlot.position.set(0, RIG.heldY, RIG.heldZ);
+    const height = modelSize('chef').y;
+    this.heldSlot.position.set(0, RIG.heldY * height, RIG.heldZ * height);
     this.group.add(this.heldSlot);
 
     this.mixer = new THREE.AnimationMixer(model);
