@@ -11,7 +11,9 @@ export const REACH = 0.6;               // tiles in front of the chef center to 
 
 export const CHOP_TIME = 3.0;           // seconds of held interact per ingredient (wiki: "about three seconds", Chopping Board)
 export const POT_CAPACITY = 3;
+export const PAN_CAPACITY = 1;          // a pan fries one chopped patty at a time
 export const COOK_TIME = 9;             // seconds on the stove for a full pot to be ready
+export const PAN_COOK_TIME = COOK_TIME; // seconds on the stove for a patty to be ready (wiki: none; matched to the pot)
 export const BURN_TIME = 13;            // seconds after cooked before the pot is burnt and ignites (wiki Burnt food: 5 + 5 + 3 s warning stages)
 export const WASH_TIME = 2.0;           // seconds of held interact per dirty plate
 export const PLATE_RETURN_DELAY = 6;    // seconds after a serve before the dirty plate comes back (wiki Plate: "after a few seconds")

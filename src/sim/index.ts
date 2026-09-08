@@ -4,26 +4,27 @@
 //
 // Coordinates are tile units (see types.ts): x right, y down, chef x/y is the chef centre.
 // SimState is plain data; presentation reads it every frame and never mutates it.
-import type { LevelDef } from '../levels/schema';
+import type { LevelDef, OrderSettings } from '../levels/schema';
 import { parseGrid, SOLID_TILES } from '../levels/schema';
 import {
   BURN_TIME, CHEF_HITBOX, CHEF_RADIUS, CHEF_SPEED, CHOP_TIME, COOK_TIME, EXTINGUISH_RATE,
-  FIRE_SPREAD_TIME, MAX_PUSH_ESCAPE, MOVE_DEADZONE, ORDER_FAIL_PENALTY, PLATE_RETURN_DELAY,
-  PLATE_STACK_RETURN_DELAY, POT_CAPACITY, REACH, SIM_DT, SPRAY_LATERAL_TOLERANCE, SPRAY_RANGE,
-  TICK_EVENT_HZ, TIMER_WARNING_AT, TIP_BASE, TIP_MAX, WASH_TIME,
+  FIRE_SPREAD_TIME, MAX_PUSH_ESCAPE, MOVE_DEADZONE, ORDER_FAIL_PENALTY, PAN_CAPACITY,
+  PAN_COOK_TIME, PLATE_RETURN_DELAY, PLATE_STACK_RETURN_DELAY, POT_CAPACITY, REACH, SIM_DT,
+  SPRAY_LATERAL_TOLERANCE, SPRAY_RANGE, TICK_EVENT_HZ, TIMER_WARNING_AT, TIP_BASE, TIP_MAX,
+  WASH_TIME,
 } from './constants';
-import { dishMatchesRecipe, RECIPES, sortIngredients } from './recipes';
+import { dishMatchesRecipe, isBurgerComponent, RECIPES, sortIngredients } from './recipes';
 import { mulberry32, type Rng } from './rng';
 import {
-  FACING_VECTORS, NO_INPUT,
+  CHOPPED_INGREDIENTS, FACING_VECTORS, FRIED_INGREDIENTS, NO_INPUT, SOUP_INGREDIENTS,
   type Chef, type ChefAction, type DirtyPlateItem, type IngredientItem, type IngredientType,
   type Item, type PlateItem, type PlayerInput, type PotItem, type SimEvent, type SimState,
-  type Modifiers, type SliderGroup, type Tile,
+  type Modifiers, type SliderGroup, type Tile, type Ware,
 } from './types';
 
 export * from './constants';
 export * from './types';
-export { dishMatchesRecipe, RECIPES, recipeForDish, sortIngredients } from './recipes';
+export { dishMatchesRecipe, isBurgerComponent, RECIPES, recipeDishType, recipeForDish, sortIngredients } from './recipes';
 export { mulberry32 } from './rng';
 export type { Rng } from './rng';
 
@@ -42,8 +43,18 @@ export interface SimOptions {
   modifiers?: Modifiers;  // difficulty scaling applied to the level's numbers at construction
 }
 
+/** The level's numbers after Modifiers, i.e. what this run actually uses. */
+export interface EffectiveSettings {
+  timeLimitSec: number;
+  orders: OrderSettings;
+  chefSpeed: number;
+}
+
 interface SliderSpec { group: string; axis: 'x' | 'y'; amplitude: number; periodSec: number; phase: number; }
 interface SliderTile { x: number; y: number; group: string; }
+/** One gate dynamic. x/y is a tile of the group, carried on the open/close events. */
+interface GateSpec { group: string; periodSec: number; openFrac: number; phase: number; x: number; y: number; }
+interface GateTile { index: number; x: number; y: number; group: string; }
 interface PedLane {
   fromX: number; fromY: number; toX: number; toY: number;
   speed: number; intervalSec: number; timer: number;
@@ -65,12 +76,60 @@ function isPlaceableCounter(type: Tile['type']): boolean {
   return type === 'counter' || type === 'slider';
 }
 
+// ─── Cookware ───────────────────────────────────────────────────────────────
+function wareOf(pot: PotItem): Ware {
+  return pot.ware ?? 'pot';
+}
+
+function wareCapacity(pot: PotItem): number {
+  return wareOf(pot) === 'pan' ? PAN_CAPACITY : POT_CAPACITY;
+}
+
+function wareCookTime(pot: PotItem): number {
+  return wareOf(pot) === 'pan' ? PAN_COOK_TIME : COOK_TIME;
+}
+
+/** A pot boils soup ingredients, a pan fries the chopped ones that come out cooked. Both
+ *  refuse raw ingredients (wiki Burner: "an unchopped ingredient" is pushed away). */
+function wareAccepts(pot: PotItem, item: IngredientItem): boolean {
+  if (!item.chopped) return false;
+  const list = wareOf(pot) === 'pan' ? FRIED_INGREDIENTS : SOUP_INGREDIENTS;
+  return list.includes(item.type);
+}
+
+/** True when the ingredient has had all the prep its burger part needs: buns raw, toppings
+ *  chopped, meat cooked (so it can only come out of a pan). */
+function readyForPlate(item: IngredientItem): boolean {
+  if (!isBurgerComponent(item.type)) return false;
+  if (FRIED_INGREDIENTS.includes(item.type)) return item.cooked === true;
+  if (CHOPPED_INGREDIENTS.includes(item.type)) return item.chopped;
+  return true;
+}
+
+// ─── Difficulty ─────────────────────────────────────────────────────────────
+/** Copies the level's numbers and scales them by the run's modifiers. The LevelDef itself is
+ *  never touched: the same level object drives every difficulty. */
+function effectiveSettings(level: LevelDef, mods: Modifiers | undefined): EffectiveSettings {
+  const orders = level.orders;
+  return {
+    timeLimitSec: level.timeLimitSec * (mods?.timeLimitScale ?? 1),
+    orders: {
+      initial: orders.initial,
+      intervalSec: orders.intervalSec * (mods?.orderIntervalScale ?? 1),
+      max: Math.max(1, orders.max + (mods?.maxOrdersDelta ?? 0)),
+      timeSec: orders.timeSec * (mods?.orderTimeScale ?? 1),
+    },
+    chefSpeed: CHEF_SPEED * (mods?.chefSpeedScale ?? 1),
+  };
+}
+
 // ─── Sim ────────────────────────────────────────────────────────────────────
 export class Sim {
   readonly level: LevelDef;
 
   private state: SimState;
   private rng: Rng;
+  private settings: EffectiveSettings;
 
   // Id counters are per-Sim so two Sims with the same seed produce identical snapshots.
   private nextItemId = 1;
@@ -84,6 +143,8 @@ export class Sim {
   private staticSolid: boolean[] = [];
   private sliderTiles: SliderTile[] = [];
   private sliderSpecs: SliderSpec[] = [];
+  private gateTiles: GateTile[] = [];
+  private gateSpecs: GateSpec[] = [];
   private pedLanes: PedLane[] = [];
   private pedTargets: Record<number, { x: number; y: number }> = {};
   private plateReturnTiles: number[] = [];
@@ -105,6 +166,7 @@ export class Sim {
   constructor(level: LevelDef, opts: SimOptions) {
     this.level = level;
     this.rng = mulberry32(opts.seed);
+    this.settings = effectiveSettings(level, opts.modifiers);
 
     const parsed = parseGrid(level);
     // parseGrid ids come from a module-global counter shared by every Sim in the process.
@@ -135,7 +197,7 @@ export class Sim {
       pedestrians: [],
       sliders: [],
       score: 0,
-      timeLeft: level.timeLimitSec,
+      timeLeft: this.settings.timeLimitSec,
       phase: level.timerStartsOnFirstServe ? 'prep' : 'running',
       timerRunning: !level.timerStartsOnFirstServe,
       elapsed: 0,
@@ -144,13 +206,15 @@ export class Sim {
       pendingPlateReturns: [],
       stars: 0,
       tipStreak: 0,
+      seed: opts.seed,
     };
 
     this.indexLevel();
-    this.orderTimer = Math.max(level.orders.intervalSec, SIM_DT);
-    for (let i = 0; i < level.orders.initial; i++) this.spawnOrder(null);
+    this.orderTimer = Math.max(this.settings.orders.intervalSec, SIM_DT);
+    for (let i = 0; i < this.settings.orders.initial; i++) this.spawnOrder(null);
     this.recomputeStars();
     this.updateSliders();
+    this.updateGates(null); // a group whose phase starts it closed is solid from step one
   }
 
   // ─── Setup ────────────────────────────────────────────────────────────────
@@ -160,6 +224,7 @@ export class Sim {
       const tile = st.tiles[i];
       this.staticSolid.push(isStaticSolid(tile.type));
       if (tile.type === 'slider') this.sliderTiles.push({ x: tile.x, y: tile.y, group: tile.group ?? '' });
+      if (tile.type === 'gate') this.gateTiles.push({ index: i, x: tile.x, y: tile.y, group: tile.group ?? '' });
       if (tile.type === 'plateReturn') this.plateReturnTiles.push(i);
       if (tile.type === 'plateStack') this.plateStackTiles.push(i);
     }
@@ -171,6 +236,15 @@ export class Sim {
           periodSec: Math.max(dyn.periodSec, SIM_DT), phase: dyn.phase ?? 0,
         });
         this.state.sliders.push({ id: dyn.group, offsetX: 0, offsetY: 0 });
+      } else if (dyn.type === 'gate') {
+        const first = this.gateTiles.find((t) => t.group === dyn.group);
+        const periodSec = Math.max(dyn.periodSec, SIM_DT);
+        this.gateSpecs.push({
+          group: dyn.group, periodSec,
+          openFrac: clamp(dyn.openSec / periodSec, 0, 1), phase: dyn.phase ?? 0,
+          x: first ? first.x : 0, y: first ? first.y : 0,
+        });
+        (this.state.gates ??= []).push({ id: dyn.group, open: true, secondsToChange: 0 });
       } else if (dyn.type === 'pedestrians') {
         for (const lane of dyn.lanes) {
           this.pedLanes.push({
@@ -185,6 +259,9 @@ export class Sim {
 
   // ─── Public queries ───────────────────────────────────────────────────────
   getState(): Readonly<SimState> { return this.state; }
+
+  /** The level's numbers after the run's Modifiers: what the HUD and the timer actually use. */
+  getEffectiveSettings(): Readonly<EffectiveSettings> { return this.settings; }
 
   /** Tile the chef would interact with right now (also drives the highlight), or null if the
    *  reach point is off the grid. Slider tiles are hit-tested at their shifted position but
@@ -225,6 +302,15 @@ export class Sim {
     return false;
   }
 
+  /** True while the gate group is open, so its tiles are walkable. Unknown groups read as
+   *  open: a gate tile with no dynamic is plain floor. */
+  gateOpen(group: string): boolean {
+    const gates = this.state.gates;
+    if (!gates) return true;
+    for (const g of gates) if (g.id === group) return g.open;
+    return true;
+  }
+
   /** Current offset of a slider group, for drawing shifted tiles and the items on them. */
   sliderOffset(group: string): { x: number; y: number } {
     const g = this.groupOffset(group);
@@ -239,6 +325,7 @@ export class Sim {
 
     st.elapsed += dt;
     this.updateSliders();
+    this.updateGates(events);
     this.updatePedestrians(dt);
 
     for (let i = 0; i < st.chefs.length; i++) {
@@ -250,6 +337,7 @@ export class Sim {
     this.separateChefs();
     this.pushChefsFromPedestrians();
     this.pushChefsFromSliders();
+    this.pushChefsFromGates();
     for (const chef of st.chefs) this.pushOutOfTiles(chef);
 
     for (let i = 0; i < st.chefs.length; i++) {
@@ -280,7 +368,7 @@ export class Sim {
 
     chef.facing = Math.abs(mx) > Math.abs(my) ? (mx > 0 ? 'right' : 'left') : (my > 0 ? 'down' : 'up');
     chef.action = 'walking';
-    const dist = CHEF_SPEED * dt;
+    const dist = this.settings.chefSpeed * dt;
     if (mx !== 0) chef.x = this.resolveX(chef, chef.x + mx * dist);
     if (my !== 0) chef.y = this.resolveY(chef, chef.y + my * dist);
   }
@@ -369,8 +457,9 @@ export class Sim {
     return this.collectSolidBoxes(x - HALF, y - HALF, x + HALF, y + HALF) === 0;
   }
 
-  /** True when the chef box here is on the grid and clear of the static grid. Sliders are
-   *  ignored: a chef may end up under a passing slider, never inside a counter. */
+  /** True when the chef box here is on the grid and clear of the static grid, closed gates
+   *  included. Sliders are ignored: a chef may end up under a passing slider, never inside a
+   *  counter. */
   private clearOfWalls(x: number, y: number): boolean {
     const st = this.state;
     if (x < HALF - EPS || y < HALF - EPS) return false;
@@ -514,18 +603,36 @@ export class Sim {
         if (chef.x + HALF <= bx + EPS || chef.x - HALF >= bx + 1 - EPS) continue;
         if (chef.y + HALF <= by + EPS || chef.y - HALF >= by + 1 - EPS) continue;
         const spec = this.specForGroup(s.group);
-        this.escapeSlider(chef, bx, by, !spec || spec.axis === 'x', fromX, fromY);
+        this.escapeBox(chef, bx, by, !spec || spec.axis === 'x', fromX, fromY);
       }
     }
   }
 
-  /** Gets a chef out of the slider box sweeping over it. First choice is the near side along
-   *  the slider's own axis; when that side is a wall, the grid edge or another slider, the
-   *  chef is squeezed out sideways instead (shorter way first) and only then rides out on the
-   *  far side. Every candidate clears this box, so the chef never ends up in a counter, and
-   *  none of them moves the chef more than MAX_PUSH_ESCAPE from where it started the step. */
-  private escapeSlider(chef: Chef, bx: number, by: number, alongX: boolean, fromX: number, fromY: number): void {
-    // Ways out along the slider's axis, then sideways across it; nearest of each pair first.
+  /** A gate that just closed under a chef shoves it off, the same way a slider does. The
+   *  preferred axis is the one with the shallower overlap, so the chef leaves by the near edge. */
+  private pushChefsFromGates(): void {
+    if (!this.state.gates) return;
+    for (const chef of this.state.chefs) {
+      const fromX = chef.x;
+      const fromY = chef.y;
+      for (const g of this.gateTiles) {
+        if (this.gateOpen(g.group)) continue;
+        const penX = Math.min(chef.x + HALF - g.x, g.x + 1 - (chef.x - HALF));
+        const penY = Math.min(chef.y + HALF - g.y, g.y + 1 - (chef.y - HALF));
+        if (penX <= EPS || penY <= EPS) continue;
+        this.escapeBox(chef, g.x, g.y, penX <= penY, fromX, fromY);
+      }
+    }
+  }
+
+  /** Gets a chef out of a solid box that moved or closed over it (a slider sweeping past, a
+   *  gate shutting). First choice is the near side along `alongX`; when that side is a wall,
+   *  the grid edge or another solid, the chef is squeezed out across it instead (shorter way
+   *  first) and only then rides out on the far side. Every candidate clears this box, so the
+   *  chef never ends up in a counter, and none of them moves the chef more than
+   *  MAX_PUSH_ESCAPE from where it started the step. */
+  private escapeBox(chef: Chef, bx: number, by: number, alongX: boolean, fromX: number, fromY: number): void {
+    // Ways out along the preferred axis, then sideways across it; nearest of each pair first.
     const aBase = alongX ? bx : by;
     const aPos = alongX ? chef.x : chef.y;
     const aLow = aPos - (aBase - HALF) <= aBase + 1 + HALF - aPos;
@@ -549,13 +656,13 @@ export class Sim {
       if (this.tryMoveY(chef, aFar, fromX, fromY)) return;
     }
     // Boxed in: leave the box the way that is not a wall, and if both are, stay put and let
-    // the slider pass over the chef. Standing in a counter is the one outcome ruled out.
+    // the box sit over the chef. Standing in a counter is the one outcome ruled out.
     if (this.rideOut(chef, alongX, aFar, fromX, fromY)) return;
     this.rideOut(chef, alongX, aNear, fromX, fromY);
   }
 
-  /** Last resort for a boxed-in chef: clears the slider box even though something else is in
-   *  the way, as long as that spot is no wall and stays inside the step's push budget. */
+  /** Last resort for a boxed-in chef: clears the box even though something else is in the
+   *  way, as long as that spot is no wall and stays inside the step's push budget. */
   private rideOut(chef: Chef, alongX: boolean, value: number, fromX: number, fromY: number): boolean {
     const x = alongX ? value : chef.x;
     const y = alongX ? chef.y : value;
@@ -610,7 +717,10 @@ export class Sim {
     const tile = st.tiles[i];
     const item = st.tileItems[i];
 
-    if (tile.type === 'board' && item && item.kind === 'ingredient' && !item.chopped) {
+    // wiki (Chopping Board): buns and tortillas are on the no-chop list, so a board holding
+    // one just holds it.
+    if (tile.type === 'board' && item && item.kind === 'ingredient' && !item.chopped
+        && CHOPPED_INGREDIENTS.includes(item.type)) {
       const before = item.chopProgress;
       const after = Math.min(1, before + dt / CHOP_TIME);
       item.chopProgress = after; // progress lives on the item, so it survives letting go
@@ -725,7 +835,8 @@ export class Sim {
           return;
         }
         if (item && item.kind === 'pot') {
-          if (!held.chopped || item.state === 'burnt' || item.contents.length >= POT_CAPACITY) return;
+          if (item.state === 'burnt' || item.contents.length >= wareCapacity(item)) return;
+          if (!wareAccepts(item, held)) return;
           const before = item.contents.length;
           item.contents.push(held.type);
           // Keep the cooked fraction proportional when the pot gains an ingredient mid-cook.
@@ -734,6 +845,13 @@ export class Sim {
           if (item.state === 'cooked') { item.state = 'cooking'; item.burnProgress = 0; }
           chef.holding = null;
           events.push({ type: 'potAdd', chef: idx, x: tx, y: ty });
+          return;
+        }
+        // wiki (Plate): a plate resting on a sink refuses food.
+        if (item && item.kind === 'plate' && tile.type !== 'sink') {
+          if (!readyForPlate(held) || !this.addToPlate(item, held.type)) return;
+          chef.holding = null;
+          events.push({ type: 'plateAdd', chef: idx, x: tx, y: ty });
           return;
         }
         if (!item && (isPlaceableCounter(tile.type) || tile.type === 'board')) {
@@ -750,10 +868,8 @@ export class Sim {
           }
           return;
         }
-        if (item && item.kind === 'plate' && item.dish === null && (item.count ?? 1) === 1 && held.state === 'cooked') {
-          item.dish = { type: 'soup', ingredients: sortIngredients(held.contents) };
-          this.emptyPot(held);
-          events.push({ type: 'potPour', chef: idx, x: tx, y: ty });
+        if (item && item.kind === 'plate' && held.state === 'cooked' && held.contents.length > 0) {
+          this.emptyOnto(item, held, idx, tx, ty, events);
           return;
         }
         if (!item && (isPlaceableCounter(tile.type) || tile.type === 'stove')) {
@@ -763,20 +879,33 @@ export class Sim {
       }
 
       case 'plate': {
-        if (held.dish) {
-          if (tile.type === 'serve') { this.serve(chef, idx, tx, ty, events); return; }
-          if (tile.type === 'trash') {
-            held.dish = null; // the plate survives, the food does not
-            events.push({ type: 'trash', chef: idx, x: tx, y: ty });
-            return;
-          }
-          if (!item && isPlaceableCounter(tile.type)) this.place(chef, i, idx, tx, ty, events);
+        if (tile.type === 'serve') {
+          if (held.dish) this.serve(chef, idx, tx, ty, events);
           return;
         }
+        if (tile.type === 'trash') {
+          if (held.dish) {
+            held.dish = null; // the plate survives, the food does not
+            events.push({ type: 'trash', chef: idx, x: tx, y: ty });
+          }
+          return;
+        }
+        // wiki (3-2 Strategies): "you can use the plates to scoop up the food from the pot".
         if (item && item.kind === 'pot' && item.state === 'cooked' && item.contents.length > 0) {
-          held.dish = { type: 'soup', ingredients: sortIngredients(item.contents) };
-          this.emptyPot(item);
-          events.push({ type: 'potPour', chef: idx, x: tx, y: ty });
+          this.emptyOnto(held, item, idx, tx, ty, events);
+          return;
+        }
+        // Burger assembly the other way round: the plate collects a prepped ingredient off a
+        // counter or a board.
+        if (item && item.kind === 'ingredient') {
+          if (!isPlaceableCounter(tile.type) && tile.type !== 'board') return;
+          if (!readyForPlate(item) || !this.addToPlate(held, item.type)) return;
+          st.tileItems[i] = null;
+          events.push({ type: 'plateAdd', chef: idx, x: tx, y: ty });
+          return;
+        }
+        if (held.dish) {
+          if (!item && isPlaceableCounter(tile.type)) this.place(chef, i, idx, tx, ty, events);
           return;
         }
         if (tile.type === 'plateStack' || tile.type === 'drying') {
@@ -814,6 +943,37 @@ export class Sim {
     this.state.tileItems[i] = chef.holding;
     chef.holding = null;
     events.push({ type: 'drop', chef: idx, x: tx, y: ty });
+  }
+
+  /** Empties cooked cookware onto a plate: a pot pours a soup, a pan drops its patty on a
+   *  plate that is empty or already holds burger parts. Refuses when the plate cannot take it,
+   *  leaving both the plate and the cookware untouched. */
+  private emptyOnto(plate: PlateItem, ware: PotItem, idx: number, tx: number, ty: number, events: SimEvent[]): void {
+    if (wareOf(ware) === 'pan') {
+      if (!this.addToPlate(plate, ware.contents[0])) return;
+      this.emptyPot(ware);
+      events.push({ type: 'plateAdd', chef: idx, x: tx, y: ty });
+      return;
+    }
+    if (plate.dish !== null || (plate.count ?? 1) !== 1) return; // no soup on top of a burger
+    plate.dish = { type: 'soup', ingredients: sortIngredients(ware.contents) };
+    this.emptyPot(ware);
+    events.push({ type: 'potPour', chef: idx, x: tx, y: ty });
+  }
+
+  /** Adds one burger component to a plate, at most one of each. Soup plates and plate stacks
+   *  refuse everything. Returns false when nothing changed. */
+  private addToPlate(plate: PlateItem, type: IngredientType): boolean {
+    if ((plate.count ?? 1) !== 1 || !isBurgerComponent(type)) return false;
+    const dish = plate.dish;
+    if (!dish) {
+      plate.dish = { type: 'burger', ingredients: [type] };
+      return true;
+    }
+    if (dish.type !== 'burger' || dish.ingredients.includes(type)) return false;
+    dish.ingredients.push(type);
+    dish.ingredients.sort(); // Dish.ingredients stays alphabetical, so recipe matching is a walk
+    return true;
   }
 
   private emptyPot(pot: PotItem): void {
@@ -895,7 +1055,7 @@ export class Sim {
           item.state = 'cooking';
           events.push({ type: 'cookStart', x: tile.x, y: tile.y });
         }
-        item.cookProgress += dt / COOK_TIME;
+        item.cookProgress += dt / wareCookTime(item);
         if (item.cookProgress >= 1) {
           item.cookProgress = 1;
           item.state = 'cooked';
@@ -991,7 +1151,7 @@ export class Sim {
   private spawnOrder(events: SimEvent[] | null): void {
     const list = this.level.recipes;
     if (!list.length) return;
-    const cfg = this.level.orders;
+    const cfg = this.settings.orders;
     const order = {
       id: this.nextOrderId++,
       recipeId: list[this.rng.int(list.length)],
@@ -1005,7 +1165,7 @@ export class Sim {
   private updateOrders(dt: number, events: SimEvent[]): void {
     const st = this.state;
     if (!st.timerRunning) return; // prep time: orders sit there and nothing new arrives
-    const cfg = this.level.orders;
+    const cfg = this.settings.orders;
 
     this.orderTimer -= dt;
     if (this.orderTimer <= 0) {
@@ -1052,6 +1212,26 @@ export class Sim {
       const group = st.sliders[i];
       group.offsetX = spec.axis === 'x' ? off : 0;
       group.offsetY = spec.axis === 'y' ? off : 0;
+    }
+  }
+
+  /** Runs the open/closed cycle of every gate group: open for openSec, closed for the rest of
+   *  periodSec, shifted by phase, so phase 0 starts open. Closing a group makes its tiles part
+   *  of the static solid grid, which is what movement, targeting and the pushes all read. */
+  private updateGates(events: SimEvent[] | null): void {
+    const gates = this.state.gates;
+    if (!gates) return;
+    for (let i = 0; i < this.gateSpecs.length; i++) {
+      const spec = this.gateSpecs[i];
+      const group = gates[i];
+      let t = (this.state.elapsed / spec.periodSec + spec.phase) % 1;
+      if (t < 0) t += 1;
+      const open = t < spec.openFrac;
+      group.secondsToChange = (open ? spec.openFrac - t : 1 - t) * spec.periodSec;
+      if (open === group.open) continue;
+      group.open = open;
+      for (const g of this.gateTiles) if (g.group === spec.group) this.staticSolid[g.index] = !open;
+      if (events) events.push({ type: open ? 'gateOpen' : 'gateClose', x: spec.x, y: spec.y });
     }
   }
 
