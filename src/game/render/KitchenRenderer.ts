@@ -103,7 +103,10 @@ export function itemTexture(item: Item): string {
 
 /** Stack size drawn as a badge, or 1 when the item is not a stack. */
 function itemCount(item: Item): number {
-  return item.kind === 'dirtyPlate' ? item.count : 1;
+  if (item.kind === 'dirtyPlate') return item.count;
+  // Clean plates stack too, on drying racks and plate stacks; PlateItem.count omits 1.
+  if (item.kind === 'plate') return item.count ?? 1;
+  return 1;
 }
 
 function fireKey(x: number, y: number): string {
@@ -395,10 +398,17 @@ export class KitchenRenderer {
     for (const fire of state.fires) {
       const key = fireKey(fire.x, fire.y);
       seen.add(key);
-      if (this.fireSprites.has(key)) continue;
-      const sprite = this.scene.add
-        .image(fire.x * TILE + TILE / 2, fire.y * TILE + TILE / 2, TEX.fire)
-        .setOrigin(0.5, 0.5);
+      // A fire on a moving counter has to ride with it, so the position is set every frame.
+      const tile = state.tiles[fire.y * state.width + fire.x];
+      const off = tile ? this.offsetFor(tile) : { x: 0, y: 0 };
+      const fx = fire.x * TILE + TILE / 2 + off.x;
+      const fy = fire.y * TILE + TILE / 2 + off.y;
+      const existing = this.fireSprites.get(key);
+      if (existing) {
+        existing.setPosition(fx, fy);
+        continue;
+      }
+      const sprite = this.scene.add.image(fx, fy, TEX.fire).setOrigin(0.5, 0.5);
       this.fxLayer.add(sprite);
       this.fireSprites.set(key, sprite);
       this.fireTweens.set(

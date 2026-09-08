@@ -87,6 +87,8 @@ export class Sim {
   private pedTargets: Record<number, { x: number; y: number }> = {};
   private plateReturnTiles: number[] = [];
   private plateStackTiles: number[] = [];
+  // Tiles a chef can stand next to, so a fire on them can be sprayed. Same indexing as tiles.
+  private fightable: boolean[] = [];
 
   // Per-chef scratch that does not belong in the snapshot.
   private prevActions: ChefAction[] = [];
@@ -160,6 +162,7 @@ export class Sim {
       if (tile.type === 'plateReturn') this.plateReturnTiles.push(i);
       if (tile.type === 'plateStack') this.plateStackTiles.push(i);
     }
+    for (let i = 0; i < st.tiles.length; i++) this.fightable.push(this.hasWalkableNeighbour(st.tiles[i]));
     for (const dyn of this.level.dynamics ?? []) {
       if (dyn.type === 'sliders') {
         this.sliderSpecs.push({
@@ -552,6 +555,19 @@ export class Sim {
     }
   }
 
+  /** True when some orthogonally adjacent tile is walkable, so a chef can reach this one.
+   *  Sliders count as solid: they move, so nothing may depend on standing in their lane. */
+  private hasWalkableNeighbour(tile: Tile): boolean {
+    const st = this.state;
+    for (const n of NEIGHBOURS) {
+      const nx = tile.x + n.dx;
+      const ny = tile.y + n.dy;
+      if (nx < 0 || ny < 0 || nx >= st.width || ny >= st.height) continue;
+      if (!SOLID_TILES.has(st.tiles[ny * st.width + nx].type)) return true;
+    }
+    return false;
+  }
+
   private adjacentDrying(x: number, y: number): number {
     const st = this.state;
     for (const n of NEIGHBOURS) {
@@ -758,6 +774,10 @@ export class Sim {
       const tile = st.tiles[i];
       if (tile.type !== 'stove') continue; // pots off the stove hold their progress
       if (item.state === 'burnt' || item.contents.length === 0) continue;
+      // wiki (Fire): "Any cooking device affected by tabletop fire cannot cook food until
+      // the fire is extinguished." The burn clock stops with it, so a fire that reaches a
+      // second stove cannot force a second burnt pot the chefs are not allowed to rescue.
+      if (this.fireAt(tile.x, tile.y)) continue;
 
       if (item.cookProgress < 1) {
         if (item.state !== 'cooking') {
@@ -802,10 +822,19 @@ export class Sim {
         const nx = f.x + nb.dx;
         const ny = f.y + nb.dy;
         if (nx < 0 || ny < 0 || nx >= st.width || ny >= st.height) continue;
-        const type = st.tiles[ny * st.width + nx].type;
+        const j = ny * st.width + nx;
+        const type = st.tiles[j].type;
         if (type === 'void' || !SOLID_TILES.has(type)) continue;
         if (this.fireAt(nx, ny)) continue;
-        this.spreadBuf[n++] = ny * st.width + nx;
+        // No chef can stand next to this tile, so a fire on it could never be sprayed and
+        // would re-light its neighbours for the rest of the level. Wall corners and the
+        // backs of counter runs are the usual cases.
+        if (!this.fightable[j]) continue;
+        // A burning tile refuses every interaction, and spraying is the only way to put a
+        // fire out, so a fire on the extinguisher's tile would leave the level unwinnable.
+        const blocking = st.tileItems[j];
+        if (blocking && blocking.kind === 'extinguisher') continue;
+        this.spreadBuf[n++] = j;
       }
       if (n === 0) continue;
       const pick = st.tiles[this.spreadBuf[this.rng.int(n)]];
