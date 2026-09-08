@@ -272,6 +272,51 @@ export function writePlayerInput(held: HeldState, prev: HeldState, out: PlayerIn
   return out;
 }
 
+// ─── Fixed-step edge latch ──────────────────────────────────────────────────
+// poll() reports a rising edge on exactly the frame it happened, but a fixed-timestep
+// loop runs zero sim steps on any frame shorter than one step (every other frame at
+// 120 Hz+, and any frame the browser shortens). Without a latch that press is polled,
+// never handed to a step, and lost. The latch holds it until a step consumes it.
+
+export interface EdgeLatch { pickup: boolean; interact: boolean; }
+
+export function createEdgeLatch(): EdgeLatch {
+  return { pickup: false, interact: false };
+}
+
+export function clearEdgeLatch(latch: EdgeLatch): void {
+  latch.pickup = false;
+  latch.interact = false;
+}
+
+/** ORs one poll's rising edges into the latch. */
+export function latchEdges(latch: EdgeLatch, input: PlayerInput): EdgeLatch {
+  latch.pickup = latch.pickup || input.pickupPressed;
+  latch.interact = latch.interact || input.interactPressed;
+  return latch;
+}
+
+/**
+ * Writes one fixed step's input into `out`: movement and held state come from the live
+ * poll, rising edges from the latch and only on the sub-step that consumes them, so a
+ * press fires once per press rather than once per sub-step.
+ */
+export function writeStepInput(
+  src: PlayerInput,
+  latch: EdgeLatch,
+  consumeEdges: boolean,
+  out: PlayerInput,
+): PlayerInput {
+  out.moveX = src.moveX;
+  out.moveY = src.moveY;
+  out.interactHeld = src.interactHeld;
+  out.pickupPressed = consumeEdges && latch.pickup;
+  out.interactPressed = consumeEdges && latch.interact;
+  out.pausePressed = false;
+  out.backPressed = false;
+  return out;
+}
+
 // ─── Menus ──────────────────────────────────────────────────────────────────
 /** "Any player" input for menu screens: buttons OR-ed, movement from the first mover. */
 export function readMenuInput(inputs: readonly PlayerInput[], out: PlayerInput = createPlayerInput()): PlayerInput {

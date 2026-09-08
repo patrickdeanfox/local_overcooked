@@ -6,7 +6,10 @@ import Phaser from 'phaser';
 import { sfxForEvent } from '../../audio';
 import type { AudioBus } from '../../audio/types';
 import { GAME_HEIGHT, GAME_WIDTH, MAX_PLAYERS, SCENE } from '../../config';
-import { createInputManager } from '../../input';
+import {
+  clearEdgeLatch, createEdgeLatch, createInputManager, createPlayerInput, latchEdges,
+  writeStepInput, type EdgeLatch,
+} from '../../input';
 import type { InputManager } from '../../input/types';
 import type { LevelDef } from '../../levels/schema';
 import { log } from '../../log';
@@ -52,12 +55,6 @@ const KEYS = {
 
 interface StepResult { steps: number; ms: number; }
 
-// ─── Pure helpers ───────────────────────────────────────────────────────────
-/** Rising edges must fire on the first sub-step only, never once per sub-step. */
-function clearEdges(input: PlayerInput): PlayerInput {
-  return { ...input, pickupPressed: false, interactPressed: false, pausePressed: false, backPressed: false };
-}
-
 // ─── Scene ──────────────────────────────────────────────────────────────────
 export class GameScene extends Phaser.Scene {
   private sim!: Sim;
@@ -75,6 +72,10 @@ export class GameScene extends Phaser.Scene {
   private endTimer: Phaser.Time.TimerEvent | null = null;
   private fakeState: SimState | null = null;
   private readonly disposers: (() => void)[] = [];
+  // Rising edges wait here until a fixed step takes them; the step inputs are reused so
+  // the loop allocates nothing per frame.
+  private readonly latches: EdgeLatch[] = [];
+  private readonly stepInputs: PlayerInput[] = [];
 
   private levelId = '';
   private players = MAX_PLAYERS;
@@ -156,6 +157,7 @@ export class GameScene extends Phaser.Scene {
     this.accumulator = 0;
     this.ending = false;
     this.fakeState = null;
+    for (const latch of this.latches) clearEdgeLatch(latch); // no press carries into a rebuild
   }
 
   private installKeys(): void {
@@ -178,18 +180,37 @@ export class GameScene extends Phaser.Scene {
   /** Runs whole sim steps for this frame and reports how many, and how long they took. */
   private runSim(inputs: readonly PlayerInput[], deltaMs: number, events: SimEvent[]): StepResult {
     this.accumulator += Math.min(deltaMs / 1000, LOOP.maxFrameSec);
+    // A frame shorter than one step runs no step at all, so this frame's edges are latched
+    // and wait rather than being polled and thrown away.
+    for (let i = 0; i < inputs.length; i++) latchEdges(this.latchFor(i), inputs[i]);
     const started = performance.now();
-    let stepInputs: readonly PlayerInput[] = inputs;
     let steps = 0;
     while (this.accumulator >= SIM_DT && steps < LOOP.maxStepsPerFrame) {
-      const stepEvents = this.sim.step(stepInputs, SIM_DT);
+      const stepEvents = this.sim.step(this.buildStepInputs(inputs, steps === 0), SIM_DT);
       if (stepEvents.length > 0) events.push(...stepEvents);
+      // Rising edges fire on the first sub-step only, never once per sub-step.
+      if (steps === 0) for (const latch of this.latches) clearEdgeLatch(latch);
       this.accumulator -= SIM_DT;
       steps += 1;
-      if (steps === 1) stepInputs = inputs.map(clearEdges);
     }
     if (steps >= LOOP.maxStepsPerFrame) this.accumulator = 0;
     return { steps, ms: performance.now() - started };
+  }
+
+  private latchFor(player: number): EdgeLatch {
+    const latch = this.latches[player] ?? createEdgeLatch();
+    this.latches[player] = latch;
+    return latch;
+  }
+
+  private buildStepInputs(inputs: readonly PlayerInput[], consumeEdges: boolean): readonly PlayerInput[] {
+    for (let i = 0; i < inputs.length; i++) {
+      const out = this.stepInputs[i] ?? createPlayerInput();
+      this.stepInputs[i] = out;
+      writeStepInput(inputs[i], this.latchFor(i), consumeEdges, out);
+    }
+    this.stepInputs.length = inputs.length;
+    return this.stepInputs;
   }
 
   // ─── Rendering ────────────────────────────────────────────────────────────
