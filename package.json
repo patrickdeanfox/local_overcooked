@@ -11,7 +11,8 @@
     "start": "node server.mjs",
     "typecheck": "tsc --noEmit",
     "playtest": "node tools/playtest.mjs",
-    "cert": "node tools/make-cert.mjs"
+    "cert": "node tools/make-cert.mjs",
+    "install-launcher": "bash tools/install-launcher.sh"
   },
   "keywords": [],
   "author": "",

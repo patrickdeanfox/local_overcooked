@@ -1,10 +1,11 @@
 // Zero-dependency static server for the built game (dist/).
 // Usage: npm run build && npm start   → prints LAN URLs to open on any device on the network.
 //
-// Serves http on PORT (8080) and, when a certificate exists or can be created with openssl,
-// https on HTTPS_PORT (8443). Browsers block the Gamepad API on plain http from any address
-// other than localhost, so gamepads on another device need the https URL. Set NO_HTTPS=1 to
-// skip https; set CERT_DIR to use your own server.key / server.crt.
+// Serves http on PORT (7777) and, when a certificate exists or can be created with openssl,
+// https on HTTPS_PORT (7778). If a port is busy the server steps up to the next free one and
+// prints what it got. Browsers block the Gamepad API on plain http from any address other than
+// localhost, so gamepads on another device need the https URL. Set NO_HTTPS=1 to skip https;
+// set CERT_DIR to use your own server.key / server.crt.
 import { createServer } from 'node:http';
 import { createServer as createHttpsServer } from 'node:https';
 import { readFile, stat } from 'node:fs/promises';
@@ -12,8 +13,9 @@ import { readFileSync } from 'node:fs';
 import { extname, join, normalize, resolve } from 'node:path';
 import { ensureCert, lanAddresses } from './tools/make-cert.mjs';
 
-const PORT = Number(process.env.PORT) || 8080;
-const HTTPS_PORT = Number(process.env.HTTPS_PORT) || 8443;
+const PORT = Number(process.env.PORT) || 7777;
+const HTTPS_PORT = Number(process.env.HTTPS_PORT) || 7778;
+const PORT_TRIES = 10;                 // busy port → try the next ones
 const HOST = process.env.HOST || '0.0.0.0';
 const ROOT = resolve(process.env.ROOT || 'dist');
 const CERT_DIR = resolve(process.env.CERT_DIR || 'certs');
@@ -70,14 +72,34 @@ function banner(scheme, port) {
   for (const ip of lanAddresses()) console.log(`  Network: ${scheme}://${ip}:${port}/`);
 }
 
+/** Listens on the first free port from `port` upward, up to PORT_TRIES ports. */
+function listenOnFreePort(server, port, scheme, onListening) {
+  let current = port;
+  // One 'listening' handler for the whole search: a callback passed to listen() would stay
+  // registered after a failed attempt and fire once per tried port on the final success.
+  server.once('listening', () => onListening(server.address().port));
+  const onError = (err) => {
+    if (err.code === 'EADDRINUSE' && current < port + PORT_TRIES - 1) {
+      console.log(`${scheme} port ${current} is in use, trying ${current + 1}`);
+      current += 1;
+      server.once('error', onError);
+      server.listen(current, HOST);
+    } else {
+      console.error(`${scheme}: could not listen (${err.code || err.message})`);
+    }
+  };
+  server.once('error', onError);
+  server.listen(current, HOST);
+}
+
 console.log(`Serving ${ROOT}`);
-createServer(handle).listen(PORT, HOST, () => banner('http', PORT));
+listenOnFreePort(createServer(handle), PORT, 'http', (p) => banner('http', p));
 
 const certs = NO_HTTPS ? null : ensureCert(CERT_DIR);
 if (certs) {
   const options = { key: readFileSync(certs.key), cert: readFileSync(certs.cert) };
-  createHttpsServer(options, handle).listen(HTTPS_PORT, HOST, () => {
-    banner('https', HTTPS_PORT);
+  listenOnFreePort(createHttpsServer(options, handle), HTTPS_PORT, 'https', (p) => {
+    banner('https', p);
     console.log('Gamepads on another device need the https address (accept the certificate warning once per device).');
   });
 } else if (!NO_HTTPS) {
