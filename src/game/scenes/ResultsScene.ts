@@ -1,5 +1,6 @@
 // ─── Results scene ──────────────────────────────────────────────────────────
-// Score against the level's star thresholds, plus what to do next.
+// Score against the level's star thresholds, the run's seed and difficulty, and what
+// to do next. This is where a finished run is written into the saved progress.
 import Phaser from 'phaser';
 import { TEX } from '../../art/keys';
 import { GAME_HEIGHT, GAME_WIDTH, MAX_PLAYERS, SCENE } from '../../config';
@@ -8,6 +9,8 @@ import type { InputManager } from '../../input/types';
 import { log } from '../../log';
 import { getAudioBus, installAudioGestureResume, installMuteToggle } from '../audioBus';
 import { currentLevels } from '../levelHotReload';
+import { isUnlocked, levelProgress, loadProgress, recordRun, saveProgress } from '../progress';
+import { countsTowardUnlock, loadSettings, presetName } from '../settings';
 import { MenuList, type MenuItemSpec } from '../ui/MenuList';
 import { KeyboardNav, MenuInput, mergeNav } from '../ui/menuInput';
 import { COLOR, TEXT_COLOR, textStyle } from '../ui/theme';
@@ -31,7 +34,11 @@ const RESULTS = {
   scoreIconGap: 34,
   countsY: 424,
   countsFontPx: 18,
-  menuY: 512,
+  newBestY: 456,
+  newBestFontPx: 22,
+  noteY: 484,
+  noteFontPx: 14,
+  menuY: 536,
   menuSpacing: 44,
   hintY: GAME_HEIGHT - 56,
   hintFontPx: 15,
@@ -62,7 +69,17 @@ export class ResultsScene extends Phaser.Scene {
     const result: ResultsSceneData = { ...FALLBACK, ...data };
     const { levels, order } = currentLevels();
     const levelName = levels[result.levelId]?.name ?? result.levelId;
-    log.info('results', result.levelId, 'score', result.score, 'stars', result.stars);
+    const settings = loadSettings();
+    const preset = result.preset ?? settings.preset;
+    log.info('results', result.levelId, 'score', result.score, 'stars', result.stars, 'seed', result.seed, preset);
+
+    // Save first: the unlock check for "Next level" reads the progress this run just made.
+    const before = loadProgress();
+    const recorded = result.levelId
+      ? recordRun(before, { levelId: result.levelId, score: result.score, stars: result.stars, preset })
+      : { progress: before, newBest: false, newStars: false };
+    if (result.levelId) saveProgress(recorded.progress);
+    const best = levelProgress(recorded.progress, result.levelId).bestScore;
 
     this.cameras.main.setBackgroundColor(COLOR.bg);
     this.add
@@ -72,13 +89,29 @@ export class ResultsScene extends Phaser.Scene {
       .text(
         GAME_WIDTH / 2,
         RESULTS.subheadingY,
-        `${result.players} player${result.players === 1 ? '' : 's'}`,
+        `${result.players} player${result.players === 1 ? '' : 's'} · ${presetName(preset)}` +
+          `${result.seed === undefined ? '' : ` · seed ${result.seed}`}`,
         textStyle(RESULTS.subheadingFontPx, TEXT_COLOR.dim),
       )
       .setOrigin(0.5);
 
     this.drawStars(result);
-    this.drawScore(result);
+    this.drawScore(result, best);
+    if (recorded.newBest) {
+      this.add
+        .text(GAME_WIDTH / 2, RESULTS.newBestY, 'New best!', textStyle(RESULTS.newBestFontPx, TEXT_COLOR.accent))
+        .setOrigin(0.5);
+    }
+    if (!countsTowardUnlock(preset)) {
+      this.add
+        .text(
+          GAME_WIDTH / 2,
+          RESULTS.noteY,
+          `Stars earned on ${presetName(preset)} do not count toward unlocks`,
+          textStyle(RESULTS.noteFontPx, TEXT_COLOR.dim),
+        )
+        .setOrigin(0.5);
+    }
 
     this.inputMgr = createInputManager(this, MAX_PLAYERS);
     this.menuInput = new MenuInput();
@@ -89,11 +122,17 @@ export class ResultsScene extends Phaser.Scene {
     const index = order.indexOf(result.levelId);
     const nextId = index >= 0 && index + 1 < order.length ? order[index + 1] : null;
     const items: MenuItemSpec[] = [
-      { label: () => 'Retry', onSelect: () => this.startLevel(result.levelId, result.players) },
+      { label: () => 'Retry (same seed)', onSelect: () => this.retry(result) },
     ];
     if (nextId) {
-      const nextName = levels[nextId]?.name ?? nextId;
-      items.push({ label: () => `Next level (${nextName})`, onSelect: () => this.startLevel(nextId, result.players) });
+      const nextLevel = levels[nextId];
+      const nextName = nextLevel?.name ?? nextId;
+      // A locked next level stays on the menu as a dim label with nothing to select.
+      if (nextLevel && !isUnlocked(nextLevel, recorded.progress, settings)) {
+        items.push({ label: () => `Next level (${nextName}) · needs ${nextLevel.unlockStars ?? 0} stars` });
+      } else {
+        items.push({ label: () => `Next level (${nextName})`, onSelect: () => this.startNext(nextId, result.players) });
+      }
     }
     items.push({ label: () => 'Back to title', onSelect: () => this.goToTitle() });
     this.menu = new MenuList(this, GAME_WIDTH / 2, RESULTS.menuY, items, { spacing: RESULTS.menuSpacing });
@@ -138,7 +177,7 @@ export class ResultsScene extends Phaser.Scene {
     }
   }
 
-  private drawScore(result: ResultsSceneData): void {
+  private drawScore(result: ResultsSceneData, best: number): void {
     const scoreText = String(result.score);
     const text = this.add
       .text(GAME_WIDTH / 2, RESULTS.scoreY, scoreText, textStyle(RESULTS.scoreFontPx))
@@ -148,14 +187,27 @@ export class ResultsScene extends Phaser.Scene {
       .text(
         GAME_WIDTH / 2,
         RESULTS.countsY,
-        `Served ${result.servedCount}   ·   Missed ${result.failedCount}`,
+        `Served ${result.servedCount}   ·   Missed ${result.failedCount}   ·   Best ${best}`,
         textStyle(RESULTS.countsFontPx, TEXT_COLOR.dim),
       )
       .setOrigin(0.5);
   }
 
   // ─── Navigation ───────────────────────────────────────────────────────────
-  private startLevel(levelId: string, players: number): void {
+  /** The same kitchen again: the seed and modifiers of the run that just ended. */
+  private retry(result: ResultsSceneData): void {
+    this.ready = false;
+    this.scene.start(SCENE.GAME, {
+      levelId: result.levelId,
+      players: result.players,
+      seed: result.seed,
+      modifiers: result.modifiers,
+      preset: result.preset,
+    } satisfies GameSceneData);
+  }
+
+  /** The next level rolls a fresh seed from the settings, like starting from the title. */
+  private startNext(levelId: string, players: number): void {
     this.ready = false;
     this.scene.start(SCENE.GAME, { levelId, players } satisfies GameSceneData);
   }

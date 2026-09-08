@@ -6,12 +6,16 @@
 // Everything lives inside one container placed and scaled to fit the play area, so
 // child coordinates are always native pixels (TILE = 64) regardless of level size.
 import Phaser from 'phaser';
-import { TEX } from '../../art/keys';
+import { BURGER_LAYERS, BURGER_LAYER_STEP_PX, TEX, type BurgerLayer, type PanContentState } from '../../art/keys';
 import { GAME_HEIGHT, GAME_WIDTH, TILE } from '../../config';
 import {
   FACING_VECTORS,
   type Chef,
+  type Dish,
+  type GateGroup,
+  type IngredientType,
   type Item,
+  type PotItem,
   type SimState,
   type Tile,
 } from '../../sim/types';
@@ -42,6 +46,13 @@ const ITEM_DRAW = {
 } as const;
 
 const PEDESTRIAN_DRAW = { tint: 0x9aa0a8, alpha: 0.95 } as const;
+
+const GATE_DRAW = {
+  closedTint: 0x8b8079,   // a closed seam reads as raised, shadowed floor
+  warnSec: 1,             // pre-close flash starts this long before the gate shuts
+  flashSpeedRad: 14,
+  warnMaxAlpha: 0.6,
+} as const;
 
 const HIGHLIGHT = { lineWidthPx: 3, alpha: 0.9, insetPx: 3, radiusPx: 6 } as const;
 
@@ -79,21 +90,44 @@ const BADGE_STYLE: Phaser.Types.GameObjects.Text.TextStyle = {
 export interface TilePos { x: number; y: number; }
 
 // ─── Pure helpers ───────────────────────────────────────────────────────────
+/** The ingredient each burger layer needs on the plate before it is drawn. */
+const BURGER_LAYER_INGREDIENT: Readonly<Record<BurgerLayer, IngredientType>> = {
+  bunBottom: 'bun', meat: 'meat', lettuce: 'lettuce', tomato: 'tomato', bunTop: 'bun',
+};
+
 function tileTexture(tile: Tile): string {
   if (tile.type === 'crate') return TEX.crate(tile.ingredient ?? 'onion');
   return TEX.tile(tile.type);
+}
+
+/** What the food in a pan looks like, from the cookware's state. */
+function panContentState(pot: PotItem): PanContentState {
+  if (pot.state === 'burnt') return 'burnt';
+  return pot.state === 'cooked' ? 'cooked' : 'raw';
+}
+
+/** The plated burger on this item, or null: burgers are drawn as stacked layers. */
+function burgerDish(item: Item | null): Dish | null {
+  if (!item || item.kind !== 'plate') return null;
+  return item.dish && item.dish.type === 'burger' ? item.dish : null;
 }
 
 /** Texture for an item resting on a tile or held by a chef. */
 export function itemTexture(item: Item): string {
   switch (item.kind) {
     case 'ingredient':
-      return TEX.ingredient(item.type, item.chopped);
+      // Fried ingredients (meat) come out of the pan cooked, whatever their chopped flag.
+      return item.cooked ? TEX.ingredientCooked(item.type) : TEX.ingredient(item.type, item.chopped);
     case 'pot':
+      if ((item.ware ?? 'pot') === 'pan') {
+        return item.contents.length > 0 ? TEX.panMeat(panContentState(item)) : TEX.pan;
+      }
       if (item.state === 'burnt') return TEX.potBurnt;
       return item.contents.length > 0 ? TEX.potSoup(item.contents[0]) : TEX.pot;
     case 'plate':
-      return item.dish && item.dish.ingredients.length > 0 ? TEX.plateSoup(item.dish.ingredients[0]) : TEX.plate;
+      if (!item.dish || item.dish.ingredients.length === 0) return TEX.plate;
+      // A burger is the bare plate plus its layers; only soup tints the plate itself.
+      return item.dish.type === 'burger' ? TEX.plate : TEX.plateSoup(item.dish.ingredients[0]);
     case 'dirtyPlate':
       return TEX.dirtyPlate;
     case 'extinguisher':
@@ -127,8 +161,14 @@ export class KitchenRenderer {
   private readonly tileSprites: Phaser.GameObjects.Image[] = [];
   private readonly sliderTiles: number[] = [];
   private readonly sliderFloorSprites: Phaser.GameObjects.Image[] = [];
+  private readonly gateTiles: number[] = [];
+  private readonly gateOverlays: Phaser.GameObjects.Image[] = [];
+  private readonly gateClosedNow: boolean[] = [];
   private readonly itemSprites = new Map<number, Phaser.GameObjects.Image>();
   private readonly itemBadges = new Map<number, Phaser.GameObjects.Text>();
+  // Burger layers, pooled per tile index and per chef index so a frame allocates nothing.
+  private readonly tileBurgers = new Map<number, Phaser.GameObjects.Image[]>();
+  private readonly handBurgers = new Map<number, Phaser.GameObjects.Image[]>();
   private readonly chefSprites = new Map<number, Phaser.GameObjects.Image>();
   private readonly heldSprites = new Map<number, Phaser.GameObjects.Image>();
   private readonly pedSprites = new Map<number, Phaser.GameObjects.Image>();
@@ -182,6 +222,7 @@ export class KitchenRenderer {
     this.elapsed += dtSec;
     this.readSliderOffsets(state);
     this.drawTiles(state);
+    this.drawGates(state);
     this.drawTileItems(state);
     this.drawHighlights(state, targets);
     this.drawChefs(state, dtSec);
@@ -201,8 +242,13 @@ export class KitchenRenderer {
     this.tileSprites.length = 0;
     this.sliderFloorSprites.length = 0;
     this.sliderTiles.length = 0;
+    this.gateTiles.length = 0;
+    this.gateOverlays.length = 0;
+    this.gateClosedNow.length = 0;
     this.itemSprites.clear();
     this.itemBadges.clear();
+    this.tileBurgers.clear();
+    this.handBurgers.clear();
     this.chefSprites.clear();
     this.heldSprites.clear();
     this.pedSprites.clear();
@@ -220,6 +266,12 @@ export class KitchenRenderer {
     this.itemSprites.clear();
     for (const badge of this.itemBadges.values()) badge.destroy();
     this.itemBadges.clear();
+    for (const overlay of this.gateOverlays) overlay.destroy();
+    this.gateOverlays.length = 0;
+    this.gateTiles.length = 0;
+    this.gateClosedNow.length = 0;
+    this.destroyBurgerStacks(this.tileBurgers);
+    this.destroyBurgerStacks(this.handBurgers);
 
     this.gridW = state.width;
     this.gridH = state.height;
@@ -242,7 +294,20 @@ export class KitchenRenderer {
       this.tileLayer.add(sprite);
       this.tileSprites.push(sprite);
       if (tile.type === 'slider') this.sliderTiles.push(i);
+      if (tile.type === 'gate') this.gateTiles.push(i);
     });
+    // A closed gate gets a raised face over its floor; it is hidden while the gate is open.
+    for (const i of this.gateTiles) {
+      const tile = state.tiles[i];
+      const overlay = this.scene.add
+        .image(tile.x * TILE, tile.y * TILE, TEX.gateClosed)
+        .setOrigin(0, 0)
+        .setDisplaySize(TILE, TILE)
+        .setVisible(false);
+      this.tileLayer.add(overlay);
+      this.gateOverlays.push(overlay);
+      this.gateClosedNow.push(false);
+    }
     // Moving counters draw above every static tile they slide over.
     for (const i of this.sliderTiles) this.tileLayer.bringToTop(this.tileSprites[i]);
   }
@@ -284,6 +349,41 @@ export class KitchenRenderer {
     }
   }
 
+  /** Gate seams: a closed group shows its raised face and darkens, and flashes before it shuts. */
+  private drawGates(state: Readonly<SimState>): void {
+    if (this.gateTiles.length === 0) return;
+    const flash = 0.5 + 0.5 * Math.sin(this.elapsed * GATE_DRAW.flashSpeedRad);
+    for (let n = 0; n < this.gateTiles.length; n++) {
+      const index = this.gateTiles[n];
+      const tile = state.tiles[index];
+      const sprite = this.tileSprites[index];
+      const overlay = this.gateOverlays[n];
+      if (!tile || !sprite || !overlay) continue;
+      const group = this.gateGroup(state, tile.group);
+      const closed = group ? !group.open : false;
+      if (closed !== this.gateClosedNow[n]) {
+        this.gateClosedNow[n] = closed;
+        if (closed) sprite.setTint(GATE_DRAW.closedTint);
+        else sprite.clearTint();
+      }
+      if (closed) {
+        overlay.setVisible(true);
+        overlay.setAlpha(1);
+        continue;
+      }
+      const warning = group !== null && group.secondsToChange <= GATE_DRAW.warnSec;
+      overlay.setVisible(warning);
+      if (warning) overlay.setAlpha(flash * GATE_DRAW.warnMaxAlpha);
+    }
+  }
+
+  /** A level without the gate dynamic reports no groups; its seams stay open. */
+  private gateGroup(state: Readonly<SimState>, id: string | undefined): GateGroup | null {
+    if (!state.gates || !id) return null;
+    for (const group of state.gates) if (group.id === id) return group;
+    return null;
+  }
+
   private drawTileItems(state: Readonly<SimState>): void {
     for (let i = 0; i < state.tileItems.length; i++) {
       const item = state.tileItems[i];
@@ -292,6 +392,7 @@ export class KitchenRenderer {
       if (!item) {
         sprite?.setVisible(false);
         badge?.setVisible(false);
+        this.hideBurger(this.tileBurgers, i);
         continue;
       }
       const tile = state.tiles[i];
@@ -302,6 +403,10 @@ export class KitchenRenderer {
       view.setTexture(itemTexture(item));
       view.setPosition(cx, cy);
       view.setVisible(true);
+
+      const burger = burgerDish(item);
+      if (burger) this.drawBurger(this.tileBurgers, i, this.itemLayer, burger, cx, cy, 1, null);
+      else this.hideBurger(this.tileBurgers, i);
 
       const count = itemCount(item);
       if (count > 1) {
@@ -356,6 +461,7 @@ export class KitchenRenderer {
       if (seen.has(index)) continue;
       sprite.setVisible(false);
       this.heldSprites.get(index)?.setVisible(false);
+      this.hideBurger(this.handBurgers, index);
     }
   }
 
@@ -363,17 +469,79 @@ export class KitchenRenderer {
     const held = this.heldSprites.get(chef.index) ?? this.makeHeldSprite(chef.index);
     if (!chef.holding) {
       held.setVisible(false);
+      this.hideBurger(this.handBurgers, chef.index);
       return;
     }
     const facing = FACING_VECTORS[chef.facing];
+    const hx = px + facing.dx * CHEF_DRAW.heldFacingOffsetPx;
+    const hy = py - CHEF_DRAW.heldLiftPx + facing.dy * CHEF_DRAW.heldFacingOffsetPx;
     held.setTexture(itemTexture(chef.holding));
-    held.setPosition(
-      px + facing.dx * CHEF_DRAW.heldFacingOffsetPx,
-      py - CHEF_DRAW.heldLiftPx + facing.dy * CHEF_DRAW.heldFacingOffsetPx,
-    );
+    held.setPosition(hx, hy);
     held.setScale(CHEF_DRAW.heldScale);
     held.setDepth(py + 1);
     held.setVisible(true);
+
+    const burger = burgerDish(chef.holding);
+    if (burger) {
+      this.drawBurger(this.handBurgers, chef.index, this.actorLayer, burger, hx, hy, CHEF_DRAW.heldScale, py + 2);
+    } else {
+      this.hideBurger(this.handBurgers, chef.index);
+    }
+  }
+
+  // ─── Burger layers ────────────────────────────────────────────────────────
+  /** Draws the plated burger's layers bottom to top, centred on its plate. */
+  private drawBurger(
+    pool: Map<number, Phaser.GameObjects.Image[]>,
+    key: number,
+    layer: Phaser.GameObjects.Container,
+    dish: Dish,
+    cx: number,
+    cy: number,
+    scale: number,
+    depth: number | null,
+  ): void {
+    const sprites = pool.get(key) ?? this.makeBurgerStack(pool, key, layer);
+    let present = 0;
+    for (const name of BURGER_LAYERS) if (dish.ingredients.includes(BURGER_LAYER_INGREDIENT[name])) present++;
+    const step = BURGER_LAYER_STEP_PX * scale;
+    let drawn = 0;
+    for (const name of BURGER_LAYERS) {
+      if (!dish.ingredients.includes(BURGER_LAYER_INGREDIENT[name])) continue;
+      const sprite = sprites[drawn];
+      sprite.setTexture(TEX.burgerLayer(name));
+      sprite.setPosition(cx, cy + ((present - 1) / 2 - drawn) * step);
+      sprite.setScale(scale);
+      if (depth !== null) sprite.setDepth(depth);
+      sprite.setVisible(true);
+      drawn++;
+    }
+    for (let i = drawn; i < sprites.length; i++) sprites[i].setVisible(false);
+  }
+
+  private hideBurger(pool: Map<number, Phaser.GameObjects.Image[]>, key: number): void {
+    const sprites = pool.get(key);
+    if (!sprites) return;
+    for (const sprite of sprites) sprite.setVisible(false);
+  }
+
+  private makeBurgerStack(
+    pool: Map<number, Phaser.GameObjects.Image[]>,
+    key: number,
+    layer: Phaser.GameObjects.Container,
+  ): Phaser.GameObjects.Image[] {
+    const sprites = BURGER_LAYERS.map((name) => {
+      const sprite = this.scene.add.image(0, 0, TEX.burgerLayer(name)).setOrigin(0.5, 0.5).setVisible(false);
+      layer.add(sprite);
+      return sprite;
+    });
+    pool.set(key, sprites);
+    return sprites;
+  }
+
+  private destroyBurgerStacks(pool: Map<number, Phaser.GameObjects.Image[]>): void {
+    for (const sprites of pool.values()) for (const sprite of sprites) sprite.destroy();
+    pool.clear();
   }
 
   private drawPedestrians(state: Readonly<SimState>): void {
