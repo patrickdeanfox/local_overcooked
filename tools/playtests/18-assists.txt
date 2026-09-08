@@ -1,0 +1,99 @@
+# -- Assists: the page toggles and saves, a run shows them in the HUD, and it is not saved -----
+#
+# Rows, in cursor order: six levels, Players, Difficulty, Seed, Seed number, Free play,
+# Assists, Controllers - so Assists is index 11. The page lists the three toggles then Back.
+until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
+wait 600
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval JSON.stringify(['assists row', __ui.options()[5], __ui.settings().assists])
+shot 18-00-title.png
+
+# -- Down to the Assists row and open the page ------------------------------------------------
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+eval JSON.stringify(['cursor on', __ui.index(), __ui.options()[5]])
+tap Enter
+wait 700
+eval JSON.stringify(['page rows', __ui.menu('Assists')])
+shot 18-01-assists-page.png
+
+# -- Toggle instant cooking and no burning, check the save --------------------------------------
+tap ArrowRight
+wait 200
+tap ArrowDown
+wait 200
+tap ArrowDown
+wait 200
+tap ArrowRight
+wait 200
+eval JSON.stringify(['page rows after', __ui.menu('Assists')])
+eval JSON.stringify(['stored', JSON.parse(localStorage.getItem('local-overcooked.settings.v1')).assists])
+shot 18-02-assists-two-on.png
+
+# -- Back to the title: the row summarises what is on ------------------------------------------
+tap Escape
+wait 700
+eval JSON.stringify(['title row', __ui.options()[5], __ui.settings().assists])
+shot 18-03-title-assists-on.png
+
+# -- Start 1-1: the HUD says assists on and a full pot cooks in one step ------------------------
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+eval JSON.stringify(['cursor on', __ui.index()])
+tap Enter
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.sim
+wait 500
+eval JSON.stringify(['run modifiers', __oc.scene.modifiers])
+eval ((pot) => (pot.contents.push('onion', 'onion', 'onion'), pot.state))(__oc.sim.getState().tileItems.find((i) => i && i.kind === 'pot'))
+wait 150
+eval JSON.stringify(['pot after one frame', ((pot) => [pot.state, pot.cookProgress])(__oc.sim.getState().tileItems.find((i) => i && i.kind === 'pot'))])
+shot 18-04-hud-assists-on.png
+
+# -- End the level: the results say the run is not saved, and the progress file agrees ---------
+eval ((st) => (st.phase = 'running', st.timerRunning = true, st.timeLeft = 0.2))(__oc.sim.getState())
+until 8000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Results'))
+wait 600
+eval JSON.stringify(['results texts', __ui.texts('Results').filter((t) => /assist|saved|Normal/.test(t))])
+eval JSON.stringify(['progress stored', localStorage.getItem('local-overcooked.progress.v1')])
+shot 18-05-results-not-saved.png
+errors

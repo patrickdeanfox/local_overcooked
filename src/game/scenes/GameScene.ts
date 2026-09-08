@@ -23,7 +23,7 @@ import { DebugOverlay } from '../ui/DebugOverlay';
 import { Hud } from '../ui/Hud';
 import { KeyboardNav, MenuInput, mergeNav } from '../ui/menuInput';
 import { PauseMenu } from '../ui/PauseMenu';
-import { DEFAULT_PRESET, loadSettings, presetModifiers, presetName, seedFor, type PresetId } from '../settings';
+import { DEFAULT_PRESET, isAssisted, loadSettings, presetModifiers, presetName, seedFor, type PresetId } from '../settings';
 import { createEventRing, isPlayNotesOpen, setPlayNotesContext } from '../playnotes';
 import { COLOR, TEXT_COLOR, textStyle } from '../ui/theme';
 import type { GameSceneData, ResultsSceneData } from '../types';
@@ -141,6 +141,7 @@ export class GameScene extends Phaser.Scene {
       levelId: this.levelId,
       seed: this.seed,
       preset: this.preset,
+      assisted: isAssisted(this.modifiers),
       players: this.players,
       phase: st.phase,
       elapsed: Number(st.elapsed.toFixed(1)),
@@ -189,7 +190,8 @@ export class GameScene extends Phaser.Scene {
     // Dev-only hook for the headless playtest harness (tools/playtest.mjs): read sim state via window.__oc.
     if (import.meta.env.DEV) (globalThis as unknown as { __oc?: unknown }).__oc = { sim: this.sim, level, scene: this };
     this.kitchen = new KitchenRenderer(this, this.sim.getState(), level.theme);
-    this.hud = new Hud(this, level.name, `seed ${this.seed} · ${presetName(this.preset)}`);
+    const meta = `seed ${this.seed} · ${presetName(this.preset)}${isAssisted(this.modifiers) ? ' · assists on' : ''}`;
+    this.hud = new Hud(this, level.name, meta);
     this.accumulator = 0;
     this.ending = false;
     this.fakeState = null;
