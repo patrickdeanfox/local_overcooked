@@ -25,3 +25,8 @@ export const ORDER_FAIL_PENALTY = 10;   // points lost when an order expires
 export const TIP_BASE = 2;              // tip added per consecutive on-time serve, capped by TIP_MAX
 export const TIP_MAX = 8;
 export const TIMER_WARNING_AT = 30;     // seconds left when the warning event fires
+
+// ─── Sim internals (added by the simulation agent) ──────────────────────────
+export const MOVE_DEADZONE = 0.2;         // stick magnitude below which the chef stands still
+export const TICK_EVENT_HZ = 4;           // max chopTick / washTick / spray events per second
+export const SPRAY_LATERAL_TOLERANCE = 0.6; // tiles either side of the spray ray that still get hit
