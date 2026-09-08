@@ -57,7 +57,7 @@
       "#ppp##B#B######",
       "#.............V",
       "#.............R",
-      "X<<<>>>X<<<>>>X",
+      "#X<<<>>X<<>>>X#",
       "F.............#",
       "F.............#",
       "F.............#",
@@ -82,14 +82,14 @@
     "trash": 3,
     "extinguisher": 1,
     "plate": 3,
-    "counter": 26,
+    "counter": 28,
     "crates": {
       "bun": 1,
       "lettuce": 1,
       "tomato": 1,
       "meat": 1
     },
-    "conveyor": 12,
+    "conveyor": 10,
     "drying": 1
   },
   "spawns": [
@@ -154,7 +154,7 @@
     "portals": false,
     "floorTiles": 65,
     "counterTiles": 55,
-    "stationTiles": 29,
+    "stationTiles": 27,
     "longestWalkTiles": null,
     "chokepointWidth": 0,
     "recipeSteps": 4

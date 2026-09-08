@@ -1,0 +1,223 @@
+{
+  "id": "oc1-3-3",
+  "game": "oc1",
+  "world": 3,
+  "index": 3,
+  "name": "3-3",
+  "theme": "Ravenous Road",
+  "wiki": "https://overcooked.fandom.com/wiki/3-3_(Overcooked!)",
+  "screenshots": [
+    "oc1/3-3.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 26,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "onion_soup",
+    "tomato_soup",
+    "mushroom_soup",
+    "chips",
+    "fish",
+    "fish_and_chips"
+  ],
+  "orderVariants": 6,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 20,
+    "max": 5,
+    "timeSec": 110
+  },
+  "stars": {
+    "1": [
+      null,
+      null,
+      150
+    ],
+    "2": [
+      null,
+      null,
+      270
+    ],
+    "3": null,
+    "4": null
+  },
+  "starsProvenance": "oc1",
+  "plates": {
+    "mode": "return-clean",
+    "count": 4
+  },
+  "grid": {
+    "cols": 20,
+    "rows": 9,
+    "confidence": "med",
+    "ascii": [
+      "          #OJ%MTX###",
+      "          #........#",
+      "          #........V",
+      "          #........R",
+      "____________________",
+      "B........_........B_",
+      "#........_........#_",
+      "B........_........B_",
+      "#ES#S#Spp_#YpYpYE##_"
+    ]
+  },
+  "legendExtensions": {
+    "Y": "deep fryer with a frying basket",
+    "J": "fish crate",
+    "%": "potato crate",
+    "_": "highway between the truck beds; falling costs 5 s"
+  },
+  "stations": {
+    "board": 4,
+    "potBurner": 3,
+    "panBurner": 0,
+    "fryer": 3,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 0,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 2,
+    "plate": 4,
+    "counter": 20,
+    "crates": {
+      "onion": 1,
+      "fish": 1,
+      "potato": 1,
+      "mushroom": 1,
+      "tomato": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 14,
+      "y": 2
+    },
+    {
+      "x": 4,
+      "y": 6
+    }
+  ],
+  "zones": [
+    {
+      "name": "supply truck",
+      "stations": [
+        "crates",
+        "trash",
+        "serve",
+        "plateReturn"
+      ],
+      "links": [
+        {
+          "to": "soup truck",
+          "via": "throw"
+        },
+        {
+          "to": "fish truck",
+          "via": "throw"
+        },
+        {
+          "to": "fish truck",
+          "via": "walk-when-close"
+        }
+      ]
+    },
+    {
+      "name": "soup truck",
+      "stations": [
+        "board",
+        "potBurner",
+        "extinguisher",
+        "plate"
+      ],
+      "links": [
+        {
+          "to": "supply truck",
+          "via": "throw"
+        },
+        {
+          "to": "fish truck",
+          "via": "throw"
+        }
+      ]
+    },
+    {
+      "name": "fish truck",
+      "stations": [
+        "board",
+        "fryer",
+        "extinguisher",
+        "plate"
+      ],
+      "links": [
+        {
+          "to": "supply truck",
+          "via": "throw"
+        },
+        {
+          "to": "soup truck",
+          "via": "throw"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "moving-platforms",
+      "detail": "three truck beds drive together and apart; the supply truck's window onto each cooking truck opens and closes",
+      "periodSec": 12
+    },
+    {
+      "type": "fall-hazard",
+      "detail": "the highway between and around the beds; falling costs 5 s",
+      "periodSec": null
+    }
+  ],
+  "hazards": [
+    "fall off a truck: 5 s time penalty",
+    "pot fire",
+    "fryer fire"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": true,
+    "movingPlatforms": true,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 72,
+    "counterTiles": 40,
+    "stationTiles": 20,
+    "longestWalkTiles": null,
+    "chokepointWidth": 0,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "throwing",
+    "moving platforms",
+    "fish and chips recipes",
+    "deep fryer and frying basket",
+    "multiple recipe families in one level",
+    "fall hazard with time penalty",
+    "clean plate return with no sink"
+  ],
+  "estimates": [
+    "orders",
+    "spawns",
+    "plates.count",
+    "stars.1[0]",
+    "stars.1[1]",
+    "stars.2[0]",
+    "stars.2[1]",
+    "dynamics[0].periodSec",
+    "grid.ascii (arrangement of the three beds)"
+  ]
+}
