@@ -95,7 +95,7 @@ localStorage.removeItem('local-overcooked.bindings.v1');
 ## Known quirks
 
 - **Pads need https or localhost.** Chrome and Firefox return no gamepads on plain http from
-  any address other than localhost. `npm start` serves https on port 8443 with a self-signed
+  any address other than localhost. `npm start` serves https on port 7778 with a self-signed
   certificate (created with openssl on first start); open that address on the other device
   and accept the certificate warning once. The Controllers screen shows a red notice when the
   page is not a secure context. Without https, the keyboard still works.

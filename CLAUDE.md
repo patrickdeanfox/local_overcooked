@@ -5,7 +5,7 @@ Two-player Overcooked clone in the browser. Phaser 3 + Vite + TypeScript. One sc
 ## Commands
 - `npm run dev` — Vite dev server with HMR, reachable on the LAN (`--host`).
 - `npm run build` — typecheck + production build into `dist/`.
-- `npm start` — zero-dependency Node server for `dist/`: http 8080 + https 8443 (self-signed, gamepads need https from other devices), prints LAN URLs.
+- `npm start` — zero-dependency Node server for `dist/`: http 7777 + https 7778 (self-signed, gamepads need https from other devices; steps to the next free port when busy), prints LAN URLs.
 - `npm test` — vitest. `npm run typecheck` — tsc only.
 
 ## Contracts (read before writing code)
