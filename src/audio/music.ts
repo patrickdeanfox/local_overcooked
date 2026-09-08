@@ -94,6 +94,11 @@ export function createMusicPlayer(ctx: AudioContext, dest: AudioNode): MusicPlay
 
   function pump(): void {
     try {
+      // A hidden tab throttles setInterval (and a sleeping machine stops it) while the
+      // audio clock keeps running, so nextStepTime can end up far in the past. Without
+      // this the catch-up loop would schedule the whole backlog at once and fire every
+      // missed note simultaneously on return.
+      if (nextStepTime < ctx.currentTime) nextStepTime = ctx.currentTime + STEP_S;
       while (nextStepTime < ctx.currentTime + SCHEDULE_AHEAD_S) {
         scheduleStep(step, nextStepTime);
         nextStepTime += STEP_S;
