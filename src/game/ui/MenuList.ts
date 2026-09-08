@@ -38,6 +38,7 @@ export class MenuList {
   private readonly spacing: number;
   private readonly width: number;
   private index = 0;
+  private focused = true;
 
   constructor(
     scene: Phaser.Scene,
@@ -68,6 +69,13 @@ export class MenuList {
 
   get container(): Phaser.GameObjects.Container { return this.root; }
   get selectedIndex(): number { return this.index; }
+
+  /** Unfocused lists keep their labels but drop the cursor and the highlight. */
+  setFocused(focused: boolean): void {
+    if (this.focused === focused) return;
+    this.focused = focused;
+    this.refresh();
+  }
 
   setIndex(index: number): void {
     if (this.items.length === 0) return;
@@ -107,11 +115,12 @@ export class MenuList {
       const row = this.rows[i];
       if (!row) return;
       row.setText(item.label());
-      row.setColor(i === this.index ? TEXT_COLOR.accent : TEXT_COLOR.bright);
+      row.setColor(i === this.index && this.focused ? TEXT_COLOR.accent : TEXT_COLOR.bright);
     });
     const y = this.index * this.spacing;
     this.highlight.setPosition(0, y);
-    this.highlight.setVisible(this.items.length > 0);
+    this.highlight.setVisible(this.focused && this.items.length > 0);
+    this.cursor.setVisible(this.focused);
     const row = this.rows[this.index];
     this.cursor.setPosition(row ? row.x - row.displayWidth / 2 - LIST.cursorGap : -this.width / 2, y);
   }

@@ -8,7 +8,7 @@ import Phaser from 'phaser';
 import { TEX } from '../../art/keys';
 import { GAME_HEIGHT, GAME_WIDTH } from '../../config';
 import { TIMER_WARNING_AT } from '../../sim/constants';
-import { RECIPES } from '../../sim/recipes';
+import { recipeDishType, RECIPES } from '../../sim/recipes';
 import type { IngredientType, Order, SimEvent, SimState } from '../../sim/types';
 import { COLOR, TEXT_COLOR, textStyle } from './theme';
 
@@ -38,7 +38,13 @@ const CARD = {
   servedRisePx: 44,
   servedRiseMs: 320,
   expireGraceSec: 0.75,   // a card gone with less time than this counts as expired
+  toppingOffsetXPx: 28,   // topping icons sit right of the burger icon, stacked
+  toppingGapPx: 20,
+  toppingScale: 0.5,
 } as const;
+
+/** Burger toppings a card shows as small icons, so the variants read apart. */
+const TOPPINGS: readonly IngredientType[] = ['lettuce', 'tomato'];
 
 const SCORE = {
   x: 26,
@@ -60,7 +66,7 @@ const TIMER = {
   blinkMs: 380,
 } as const;
 
-const LEVEL_LABEL = { x: GAME_WIDTH - 26, y: 16, fontPx: 16 } as const;
+const LEVEL_LABEL = { x: GAME_WIDTH - 26, y: 16, fontPx: 16, metaOffsetY: 22, metaFontPx: 13 } as const;
 
 const PREP_HINT = {
   y: GAME_HEIGHT - 96,
@@ -83,17 +89,28 @@ function recipeName(recipeId: string): string {
   return RECIPES[recipeId]?.name ?? recipeId;
 }
 
-/** Soups are drawn with the icon of their first ingredient. */
+/** Soups are drawn with the icon of their first ingredient; burgers with the burger icon. */
 function recipeIconKey(recipeId: string): string {
-  const ingredients = RECIPES[recipeId]?.ingredients;
-  const first: IngredientType | undefined = ingredients?.[0];
+  const recipe = RECIPES[recipeId];
+  if (!recipe) return TEX.iconPlate;
+  if (recipeDishType(recipe) === 'burger') return TEX.iconBurger;
+  const first: IngredientType | undefined = recipe.ingredients[0];
   return first ? TEX.iconSoup(first) : TEX.iconPlate;
+}
+
+/** Toppings the recipe puts on a burger. Soups have none. */
+function recipeHasTopping(recipeId: string, topping: IngredientType): boolean {
+  const recipe = RECIPES[recipeId];
+  if (!recipe || recipeDishType(recipe) !== 'burger') return false;
+  return recipe.ingredients.includes(topping);
 }
 
 interface OrderCard {
   id: number;
+  recipeId: string;
   root: Phaser.GameObjects.Container;
   icon: Phaser.GameObjects.Image;
+  toppings: Phaser.GameObjects.Image[]; // one per TOPPINGS entry, hidden when unused
   barFill: Phaser.GameObjects.Rectangle;
   slot: number;
   leaving: boolean;
@@ -114,7 +131,8 @@ export class Hud {
   private blinkMs = 0;
   private pulseMs = 0;
 
-  constructor(private readonly scene: Phaser.Scene, levelName: string) {
+  /** `meta` is the small line under the level name: the run's seed and difficulty. */
+  constructor(private readonly scene: Phaser.Scene, levelName: string, meta = '') {
     this.root = scene.add.container(0, 0).setDepth(HUD_DEPTH);
 
     const coin = scene.add.image(SCORE.x, SCORE.y, TEX.iconCoin).setOrigin(0, 0.5);
@@ -131,13 +149,16 @@ export class Hud {
     const levelText = scene.add
       .text(LEVEL_LABEL.x, LEVEL_LABEL.y, levelName, textStyle(LEVEL_LABEL.fontPx, TEXT_COLOR.dim))
       .setOrigin(1, 0);
+    const metaText = scene.add
+      .text(LEVEL_LABEL.x, LEVEL_LABEL.y + LEVEL_LABEL.metaOffsetY, meta, textStyle(LEVEL_LABEL.metaFontPx, TEXT_COLOR.dim))
+      .setOrigin(1, 0);
 
     this.prepText = scene.add
       .text(GAME_WIDTH / 2, PREP_HINT.y, 'Serve a dish to start the clock', textStyle(PREP_HINT.fontPx, TEXT_COLOR.accent))
       .setOrigin(0.5, 0.5)
       .setVisible(false);
 
-    this.root.add([coin, this.scoreText, this.streakText, this.timerIcon, this.timerText, levelText, this.prepText]);
+    this.root.add([coin, this.scoreText, this.streakText, this.timerIcon, this.timerText, levelText, metaText, this.prepText]);
   }
 
   /** One call per frame: consumes this frame's events, then syncs to the snapshot. */
@@ -216,6 +237,13 @@ export class Hud {
     const root = scene.add.container(this.slotX(slot), CARD.y - CARD.slideInPx).setAlpha(0);
     const background = scene.add.image(0, 0, TEX.orderCard).setOrigin(0, 0).setDisplaySize(CARD.width, CARD.height);
     const icon = scene.add.image(CARD.width / 2, CARD.iconY, recipeIconKey(order.recipeId)).setOrigin(0.5, 0.5).setScale(CARD.iconScale);
+    const toppings = TOPPINGS.map((topping) =>
+      scene.add
+        .image(CARD.width / 2 + CARD.toppingOffsetXPx, CARD.iconY, TEX.icon(topping))
+        .setOrigin(0.5, 0.5)
+        .setScale(CARD.toppingScale)
+        .setVisible(false),
+    );
     const name = scene.add
       .text(CARD.width / 2, CARD.nameY, recipeName(order.recipeId), textStyle(CARD.nameFontPx, TEXT_COLOR.bright, {
         align: 'center',
@@ -228,10 +256,14 @@ export class Hud {
     const barFill = scene.add
       .rectangle((CARD.width - CARD.barWidth) / 2, CARD.barY, CARD.barWidth, CARD.barHeight, COLOR.barGood)
       .setOrigin(0, 0.5);
-    root.add([background, icon, name, barTrack, barFill]);
+    root.add([background, icon, ...toppings, name, barTrack, barFill]);
     this.root.add(root);
 
-    const card: OrderCard = { id: order.id, root, icon, barFill, slot, leaving: false, lastTimeLeft: order.timeLeft };
+    const card: OrderCard = {
+      id: order.id, recipeId: order.recipeId, root, icon, toppings, barFill,
+      slot, leaving: false, lastTimeLeft: order.timeLeft,
+    };
+    this.drawToppings(card);
     this.cards.set(order.id, card);
     this.track(
       scene.tweens.add({
@@ -256,8 +288,28 @@ export class Hud {
     const fraction = Phaser.Math.Clamp(order.timeLeft / total, 0, 1);
     card.barFill.setDisplaySize(Math.max(0, CARD.barWidth * fraction), CARD.barHeight);
     card.barFill.setFillStyle(fraction <= CARD.dangerFraction ? COLOR.barDanger : COLOR.barGood);
-    card.icon.setTexture(recipeIconKey(order.recipeId));
+    if (card.recipeId !== order.recipeId) {
+      card.recipeId = order.recipeId;
+      card.icon.setTexture(recipeIconKey(order.recipeId));
+      this.drawToppings(card);
+    }
     card.lastTimeLeft = order.timeLeft;
+  }
+
+  /** Small lettuce / tomato icons beside a burger icon, stacked and centred on it. */
+  private drawToppings(card: OrderCard): void {
+    let present = 0;
+    for (const topping of TOPPINGS) if (recipeHasTopping(card.recipeId, topping)) present++;
+    let drawn = 0;
+    TOPPINGS.forEach((topping, i) => {
+      const sprite = card.toppings[i];
+      if (!sprite) return;
+      const show = recipeHasTopping(card.recipeId, topping);
+      sprite.setVisible(show);
+      if (!show) return;
+      sprite.setY(CARD.iconY + (drawn - (present - 1) / 2) * CARD.toppingGapPx);
+      drawn++;
+    });
   }
 
   private expireCard(card: OrderCard): void {

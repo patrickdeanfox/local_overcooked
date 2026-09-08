@@ -14,7 +14,7 @@ import type { InputManager } from '../../input/types';
 import type { LevelDef } from '../../levels/schema';
 import { log } from '../../log';
 import { Sim, SIM_DT } from '../../sim';
-import type { PlayerInput, SimEvent, SimState } from '../../sim/types';
+import type { Modifiers, PlayerInput, SimEvent, SimState } from '../../sim/types';
 import { getAudioBus, installAudioGestureResume, installMuteToggle } from '../audioBus';
 import { buildFakeState } from '../debug/fakeState';
 import { currentLevels, defaultLevelId, onLevelsHotReload, type LevelsSnapshot } from '../levelHotReload';
@@ -23,6 +23,7 @@ import { DebugOverlay } from '../ui/DebugOverlay';
 import { Hud } from '../ui/Hud';
 import { KeyboardNav, MenuInput, mergeNav } from '../ui/menuInput';
 import { PauseMenu } from '../ui/PauseMenu';
+import { DEFAULT_PRESET, loadSettings, presetModifiers, presetName, seedFor, type PresetId } from '../settings';
 import { COLOR, TEXT_COLOR, textStyle } from '../ui/theme';
 import type { GameSceneData, ResultsSceneData } from '../types';
 
@@ -32,7 +33,6 @@ export type { GameSceneData } from '../types';
 const LOOP = {
   maxFrameSec: 0.25,      // a long stall never turns into a burst of catch-up steps
   maxStepsPerFrame: 30,
-  seed: 1,                // fixed so a level plays the same way every run
 } as const;
 
 const END_FLASH = {
@@ -79,6 +79,9 @@ export class GameScene extends Phaser.Scene {
 
   private levelId = '';
   private players = MAX_PLAYERS;
+  private seed = 0;
+  private modifiers: Modifiers = {};
+  private preset: PresetId = DEFAULT_PRESET;
   private accumulator = 0;
   private ending = false;
   private escQueued = false;
@@ -89,8 +92,13 @@ export class GameScene extends Phaser.Scene {
   // ─── Lifecycle ────────────────────────────────────────────────────────────
   create(data: GameSceneData): void {
     const snapshot = currentLevels();
+    const settings = loadSettings();
     this.levelId = data.levelId ?? defaultLevelId();
-    this.players = Phaser.Math.Clamp(data.players ?? MAX_PLAYERS, 1, MAX_PLAYERS);
+    this.players = Phaser.Math.Clamp(data.players ?? settings.players, 1, MAX_PLAYERS);
+    // A retry hands the run's seed and modifiers back so it replays exactly.
+    this.seed = data.seed ?? seedFor(settings);
+    this.modifiers = data.modifiers ?? presetModifiers(settings);
+    this.preset = data.preset ?? settings.preset;
     const level = snapshot.levels[this.levelId];
     if (!level) {
       log.error('unknown level', this.levelId, '- returning to the title');
@@ -119,7 +127,7 @@ export class GameScene extends Phaser.Scene {
     this.disposers.push(onLevelsHotReload((next) => this.onLevelsChanged(next)));
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.cleanup, this);
     this.ready = true;
-    log.info('level started', this.levelId, `${this.players}P`);
+    log.info('level started', this.levelId, `${this.players}P`, 'seed', this.seed, this.preset);
   }
 
   override update(_time: number, deltaMs: number): void {
@@ -149,11 +157,11 @@ export class GameScene extends Phaser.Scene {
   // ─── Level construction ───────────────────────────────────────────────────
   private buildLevel(level: LevelDef): void {
     this.level = level;
-    this.sim = new Sim(level, { players: this.players, seed: LOOP.seed });
+    this.sim = new Sim(level, { players: this.players, seed: this.seed, modifiers: this.modifiers });
     // Dev-only hook for the headless playtest harness (tools/playtest.mjs): read sim state via window.__oc.
     if (import.meta.env.DEV) (globalThis as unknown as { __oc?: unknown }).__oc = { sim: this.sim, level, scene: this };
     this.kitchen = new KitchenRenderer(this, this.sim.getState());
-    this.hud = new Hud(this, level.name);
+    this.hud = new Hud(this, level.name, `seed ${this.seed} · ${presetName(this.preset)}`);
     this.accumulator = 0;
     this.ending = false;
     this.fakeState = null;
@@ -224,6 +232,7 @@ export class GameScene extends Phaser.Scene {
     this.hud.update(state, events, deltaMs);
     this.debugOverlay.update(state, {
       levelId: this.levelId,
+      seed: this.seed,
       steps: stepped.steps,
       stepMs: stepped.ms,
       events,
@@ -251,7 +260,13 @@ export class GameScene extends Phaser.Scene {
 
   private restartLevel(): void {
     this.ready = false;
-    this.scene.start(SCENE.GAME, { levelId: this.levelId, players: this.players } satisfies GameSceneData);
+    this.scene.start(SCENE.GAME, {
+      levelId: this.levelId,
+      players: this.players,
+      seed: this.seed,
+      modifiers: this.modifiers,
+      preset: this.preset,
+    } satisfies GameSceneData);
   }
 
   private quitToTitle(): void {
@@ -298,6 +313,9 @@ export class GameScene extends Phaser.Scene {
       servedCount: state.servedCount,
       failedCount: state.failedCount,
       thresholds,
+      seed: this.seed,
+      modifiers: this.modifiers,
+      preset: this.preset,
     } satisfies ResultsSceneData);
   }
 

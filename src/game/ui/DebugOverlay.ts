@@ -35,6 +35,7 @@ const GRID_LABEL = {
 
 export interface DebugFrame {
   levelId: string;
+  seed: number;      // the run's seed; SimState.seed wins when the sim reports one
   steps: number;
   stepMs: number;
   events: readonly SimEvent[];
@@ -122,13 +123,18 @@ export class DebugOverlay {
         `${frame.fake ? '  [FAKE STATE]' : ''}${frame.paused ? '  [PAUSED]' : ''}`,
     );
     lines.push(
-      `${frame.levelId}  phase ${state.phase}${state.timerRunning ? '' : ' (timer held)'}  t ${state.timeLeft.toFixed(1)}` +
-        `  elapsed ${state.elapsed.toFixed(1)}`,
+      `${frame.levelId}  seed ${state.seed ?? frame.seed}  phase ${state.phase}` +
+        `${state.timerRunning ? '' : ' (timer held)'}  t ${state.timeLeft.toFixed(1)}  elapsed ${state.elapsed.toFixed(1)}`,
     );
     lines.push(
       `score ${state.score}  stars ${state.stars}  served ${state.servedCount}  failed ${state.failedCount}` +
         `  streak ${state.tipStreak}  fires ${state.fires.length}  peds ${state.pedestrians.length}`,
     );
+    if (state.gates && state.gates.length > 0) {
+      lines.push(
+        `gates: ${state.gates.map((g) => `${g.id} ${g.open ? 'open' : 'shut'} ${g.secondsToChange.toFixed(1)}s`).join('  ')}`,
+      );
+    }
     state.chefs.forEach((chef, i) => {
       const target = frame.targets[i];
       lines.push(
