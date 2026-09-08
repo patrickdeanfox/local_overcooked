@@ -25,6 +25,16 @@ const CHECKER = 16;                // floor check size
 const INSET = 6;                   // usual inset of fixtures from the tile edge
 const ZEBRA_Y = 15;
 const ZEBRA_H = 34;
+const GROOVE = 3;                  // width of the groove around an open gate slab
+const LEDGE_TOP_H = T - 16;        // a risen gate ledge has a deeper front face than a counter
+/** Zig-zag of the seam crack on an open gate tile, left edge to right edge. */
+const CRACK_POINTS: readonly (readonly [number, number])[] = [
+  [12, 27], [22, 36], [34, 28], [45, 37], [T, T / 2],
+];
+/** Rubble along that crack: [x, y, radius]. */
+const RUBBLE: readonly (readonly [number, number, number])[] = [
+  [17, 22, 1.8], [29, 41, 1.5], [41, 24, 1.6], [52, 40, 1.4],
+];
 
 interface BlockColors {
   top: string;
@@ -50,6 +60,9 @@ const TRASH_BLOCK: BlockColors = {
 };
 const DECK_BLOCK: BlockColors = {
   top: PALETTE.deckPlank, topHi: '#d3aa74', edge: PALETTE.deckSeam, edgeDark: '#6d4f29',
+};
+const LEDGE_BLOCK: BlockColors = {
+  top: PALETTE.ledgeTop, topHi: PALETTE.ledgeTopHi, edge: PALETTE.ledgeFace, edgeDark: PALETTE.ledgeFaceDark,
 };
 
 // ─── Shared block ───────────────────────────────────────────────────────────
@@ -132,6 +145,47 @@ function drawVoid(ctx: CanvasRenderingContext2D): void {
   withAlpha(ctx, 0.5, () => {
     ctx.fillStyle = radial(ctx, TOP_CX, TOP_CX, T * 0.2, T * 0.8, [[0, PALETTE.voidEdge], [1, 'rgba(0,0,0,0)']]);
     ctx.fillRect(0, 0, T, T);
+  });
+}
+
+/** Earthquake seam, open: floor that a chef can cross, ringed by the groove the
+ *  slab rises through and split by a crack that lines up across neighbours. */
+function drawGate(ctx: CanvasRenderingContext2D): void {
+  drawFloor(ctx);
+  // Groove around the slab, with a lit inner lip along the top.
+  withAlpha(ctx, 0.5, () => {
+    ctx.fillStyle = PALETTE.gateCrack;
+    ctx.fillRect(0, 0, T, GROOVE);
+    ctx.fillRect(0, T - GROOVE, T, GROOVE);
+    ctx.fillRect(0, 0, GROOVE, T);
+    ctx.fillRect(T - GROOVE, 0, GROOVE, T);
+  });
+  withAlpha(ctx, 0.45, () => {
+    line(ctx, GROOVE, GROOVE + 0.5, T - GROOVE, GROOVE + 0.5, '#ffffff', 1);
+    line(ctx, GROOVE + 0.5, GROOVE, GROOVE + 0.5, T - GROOVE, '#ffffff', 1);
+  });
+  // Crack across the middle: it enters and leaves at mid-height on both edges.
+  withAlpha(ctx, 0.8, () => {
+    ctx.strokeStyle = PALETTE.gateCrack;
+    ctx.lineWidth = 1.6;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(0, T / 2);
+    for (const [x, y] of CRACK_POINTS) ctx.lineTo(x, y);
+    ctx.stroke();
+  });
+  withAlpha(ctx, 0.5, () => {
+    ctx.strokeStyle = PALETTE.floorLight;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, T / 2 + 2);
+    for (const [x, y] of CRACK_POINTS) ctx.lineTo(x, y + 2);
+    ctx.stroke();
+  });
+  ctx.lineJoin = 'miter';
+  // Rubble shaken loose along the seam.
+  withAlpha(ctx, 0.75, () => {
+    for (const [x, y, rr] of RUBBLE) fillCircle(ctx, x, y, rr, PALETTE.gateRubble);
   });
 }
 
@@ -328,6 +382,46 @@ function drawSlider(ctx: CanvasRenderingContext2D): void {
   withAlpha(ctx, 0.35, () => line(ctx, 0, TOP_H + 2, T, TOP_H + 2, '#ffffff', 1));
 }
 
+/** Earthquake seam, closed: the slab has risen into a stone ledge that blocks the
+ *  tile. Presentation draws this over the gate tile, so it covers the whole tile. */
+function drawGateClosed(ctx: CanvasRenderingContext2D): void {
+  drawBlock(ctx, LEDGE_BLOCK);
+  // A ledge stands taller than a counter, so its front face is deeper.
+  ctx.fillStyle = vGradient(ctx, LEDGE_TOP_H, T, [[0, PALETTE.ledgeFace], [1, PALETTE.ledgeFaceDark]]);
+  ctx.fillRect(0, LEDGE_TOP_H, T, T - LEDGE_TOP_H);
+  withAlpha(ctx, 0.4, () => line(ctx, 0, LEDGE_TOP_H + 0.5, T, LEDGE_TOP_H + 0.5, '#ffffff', 1));
+  // Rough rock rather than a flat slab.
+  speckle(ctx, 34, '#ffffff', 0.12, 41);
+  speckle(ctx, 34, '#000000', 0.12, 67);
+  withAlpha(ctx, 0.4, () => {
+    ctx.strokeStyle = PALETTE.ledgeFaceDark;
+    ctx.lineWidth = 1.5;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(8, 6);
+    ctx.lineTo(20, 18);
+    ctx.lineTo(14, 30);
+    ctx.lineTo(26, 44);
+    ctx.moveTo(T - 10, 12);
+    ctx.lineTo(T - 24, 22);
+    ctx.lineTo(T - 18, 36);
+    ctx.stroke();
+    ctx.lineJoin = 'miter';
+  });
+  // Mortar courses on the front face, so the ledge reads as a wall of rock.
+  withAlpha(ctx, 0.45, () => {
+    line(ctx, 0, LEDGE_TOP_H + 8, T, LEDGE_TOP_H + 8, PALETTE.ledgeMortar, 1);
+    for (const x of [14, 34, 52]) line(ctx, x, LEDGE_TOP_H + 1, x, LEDGE_TOP_H + 8, PALETTE.ledgeMortar, 1);
+    for (const x of [24, 44]) line(ctx, x, LEDGE_TOP_H + 8, x, T, PALETTE.ledgeMortar, 1);
+  });
+  // Lit top lip and the shadow the risen ledge throws back over the tile above.
+  withAlpha(ctx, 0.55, () => line(ctx, 0, 1.5, T, 1.5, PALETTE.ledgeTopHi, 3));
+  withAlpha(ctx, 0.3, () => {
+    ctx.fillStyle = vGradient(ctx, 0, 8, [[0, '#000000'], [1, 'rgba(0,0,0,0)']]);
+    ctx.fillRect(0, 0, T, 8);
+  });
+}
+
 // ─── Texture generation ─────────────────────────────────────────────────────
 
 type TileDraw = (ctx: CanvasRenderingContext2D) => void;
@@ -348,22 +442,6 @@ const TILE_DRAWERS: Record<Exclude<TileType, 'crate'>, TileDraw> = {
   slider: drawSlider,
   gate: drawGate,
 };
-
-/** PLACEHOLDER until the art pass: an open gate is floor with a faint seam. */
-function drawGate(ctx: CanvasRenderingContext2D): void {
-  drawFloor(ctx);
-  ctx.fillStyle = 'rgba(0,0,0,0.18)';
-  ctx.fillRect(0, 0, 3, T);
-  ctx.fillRect(T - 3, 0, 3, T);
-}
-
-/** PLACEHOLDER until the art pass: a closed gate reads as a raised ledge. */
-function drawGateClosed(ctx: CanvasRenderingContext2D): void {
-  ctx.fillStyle = PALETTE.counterTop;
-  ctx.fillRect(0, 0, T, T);
-  ctx.fillStyle = 'rgba(0,0,0,0.35)';
-  ctx.fillRect(0, T - 12, T, 12);
-}
 
 export function generateTileTextures(scene: Phaser.Scene): void {
   for (const type of TILE_TYPES) {

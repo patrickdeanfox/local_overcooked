@@ -24,19 +24,20 @@ const SOUP_COLORS: Record<IngredientType, string> = {
   tomato: PALETTE.soupTomato,
   mushroom: PALETTE.soupMushroom,
   // Burger ingredients never become soup; colours only keep the table total.
-  meat: '#8a4b3a',
-  bun: '#e0b070',
-  lettuce: '#7cc25a',
+  meat: PALETTE.meatCooked,
+  bun: PALETTE.bun,
+  lettuce: PALETTE.lettuce,
 };
 
-// PLACEHOLDER burger ingredient colours until the art pass.
-const MEAT_RAW = '#c0504a';
-const MEAT_COOKED = '#7a4a34';
-const BUN = '#e0b070';
-const BUN_DARK = '#b8894c';
-const LETTUCE = '#7cc25a';
-const PAN_BODY = '#4a4a50';
-const PAN_HANDLE = '#2c2c30';
+/** Sesame seeds on a bun dome: [dx, dy] as fractions of the shape radius. */
+const SESAME_SEEDS: readonly Point[] = [
+  [-0.5, -0.24], [-0.14, -0.5], [0.26, -0.38], [0.58, -0.06], [0.04, -0.14],
+];
+/** Mince flecks on a raw patty: [dx, dy, radius] as fractions of the shape radius. */
+const MINCE_FLECKS: readonly (readonly [number, number, number])[] = [
+  [-0.46, -0.06, 0.09], [-0.1, -0.16, 0.07], [0.3, -0.08, 0.08],
+  [0.54, 0.06, 0.06], [-0.26, 0.1, 0.07], [0.1, 0.12, 0.06],
+];
 
 /** Extinguisher mist: [angle from straight up, distance, radius, alpha], all as fractions. */
 const SPRAY_DROPS: readonly (readonly [number, number, number, number])[] = [
@@ -203,46 +204,363 @@ function drawMushroomChopped(ctx: CanvasRenderingContext2D, cx: number, cy: numb
 
 type ShapeFn = (ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number) => void;
 
-// ─── PLACEHOLDER burger ingredient shapes (until the art pass) ──────────────
+// ─── Burger ingredient shapes ───────────────────────────────────────────────
+
+/** Ellipse with `lobes` scallops pushed out to `bump`x the radius: leaf frills. */
+function ruffledPath(
+  ctx: CanvasRenderingContext2D, cx: number, cy: number, rx: number, ry: number, lobes: number, bump: number,
+): void {
+  const step = (Math.PI * 2) / lobes;
+  ctx.beginPath();
+  for (let i = 0; i < lobes; i++) {
+    const a0 = i * step;
+    const a1 = a0 + step;
+    const am = a0 + step / 2;
+    if (i === 0) ctx.moveTo(cx + Math.cos(a0) * rx, cy + Math.sin(a0) * ry);
+    ctx.quadraticCurveTo(
+      cx + Math.cos(am) * rx * bump, cy + Math.sin(am) * ry * bump,
+      cx + Math.cos(a1) * rx, cy + Math.sin(a1) * ry,
+    );
+  }
+  ctx.closePath();
+}
+
+/** Outline of a raw steak: a soft, slightly lopsided slab of beef. */
+function steakPath(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  ctx.beginPath();
+  ctx.moveTo(cx - r * 0.84, cy - r * 0.22);
+  ctx.quadraticCurveTo(cx - r * 0.72, cy - r * 0.82, cx - r * 0.04, cy - r * 0.76);
+  ctx.quadraticCurveTo(cx + r * 0.6, cy - r * 0.72, cx + r * 0.84, cy - r * 0.26);
+  ctx.quadraticCurveTo(cx + r * 1.0, cy + r * 0.16, cx + r * 0.46, cy + r * 0.62);
+  ctx.quadraticCurveTo(cx - r * 0.06, cy + r * 0.9, cx - r * 0.58, cy + r * 0.6);
+  ctx.quadraticCurveTo(cx - r * 0.96, cy + r * 0.32, cx - r * 0.84, cy - r * 0.22);
+  ctx.closePath();
+}
+
 function drawMeatRaw(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
-  fillRound(ctx, cx - r * 0.9, cy - r * 0.6, r * 1.8, r * 1.2, r * 0.3, MEAT_RAW);
-  withAlpha(ctx, 0.35, () => fillEllipse(ctx, cx - r * 0.2, cy - r * 0.15, r * 0.35, r * 0.2, '#ffffff'));
-}
-function drawMeatChopped(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
-  fillEllipse(ctx, cx, cy, r * 0.95, r * 0.6, MEAT_RAW);
-  withAlpha(ctx, 0.3, () => fillEllipse(ctx, cx, cy - r * 0.12, r * 0.6, r * 0.28, '#ffffff'));
-}
-export function drawMeatCooked(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
-  fillEllipse(ctx, cx, cy, r * 0.95, r * 0.6, MEAT_COOKED);
-  ctx.strokeStyle = '#4a2a1c';
+  steakPath(ctx, cx, cy, r);
+  ctx.fillStyle = radial(ctx, cx - r * 0.3, cy - r * 0.3, r * 0.1, r * 1.4, [
+    [0, PALETTE.meatRawLight], [0.5, PALETTE.meatRaw], [1, PALETTE.meatRawDark],
+  ]);
+  ctx.fill();
+
+  // Fat cap hugging the top edge and fine marbling, both clipped inside the steak.
+  ctx.save();
+  steakPath(ctx, cx, cy, r);
+  ctx.clip();
+  ctx.strokeStyle = PALETTE.meatFat;
+  ctx.lineWidth = Math.max(1.5, r * 0.22);
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(cx - r * 0.84, cy - r * 0.22);
+  ctx.quadraticCurveTo(cx - r * 0.72, cy - r * 0.82, cx - r * 0.04, cy - r * 0.76);
+  ctx.quadraticCurveTo(cx + r * 0.6, cy - r * 0.72, cx + r * 0.84, cy - r * 0.26);
+  ctx.stroke();
+  withAlpha(ctx, 0.45, () => {
+    ctx.lineWidth = Math.max(1, r * 0.06);
+    ctx.beginPath();
+    ctx.moveTo(cx - r * 0.44, cy + r * 0.34);
+    ctx.quadraticCurveTo(cx - r * 0.24, cy + r * 0.16, cx - r * 0.02, cy + r * 0.36);
+    ctx.moveTo(cx + r * 0.06, cy - r * 0.24);
+    ctx.quadraticCurveTo(cx + r * 0.28, cy - r * 0.06, cx + r * 0.52, cy - r * 0.2);
+    ctx.moveTo(cx + r * 0.18, cy + r * 0.24);
+    ctx.quadraticCurveTo(cx + r * 0.4, cy + r * 0.36, cx + r * 0.62, cy + r * 0.2);
+    ctx.stroke();
+  });
+  ctx.lineCap = 'butt';
+  ctx.restore();
+
+  steakPath(ctx, cx, cy, r);
+  ctx.strokeStyle = PALETTE.meatRawDark;
   ctx.lineWidth = Math.max(1, r * 0.1);
-  for (const dx of [-0.4, 0, 0.4]) {
-    ctx.beginPath(); ctx.moveTo(cx + dx * r - r * 0.15, cy - r * 0.4); ctx.lineTo(cx + dx * r + r * 0.15, cy + r * 0.4); ctx.stroke();
-  }
+  ctx.stroke();
+  withAlpha(ctx, 0.4, () => fillEllipse(ctx, cx + r * 0.22, cy + r * 0.32, r * 0.24, r * 0.12, '#ffffff', -0.3));
 }
+
+/** Thick disc seen at a shallow angle: the shared patty silhouette. */
+function pattyBase(
+  ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, top: string, side: string, edge: string,
+): void {
+  const rx = r * 0.9;
+  const ry = r * 0.38;
+  const h = r * 0.34;
+  fillEllipse(ctx, cx, cy + h, rx, ry, side);
+  ctx.fillStyle = side;
+  ctx.fillRect(cx - rx, cy, rx * 2, h);
+  fillEllipse(ctx, cx, cy, rx, ry, top);
+  strokeEllipse(ctx, cx, cy, rx, ry, edge, Math.max(1, r * 0.08));
+  // Outline down both sides so the disc reads as one solid piece.
+  ctx.strokeStyle = edge;
+  ctx.lineWidth = Math.max(1, r * 0.08);
+  ctx.beginPath();
+  ctx.moveTo(cx - rx, cy);
+  ctx.lineTo(cx - rx, cy + h);
+  ctx.moveTo(cx + rx, cy);
+  ctx.lineTo(cx + rx, cy + h);
+  ctx.stroke();
+}
+
+function drawMeatChopped(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  pattyBase(ctx, cx, cy, r, PALETTE.meatRaw, PALETTE.meatRawDark, PALETTE.meatRawDark);
+  // Minced texture on the top face.
+  for (const [dx, dy, fr] of MINCE_FLECKS) {
+    withAlpha(ctx, 0.35, () => fillEllipse(ctx, cx + dx * r, cy + dy * r, fr * r, fr * r * 0.6, PALETTE.meatFat));
+  }
+  withAlpha(ctx, 0.4, () => fillEllipse(ctx, cx - r * 0.26, cy - r * 0.16, r * 0.3, r * 0.11, PALETTE.meatRawLight));
+}
+
+/** Cooked patty: browned, with grill bars seared across the top face. */
+export function drawMeatCooked(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  pattyBase(ctx, cx, cy, r, PALETTE.meatCooked, PALETTE.meatCookedDark, PALETTE.meatGrill);
+  ctx.save();
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, r * 0.9, r * 0.38, 0, 0, Math.PI * 2);
+  ctx.clip();
+  ctx.strokeStyle = PALETTE.meatGrill;
+  ctx.lineWidth = Math.max(1.5, r * 0.14);
+  ctx.lineCap = 'round';
+  for (const dx of [-0.44, 0, 0.44]) {
+    ctx.beginPath();
+    ctx.moveTo(cx + dx * r - r * 0.2, cy - r * 0.42);
+    ctx.lineTo(cx + dx * r + r * 0.2, cy + r * 0.42);
+    ctx.stroke();
+  }
+  ctx.lineCap = 'butt';
+  ctx.restore();
+  withAlpha(ctx, 0.5, () => fillEllipse(ctx, cx - r * 0.3, cy - r * 0.18, r * 0.26, r * 0.09, PALETTE.meatCookedLight));
+}
+
+/** Charred patty: what a pan left on the stove too long is holding. */
+function drawMeatBurnt(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  pattyBase(ctx, cx, cy, r, PALETTE.meatChar, '#17130f', '#0d0b09');
+  withAlpha(ctx, 0.4, () => {
+    fillEllipse(ctx, cx - r * 0.3, cy - r * 0.1, r * 0.22, r * 0.1, PALETTE.smoke);
+    fillEllipse(ctx, cx + r * 0.34, cy + r * 0.08, r * 0.16, r * 0.07, PALETTE.smoke);
+  });
+  withAlpha(ctx, 0.55, () => fillEllipse(ctx, cx + r * 0.04, cy + r * 0.02, r * 0.14, r * 0.06, PALETTE.fireDeep));
+}
+
+/** Sesame bun. Buns are never chopped, so the chopped variant draws this too. */
 function drawBun(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
-  fillEllipse(ctx, cx, cy + r * 0.35, r * 0.95, r * 0.35, BUN_DARK);
-  ctx.fillStyle = BUN;
-  ctx.beginPath(); ctx.ellipse(cx, cy + r * 0.1, r * 0.95, r * 0.75, 0, Math.PI, 0); ctx.fill();
-  withAlpha(ctx, 0.6, () => { for (const [dx, dy] of [[-0.3, -0.25], [0.15, -0.4], [0.4, -0.1]]) fillEllipse(ctx, cx + dx * r, cy + dy * r, r * 0.08, r * 0.05, '#fff6e0'); });
+  // Cut base below the dome.
+  fillRound(ctx, cx - r * 0.88, cy + r * 0.08, r * 1.76, r * 0.5, r * 0.2, PALETTE.bunDark);
+  fillRound(ctx, cx - r * 0.88, cy + r * 0.04, r * 1.76, r * 0.42, r * 0.18, PALETTE.bun);
+  withAlpha(ctx, 0.85, () => fillRound(ctx, cx - r * 0.84, cy + r * 0.02, r * 1.68, r * 0.16, r * 0.08, PALETTE.bunCrumb));
+
+  // Dome.
+  ctx.beginPath();
+  ctx.ellipse(cx, cy + r * 0.12, r * 0.9, r * 0.84, 0, Math.PI, 0);
+  ctx.closePath();
+  ctx.fillStyle = radial(ctx, cx - r * 0.3, cy - r * 0.34, r * 0.08, r * 1.35, [
+    [0, PALETTE.bunLight], [0.5, PALETTE.bun], [1, PALETTE.bunDark],
+  ]);
+  ctx.fill();
+  ctx.strokeStyle = PALETTE.bunDark;
+  ctx.lineWidth = Math.max(1, r * 0.09);
+  ctx.stroke();
+
+  // Sesame seeds, tilted to follow the curve of the dome.
+  for (const [dx, dy] of SESAME_SEEDS) {
+    fillEllipse(ctx, cx + dx * r, cy + dy * r + r * 0.03, r * 0.13, r * 0.065, PALETTE.sesameShade, dx * 0.7);
+    withAlpha(ctx, 0.9, () => fillEllipse(ctx, cx + dx * r, cy + dy * r, r * 0.12, r * 0.058, PALETTE.sesame, dx * 0.7));
+  }
+  withAlpha(ctx, 0.4, () => fillEllipse(ctx, cx - r * 0.42, cy - r * 0.4, r * 0.22, r * 0.11, '#ffffff', -0.5));
 }
+
 function drawLettuceRaw(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
-  fillCircle(ctx, cx, cy, r * 0.85, LETTUCE);
-  withAlpha(ctx, 0.35, () => fillCircle(ctx, cx - r * 0.25, cy - r * 0.25, r * 0.35, '#ffffff'));
+  ruffledPath(ctx, cx, cy + r * 0.04, r * 0.76, r * 0.76, 7, 1.3);
+  ctx.fillStyle = radial(ctx, cx - r * 0.26, cy - r * 0.3, r * 0.08, r * 1.3, [
+    [0, PALETTE.lettuceLight], [0.5, PALETTE.lettuce], [1, PALETTE.lettuceDark],
+  ]);
+  ctx.fill();
+  ctx.strokeStyle = PALETTE.lettuceDark;
+  ctx.lineWidth = Math.max(1, r * 0.09);
+  ctx.stroke();
+
+  // Folds of the outer leaves wrapping the head.
+  ctx.save();
+  ruffledPath(ctx, cx, cy + r * 0.04, r * 0.76, r * 0.76, 7, 1.3);
+  ctx.clip();
+  withAlpha(ctx, 0.75, () => {
+    ctx.strokeStyle = PALETTE.lettuceDark;
+    ctx.lineWidth = Math.max(1, r * 0.09);
+    ctx.beginPath();
+    ctx.moveTo(cx - r * 0.72, cy - r * 0.1);
+    ctx.quadraticCurveTo(cx - r * 0.3, cy + r * 0.3, cx - r * 0.14, cy + r * 0.86);
+    ctx.moveTo(cx + r * 0.74, cy - r * 0.16);
+    ctx.quadraticCurveTo(cx + r * 0.3, cy + r * 0.24, cx + r * 0.24, cy + r * 0.86);
+    ctx.moveTo(cx - r * 0.5, cy - r * 0.66);
+    ctx.quadraticCurveTo(cx - r * 0.1, cy - r * 0.3, cx + r * 0.4, cy - r * 0.6);
+    ctx.stroke();
+  });
+  withAlpha(ctx, 0.35, () => {
+    ctx.strokeStyle = PALETTE.lettuceRib;
+    ctx.lineWidth = Math.max(1, r * 0.09);
+    ctx.beginPath();
+    ctx.moveTo(cx - r * 0.16, cy - r * 0.3);
+    ctx.quadraticCurveTo(cx - r * 0.3, cy + r * 0.2, cx - r * 0.16, cy + r * 0.68);
+    ctx.stroke();
+  });
+  ctx.restore();
+  withAlpha(ctx, 0.4, () => fillEllipse(ctx, cx - r * 0.3, cy - r * 0.4, r * 0.24, r * 0.14, '#ffffff', -0.45));
 }
+
+/** One torn leaf piece, ruffled edge and a pale rib. */
+function drawLettucePiece(ctx: CanvasRenderingContext2D, cx: number, cy: number, s: number, rot: number): void {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(rot);
+  ruffledPath(ctx, 0, 0, s, s * 0.5, 7, 1.5);
+  ctx.fillStyle = vGradient(ctx, -s * 0.7, s * 0.7, [[0, PALETTE.lettuceLight], [1, PALETTE.lettuce]]);
+  ctx.fill();
+  ctx.strokeStyle = PALETTE.lettuceDark;
+  ctx.lineWidth = Math.max(1, s * 0.22);
+  ctx.stroke();
+  withAlpha(ctx, 0.6, () => {
+    ctx.strokeStyle = PALETTE.lettuceRib;
+    ctx.lineWidth = Math.max(1, s * 0.15);
+    ctx.beginPath();
+    ctx.moveTo(-s * 0.66, s * 0.08);
+    ctx.quadraticCurveTo(0, -s * 0.14, s * 0.68, s * 0.02);
+    ctx.moveTo(-s * 0.24, -s * 0.26);
+    ctx.quadraticCurveTo(-s * 0.1, -s * 0.04, -s * 0.28, s * 0.26);
+    ctx.stroke();
+  });
+  ctx.restore();
+}
+
 function drawLettuceChopped(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
-  for (const [dx, dy, rot] of [[-0.45, 0.1, 0.4], [0.1, -0.3, -0.5], [0.4, 0.3, 0.9], [-0.05, 0.4, -0.2]]) {
-    ctx.save(); ctx.translate(cx + dx * r, cy + dy * r); ctx.rotate(rot);
-    fillRound(ctx, -r * 0.4, -r * 0.2, r * 0.8, r * 0.4, r * 0.15, LETTUCE);
-    ctx.restore();
+  drawLettucePiece(ctx, cx - r * 0.4, cy + r * 0.4, r * 0.55, 0.32);
+  drawLettucePiece(ctx, cx + r * 0.44, cy + r * 0.3, r * 0.52, -0.4);
+  drawLettucePiece(ctx, cx + r * 0.02, cy - r * 0.34, r * 0.58, 0.08);
+}
+
+// ─── Burger layers ──────────────────────────────────────────────────────────
+
+/** One plated burger layer, centred on (cx, cy) as a slab a few pixels tall.
+ *  Presentation stacks these BURGER_LAYER_STEP_PX apart on a plate. */
+export function drawBurgerLayer(
+  ctx: CanvasRenderingContext2D, layer: BurgerLayer, cx: number, cy: number, r: number,
+): void {
+  switch (layer) {
+    case 'bunBottom': {
+      fillRound(ctx, cx - r * 0.86, cy - r * 0.16, r * 1.72, r * 0.5, r * 0.2, PALETTE.bunDark);
+      fillRound(ctx, cx - r * 0.86, cy - r * 0.2, r * 1.72, r * 0.44, r * 0.18, PALETTE.bun);
+      withAlpha(ctx, 0.9, () => fillRound(ctx, cx - r * 0.82, cy - r * 0.22, r * 1.64, r * 0.17, r * 0.08, PALETTE.bunCrumb));
+      withAlpha(ctx, 0.3, () => fillRound(ctx, cx - r * 0.8, cy + r * 0.18, r * 1.6, r * 0.1, r * 0.05, PALETTE.bunDark));
+      break;
+    }
+    case 'meat': {
+      fillRound(ctx, cx - r * 0.94, cy - r * 0.18, r * 1.88, r * 0.44, r * 0.2, PALETTE.meatCookedDark);
+      fillEllipse(ctx, cx, cy - r * 0.14, r * 0.94, r * 0.2, PALETTE.meatCooked);
+      ctx.save();
+      ctx.beginPath();
+      ctx.ellipse(cx, cy - r * 0.14, r * 0.94, r * 0.2, 0, 0, Math.PI * 2);
+      ctx.clip();
+      withAlpha(ctx, 0.8, () => {
+        ctx.strokeStyle = PALETTE.meatGrill;
+        ctx.lineWidth = Math.max(1.5, r * 0.12);
+        for (const dx of [-0.4, 0.06, 0.5]) {
+          ctx.beginPath();
+          ctx.moveTo(cx + dx * r - r * 0.12, cy - r * 0.34);
+          ctx.lineTo(cx + dx * r + r * 0.12, cy + r * 0.06);
+          ctx.stroke();
+        }
+      });
+      ctx.restore();
+      withAlpha(ctx, 0.45, () => fillEllipse(ctx, cx - r * 0.34, cy - r * 0.22, r * 0.24, r * 0.06, PALETTE.meatCookedLight));
+      break;
+    }
+    case 'lettuce': {
+      ruffledPath(ctx, cx, cy, r * 0.92, r * 0.2, 9, 1.5);
+      ctx.fillStyle = vGradient(ctx, cy - r * 0.3, cy + r * 0.3, [[0, PALETTE.lettuceLight], [1, PALETTE.lettuce]]);
+      ctx.fill();
+      ctx.strokeStyle = PALETTE.lettuceDark;
+      ctx.lineWidth = Math.max(1, r * 0.08);
+      ctx.stroke();
+      withAlpha(ctx, 0.6, () => {
+        ctx.strokeStyle = PALETTE.lettuceRib;
+        ctx.lineWidth = Math.max(1, r * 0.08);
+        ctx.beginPath();
+        ctx.moveTo(cx - r * 0.7, cy - r * 0.04);
+        ctx.quadraticCurveTo(cx, cy - r * 0.16, cx + r * 0.7, cy - r * 0.04);
+        ctx.stroke();
+      });
+      break;
+    }
+    case 'tomato': {
+      fillEllipse(ctx, cx, cy + r * 0.06, r * 0.84, r * 0.22, PALETTE.tomatoDark);
+      fillEllipse(ctx, cx, cy - r * 0.04, r * 0.84, r * 0.22, PALETTE.tomato);
+      withAlpha(ctx, 0.75, () => fillEllipse(ctx, cx, cy - r * 0.05, r * 0.5, r * 0.11, PALETTE.tomatoFlesh));
+      withAlpha(ctx, 0.5, () => fillEllipse(ctx, cx - r * 0.36, cy - r * 0.1, r * 0.18, r * 0.05, '#ffffff'));
+      break;
+    }
+    default: { // bunTop
+      fillRound(ctx, cx - r * 0.9, cy + r * 0.04, r * 1.8, r * 0.2, r * 0.09, PALETTE.bunDark);
+      ctx.beginPath();
+      ctx.ellipse(cx, cy + r * 0.14, r * 0.9, r * 0.62, 0, Math.PI, 0);
+      ctx.closePath();
+      ctx.fillStyle = radial(ctx, cx - r * 0.3, cy - r * 0.2, r * 0.06, r * 1.2, [
+        [0, PALETTE.bunLight], [0.5, PALETTE.bun], [1, PALETTE.bunDark],
+      ]);
+      ctx.fill();
+      ctx.strokeStyle = PALETTE.bunDark;
+      ctx.lineWidth = Math.max(1, r * 0.08);
+      ctx.stroke();
+      for (const [dx, dy] of SESAME_SEEDS) {
+        const sy = cy + dy * r * 0.62 + r * 0.08;
+        fillEllipse(ctx, cx + dx * r, sy + r * 0.02, r * 0.13, r * 0.06, PALETTE.sesameShade, dx * 0.7);
+        fillEllipse(ctx, cx + dx * r, sy, r * 0.12, r * 0.055, PALETTE.sesame, dx * 0.7);
+      }
+      withAlpha(ctx, 0.35, () => fillEllipse(ctx, cx - r * 0.4, cy - r * 0.24, r * 0.2, r * 0.08, '#ffffff', -0.4));
+      break;
+    }
   }
 }
-/** Frying pan seen from above; `content` draws inside the pan when given. */
+
+/** Whole burger for the HUD: the same layers, stacked tight enough to read at 32 px. */
+export function drawBurgerStack(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  const step = r * 0.3;
+  BURGER_LAYERS.forEach((layer, i) => {
+    drawBurgerLayer(ctx, layer, cx, cy + r * 0.62 - i * step, r);
+  });
+}
+
+// ─── Frying pan ─────────────────────────────────────────────────────────────
+
+/** Black skillet seen from above, handle to the right; `content` sits in the well. */
 export function drawPan(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, content: ShapeFn | null): void {
-  fillRound(ctx, cx + r * 0.7, cy - r * 0.12, r * 0.85, r * 0.24, r * 0.1, PAN_HANDLE);
-  fillCircle(ctx, cx, cy, r * 0.85, PAN_HANDLE);
-  fillCircle(ctx, cx, cy, r * 0.7, PAN_BODY);
-  if (content) content(ctx, cx, cy, r * 0.6);
+  const rimY = cy - r * 0.08;
+  const rimRx = r * 0.84;
+  const rimRy = rimRx * 0.66;
+  const wallH = r * 0.2;
+
+  // Handle, and the collar that bolts it to the pan.
+  fillRound(ctx, cx + rimRx * 0.6, rimY - r * 0.14, r * 0.78, r * 0.28, r * 0.12, PALETTE.panHandle);
+  withAlpha(ctx, 0.55, () => fillRound(ctx, cx + rimRx * 0.72, rimY - r * 0.11, r * 0.6, r * 0.08, r * 0.04, PALETTE.panHandleLight));
+  fillRound(ctx, cx + rimRx * 0.52, rimY - r * 0.2, r * 0.34, r * 0.4, r * 0.1, PALETTE.panDark);
+
+  // Body: rim ellipse over a short wall.
+  fillEllipse(ctx, cx, rimY + wallH, rimRx, rimRy, PALETTE.panDark);
+  ctx.fillStyle = vGradient(ctx, rimY, rimY + wallH + rimRy, [[0, PALETTE.panBody], [1, PALETTE.panDark]]);
+  ctx.fillRect(cx - rimRx, rimY, rimRx * 2, wallH);
+  fillEllipse(ctx, cx, rimY, rimRx, rimRy, PALETTE.panBody);
+  fillEllipse(ctx, cx, rimY, rimRx * 0.85, rimRy * 0.8, PALETTE.panSurface);
+  withAlpha(ctx, 0.18, () => {
+    ctx.fillStyle = radial(ctx, cx - r * 0.25, rimY - r * 0.14, r * 0.05, r * 0.9, [[0, '#ffffff'], [1, 'rgba(255,255,255,0)']]);
+    ctx.fillRect(cx - rimRx, rimY - rimRy, rimRx * 2, rimRy * 2);
+  });
+
+  if (content) content(ctx, cx, rimY + r * 0.04, r * 0.66);
+
+  // Rim highlight last so the food never covers the lip.
+  withAlpha(ctx, 0.55, () => {
+    ctx.beginPath();
+    ctx.ellipse(cx, rimY, rimRx * 0.93, rimRy * 0.9, 0, Math.PI * 1.02, Math.PI * 1.72);
+    ctx.strokeStyle = PALETTE.panLight;
+    ctx.lineWidth = Math.max(1, r * 0.09);
+    ctx.stroke();
+  });
 }
 
 const RAW_SHAPES: Record<IngredientType, ShapeFn> = {
@@ -252,6 +570,10 @@ const RAW_SHAPES: Record<IngredientType, ShapeFn> = {
 const CHOPPED_SHAPES: Record<IngredientType, ShapeFn> = {
   onion: drawOnionChopped, tomato: drawTomatoChopped, mushroom: drawMushroomChopped,
   meat: drawMeatChopped, bun: drawBun, lettuce: drawLettuceChopped,
+};
+/** Fried ingredients after the pan; anything else falls back to its chopped shape. */
+const COOKED_SHAPES: Partial<Record<IngredientType, ShapeFn>> = {
+  meat: drawMeatCooked,
 };
 
 /** Shared by item sprites, HUD icons and the ingredient shown on a crate. */
@@ -398,25 +720,20 @@ export function generateItemTextures(scene: Phaser.Scene): void {
     makeTexture(scene, TEX.plateSoup(type), ITEM, ITEM, (ctx) => drawPlate(ctx, c, c, ITEM_R, soupColor(type)));
   }
 
-  // PLACEHOLDERS until the art pass: cooked meat, pan states, burger layers.
   for (const type of FRIED_INGREDIENTS) {
-    makeTexture(scene, TEX.ingredientCooked(type), ITEM, ITEM, (ctx) => drawMeatCooked(ctx, c, c, ITEM_R));
+    const shape = COOKED_SHAPES[type] ?? CHOPPED_SHAPES[type];
+    makeTexture(scene, TEX.ingredientCooked(type), ITEM, ITEM, (ctx) => shape(ctx, c, c, ITEM_R));
   }
   makeTexture(scene, TEX.pan, ITEM, ITEM, (ctx) => drawPan(ctx, c, c, ITEM_R, null));
   makeTexture(scene, TEX.panMeat('raw'), ITEM, ITEM, (ctx) => drawPan(ctx, c, c, ITEM_R, drawMeatChopped));
   makeTexture(scene, TEX.panMeat('cooked'), ITEM, ITEM, (ctx) => drawPan(ctx, c, c, ITEM_R, drawMeatCooked));
   makeTexture(scene, TEX.panMeat('burnt'), ITEM, ITEM, (ctx) => {
-    drawSmokePuff(ctx, c + ITEM_R * 0.15, c - ITEM_R * 0.9, ITEM_R * 0.5, 0.5);
-    drawPan(ctx, c, c, ITEM_R, (cx2, x, y, r) => fillEllipse(cx2, x, y, r * 0.95, r * 0.6, '#2a2320'));
+    drawSmokePuff(ctx, c + ITEM_R * 0.2, c - ITEM_R * 0.92, ITEM_R * 0.5, 0.5);
+    drawPan(ctx, c, c, ITEM_R, drawMeatBurnt);
   });
-  const layerDrawers: Record<BurgerLayer, (ctx: CanvasRenderingContext2D) => void> = {
-    bunBottom: (ctx) => fillRound(ctx, c - ITEM_R * 0.95, c - ITEM_R * 0.25, ITEM_R * 1.9, ITEM_R * 0.5, ITEM_R * 0.2, BUN_DARK),
-    meat: (ctx) => fillEllipse(ctx, c, c, ITEM_R * 0.95, ITEM_R * 0.4, MEAT_COOKED),
-    lettuce: (ctx) => fillEllipse(ctx, c, c, ITEM_R * 1.0, ITEM_R * 0.32, LETTUCE),
-    tomato: (ctx) => fillEllipse(ctx, c, c, ITEM_R * 0.9, ITEM_R * 0.3, PALETTE.soupTomato),
-    bunTop: (ctx) => { ctx.fillStyle = BUN; ctx.beginPath(); ctx.ellipse(c, c + ITEM_R * 0.2, ITEM_R * 0.95, ITEM_R * 0.6, 0, Math.PI, 0); ctx.fill(); },
-  };
-  for (const layer of BURGER_LAYERS) makeTexture(scene, TEX.burgerLayer(layer), ITEM, ITEM, layerDrawers[layer]);
+  for (const layer of BURGER_LAYERS) {
+    makeTexture(scene, TEX.burgerLayer(layer), ITEM, ITEM, (ctx) => drawBurgerLayer(ctx, layer, c, c, ITEM_R));
+  }
 
   makeTexture(scene, TEX.pot, ITEM, ITEM, (ctx) => drawPot(ctx, c, c, ITEM_R, null));
   makeTexture(scene, TEX.potBurnt, ITEM, ITEM, (ctx) => {

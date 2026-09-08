@@ -59,6 +59,11 @@ export const SFX_TABLE: Record<SfxName, SfxDef> = {
     tone(sc, { type: 'triangle', freq: 900, freqEnd: 260, start: t, dur: 0.36, gain: 0.17 });
     noise(sc, { start: t, dur: 0.34, gain: 0.08, filter: 'bandpass', freq: 1400, freqEnd: 400, q: 1.2 });
   },
+  // Assembling a burger: one soft blip per layer, quiet enough to repeat quickly.
+  plateAdd: (sc, t) => {
+    tone(sc, { type: 'sine', freq: 660, freqEnd: 940, start: t, dur: 0.07, gain: 0.15, attack: 0.004 });
+    noise(sc, { start: t, dur: 0.04, gain: 0.05, filter: 'lowpass', freq: 1300 });
+  },
 
   // Fire and extinguisher.
   fire: (sc, t) => {
@@ -122,6 +127,18 @@ export const SFX_TABLE: Record<SfxName, SfxDef> = {
       tone(sc, { type: 'square', freq, start: t + i * 0.12, dur: last ? 0.45 : 0.16, gain: 0.14, hold: last ? 0.6 : 0.4 });
       tone(sc, { type: 'triangle', freq: freq / 2, start: t + i * 0.12, dur: last ? 0.45 : 0.16, gain: 0.12 });
     });
+  },
+
+  // Earthquake gate.
+  gateOpen: (sc, t) => {
+    noise(sc, { start: t, dur: 0.5, gain: 0.22, filter: 'lowpass', freq: 90, freqEnd: 420, hold: 0.55 });
+    tone(sc, { type: 'sine', freq: 55, freqEnd: 120, start: t, dur: 0.48, gain: 0.2, hold: 0.5 });
+    tone(sc, { type: 'triangle', freq: 110, freqEnd: 240, start: t + 0.06, dur: 0.4, gain: 0.09 });
+  },
+  gateClose: (sc, t) => {
+    noise(sc, { start: t, dur: 0.4, gain: 0.24, filter: 'lowpass', freq: 500, freqEnd: 70, hold: 0.3 });
+    tone(sc, { type: 'sine', freq: 150, freqEnd: 45, start: t, dur: 0.34, gain: 0.24, attack: 0.005, hold: 0.25 });
+    tone(sc, { type: 'square', freq: 80, start: t + 0.24, dur: 0.1, gain: 0.12 });
   },
 
   // Menus.
