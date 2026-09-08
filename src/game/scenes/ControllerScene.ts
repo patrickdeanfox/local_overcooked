@@ -60,6 +60,7 @@ const TEXT = {
 } as const;
 
 const FONT = 'system-ui, "Segoe UI", Arial, sans-serif';
+const INSECURE_WARNING_COLOR = '#ff7b6b';
 
 /** ASCII stand-ins used when the art module has not generated a prompt texture yet. */
 const PAD_GLYPH: Record<string, string | undefined> = {
@@ -176,9 +177,13 @@ export class ControllerScene extends Phaser.Scene {
     this.add.text(GAME_WIDTH / 2, 66,
       'Move: WASD / arrows / stick     Choose: Space, Enter or A     Back: Esc or B',
       { fontFamily: FONT, fontSize: '15px', color: TEXT.dim }).setOrigin(0.5);
+    // Browsers block the Gamepad API on plain http from any address other than localhost.
+    const insecure = typeof window !== 'undefined' && !window.isSecureContext;
     this.add.text(GAME_WIDTH / 2, 90,
-      'Press a button on an unassigned pad to give it to the highlighted player.',
-      { fontFamily: FONT, fontSize: '15px', color: TEXT.dim }).setOrigin(0.5);
+      insecure
+        ? 'Gamepads are blocked on plain http from another device. Open the https:// address printed by npm start (accept the certificate warning once), or use the keyboard.'
+        : 'Press a button on an unassigned pad to give it to the highlighted player.',
+      { fontFamily: FONT, fontSize: '15px', color: insecure ? INSECURE_WARNING_COLOR : TEXT.dim }).setOrigin(0.5);
 
     for (let p = 0; p < PANEL_COUNT; p++) this.panels.push(this.buildPanel(p));
 

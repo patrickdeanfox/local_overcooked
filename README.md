@@ -8,9 +8,17 @@ A two-player Overcooked clone that runs in a browser on your home network. One s
 ```bash
 npm install
 npm run build
-npm start          # serves the built game on port 8080 and prints http://<your-lan-ip>:8080/
+npm start          # http on 8080 and https on 8443; prints the LAN URLs
 ```
-Open that URL on any device on the network. Pair the controllers with the OS first; Chrome only lists a pad after a button press on it.
+Open the **https** URL on the device that is plugged into the TV and accept the certificate warning once (the certificate is self-signed, created by openssl on first start). Browsers block gamepads on plain http from any address other than localhost, so the http URL is keyboard only. Pair the controllers with that device's OS first; Chrome lists a pad only after a button press on it.
+
+## Hosting and hardware
+The server only hands out static files; the whole game runs in the browser of the device showing it.
+
+- **Server (a basic NAS is plenty):** Node 18 or newer to run `server.mjs` (about 1.4 MB served per page load, no CPU or RAM to speak of). No Node on the NAS? Copy `dist/` into any web server it already has (nginx, Caddy, Synology Web Station, QNAP) and serve it over https. Build on a laptop first: Vite and TypeScript need Node 20 or newer, the NAS does not.
+- **Player device (the one running the browser):** this does all the work: a 1280x800 WebGL canvas at 60 fps, plus the Bluetooth pads pair here, not to the NAS. Any laptop or desktop from the last several years is fine; a Raspberry Pi 4 or 5 with Chromium works; TV built-in browsers usually lack gamepad support.
+- **Network:** local traffic only, one page load per session, no bandwidth concerns.
+- Environment variables: `PORT` (8080), `HTTPS_PORT` (8443), `CERT_DIR` (`certs/`, bring your own `server.key` and `server.crt`), `NO_HTTPS=1` to skip https, `ROOT` (`dist`).
 
 Development with hot reload (also reachable on the LAN): `npm run dev`. Editing a level JSON while playing it rebuilds the kitchen in place.
 
@@ -31,7 +39,8 @@ Other keys: **M** mute, **F3** or backtick debug overlay, **F4** (held, dev only
 |---|---|
 | `npm run dev` | Vite dev server with hot reload, bound to all interfaces |
 | `npm run build` | typecheck + production build into `dist/` |
-| `npm start` | zero-dependency Node static server for `dist/`, port 8080 (`PORT=…` to change) |
+| `npm start` | zero-dependency Node static server for `dist/`: http 8080 and https 8443 |
+| `npm run cert` | create the self-signed certificate in `certs/` (also done by `npm start` when missing) |
 | `npm test` | vitest: simulation rules, level validation and reachability, input mapping, art keys, audio map |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run playtest -- "…"` | headless playtest harness (below) |

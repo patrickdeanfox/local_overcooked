@@ -10,7 +10,8 @@
     "preview": "vite preview --host",
     "start": "node server.mjs",
     "typecheck": "tsc --noEmit",
-    "playtest": "node tools/playtest.mjs"
+    "playtest": "node tools/playtest.mjs",
+    "cert": "node tools/make-cert.mjs"
   },
   "keywords": [],
   "author": "",
