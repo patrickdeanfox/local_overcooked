@@ -56,7 +56,12 @@ export interface PotItem {
   burnProgress: number;   // 0..1 after cooked while still on the stove; 1 → burnt (+ fire)
 }
 export interface Dish { type: 'soup'; ingredients: IngredientType[]; } // sorted alphabetically
-export interface PlateItem { kind: 'plate'; id: number; dish: Dish | null; }
+export interface PlateItem {
+  kind: 'plate';
+  id: number;
+  dish: Dish | null;
+  count?: number; // clean plates in this stack (drying racks, plate stacks); absent means 1
+}
 export interface DirtyPlateItem { kind: 'dirtyPlate'; id: number; count: number; } // a stack
 export interface ExtinguisherItem { kind: 'extinguisher'; id: number; }
 export type Item = IngredientItem | PotItem | PlateItem | DirtyPlateItem | ExtinguisherItem;
@@ -87,7 +92,8 @@ export interface Chef {
   action: ChefAction;
   actionProgress: number; // 0..1 for chopping/washing; 0 otherwise
 }
-export interface Fire { x: number; y: number; health: number; } // on tile (x,y); health 1 → 0 when out
+// on tile (x,y); health 1 → 0 when out. spreadTimer counts down to the next spread.
+export interface Fire { x: number; y: number; health: number; spreadTimer?: number; }
 export interface Pedestrian { id: number; x: number; y: number; vx: number; vy: number; } // solid moving obstacle
 export interface SliderGroup { id: string; offsetX: number; offsetY: number; }     // current tile offset
 
