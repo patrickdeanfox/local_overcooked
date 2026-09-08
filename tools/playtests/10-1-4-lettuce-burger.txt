@@ -1,0 +1,117 @@
+# 1-4 lettuce burger, player 1 only, seed fixed at 1 (orders: lettuce_burger, meat_burger).
+# Menu: Seed → fixed, Free play → on, select 1-4.
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowRight
+wait 250
+tap ArrowRight
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowRight
+wait 300
+tap ArrowUp
+wait 250
+tap ArrowUp
+wait 250
+tap ArrowUp
+wait 250
+tap ArrowUp
+wait 250
+tap ArrowUp
+wait 250
+tap ArrowUp
+wait 250
+tap ArrowUp
+wait 250
+tap Enter
+wait 1000
+eval JSON.stringify({level: __oc.level.id, seed: __oc.sim.getState().seed, orders: __oc.sim.getState().orders.map(o=>o.recipeId)})
+# a. meat from the crate at (0,2), chop at the board (2,7), into the pan at (8,0)
+holduntil KeyA 3000 __oc.sim.getState().chefs[0].x <= 1.55
+hold KeyA 120
+tap Space
+eval JSON.stringify({holding: __oc.sim.getState().chefs[0].holding})
+holduntil KeyS 4000 __oc.sim.getState().chefs[0].y >= 6.45
+holduntil KeyD 2000 __oc.sim.getState().chefs[0].x >= 2.45
+hold KeyS 120
+tap Space
+hold ShiftLeft 3400
+tap Space
+eval JSON.stringify({holding: __oc.sim.getState().chefs[0].holding})
+holduntil KeyW 4000 __oc.sim.getState().chefs[0].y <= 3.55
+holduntil KeyD 5000 __oc.sim.getState().chefs[0].x >= 8.45
+holduntil KeyW 3000 __oc.sim.getState().chefs[0].y <= 1.55
+hold KeyW 120
+tap Space
+eval JSON.stringify({pan: __oc.sim.itemAt(8,0), holding: __oc.sim.getState().chefs[0].holding})
+shot B1_pan.png
+# b. bun from (0,3) onto the plate at (8,7)
+holduntil KeyS 3000 __oc.sim.getState().chefs[0].y >= 3.45
+holduntil KeyA 8000 __oc.sim.getState().chefs[0].x <= 1.55
+hold KeyA 120
+tap Space
+eval JSON.stringify({holding: __oc.sim.getState().chefs[0].holding})
+holduntil KeyD 8000 __oc.sim.getState().chefs[0].x >= 8.45
+holduntil KeyS 4000 __oc.sim.getState().chefs[0].y >= 6.45
+hold KeyS 120
+tap Space
+eval JSON.stringify({plate: __oc.sim.itemAt(8,7), holding: __oc.sim.getState().chefs[0].holding})
+# c. pick up the plate, collect the patty from the pan
+tap Space
+holduntil KeyW 4000 __oc.sim.getState().chefs[0].y <= 1.55
+hold KeyW 120
+until 15000 __oc.sim.itemAt(8,0).state === 'cooked'
+tap Space
+eval JSON.stringify({holding: __oc.sim.getState().chefs[0].holding, pan: __oc.sim.itemAt(8,0)})
+shot B2_patty.png
+# d. park the plate on (3,7), chop lettuce at (4,7), add it to the plate
+holduntil KeyS 3000 __oc.sim.getState().chefs[0].y >= 3.45
+holduntil KeyA 6000 __oc.sim.getState().chefs[0].x <= 3.55
+holduntil KeyS 4000 __oc.sim.getState().chefs[0].y >= 6.45
+hold KeyS 120
+tap Space
+eval JSON.stringify({parked: __oc.sim.itemAt(3,7)})
+holduntil KeyA 3000 __oc.sim.getState().chefs[0].x <= 1.55
+holduntil KeyW 3000 __oc.sim.getState().chefs[0].y <= 4.55
+hold KeyA 120
+tap Space
+eval JSON.stringify({holding: __oc.sim.getState().chefs[0].holding})
+holduntil KeyS 3000 __oc.sim.getState().chefs[0].y >= 6.45
+holduntil KeyD 3000 __oc.sim.getState().chefs[0].x >= 4.45
+hold KeyS 120
+tap Space
+hold ShiftLeft 3400
+tap Space
+holduntil KeyA 2000 __oc.sim.getState().chefs[0].x <= 3.55
+hold KeyS 120
+tap Space
+eval JSON.stringify({plate: __oc.sim.itemAt(3,7)})
+tap Space
+eval JSON.stringify({holding: __oc.sim.getState().chefs[0].holding})
+shot B3_burger.png
+# e. serve at (12,3)
+holduntil KeyW 4000 __oc.sim.getState().chefs[0].y <= 3.55
+holduntil KeyD 8000 __oc.sim.getState().chefs[0].x >= 11.45
+hold KeyD 120
+tap Space
+wait 300
+eval JSON.stringify({score: __oc.sim.getState().score, served: __oc.sim.getState().servedCount, streak: __oc.sim.getState().tipStreak, orders: __oc.sim.getState().orders.map(o=>o.recipeId)})
+shot B4_served.png
+errors
