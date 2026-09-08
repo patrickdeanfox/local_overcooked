@@ -9,12 +9,12 @@ export const CHEF_RADIUS = 0.35;        // tiles, for chef-chef and chef-pedestr
 export const CHEF_HITBOX = 0.6;         // tiles, square side used against solid tiles
 export const REACH = 0.6;               // tiles in front of the chef center to find the target tile
 
-export const CHOP_TIME = 1.5;           // seconds of held interact per ingredient
+export const CHOP_TIME = 3.0;           // seconds of held interact per ingredient (wiki: "about three seconds", Chopping Board)
 export const POT_CAPACITY = 3;
 export const COOK_TIME = 9;             // seconds on the stove for a full pot to be ready
-export const BURN_TIME = 10;            // seconds after cooked before the pot is burnt and ignites
+export const BURN_TIME = 13;            // seconds after cooked before the pot is burnt and ignites (wiki Burnt food: 5 + 5 + 3 s warning stages)
 export const WASH_TIME = 2.0;           // seconds of held interact per dirty plate
-export const PLATE_RETURN_DELAY = 8;    // seconds after a serve before the dirty plate comes back
+export const PLATE_RETURN_DELAY = 6;    // seconds after a serve before the dirty plate comes back (wiki Plate: "after a few seconds")
 export const PLATE_STACK_RETURN_DELAY = 6; // 'stack' mode: seconds before a clean plate respawns
 
 export const FIRE_SPREAD_TIME = 6;      // seconds a fire burns before igniting a neighbouring counter

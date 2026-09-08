@@ -123,6 +123,7 @@ export class KitchenRenderer {
 
   private readonly tileSprites: Phaser.GameObjects.Image[] = [];
   private readonly sliderTiles: number[] = [];
+  private readonly sliderFloorSprites: Phaser.GameObjects.Image[] = [];
   private readonly itemSprites = new Map<number, Phaser.GameObjects.Image>();
   private readonly itemBadges = new Map<number, Phaser.GameObjects.Text>();
   private readonly chefSprites = new Map<number, Phaser.GameObjects.Image>();
@@ -195,6 +196,7 @@ export class KitchenRenderer {
     this.sprayTweens.clear();
     this.container.destroy(true);
     this.tileSprites.length = 0;
+    this.sliderFloorSprites.length = 0;
     this.sliderTiles.length = 0;
     this.itemSprites.clear();
     this.itemBadges.clear();
@@ -208,6 +210,8 @@ export class KitchenRenderer {
   private buildGrid(state: Readonly<SimState>): void {
     for (const sprite of this.tileSprites) sprite.destroy();
     this.tileSprites.length = 0;
+    for (const sprite of this.sliderFloorSprites) sprite.destroy();
+    this.sliderFloorSprites.length = 0;
     this.sliderTiles.length = 0;
     for (const sprite of this.itemSprites.values()) sprite.destroy();
     this.itemSprites.clear();
@@ -219,6 +223,15 @@ export class KitchenRenderer {
     this.layout(state);
 
     state.tiles.forEach((tile, i) => {
+      if (tile.type === 'slider') {
+        // Floor shows through where a moving counter has slid away from its resting tile.
+        const floor = this.scene.add
+          .image(tile.x * TILE, tile.y * TILE, TEX.tile('floor'))
+          .setOrigin(0, 0)
+          .setDisplaySize(TILE, TILE);
+        this.tileLayer.add(floor);
+        this.sliderFloorSprites.push(floor);
+      }
       const sprite = this.scene.add
         .image(tile.x * TILE, tile.y * TILE, tileTexture(tile))
         .setOrigin(0, 0)
@@ -227,6 +240,8 @@ export class KitchenRenderer {
       this.tileSprites.push(sprite);
       if (tile.type === 'slider') this.sliderTiles.push(i);
     });
+    // Moving counters draw above every static tile they slide over.
+    for (const i of this.sliderTiles) this.tileLayer.bringToTop(this.tileSprites[i]);
   }
 
   /** Centres the kitchen in the play area, scaling down when it does not fit. */

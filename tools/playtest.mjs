@@ -11,6 +11,8 @@
 //   wait <ms>
 //   tap <Code>              keydown+keyup (e.g. tap Space, tap KeyC, tap Escape)
 //   hold <Code[,Code]> <ms> hold one or more keys together (e.g. hold KeyD,ShiftLeft 800)
+//   holduntil <Code[,Code]> <maxMs> <js>   hold keys until the JS expression is truthy (polled every 16 ms) or maxMs
+//   until <maxMs> <js>      wait until the JS expression is truthy or maxMs
 //   shot <name.png>         screenshot of the viewport into --out
 //   eval <js>               evaluate in page (await allowed), print the JSON result
 //   logs                    print console messages captured so far, then clear
@@ -145,6 +147,14 @@ async function main() {
       else if (cmd === 'wait') await sleep(Number(arg));
       else if (cmd === 'tap') { await cdp.key(arg, 'keyDown'); await sleep(TAP_MS); await cdp.key(arg, 'keyUp'); }
       else if (cmd === 'hold') { const [codes, ms] = rest; const list = codes.split(','); for (const c of list) await cdp.key(c, 'keyDown'); await sleep(Number(ms)); for (const c of list) await cdp.key(c, 'keyUp'); }
+      else if (cmd === 'holduntil') {
+        const [codes, maxMs, ...jsParts] = rest; const list = codes.split(','); const js = jsParts.join(' ');
+        for (const c of list) await cdp.key(c, 'keyDown');
+        const ok = await waitUntil(cdp, js, Number(maxMs));
+        for (const c of list) await cdp.key(c, 'keyUp');
+        console.log(`holduntil ${codes} → ${ok ? 'condition met' : 'TIMEOUT'} (${js})`);
+      }
+      else if (cmd === 'until') { const [maxMs, ...jsParts] = rest; const js = jsParts.join(' '); const ok = await waitUntil(cdp, js, Number(maxMs)); console.log(`until → ${ok ? 'condition met' : 'TIMEOUT'} (${js})`); }
       else if (cmd === 'shot') { const r = await cdp.send('Page.captureScreenshot', { format: 'png' }); const p = join(opts.out, arg); writeFileSync(p, Buffer.from(r.data, 'base64')); console.log(`shot ${p}`); }
       else if (cmd === 'eval') { const r = await cdp.send('Runtime.evaluate', { expression: `(async () => (${arg}))()`, awaitPromise: true, returnByValue: true }); console.log(`eval ${arg}\n  → ${JSON.stringify(r.result.value ?? r.result.description ?? null)}`); }
       else if (cmd === 'logs') { console.log(cdp.logs.length ? cdp.logs.join('\n') : '(no console output)'); cdp.logs.length = 0; }
@@ -158,6 +168,16 @@ async function main() {
     proc.kill('SIGKILL');
   }
   process.exit(exitCode);
+}
+
+async function waitUntil(cdp, js, maxMs) {
+  const deadline = Date.now() + maxMs;
+  while (Date.now() < deadline) {
+    const r = await cdp.send('Runtime.evaluate', { expression: `!!(${js})`, returnByValue: true });
+    if (r.result.value === true) return true;
+    await sleep(16);
+  }
+  return false;
 }
 
 async function goto(cdp, url) {
