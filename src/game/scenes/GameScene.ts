@@ -1,56 +1,318 @@
+// ─── Game scene ─────────────────────────────────────────────────────────────
+// Orchestration only: fixed-timestep sim stepping, input polling, audio, and one
+// render pass per frame from a single getState() snapshot. Drawing lives in
+// KitchenRenderer, the HUD in Hud, and the pause overlay in PauseMenu.
 import Phaser from 'phaser';
-import { GAME_HEIGHT, GAME_WIDTH, SCENE, TILE } from '../../config';
+import { sfxForEvent } from '../../audio';
+import type { AudioBus } from '../../audio/types';
+import { GAME_HEIGHT, GAME_WIDTH, MAX_PLAYERS, SCENE } from '../../config';
+import { createInputManager } from '../../input';
+import type { InputManager } from '../../input/types';
+import type { LevelDef } from '../../levels/schema';
+import { log } from '../../log';
 import { Sim, SIM_DT } from '../../sim';
-import type { PlayerInput } from '../../sim/types';
-import { LEVELS, DEFAULT_LEVEL_ID } from '../../levels';
-import { createInputManager, type InputManager } from '../../input';
+import type { PlayerInput, SimEvent, SimState } from '../../sim/types';
+import { getAudioBus, installAudioGestureResume, installMuteToggle } from '../audioBus';
+import { buildFakeState } from '../debug/fakeState';
+import { currentLevels, defaultLevelId, onLevelsHotReload, type LevelsSnapshot } from '../levelHotReload';
+import { KitchenRenderer, type TilePos } from '../render/KitchenRenderer';
+import { DebugOverlay } from '../ui/DebugOverlay';
+import { Hud } from '../ui/Hud';
+import { KeyboardNav, MenuInput, mergeNav } from '../ui/menuInput';
+import { PauseMenu } from '../ui/PauseMenu';
+import { COLOR, TEXT_COLOR, textStyle } from '../ui/theme';
+import type { GameSceneData, ResultsSceneData } from '../types';
 
-export interface GameSceneData { levelId?: string; players?: number; }
+export type { GameSceneData } from '../types';
 
-// STUB renderer: presentation agent replaces this. Draws tiles and chefs from SimState every frame.
+// ─── Constants ──────────────────────────────────────────────────────────────
+const LOOP = {
+  maxFrameSec: 0.25,      // a long stall never turns into a burst of catch-up steps
+  maxStepsPerFrame: 30,
+  seed: 1,                // fixed so a level plays the same way every run
+} as const;
+
+const END_FLASH = {
+  holdMs: 1500,
+  dimAlpha: 0.55,
+  titleFontPx: 62,
+  subtitleFontPx: 22,
+  subtitleOffsetY: 58,
+  popFrom: 0.6,
+  popMs: 420,
+  depth: 2500,
+} as const;
+
+const KEYS = {
+  debug: 'keydown-F3',
+  debugAlt: 'keydown-BACKTICK',
+  escape: 'keydown-ESC',
+  fakeState: 'F4',
+} as const;
+
+interface StepResult { steps: number; ms: number; }
+
+// ─── Pure helpers ───────────────────────────────────────────────────────────
+/** Rising edges must fire on the first sub-step only, never once per sub-step. */
+function clearEdges(input: PlayerInput): PlayerInput {
+  return { ...input, pickupPressed: false, interactPressed: false, pausePressed: false, backPressed: false };
+}
+
+// ─── Scene ──────────────────────────────────────────────────────────────────
 export class GameScene extends Phaser.Scene {
   private sim!: Sim;
+  private level!: LevelDef;
+  private kitchen!: KitchenRenderer;
+  private hud!: Hud;
+  private debugOverlay!: DebugOverlay;
+  private pauseMenu!: PauseMenu;
   private inputMgr!: InputManager;
+  private menuInput!: MenuInput;
+  private keyboardNav!: KeyboardNav;
+  private audio!: AudioBus;
+  private fakeKey: Phaser.Input.Keyboard.Key | null = null;
+  private endFlash: Phaser.GameObjects.Container | null = null;
+  private endTimer: Phaser.Time.TimerEvent | null = null;
+  private fakeState: SimState | null = null;
+  private readonly disposers: (() => void)[] = [];
+
+  private levelId = '';
+  private players = MAX_PLAYERS;
   private accumulator = 0;
-  private gfx!: Phaser.GameObjects.Graphics;
-  private originX = 0;
-  private originY = 0;
+  private ending = false;
+  private escQueued = false;
+  private ready = false;
 
   constructor() { super(SCENE.GAME); }
 
+  // ─── Lifecycle ────────────────────────────────────────────────────────────
   create(data: GameSceneData): void {
-    const level = LEVELS[data.levelId ?? DEFAULT_LEVEL_ID];
-    this.sim = new Sim(level, { players: data.players ?? 2, seed: 1 });
-    this.inputMgr = createInputManager(this, data.players ?? 2);
-    const st = this.sim.getState();
-    this.originX = Math.floor((GAME_WIDTH - st.width * TILE) / 2);
-    this.originY = Math.floor((GAME_HEIGHT - st.height * TILE) / 2);
-    this.gfx = this.add.graphics();
-    this.input.keyboard?.once('keydown-ESC', () => { this.inputMgr.destroy(); this.scene.start(SCENE.TITLE); });
+    const snapshot = currentLevels();
+    this.levelId = data.levelId ?? defaultLevelId();
+    this.players = Phaser.Math.Clamp(data.players ?? MAX_PLAYERS, 1, MAX_PLAYERS);
+    const level = snapshot.levels[this.levelId];
+    if (!level) {
+      log.error('unknown level', this.levelId, '- returning to the title');
+      this.scene.start(SCENE.TITLE);
+      return;
+    }
+
+    this.cameras.main.setBackgroundColor(COLOR.bg);
+    this.buildLevel(level);
+
+    this.inputMgr = createInputManager(this, this.players);
+    this.menuInput = new MenuInput();
+    this.keyboardNav = new KeyboardNav(this);
+
+    this.audio = getAudioBus();
+    this.disposers.push(installAudioGestureResume(this), installMuteToggle(this));
+    this.audio.startMusic();
+
+    this.pauseMenu = new PauseMenu(this, {
+      onResume: () => this.pauseMenu.close(),
+      onRestart: () => this.restartLevel(),
+      onQuit: () => this.quitToTitle(),
+    });
+    this.debugOverlay = new DebugOverlay(this, this.kitchen);
+    this.installKeys();
+    this.disposers.push(onLevelsHotReload((next) => this.onLevelsChanged(next)));
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.cleanup, this);
+    this.ready = true;
+    log.info('level started', this.levelId, `${this.players}P`);
   }
 
   override update(_time: number, deltaMs: number): void {
-    this.accumulator += Math.min(deltaMs / 1000, 0.25);
-    const inputs: PlayerInput[] = this.inputMgr.poll();
-    while (this.accumulator >= SIM_DT) {
-      this.sim.step(inputs, SIM_DT);
-      this.accumulator -= SIM_DT;
+    if (!this.ready) return;
+    const inputs = this.inputMgr.poll();
+    const nav = mergeNav(this.menuInput.poll(inputs), this.keyboardNav.poll());
+    this.handlePauseEdge(inputs);
+
+    const events: SimEvent[] = [];
+    let stepped: StepResult = { steps: 0, ms: 0 };
+    if (this.pauseMenu.isOpen) {
+      this.pauseMenu.update(nav);
+      if (!this.ready) return; // a menu choice may have started another scene
+    } else if (!this.ending) {
+      stepped = this.runSim(inputs, deltaMs, events);
+      for (const event of events) {
+        const sfx = sfxForEvent(event);
+        if (sfx) this.audio.play(sfx);
+      }
     }
-    this.draw();
+
+    const live = this.sim.getState();
+    this.checkLevelEnd(live);
+    this.render(live, events, stepped, deltaMs);
   }
 
-  private draw(): void {
-    const st = this.sim.getState();
-    const g = this.gfx;
-    g.clear();
-    for (const t of st.tiles) {
-      const color = t.type === 'floor' || t.type === 'road' ? 0x3b3b46 : t.type === 'void' ? 0x1a1210 : 0xc9a06a;
-      g.fillStyle(color, 1);
-      g.fillRect(this.originX + t.x * TILE + 1, this.originY + t.y * TILE + 1, TILE - 2, TILE - 2);
+  // ─── Level construction ───────────────────────────────────────────────────
+  private buildLevel(level: LevelDef): void {
+    this.level = level;
+    this.sim = new Sim(level, { players: this.players, seed: LOOP.seed });
+    this.kitchen = new KitchenRenderer(this, this.sim.getState());
+    this.hud = new Hud(this, level.name);
+    this.accumulator = 0;
+    this.ending = false;
+    this.fakeState = null;
+  }
+
+  private installKeys(): void {
+    const keyboard = this.input.keyboard;
+    if (!keyboard) return;
+    const onDebug = (): void => this.debugOverlay.toggle();
+    const onEscape = (): void => { this.escQueued = true; };
+    keyboard.on(KEYS.debug, onDebug);
+    keyboard.on(KEYS.debugAlt, onDebug);
+    keyboard.on(KEYS.escape, onEscape);
+    this.fakeKey = keyboard.addKey(KEYS.fakeState, true, false);
+    this.disposers.push(() => {
+      keyboard.off(KEYS.debug, onDebug);
+      keyboard.off(KEYS.debugAlt, onDebug);
+      keyboard.off(KEYS.escape, onEscape);
+    });
+  }
+
+  // ─── Fixed timestep ───────────────────────────────────────────────────────
+  /** Runs whole sim steps for this frame and reports how many, and how long they took. */
+  private runSim(inputs: readonly PlayerInput[], deltaMs: number, events: SimEvent[]): StepResult {
+    this.accumulator += Math.min(deltaMs / 1000, LOOP.maxFrameSec);
+    const started = performance.now();
+    let stepInputs: readonly PlayerInput[] = inputs;
+    let steps = 0;
+    while (this.accumulator >= SIM_DT && steps < LOOP.maxStepsPerFrame) {
+      const stepEvents = this.sim.step(stepInputs, SIM_DT);
+      if (stepEvents.length > 0) events.push(...stepEvents);
+      this.accumulator -= SIM_DT;
+      steps += 1;
+      if (steps === 1) stepInputs = inputs.map(clearEdges);
     }
-    for (const c of st.chefs) {
-      g.fillStyle(c.index === 0 ? 0x4a90e2 : 0xe24a4a, 1);
-      g.fillCircle(this.originX + c.x * TILE, this.originY + c.y * TILE, TILE * 0.35);
+    if (steps >= LOOP.maxStepsPerFrame) this.accumulator = 0;
+    return { steps, ms: performance.now() - started };
+  }
+
+  // ─── Rendering ────────────────────────────────────────────────────────────
+  private render(live: Readonly<SimState>, events: readonly SimEvent[], stepped: StepResult, deltaMs: number): void {
+    const fake = this.fakeKey?.isDown === true;
+    const state = fake ? this.fakeStateFor(live) : live;
+    const targets: (TilePos | null)[] = state.chefs.map((_, i) =>
+      i < live.chefs.length ? this.sim.getTargetTile(i) : null,
+    );
+    this.kitchen.draw(state, targets, deltaMs / 1000);
+    this.hud.update(state, events, deltaMs);
+    this.debugOverlay.update(state, {
+      levelId: this.levelId,
+      steps: stepped.steps,
+      stepMs: stepped.ms,
+      events,
+      targets,
+      fake,
+      paused: this.pauseMenu.isOpen,
+    });
+  }
+
+  private fakeStateFor(live: Readonly<SimState>): SimState {
+    if (!this.fakeState) {
+      this.fakeState = buildFakeState(live);
+      log.info('showing fake state for renderer smoke test');
     }
+    return this.fakeState;
+  }
+
+  // ─── Pause ────────────────────────────────────────────────────────────────
+  private handlePauseEdge(inputs: readonly PlayerInput[]): void {
+    const pressed = this.escQueued || inputs.some((input) => input.pausePressed === true);
+    this.escQueued = false;
+    if (!pressed || this.ending) return;
+    this.pauseMenu.toggle();
+  }
+
+  private restartLevel(): void {
+    this.ready = false;
+    this.scene.start(SCENE.GAME, { levelId: this.levelId, players: this.players } satisfies GameSceneData);
+  }
+
+  private quitToTitle(): void {
+    this.ready = false;
+    this.scene.start(SCENE.TITLE);
+  }
+
+  // ─── Level end ────────────────────────────────────────────────────────────
+  private checkLevelEnd(state: Readonly<SimState>): void {
+    if (this.ending || state.phase !== 'ended') return;
+    this.ending = true;
+    this.pauseMenu.close();
+    this.audio.stopMusic();
+    this.showEndFlash();
+    this.endTimer = this.time.delayedCall(END_FLASH.holdMs, () => this.goToResults());
+  }
+
+  private showEndFlash(): void {
+    const cx = GAME_WIDTH / 2;
+    const cy = GAME_HEIGHT / 2;
+    const dim = this.add.rectangle(cx, cy, GAME_WIDTH, GAME_HEIGHT, COLOR.bg, END_FLASH.dimAlpha).setOrigin(0.5);
+    const title = this.add.text(cx, cy, "Time's up!", textStyle(END_FLASH.titleFontPx, TEXT_COLOR.accent)).setOrigin(0.5);
+    const subtitle = this.add
+      .text(cx, cy + END_FLASH.subtitleOffsetY, 'Counting up your tips…', textStyle(END_FLASH.subtitleFontPx, TEXT_COLOR.dim))
+      .setOrigin(0.5);
+    this.endFlash = this.add.container(0, 0, [dim, title, subtitle]).setDepth(END_FLASH.depth);
+    this.tweens.add({
+      targets: title,
+      scale: { from: END_FLASH.popFrom, to: 1 },
+      duration: END_FLASH.popMs,
+      ease: 'Back.easeOut',
+    });
+  }
+
+  private goToResults(): void {
+    const state = this.sim.getState();
+    const thresholds = this.players === 1 ? this.level.stars[1] : this.level.stars[2];
+    this.ready = false;
+    this.scene.start(SCENE.RESULTS, {
+      levelId: this.levelId,
+      players: this.players,
+      score: state.score,
+      stars: state.stars,
+      servedCount: state.servedCount,
+      failedCount: state.failedCount,
+      thresholds,
+    } satisfies ResultsSceneData);
+  }
+
+  // ─── Hot reload ───────────────────────────────────────────────────────────
+  private onLevelsChanged(snapshot: LevelsSnapshot): void {
+    const level = snapshot.levels[this.levelId];
+    if (!level) {
+      log.warn('hot reload: level', this.levelId, 'no longer exists');
+      return;
+    }
+    log.info('hot reload: rebuilding', this.levelId);
+    this.endTimer?.remove();
+    this.endTimer = null;
+    this.endFlash?.destroy(true);
+    this.endFlash = null;
+    this.pauseMenu.close();
+    this.kitchen.destroy();
+    this.hud.destroy();
+    this.buildLevel(level);
+    this.debugOverlay.setRenderer(this.kitchen);
+  }
+
+  // ─── Teardown ─────────────────────────────────────────────────────────────
+  private cleanup(): void {
+    this.ready = false;
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
+    this.endTimer?.remove();
+    this.endTimer = null;
+    this.endFlash?.destroy(true);
+    this.endFlash = null;
+    this.audio?.stopMusic();
+    this.inputMgr?.destroy();
+    this.keyboardNav?.destroy();
+    this.debugOverlay?.destroy();
+    this.pauseMenu?.destroy();
+    this.hud?.destroy();
+    this.kitchen?.destroy();
+    this.fakeState = null;
   }
 }
