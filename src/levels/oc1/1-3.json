@@ -6,6 +6,7 @@
   "index": 3,
   "theme": "savoury-seas",
   "source": "https://overcooked.fandom.com/wiki/1-3_(Overcooked!)",
+  "unlockStars": 4,
   "timeLimitSec": 240,
   "timerStartsOnFirstServe": false,
   "recipes": ["onion_soup", "tomato_soup", "mushroom_soup"],
