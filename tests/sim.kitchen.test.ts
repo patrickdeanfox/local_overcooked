@@ -399,6 +399,25 @@ describe('burning and fire', () => {
     expect(st.fires[0].health).toBe(1);
     expect(chef.holding).toMatchObject({ kind: 'extinguisher' });
   });
+
+  it('never spreads onto the tile the extinguisher is resting on', () => {
+    const sim = new Sim(makeLevel(), { players: 1, seed: 7 });
+    const st = mutable(sim);
+    expect(sim.itemAt(11, 6)).toMatchObject({ kind: 'extinguisher' });
+    st.fires.push({ x: 11, y: 5, health: 1, spreadTimer: FIRE_SPREAD_TIME });
+    stepFor(sim, FIRE_SPREAD_TIME * 12);
+    expect(st.fires.length).toBeGreaterThan(1); // it did spread, just not onto the cure
+    expect(sim.fireAt(11, 6)).toBe(false);
+  });
+
+  it('spreads onto that tile once the extinguisher has been taken off it', () => {
+    const sim = new Sim(makeLevel(), { players: 1, seed: 7 });
+    const st = mutable(sim);
+    st.tileItems[6 * st.width + 11] = null;
+    st.fires.push({ x: 11, y: 5, health: 1, spreadTimer: FIRE_SPREAD_TIME });
+    stepFor(sim, FIRE_SPREAD_TIME * 12);
+    expect(sim.fireAt(11, 6)).toBe(true);
+  });
 });
 
 // ─── Plates ─────────────────────────────────────────────────────────────────

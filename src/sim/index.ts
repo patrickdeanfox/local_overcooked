@@ -802,10 +802,15 @@ export class Sim {
         const nx = f.x + nb.dx;
         const ny = f.y + nb.dy;
         if (nx < 0 || ny < 0 || nx >= st.width || ny >= st.height) continue;
-        const type = st.tiles[ny * st.width + nx].type;
+        const j = ny * st.width + nx;
+        const type = st.tiles[j].type;
         if (type === 'void' || !SOLID_TILES.has(type)) continue;
         if (this.fireAt(nx, ny)) continue;
-        this.spreadBuf[n++] = ny * st.width + nx;
+        // A burning tile refuses every interaction, and spraying is the only way to put a
+        // fire out, so a fire on the extinguisher's tile would leave the level unwinnable.
+        const blocking = st.tileItems[j];
+        if (blocking && blocking.kind === 'extinguisher') continue;
+        this.spreadBuf[n++] = j;
       }
       if (n === 0) continue;
       const pick = st.tiles[this.spreadBuf[this.rng.int(n)]];
