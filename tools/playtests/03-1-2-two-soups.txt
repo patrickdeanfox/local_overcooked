@@ -1,0 +1,552 @@
+# -- 1-2 Treacle Town: a tomato soup and an onion soup across the crosswalk --------
+# Every ingredient box sits on the right of the crossing and every cooker on the left,
+# and the only gap through the counters is (9,1), so each ingredient costs a full
+# crossing. P2 (arrows) fetches and crosses, P1 (WASD) chops, cooks, plates and serves.
+#
+# Two things this script had to be built around, both worth knowing:
+#  * handing items over the counter at (9,2) is unreliable - that tile can only be
+#    reached from (8,2), which is inside pedestrian lane 8, and a walker shoves the chef
+#    off the tile mid-press. Carrying items across is the workable play.
+#  * all three ingredients are chopped and staged BEFORE any go in the pot. Feed the pot
+#    one ingredient per crossing and it reaches 'cooked' with one or two in it, then
+#    burns and catches fire while the next one is still being fetched.
+# NOTE: leave >=200 ms between two taps of the same key or the input manager sees one hold.
+wait 1200
+tap ArrowDown
+wait 400
+tap Enter
+wait 800
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.sim
+eval ['level', __oc.level.id, 'timeLeft', Math.round(__oc.sim.getState().timeLeft)]
+eval (0, eval)(await (await fetch('/tools/playtests/monitor.txt')).text())
+# P2: tomato 1 - crate (10,5) across the crossing to (2,5)
+# re-home first: whatever happened last time, get back to the right half
+holduntil ArrowRight 9000 __oc.sim.getState().chefs[1].x >= 6.45
+until 15000 !__oc.sim.getState().pedestrians.some(p => p.x === 6.5 && p.y < 4)
+holduntil ArrowUp 15000 __oc.sim.getState().chefs[1].y <= 1.6
+holduntil ArrowRight 15000 __oc.sim.getState().chefs[1].x >= 11.45
+holduntil ArrowLeft 5000 __oc.sim.getState().chefs[1].x <= 10.55
+holduntil ArrowDown 5000 __oc.sim.getState().chefs[1].y >= 4.5
+holduntil ArrowLeft 900 __oc.sim.getState().chefs[1].x <= 10.55
+holduntil ArrowRight 900 __oc.sim.getState().chefs[1].x >= 10.45
+hold ArrowDown 250
+eval ['P2 at the crate for tomato 1', 'target', __oc.sim.getTargetTile(1), 'want', [10,5]]
+tap Enter
+wait 250
+eval ['P2 holds', __oc.sim.getState().chefs[1].holding?.type]
+holduntil ArrowUp 8000 __oc.sim.getState().chefs[1].y <= 1.6
+holduntil ArrowLeft 15000 __oc.sim.getState().chefs[1].x <= 6.55
+until 15000 !__oc.sim.getState().pedestrians.some(p => p.x === 6.5 && p.y < 4)
+holduntil ArrowDown 15000 __oc.sim.getState().chefs[1].y >= 3.5
+holduntil ArrowLeft 9000 __oc.sim.getState().chefs[1].x <= 2.55
+holduntil ArrowDown 5000 __oc.sim.getState().chefs[1].y >= 4.6
+holduntil ArrowLeft 900 __oc.sim.getState().chefs[1].x <= 2.55
+holduntil ArrowRight 900 __oc.sim.getState().chefs[1].x >= 2.45
+hold ArrowDown 250
+eval ['P2 drops tomato 1', 'target', __oc.sim.getTargetTile(1), 'want', [2,5]]
+tap Enter
+wait 250
+eval ['tomato 1 landed', __oc.sim.itemAt(2,5)]
+# P2 walks back to the right half
+holduntil ArrowUp 5000 __oc.sim.getState().chefs[1].y <= 3.55
+holduntil ArrowRight 9000 __oc.sim.getState().chefs[1].x >= 6.45
+until 15000 !__oc.sim.getState().pedestrians.some(p => p.x === 6.5 && p.y < 4)
+holduntil ArrowUp 15000 __oc.sim.getState().chefs[1].y <= 1.6
+holduntil ArrowRight 15000 __oc.sim.getState().chefs[1].x >= 11.45
+holduntil ArrowDown 6000 __oc.sim.getState().chefs[1].y >= 3.5
+# P2: tomato 2 - crate (10,5) across the crossing to (4,5)
+# re-home first: whatever happened last time, get back to the right half
+holduntil ArrowRight 9000 __oc.sim.getState().chefs[1].x >= 6.45
+until 15000 !__oc.sim.getState().pedestrians.some(p => p.x === 6.5 && p.y < 4)
+holduntil ArrowUp 15000 __oc.sim.getState().chefs[1].y <= 1.6
+holduntil ArrowRight 15000 __oc.sim.getState().chefs[1].x >= 11.45
+holduntil ArrowLeft 5000 __oc.sim.getState().chefs[1].x <= 10.55
+holduntil ArrowDown 5000 __oc.sim.getState().chefs[1].y >= 4.5
+holduntil ArrowLeft 900 __oc.sim.getState().chefs[1].x <= 10.55
+holduntil ArrowRight 900 __oc.sim.getState().chefs[1].x >= 10.45
+hold ArrowDown 250
+eval ['P2 at the crate for tomato 2', 'target', __oc.sim.getTargetTile(1), 'want', [10,5]]
+tap Enter
+wait 250
+eval ['P2 holds', __oc.sim.getState().chefs[1].holding?.type]
+holduntil ArrowUp 8000 __oc.sim.getState().chefs[1].y <= 1.6
+holduntil ArrowLeft 15000 __oc.sim.getState().chefs[1].x <= 6.55
+until 15000 !__oc.sim.getState().pedestrians.some(p => p.x === 6.5 && p.y < 4)
+holduntil ArrowDown 15000 __oc.sim.getState().chefs[1].y >= 3.5
+holduntil ArrowLeft 9000 __oc.sim.getState().chefs[1].x <= 4.55
+holduntil ArrowDown 5000 __oc.sim.getState().chefs[1].y >= 4.6
+holduntil ArrowLeft 900 __oc.sim.getState().chefs[1].x <= 4.55
+holduntil ArrowRight 900 __oc.sim.getState().chefs[1].x >= 4.45
+hold ArrowDown 250
+eval ['P2 drops tomato 2', 'target', __oc.sim.getTargetTile(1), 'want', [4,5]]
+tap Enter
+wait 250
+eval ['tomato 2 landed', __oc.sim.itemAt(4,5)]
+# P2 walks back to the right half
+holduntil ArrowUp 5000 __oc.sim.getState().chefs[1].y <= 3.55
+holduntil ArrowRight 9000 __oc.sim.getState().chefs[1].x >= 6.45
+until 15000 !__oc.sim.getState().pedestrians.some(p => p.x === 6.5 && p.y < 4)
+holduntil ArrowUp 15000 __oc.sim.getState().chefs[1].y <= 1.6
+holduntil ArrowRight 15000 __oc.sim.getState().chefs[1].x >= 11.45
+holduntil ArrowDown 6000 __oc.sim.getState().chefs[1].y >= 3.5
+# P2: tomato 3 - crate (10,5) across the crossing to (1,5)
+# re-home first: whatever happened last time, get back to the right half
+holduntil ArrowRight 9000 __oc.sim.getState().chefs[1].x >= 6.45
+until 15000 !__oc.sim.getState().pedestrians.some(p => p.x === 6.5 && p.y < 4)
+holduntil ArrowUp 15000 __oc.sim.getState().chefs[1].y <= 1.6
+holduntil ArrowRight 15000 __oc.sim.getState().chefs[1].x >= 11.45
+holduntil ArrowLeft 5000 __oc.sim.getState().chefs[1].x <= 10.55
+holduntil ArrowDown 5000 __oc.sim.getState().chefs[1].y >= 4.5
+holduntil ArrowLeft 900 __oc.sim.getState().chefs[1].x <= 10.55
+holduntil ArrowRight 900 __oc.sim.getState().chefs[1].x >= 10.45
+hold ArrowDown 250
+eval ['P2 at the crate for tomato 3', 'target', __oc.sim.getTargetTile(1), 'want', [10,5]]
+tap Enter
+wait 250
+eval ['P2 holds', __oc.sim.getState().chefs[1].holding?.type]
+holduntil ArrowUp 8000 __oc.sim.getState().chefs[1].y <= 1.6
+holduntil ArrowLeft 15000 __oc.sim.getState().chefs[1].x <= 6.55
+until 15000 !__oc.sim.getState().pedestrians.some(p => p.x === 6.5 && p.y < 4)
+holduntil ArrowDown 15000 __oc.sim.getState().chefs[1].y >= 3.5
+holduntil ArrowLeft 9000 __oc.sim.getState().chefs[1].x <= 1.55
+holduntil ArrowDown 5000 __oc.sim.getState().chefs[1].y >= 4.6
+holduntil ArrowLeft 900 __oc.sim.getState().chefs[1].x <= 1.55
+holduntil ArrowRight 900 __oc.sim.getState().chefs[1].x >= 1.45
+hold ArrowDown 250
+eval ['P2 drops tomato 3', 'target', __oc.sim.getTargetTile(1), 'want', [1,5]]
+tap Enter
+wait 250
+eval ['tomato 3 landed', __oc.sim.itemAt(1,5)]
+# P2 walks back to the right half
+holduntil ArrowUp 5000 __oc.sim.getState().chefs[1].y <= 3.55
+holduntil ArrowRight 9000 __oc.sim.getState().chefs[1].x >= 6.45
+until 15000 !__oc.sim.getState().pedestrians.some(p => p.x === 6.5 && p.y < 4)
+holduntil ArrowUp 15000 __oc.sim.getState().chefs[1].y <= 1.6
+holduntil ArrowRight 15000 __oc.sim.getState().chefs[1].x >= 11.45
+holduntil ArrowDown 6000 __oc.sim.getState().chefs[1].y >= 3.5
+# P1: chop tomato 1 on the board at (2,5), then into the pot at (2,0)
+holduntil KeyS 5000 __oc.sim.getState().chefs[0].y >= 3.5
+holduntil KeyA 7000 __oc.sim.getState().chefs[0].x <= 2.55
+holduntil KeyD 7000 __oc.sim.getState().chefs[0].x >= 2.45
+holduntil KeyS 5000 __oc.sim.getState().chefs[0].y >= 4.6
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 2.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 2.45
+hold KeyS 250
+eval ['P1 at the board', __oc.sim.getTargetTile(0), 'want', [2,5]]
+hold ShiftLeft 3400
+eval ['chopped?', __oc.sim.itemAt(2,5)]
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 2.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 2.45
+hold KeyS 250
+eval ['P1 lifts the chopped tomato 1', 'target', __oc.sim.getTargetTile(0), 'want', [2,5]]
+tap Space
+wait 250
+eval ['P1 holds', __oc.sim.getState().chefs[0].holding]
+holduntil KeyW 6000 __oc.sim.getState().chefs[0].y <= 1.6
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 2.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 2.45
+hold KeyW 250
+eval ['P1 at the burner with tomato 1', 'target', __oc.sim.getTargetTile(0), 'want', [2,0]]
+tap Space
+wait 250
+eval ['pot (2,0)', __oc.sim.itemAt(2,0)]
+# P1: chop tomato 2 on the board at (4,5), then into the pot at (2,0)
+holduntil KeyS 5000 __oc.sim.getState().chefs[0].y >= 3.5
+holduntil KeyA 7000 __oc.sim.getState().chefs[0].x <= 4.55
+holduntil KeyD 7000 __oc.sim.getState().chefs[0].x >= 4.45
+holduntil KeyS 5000 __oc.sim.getState().chefs[0].y >= 4.6
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 4.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 4.45
+hold KeyS 250
+eval ['P1 at the board', __oc.sim.getTargetTile(0), 'want', [4,5]]
+hold ShiftLeft 3400
+eval ['chopped?', __oc.sim.itemAt(4,5)]
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 4.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 4.45
+hold KeyS 250
+eval ['P1 lifts the chopped tomato 2', 'target', __oc.sim.getTargetTile(0), 'want', [4,5]]
+tap Space
+wait 250
+eval ['P1 holds', __oc.sim.getState().chefs[0].holding]
+holduntil KeyW 6000 __oc.sim.getState().chefs[0].y <= 1.6
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 2.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 2.45
+hold KeyW 250
+eval ['P1 at the burner with tomato 2', 'target', __oc.sim.getTargetTile(0), 'want', [2,0]]
+tap Space
+wait 250
+eval ['pot (2,0)', __oc.sim.itemAt(2,0)]
+# P1: move the spare tomato 3 off the counter at (1,5) onto the board at (2,5)
+holduntil KeyS 5000 __oc.sim.getState().chefs[0].y >= 3.5
+holduntil KeyA 7000 __oc.sim.getState().chefs[0].x <= 1.55
+holduntil KeyD 7000 __oc.sim.getState().chefs[0].x >= 1.45
+holduntil KeyS 5000 __oc.sim.getState().chefs[0].y >= 4.6
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 1.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 1.45
+hold KeyS 250
+eval ['P1 lifts the spare tomato 3', 'target', __oc.sim.getTargetTile(0), 'want', [1,5]]
+tap Space
+wait 250
+holduntil KeyD 5000 __oc.sim.getState().chefs[0].x >= 2.45
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 2.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 2.45
+hold KeyS 250
+eval ['P1 puts tomato 3 on the board', 'target', __oc.sim.getTargetTile(0), 'want', [2,5]]
+tap Space
+wait 250
+# P1: chop tomato 3 on the board at (2,5), then into the pot at (2,0)
+holduntil KeyS 5000 __oc.sim.getState().chefs[0].y >= 3.5
+holduntil KeyA 7000 __oc.sim.getState().chefs[0].x <= 2.55
+holduntil KeyD 7000 __oc.sim.getState().chefs[0].x >= 2.45
+holduntil KeyS 5000 __oc.sim.getState().chefs[0].y >= 4.6
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 2.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 2.45
+hold KeyS 250
+eval ['P1 at the board', __oc.sim.getTargetTile(0), 'want', [2,5]]
+hold ShiftLeft 3400
+eval ['chopped?', __oc.sim.itemAt(2,5)]
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 2.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 2.45
+hold KeyS 250
+eval ['P1 lifts the chopped tomato 3', 'target', __oc.sim.getTargetTile(0), 'want', [2,5]]
+tap Space
+wait 250
+eval ['P1 holds', __oc.sim.getState().chefs[0].holding]
+holduntil KeyW 6000 __oc.sim.getState().chefs[0].y <= 1.6
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 2.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 2.45
+hold KeyW 250
+eval ['P1 at the burner with tomato 3', 'target', __oc.sim.getTargetTile(0), 'want', [2,0]]
+tap Space
+wait 250
+eval ['pot (2,0)', __oc.sim.itemAt(2,0)]
+# P1: plate the tomato soup off the burner at (2,0) and serve it at (15,1)
+holduntil KeyS 5000 __oc.sim.getState().chefs[0].y >= 2.5
+holduntil KeyD 6000 __oc.sim.getState().chefs[0].x >= 4.45
+holduntil KeyW 900 __oc.sim.getState().chefs[0].y <= 2.55
+holduntil KeyS 900 __oc.sim.getState().chefs[0].y >= 2.45
+hold KeyD 250
+eval ['P1 at the plate counter', 'target', __oc.sim.getTargetTile(0), 'want', [5,2]]
+tap Space
+wait 250
+eval ['P1 has a plate', __oc.sim.getState().chefs[0].holding]
+holduntil KeyA 6000 __oc.sim.getState().chefs[0].x <= 2.55
+until 25000 __oc.sim.itemAt(2,0)?.state === 'cooked'
+eval ['pot before pouring', __oc.sim.itemAt(2,0), 'fires', __oc.sim.getState().fires]
+holduntil KeyW 5000 __oc.sim.getState().chefs[0].y <= 1.6
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 2.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 2.45
+hold KeyW 250
+eval ['P1 pours the pot into the plate', 'target', __oc.sim.getTargetTile(0), 'want', [2,0]]
+tap Space
+wait 250
+eval ['P1 has the tomato soup', __oc.sim.getState().chefs[0].holding]
+shot 31-1-2-tomato-plated.png
+# carry it across the crossing to the serving hatch
+holduntil KeyS 5000 __oc.sim.getState().chefs[0].y >= 3.5
+holduntil KeyD 9000 __oc.sim.getState().chefs[0].x >= 6.45
+until 15000 !__oc.sim.getState().pedestrians.some(p => p.x === 6.5 && p.y < 4)
+holduntil KeyW 15000 __oc.sim.getState().chefs[0].y <= 1.6
+holduntil KeyD 15000 __oc.sim.getState().chefs[0].x >= 14.45
+eval ['orders', __oc.sim.getState().orders.map(o => [o.recipeId, Math.round(o.timeLeft)])]
+holduntil KeyW 900 __oc.sim.getState().chefs[0].y <= 1.55
+holduntil KeyS 900 __oc.sim.getState().chefs[0].y >= 1.45
+hold KeyD 250
+eval ['P1 at the serving hatch', 'target', __oc.sim.getTargetTile(0), 'want', [15,1]]
+tap Space
+wait 250
+eval ['SERVE 1 tomato soup', 'score', __oc.sim.getState().score, 'served', __oc.sim.getState().servedCount, 'failed', __oc.sim.getState().failedCount, 'elapsed', Math.round(__oc.sim.getState().elapsed), 'timeLeft', Math.round(__oc.sim.getState().timeLeft), 'stars', __oc.sim.getState().stars]
+shot 31-1-2-after-serve-1.png
+# P1 walks back to the left half: row 3 is walled off at (9,3), so the only way
+# home is back along row 1 and down the crossing.
+holduntil KeyA 15000 __oc.sim.getState().chefs[0].x <= 6.55
+until 15000 !__oc.sim.getState().pedestrians.some(p => p.x === 6.5 && p.y < 4)
+holduntil KeyS 15000 __oc.sim.getState().chefs[0].y >= 3.5
+holduntil KeyA 9000 __oc.sim.getState().chefs[0].x <= 4.55
+# The script drives one chef at a time, so it is far slower than two humans playing.
+# Top the clock back up so the second recipe still gets exercised. The elapsed readings
+# either side of this line are what the tuning notes in docs/LEVELS.md use.
+eval (__oc.sim.getState().timeLeft = 240, 'clock topped up')
+eval ['onion soup starts at elapsed', Math.round(__oc.sim.getState().elapsed)]
+# P2: onion 1 - crate (12,5) across the crossing to (2,5)
+# re-home first: whatever happened last time, get back to the right half
+holduntil ArrowRight 9000 __oc.sim.getState().chefs[1].x >= 6.45
+until 15000 !__oc.sim.getState().pedestrians.some(p => p.x === 6.5 && p.y < 4)
+holduntil ArrowUp 15000 __oc.sim.getState().chefs[1].y <= 1.6
+holduntil ArrowRight 15000 __oc.sim.getState().chefs[1].x >= 11.45
+holduntil ArrowRight 5000 __oc.sim.getState().chefs[1].x >= 12.45
+holduntil ArrowDown 5000 __oc.sim.getState().chefs[1].y >= 4.5
+holduntil ArrowLeft 900 __oc.sim.getState().chefs[1].x <= 12.55
+holduntil ArrowRight 900 __oc.sim.getState().chefs[1].x >= 12.45
+hold ArrowDown 250
+eval ['P2 at the crate for onion 1', 'target', __oc.sim.getTargetTile(1), 'want', [12,5]]
+tap Enter
+wait 250
+eval ['P2 holds', __oc.sim.getState().chefs[1].holding?.type]
+holduntil ArrowUp 8000 __oc.sim.getState().chefs[1].y <= 1.6
+holduntil ArrowLeft 15000 __oc.sim.getState().chefs[1].x <= 6.55
+until 15000 !__oc.sim.getState().pedestrians.some(p => p.x === 6.5 && p.y < 4)
+holduntil ArrowDown 15000 __oc.sim.getState().chefs[1].y >= 3.5
+holduntil ArrowLeft 9000 __oc.sim.getState().chefs[1].x <= 2.55
+holduntil ArrowDown 5000 __oc.sim.getState().chefs[1].y >= 4.6
+holduntil ArrowLeft 900 __oc.sim.getState().chefs[1].x <= 2.55
+holduntil ArrowRight 900 __oc.sim.getState().chefs[1].x >= 2.45
+hold ArrowDown 250
+eval ['P2 drops onion 1', 'target', __oc.sim.getTargetTile(1), 'want', [2,5]]
+tap Enter
+wait 250
+eval ['onion 1 landed', __oc.sim.itemAt(2,5)]
+# P2 walks back to the right half
+holduntil ArrowUp 5000 __oc.sim.getState().chefs[1].y <= 3.55
+holduntil ArrowRight 9000 __oc.sim.getState().chefs[1].x >= 6.45
+until 15000 !__oc.sim.getState().pedestrians.some(p => p.x === 6.5 && p.y < 4)
+holduntil ArrowUp 15000 __oc.sim.getState().chefs[1].y <= 1.6
+holduntil ArrowRight 15000 __oc.sim.getState().chefs[1].x >= 11.45
+holduntil ArrowDown 6000 __oc.sim.getState().chefs[1].y >= 3.5
+# P2: onion 2 - crate (12,5) across the crossing to (4,5)
+# re-home first: whatever happened last time, get back to the right half
+holduntil ArrowRight 9000 __oc.sim.getState().chefs[1].x >= 6.45
+until 15000 !__oc.sim.getState().pedestrians.some(p => p.x === 6.5 && p.y < 4)
+holduntil ArrowUp 15000 __oc.sim.getState().chefs[1].y <= 1.6
+holduntil ArrowRight 15000 __oc.sim.getState().chefs[1].x >= 11.45
+holduntil ArrowRight 5000 __oc.sim.getState().chefs[1].x >= 12.45
+holduntil ArrowDown 5000 __oc.sim.getState().chefs[1].y >= 4.5
+holduntil ArrowLeft 900 __oc.sim.getState().chefs[1].x <= 12.55
+holduntil ArrowRight 900 __oc.sim.getState().chefs[1].x >= 12.45
+hold ArrowDown 250
+eval ['P2 at the crate for onion 2', 'target', __oc.sim.getTargetTile(1), 'want', [12,5]]
+tap Enter
+wait 250
+eval ['P2 holds', __oc.sim.getState().chefs[1].holding?.type]
+holduntil ArrowUp 8000 __oc.sim.getState().chefs[1].y <= 1.6
+holduntil ArrowLeft 15000 __oc.sim.getState().chefs[1].x <= 6.55
+until 15000 !__oc.sim.getState().pedestrians.some(p => p.x === 6.5 && p.y < 4)
+holduntil ArrowDown 15000 __oc.sim.getState().chefs[1].y >= 3.5
+holduntil ArrowLeft 9000 __oc.sim.getState().chefs[1].x <= 4.55
+holduntil ArrowDown 5000 __oc.sim.getState().chefs[1].y >= 4.6
+holduntil ArrowLeft 900 __oc.sim.getState().chefs[1].x <= 4.55
+holduntil ArrowRight 900 __oc.sim.getState().chefs[1].x >= 4.45
+hold ArrowDown 250
+eval ['P2 drops onion 2', 'target', __oc.sim.getTargetTile(1), 'want', [4,5]]
+tap Enter
+wait 250
+eval ['onion 2 landed', __oc.sim.itemAt(4,5)]
+# P2 walks back to the right half
+holduntil ArrowUp 5000 __oc.sim.getState().chefs[1].y <= 3.55
+holduntil ArrowRight 9000 __oc.sim.getState().chefs[1].x >= 6.45
+until 15000 !__oc.sim.getState().pedestrians.some(p => p.x === 6.5 && p.y < 4)
+holduntil ArrowUp 15000 __oc.sim.getState().chefs[1].y <= 1.6
+holduntil ArrowRight 15000 __oc.sim.getState().chefs[1].x >= 11.45
+holduntil ArrowDown 6000 __oc.sim.getState().chefs[1].y >= 3.5
+# P2: onion 3 - crate (12,5) across the crossing to (1,5)
+# re-home first: whatever happened last time, get back to the right half
+holduntil ArrowRight 9000 __oc.sim.getState().chefs[1].x >= 6.45
+until 15000 !__oc.sim.getState().pedestrians.some(p => p.x === 6.5 && p.y < 4)
+holduntil ArrowUp 15000 __oc.sim.getState().chefs[1].y <= 1.6
+holduntil ArrowRight 15000 __oc.sim.getState().chefs[1].x >= 11.45
+holduntil ArrowRight 5000 __oc.sim.getState().chefs[1].x >= 12.45
+holduntil ArrowDown 5000 __oc.sim.getState().chefs[1].y >= 4.5
+holduntil ArrowLeft 900 __oc.sim.getState().chefs[1].x <= 12.55
+holduntil ArrowRight 900 __oc.sim.getState().chefs[1].x >= 12.45
+hold ArrowDown 250
+eval ['P2 at the crate for onion 3', 'target', __oc.sim.getTargetTile(1), 'want', [12,5]]
+tap Enter
+wait 250
+eval ['P2 holds', __oc.sim.getState().chefs[1].holding?.type]
+holduntil ArrowUp 8000 __oc.sim.getState().chefs[1].y <= 1.6
+holduntil ArrowLeft 15000 __oc.sim.getState().chefs[1].x <= 6.55
+until 15000 !__oc.sim.getState().pedestrians.some(p => p.x === 6.5 && p.y < 4)
+holduntil ArrowDown 15000 __oc.sim.getState().chefs[1].y >= 3.5
+holduntil ArrowLeft 9000 __oc.sim.getState().chefs[1].x <= 1.55
+holduntil ArrowDown 5000 __oc.sim.getState().chefs[1].y >= 4.6
+holduntil ArrowLeft 900 __oc.sim.getState().chefs[1].x <= 1.55
+holduntil ArrowRight 900 __oc.sim.getState().chefs[1].x >= 1.45
+hold ArrowDown 250
+eval ['P2 drops onion 3', 'target', __oc.sim.getTargetTile(1), 'want', [1,5]]
+tap Enter
+wait 250
+eval ['onion 3 landed', __oc.sim.itemAt(1,5)]
+# P2 walks back to the right half
+holduntil ArrowUp 5000 __oc.sim.getState().chefs[1].y <= 3.55
+holduntil ArrowRight 9000 __oc.sim.getState().chefs[1].x >= 6.45
+until 15000 !__oc.sim.getState().pedestrians.some(p => p.x === 6.5 && p.y < 4)
+holduntil ArrowUp 15000 __oc.sim.getState().chefs[1].y <= 1.6
+holduntil ArrowRight 15000 __oc.sim.getState().chefs[1].x >= 11.45
+holduntil ArrowDown 6000 __oc.sim.getState().chefs[1].y >= 3.5
+# P2: carry the second clean plate from (9,2) over to the left half
+holduntil ArrowRight 9000 __oc.sim.getState().chefs[1].x >= 6.45
+until 15000 !__oc.sim.getState().pedestrians.some(p => p.x === 6.5 && p.y < 4)
+holduntil ArrowUp 15000 __oc.sim.getState().chefs[1].y <= 1.6
+holduntil ArrowRight 15000 __oc.sim.getState().chefs[1].x >= 10.45
+holduntil ArrowDown 5000 __oc.sim.getState().chefs[1].y >= 2.45
+holduntil ArrowUp 900 __oc.sim.getState().chefs[1].y <= 2.55
+holduntil ArrowDown 900 __oc.sim.getState().chefs[1].y >= 2.45
+hold ArrowLeft 250
+eval ['P2 at the plate counter', 'target', __oc.sim.getTargetTile(1), 'want', [9,2]]
+tap Enter
+wait 250
+eval ['P2 holds the plate', __oc.sim.getState().chefs[1].holding]
+holduntil ArrowUp 8000 __oc.sim.getState().chefs[1].y <= 1.6
+holduntil ArrowLeft 15000 __oc.sim.getState().chefs[1].x <= 6.55
+until 15000 !__oc.sim.getState().pedestrians.some(p => p.x === 6.5 && p.y < 4)
+holduntil ArrowDown 15000 __oc.sim.getState().chefs[1].y >= 3.5
+holduntil ArrowLeft 9000 __oc.sim.getState().chefs[1].x <= 3.55
+holduntil ArrowDown 5000 __oc.sim.getState().chefs[1].y >= 4.6
+holduntil ArrowLeft 900 __oc.sim.getState().chefs[1].x <= 3.55
+holduntil ArrowRight 900 __oc.sim.getState().chefs[1].x >= 3.45
+hold ArrowDown 250
+eval ['P2 drops the plate', 'target', __oc.sim.getTargetTile(1), 'want', [3,5]]
+tap Enter
+wait 250
+eval ['plate waiting on (3,5)', __oc.sim.itemAt(3,5)]
+holduntil ArrowUp 5000 __oc.sim.getState().chefs[1].y <= 3.55
+holduntil ArrowRight 9000 __oc.sim.getState().chefs[1].x >= 6.45
+until 15000 !__oc.sim.getState().pedestrians.some(p => p.x === 6.5 && p.y < 4)
+holduntil ArrowUp 15000 __oc.sim.getState().chefs[1].y <= 1.6
+holduntil ArrowRight 15000 __oc.sim.getState().chefs[1].x >= 11.45
+holduntil ArrowDown 6000 __oc.sim.getState().chefs[1].y >= 3.5
+# P1: chop onion 1 on the board at (2,5), then into the pot at (4,0)
+holduntil KeyS 5000 __oc.sim.getState().chefs[0].y >= 3.5
+holduntil KeyA 7000 __oc.sim.getState().chefs[0].x <= 2.55
+holduntil KeyD 7000 __oc.sim.getState().chefs[0].x >= 2.45
+holduntil KeyS 5000 __oc.sim.getState().chefs[0].y >= 4.6
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 2.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 2.45
+hold KeyS 250
+eval ['P1 at the board', __oc.sim.getTargetTile(0), 'want', [2,5]]
+hold ShiftLeft 3400
+eval ['chopped?', __oc.sim.itemAt(2,5)]
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 2.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 2.45
+hold KeyS 250
+eval ['P1 lifts the chopped onion 1', 'target', __oc.sim.getTargetTile(0), 'want', [2,5]]
+tap Space
+wait 250
+eval ['P1 holds', __oc.sim.getState().chefs[0].holding]
+holduntil KeyW 6000 __oc.sim.getState().chefs[0].y <= 1.6
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 4.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 4.45
+hold KeyW 250
+eval ['P1 at the burner with onion 1', 'target', __oc.sim.getTargetTile(0), 'want', [4,0]]
+tap Space
+wait 250
+eval ['pot (4,0)', __oc.sim.itemAt(4,0)]
+# P1: chop onion 2 on the board at (4,5), then into the pot at (4,0)
+holduntil KeyS 5000 __oc.sim.getState().chefs[0].y >= 3.5
+holduntil KeyA 7000 __oc.sim.getState().chefs[0].x <= 4.55
+holduntil KeyD 7000 __oc.sim.getState().chefs[0].x >= 4.45
+holduntil KeyS 5000 __oc.sim.getState().chefs[0].y >= 4.6
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 4.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 4.45
+hold KeyS 250
+eval ['P1 at the board', __oc.sim.getTargetTile(0), 'want', [4,5]]
+hold ShiftLeft 3400
+eval ['chopped?', __oc.sim.itemAt(4,5)]
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 4.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 4.45
+hold KeyS 250
+eval ['P1 lifts the chopped onion 2', 'target', __oc.sim.getTargetTile(0), 'want', [4,5]]
+tap Space
+wait 250
+eval ['P1 holds', __oc.sim.getState().chefs[0].holding]
+holduntil KeyW 6000 __oc.sim.getState().chefs[0].y <= 1.6
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 4.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 4.45
+hold KeyW 250
+eval ['P1 at the burner with onion 2', 'target', __oc.sim.getTargetTile(0), 'want', [4,0]]
+tap Space
+wait 250
+eval ['pot (4,0)', __oc.sim.itemAt(4,0)]
+# P1: move the spare onion 3 off the counter at (1,5) onto the board at (2,5)
+holduntil KeyS 5000 __oc.sim.getState().chefs[0].y >= 3.5
+holduntil KeyA 7000 __oc.sim.getState().chefs[0].x <= 1.55
+holduntil KeyD 7000 __oc.sim.getState().chefs[0].x >= 1.45
+holduntil KeyS 5000 __oc.sim.getState().chefs[0].y >= 4.6
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 1.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 1.45
+hold KeyS 250
+eval ['P1 lifts the spare onion 3', 'target', __oc.sim.getTargetTile(0), 'want', [1,5]]
+tap Space
+wait 250
+holduntil KeyD 5000 __oc.sim.getState().chefs[0].x >= 2.45
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 2.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 2.45
+hold KeyS 250
+eval ['P1 puts onion 3 on the board', 'target', __oc.sim.getTargetTile(0), 'want', [2,5]]
+tap Space
+wait 250
+# P1: chop onion 3 on the board at (2,5), then into the pot at (4,0)
+holduntil KeyS 5000 __oc.sim.getState().chefs[0].y >= 3.5
+holduntil KeyA 7000 __oc.sim.getState().chefs[0].x <= 2.55
+holduntil KeyD 7000 __oc.sim.getState().chefs[0].x >= 2.45
+holduntil KeyS 5000 __oc.sim.getState().chefs[0].y >= 4.6
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 2.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 2.45
+hold KeyS 250
+eval ['P1 at the board', __oc.sim.getTargetTile(0), 'want', [2,5]]
+hold ShiftLeft 3400
+eval ['chopped?', __oc.sim.itemAt(2,5)]
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 2.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 2.45
+hold KeyS 250
+eval ['P1 lifts the chopped onion 3', 'target', __oc.sim.getTargetTile(0), 'want', [2,5]]
+tap Space
+wait 250
+eval ['P1 holds', __oc.sim.getState().chefs[0].holding]
+holduntil KeyW 6000 __oc.sim.getState().chefs[0].y <= 1.6
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 4.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 4.45
+hold KeyW 250
+eval ['P1 at the burner with onion 3', 'target', __oc.sim.getTargetTile(0), 'want', [4,0]]
+tap Space
+wait 250
+eval ['pot (4,0)', __oc.sim.itemAt(4,0)]
+# P1: plate the onion soup off the burner at (4,0) and serve it at (15,1)
+holduntil KeyS 5000 __oc.sim.getState().chefs[0].y >= 3.5
+holduntil KeyA 7000 __oc.sim.getState().chefs[0].x <= 3.55
+holduntil KeyD 7000 __oc.sim.getState().chefs[0].x >= 3.45
+holduntil KeyS 5000 __oc.sim.getState().chefs[0].y >= 4.6
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 3.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 3.45
+hold KeyS 250
+eval ['P1 at the plate counter', 'target', __oc.sim.getTargetTile(0), 'want', [3,5]]
+tap Space
+wait 250
+eval ['P1 has a plate', __oc.sim.getState().chefs[0].holding]
+holduntil KeyA 6000 __oc.sim.getState().chefs[0].x <= 4.55
+until 25000 __oc.sim.itemAt(4,0)?.state === 'cooked'
+eval ['pot before pouring', __oc.sim.itemAt(4,0), 'fires', __oc.sim.getState().fires]
+holduntil KeyW 5000 __oc.sim.getState().chefs[0].y <= 1.6
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 4.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 4.45
+hold KeyW 250
+eval ['P1 pours the pot into the plate', 'target', __oc.sim.getTargetTile(0), 'want', [4,0]]
+tap Space
+wait 250
+eval ['P1 has the onion soup', __oc.sim.getState().chefs[0].holding]
+shot 32-1-2-onion-plated.png
+# carry it across the crossing to the serving hatch
+holduntil KeyS 5000 __oc.sim.getState().chefs[0].y >= 3.5
+holduntil KeyD 9000 __oc.sim.getState().chefs[0].x >= 6.45
+until 15000 !__oc.sim.getState().pedestrians.some(p => p.x === 6.5 && p.y < 4)
+holduntil KeyW 15000 __oc.sim.getState().chefs[0].y <= 1.6
+holduntil KeyD 15000 __oc.sim.getState().chefs[0].x >= 14.45
+eval ['orders', __oc.sim.getState().orders.map(o => [o.recipeId, Math.round(o.timeLeft)])]
+holduntil KeyW 900 __oc.sim.getState().chefs[0].y <= 1.55
+holduntil KeyS 900 __oc.sim.getState().chefs[0].y >= 1.45
+hold KeyD 250
+eval ['P1 at the serving hatch', 'target', __oc.sim.getTargetTile(0), 'want', [15,1]]
+tap Space
+wait 250
+eval ['SERVE 2 onion soup', 'score', __oc.sim.getState().score, 'served', __oc.sim.getState().servedCount, 'failed', __oc.sim.getState().failedCount, 'elapsed', Math.round(__oc.sim.getState().elapsed), 'timeLeft', Math.round(__oc.sim.getState().timeLeft), 'stars', __oc.sim.getState().stars]
+shot 32-1-2-after-serve-2.png
+# P1 walks back to the left half: row 3 is walled off at (9,3), so the only way
+# home is back along row 1 and down the crossing.
+holduntil KeyA 15000 __oc.sim.getState().chefs[0].x <= 6.55
+until 15000 !__oc.sim.getState().pedestrians.some(p => p.x === 6.5 && p.y < 4)
+holduntil KeyS 15000 __oc.sim.getState().chefs[0].y >= 3.5
+holduntil KeyA 9000 __oc.sim.getState().chefs[0].x <= 4.55
+eval ['both burners', __oc.sim.itemAt(2,0), __oc.sim.itemAt(4,0)]
+eval ['invariants', JSON.parse(JSON.stringify(__mon))]
+logs
+errors

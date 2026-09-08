@@ -1,0 +1,24 @@
+# -- Level JSON hot reload while 1-1 is running -----------------------------------
+# Drive this one from a shell that edits src/levels/oc1/1-1.json while the script waits:
+#
+#   node tools/playtest.mjs --url http://localhost:5175/ --out playtest-shots \
+#        --file tools/playtests/08-level-hot-reload.txt > /tmp/hmr.log 2>&1 &
+#   sleep 8
+#   sed -i 's/"timeLimitSec": 150/"timeLimitSec": 137/' src/levels/oc1/1-1.json
+#   wait
+#   sed -i 's/"timeLimitSec": 137/"timeLimitSec": 150/' src/levels/oc1/1-1.json
+#
+# window.__hmrSentinel proves the page itself was never reloaded: a full reload would
+# clear it, an HMR update keeps it.
+wait 1600
+tap Enter
+wait 1200
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.sim
+eval ['level', __oc.level.id, 'timeLimitSec', __oc.level.timeLimitSec]
+eval (window.__hmrSentinel = 'alive', 'sentinel set on window')
+shot 80-before-hot-reload.png
+until 40000 __oc.level.timeLimitSec !== 150
+eval ['after the edit', 'level', __oc.level.id, 'timeLimitSec', __oc.level.timeLimitSec, 'sentinel', window.__hmrSentinel, 'phase', __oc.sim.getState().phase, 'timeLeft', Math.round(__oc.sim.getState().timeLeft), 'chefs', __oc.sim.getState().chefs.length]
+shot 81-after-hot-reload.png
+logs
+errors

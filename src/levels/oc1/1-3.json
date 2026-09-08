@@ -9,7 +9,7 @@
   "timeLimitSec": 240,
   "timerStartsOnFirstServe": false,
   "recipes": ["onion_soup", "tomato_soup", "mushroom_soup"],
-  "orders": { "initial": 2, "intervalSec": 16, "max": 5, "timeSec": 75 },
+  "orders": { "initial": 2, "intervalSec": 20, "max": 4, "timeSec": 85 },
   "stars": { "1": [30, 60, 100], "2": [60, 120, 200] },
   "plates": { "mode": "stack", "count": 3 },
   "grid": [

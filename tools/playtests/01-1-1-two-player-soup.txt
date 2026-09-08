@@ -1,0 +1,223 @@
+# ── 1-1 Treacle Town: full two-player onion soup loop ────────────────────────
+# P2 (arrows) works the bottom half: chopping boards, plates, serving hatch.
+# P1 (WASD) works the top half: onion crate, pot, sink.
+# They hand items over the row-3 counter: (3,3) for onions, (8,3) for plates.
+# Checks: two serves, score, tip on the second in-order serve, dirty plate return, washing.
+wait 1200
+tap Enter
+wait 900
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.sim
+eval ['level', __oc.level.id, __oc.sim.getState().phase]
+
+# ── onion 1 ─────────────────────────────────────────────────────────────────
+# P1: crate (3,0) -> pass counter (3,3)
+holduntil KeyA 5000 __oc.sim.getState().chefs[0].x <= 3.55
+hold KeyW 500
+tap Space
+hold KeyS 700
+tap Space
+eval ['raw onion on (3,3)', __oc.sim.itemAt(3,3)]
+# P2: walk round the divider to the pass counter
+holduntil ArrowRight 5000 __oc.sim.getState().chefs[1].x >= 10.45
+holduntil ArrowDown 6000 __oc.sim.getState().chefs[1].y >= 4.5
+holduntil ArrowLeft 6000 __oc.sim.getState().chefs[1].x <= 3.55
+hold ArrowUp 500
+tap Enter
+hold ArrowDown 900
+tap Enter
+hold ShiftRight 3400
+tap Enter
+hold ArrowUp 900
+tap Enter
+eval ['chopped onion on (3,3)', __oc.sim.itemAt(3,3)]
+# P1: pass counter -> pot (8,0)
+tap Space
+holduntil KeyD 5000 __oc.sim.getState().chefs[0].x >= 8.45
+hold KeyW 600
+tap Space
+eval ['pot', __oc.sim.itemAt(8,0)]
+
+# ── onion 2 ─────────────────────────────────────────────────────────────────
+holduntil KeyA 5000 __oc.sim.getState().chefs[0].x <= 3.55
+hold KeyW 500
+tap Space
+hold KeyS 700
+tap Space
+hold ArrowUp 500
+tap Enter
+hold ArrowDown 900
+tap Enter
+hold ShiftRight 3400
+tap Enter
+hold ArrowUp 900
+tap Enter
+tap Space
+holduntil KeyD 5000 __oc.sim.getState().chefs[0].x >= 8.45
+hold KeyW 600
+tap Space
+eval ['pot', __oc.sim.itemAt(8,0)]
+
+# ── onion 3 ─────────────────────────────────────────────────────────────────
+holduntil KeyA 5000 __oc.sim.getState().chefs[0].x <= 3.55
+hold KeyW 500
+tap Space
+hold KeyS 700
+tap Space
+hold ArrowUp 500
+tap Enter
+hold ArrowDown 900
+tap Enter
+hold ShiftRight 3400
+tap Enter
+hold ArrowUp 900
+tap Enter
+tap Space
+holduntil KeyD 5000 __oc.sim.getState().chefs[0].x >= 8.45
+hold KeyW 600
+tap Space
+eval ['pot full', __oc.sim.itemAt(8,0)]
+
+# ── plate 1: P2 fetches the clean plate on (9,7) and parks it on (8,3) ───────
+holduntil ArrowDown 4000 __oc.sim.getState().chefs[1].y >= 6.6
+holduntil ArrowRight 6000 __oc.sim.getState().chefs[1].x >= 9.45
+hold ArrowDown 300
+tap Enter
+eval ['P2 holds', __oc.sim.getState().chefs[1].holding]
+holduntil ArrowLeft 4000 __oc.sim.getState().chefs[1].x <= 8.55
+hold ArrowUp 900
+tap Enter
+eval ['plate on (8,3)', __oc.sim.itemAt(8,3)]
+
+# ── serve 1 ─────────────────────────────────────────────────────────────────
+until 20000 __oc.sim.itemAt(8,0)?.state === 'cooked'
+eval ['pot state', __oc.sim.itemAt(8,0)]
+hold KeyS 700
+tap Space
+hold KeyW 600
+tap Space
+eval ['P1 holds soup', __oc.sim.getState().chefs[0].holding]
+hold KeyS 700
+tap Space
+tap Enter
+eval ['P2 holds soup', __oc.sim.getState().chefs[1].holding]
+holduntil ArrowDown 4000 __oc.sim.getState().chefs[1].y >= 5.5
+holduntil ArrowLeft 6000 __oc.sim.getState().chefs[1].x <= 1.35
+tap Enter
+wait 400
+eval ['after serve 1', 'score', __oc.sim.getState().score, 'served', __oc.sim.getState().servedCount, 'phase', __oc.sim.getState().phase, 'timerRunning', __oc.sim.getState().timerRunning, 'streak', __oc.sim.getState().tipStreak, 'timeLeft', Math.round(__oc.sim.getState().timeLeft)]
+shot 11-after-serve-1.png
+
+# ── soup 2 ──────────────────────────────────────────────────────────────────
+# P2 walks back to the pass counter
+holduntil ArrowRight 4000 __oc.sim.getState().chefs[1].x >= 3.45
+holduntil ArrowUp 4000 __oc.sim.getState().chefs[1].y <= 4.4
+# onion 1
+holduntil KeyA 5000 __oc.sim.getState().chefs[0].x <= 3.55
+hold KeyW 500
+tap Space
+hold KeyS 700
+tap Space
+hold ArrowUp 500
+tap Enter
+hold ArrowDown 900
+tap Enter
+hold ShiftRight 3400
+tap Enter
+hold ArrowUp 900
+tap Enter
+tap Space
+holduntil KeyD 5000 __oc.sim.getState().chefs[0].x >= 8.45
+hold KeyW 600
+tap Space
+# onion 2
+holduntil KeyA 5000 __oc.sim.getState().chefs[0].x <= 3.55
+hold KeyW 500
+tap Space
+hold KeyS 700
+tap Space
+hold ArrowUp 500
+tap Enter
+hold ArrowDown 900
+tap Enter
+hold ShiftRight 3400
+tap Enter
+hold ArrowUp 900
+tap Enter
+tap Space
+holduntil KeyD 5000 __oc.sim.getState().chefs[0].x >= 8.45
+hold KeyW 600
+tap Space
+# onion 3
+holduntil KeyA 5000 __oc.sim.getState().chefs[0].x <= 3.55
+hold KeyW 500
+tap Space
+hold KeyS 700
+tap Space
+hold ArrowUp 500
+tap Enter
+hold ArrowDown 900
+tap Enter
+hold ShiftRight 3400
+tap Enter
+hold ArrowUp 900
+tap Enter
+tap Space
+holduntil KeyD 5000 __oc.sim.getState().chefs[0].x >= 8.45
+hold KeyW 600
+tap Space
+eval ['pot full again', __oc.sim.itemAt(8,0)]
+# plate 2 off (10,7)
+holduntil ArrowDown 4000 __oc.sim.getState().chefs[1].y >= 6.6
+holduntil ArrowRight 6000 __oc.sim.getState().chefs[1].x >= 10.45
+hold ArrowDown 300
+tap Enter
+eval ['P2 holds', __oc.sim.getState().chefs[1].holding]
+holduntil ArrowLeft 4000 __oc.sim.getState().chefs[1].x <= 8.55
+hold ArrowUp 900
+tap Enter
+eval ['plate on (8,3)', __oc.sim.itemAt(8,3)]
+until 20000 __oc.sim.itemAt(8,0)?.state === 'cooked'
+hold KeyS 700
+tap Space
+hold KeyW 600
+tap Space
+hold KeyS 700
+tap Space
+tap Enter
+eval ['orders waiting', __oc.sim.getState().orders.map(o => [o.recipeId, Math.round(o.timeLeft)])]
+holduntil ArrowDown 4000 __oc.sim.getState().chefs[1].y >= 5.5
+holduntil ArrowLeft 6000 __oc.sim.getState().chefs[1].x <= 1.35
+tap Enter
+wait 400
+eval ['after serve 2', 'score', __oc.sim.getState().score, 'served', __oc.sim.getState().servedCount, 'failed', __oc.sim.getState().failedCount, 'streak', __oc.sim.getState().tipStreak, 'stars', __oc.sim.getState().stars, 'timeLeft', Math.round(__oc.sim.getState().timeLeft)]
+shot 12-after-serve-2.png
+
+# ── dirty plates and the sink ───────────────────────────────────────────────
+until 12000 __oc.sim.itemAt(0,4) !== null
+eval ['plate return', __oc.sim.itemAt(0,4), 'pending', __oc.sim.getState().pendingPlateReturns.map(v => Math.round(v))]
+holduntil ArrowUp 4000 __oc.sim.getState().chefs[1].y <= 4.55
+hold ArrowLeft 300
+tap Enter
+eval ['P2 holds dirty', __oc.sim.getState().chefs[1].holding]
+holduntil ArrowRight 4000 __oc.sim.getState().chefs[1].x >= 5.45
+hold ArrowUp 500
+tap Enter
+eval ['dirty on (5,3)', __oc.sim.itemAt(5,3)]
+holduntil KeyA 6000 __oc.sim.getState().chefs[0].x <= 5.55
+hold KeyS 700
+tap Space
+eval ['P1 holds dirty', __oc.sim.getState().chefs[0].holding]
+holduntil KeyD 6000 __oc.sim.getState().chefs[0].x >= 11.45
+hold KeyD 300
+tap Space
+eval ['dirty on sink (12,2)', __oc.sim.itemAt(12,2)]
+hold ShiftLeft 2600
+eval ['sink', __oc.sim.itemAt(12,2), 'drying rack', __oc.sim.itemAt(12,3)]
+holduntil KeyS 3000 __oc.sim.getState().chefs[0].y >= 3.5
+hold KeyD 300
+tap Space
+eval ['P1 holds clean plate', __oc.sim.getState().chefs[0].holding]
+shot 13-after-wash.png
+eval ['final', 'score', __oc.sim.getState().score, 'served', __oc.sim.getState().servedCount, 'failed', __oc.sim.getState().failedCount, 'stars', __oc.sim.getState().stars, 'timeLeft', Math.round(__oc.sim.getState().timeLeft), 'elapsed', Math.round(__oc.sim.getState().elapsed)]
+logs
+errors

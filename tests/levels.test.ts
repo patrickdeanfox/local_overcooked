@@ -355,3 +355,32 @@ describe('oc1-1-3', () => {
     expect((l.dynamics ?? []).some((d) => d.type === 'pedestrians')).toBe(false);
   });
 });
+
+// ─── Order tuning ───────────────────────────────────────────────────────────
+// The numbers the QA playtest settled on. The reasoning, the measured seconds per soup
+// they came from and the star arithmetic are in docs/LEVELS.md. They are asserted
+// exactly so that changing them stays a deliberate act.
+
+describe('order tuning', () => {
+  const expected: Record<string, { initial: number; intervalSec: number; max: number; timeSec: number }> = {
+    'oc1-1-1': { initial: 2, intervalSec: 18, max: 4, timeSec: 60 },
+    'oc1-1-2': { initial: 2, intervalSec: 26, max: 4, timeSec: 90 },
+    'oc1-1-3': { initial: 2, intervalSec: 20, max: 4, timeSec: 85 },
+  };
+
+  for (const [id, orders] of Object.entries(expected)) {
+    it(`${id} keeps its playtested order settings`, () => {
+      expect(level(id).orders).toEqual(orders);
+    });
+  }
+
+  for (const l of Object.values(LEVELS)) {
+    it(`${l.id} leaves a ticket up long enough to be cooked`, () => {
+      // A ticket has to outlive more than one arrival interval, or the queue fills with
+      // orders that expire before anyone can reach the pot.
+      expect(l.orders.timeSec).toBeGreaterThan((3 * l.orders.intervalSec) / 2);
+      expect(l.orders.initial).toBeGreaterThan(0);
+      expect(l.orders.initial).toBeLessThanOrEqual(l.orders.max);
+    });
+  }
+});

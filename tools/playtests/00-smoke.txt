@@ -1,0 +1,13 @@
+# Smoke: boot, title menu, start 1-1 with two players, look at the kitchen.
+wait 1200
+shot 00-title.png
+eval document.querySelector('canvas') !== null
+tap Enter
+wait 900
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.sim
+eval __oc ? [__oc.level.id, __oc.sim.getState().phase, __oc.sim.getState().chefs.length] : 'no __oc'
+shot 01-level-1-1.png
+eval __oc.sim.getState().chefs.map(c => [c.x, c.y, c.facing])
+eval __oc.sim.getState().orders.map(o => [o.recipeId, Math.round(o.timeLeft)])
+logs
+errors

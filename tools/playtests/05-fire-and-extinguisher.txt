@@ -1,0 +1,161 @@
+# -- Fire: burn a pot on 1-3, let the fire spread, put it out, reuse the pot ------
+# Run on 1-3 because its fire extinguisher at (11,0) is reachable (1-1's is not - see
+# docs/LEVELS.md). P2 (arrows) fetches two mushrooms and then the extinguisher, P1 (WASD)
+# chops and cooks. One chopped mushroom is enough to start the cook clock: the pot reaches
+# 'cooked' after COOK_TIME and catches fire BURN_TIME later.
+# NOTE: leave >=200 ms between two taps of the same key or the input manager sees one hold.
+wait 1600
+tap ArrowDown
+wait 500
+tap ArrowDown
+wait 500
+tap Enter
+wait 1200
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.sim
+eval ['level', __oc.level.id, 'players', __oc.sim.getState().chefs.length]
+eval (0, eval)(await (await fetch('/tools/playtests/monitor.txt')).text())
+
+# -- P2: two mushrooms round the open bottom deck to the boards at (2,6) and (4,6) --
+holduntil ArrowRight 6000 __oc.sim.getState().chefs[1].x >= 10.45
+holduntil ArrowDown 6000 __oc.sim.getState().chefs[1].y >= 5.45
+holduntil ArrowLeft 6000 __oc.sim.getState().chefs[1].x <= 9.55
+holduntil ArrowUp 900 __oc.sim.getState().chefs[1].y <= 5.55
+hold ArrowDown 250
+tap Enter
+wait 250
+eval ['P2 holds', __oc.sim.getState().chefs[1].holding?.type]
+holduntil ArrowRight 6000 __oc.sim.getState().chefs[1].x >= 10.45
+holduntil ArrowDown 6000 __oc.sim.getState().chefs[1].y >= 7.4
+holduntil ArrowLeft 9000 __oc.sim.getState().chefs[1].x <= 2.55
+holduntil ArrowRight 900 __oc.sim.getState().chefs[1].x >= 2.45
+hold ArrowUp 250
+tap Enter
+wait 250
+eval ['mushroom 1 on the board', __oc.sim.itemAt(2,6)]
+holduntil ArrowRight 9000 __oc.sim.getState().chefs[1].x >= 10.45
+holduntil ArrowUp 6000 __oc.sim.getState().chefs[1].y <= 5.55
+holduntil ArrowLeft 6000 __oc.sim.getState().chefs[1].x <= 9.55
+holduntil ArrowUp 900 __oc.sim.getState().chefs[1].y <= 5.55
+hold ArrowDown 250
+tap Enter
+wait 250
+holduntil ArrowRight 6000 __oc.sim.getState().chefs[1].x >= 10.45
+holduntil ArrowDown 6000 __oc.sim.getState().chefs[1].y >= 7.4
+holduntil ArrowLeft 9000 __oc.sim.getState().chefs[1].x <= 4.55
+holduntil ArrowRight 900 __oc.sim.getState().chefs[1].x >= 4.45
+hold ArrowUp 250
+tap Enter
+wait 250
+eval ['mushroom 2 on the board', __oc.sim.itemAt(4,6)]
+
+# -- P1: chop both mushrooms, put only the first in the pot at (3,0) --------------
+holduntil KeyS 6000 __oc.sim.getState().chefs[0].y >= 5.45
+holduntil KeyA 7000 __oc.sim.getState().chefs[0].x <= 2.55
+holduntil KeyD 7000 __oc.sim.getState().chefs[0].x >= 2.45
+holduntil KeyW 100 false
+hold KeyS 250
+hold ShiftLeft 3400
+eval ['chopped 1', __oc.sim.itemAt(2,6)]
+tap Space
+wait 250
+holduntil KeyW 8000 __oc.sim.getState().chefs[0].y <= 1.6
+holduntil KeyD 6000 __oc.sim.getState().chefs[0].x >= 3.45
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 3.55
+hold KeyW 250
+tap Space
+wait 250
+eval ['pot (3,0)', __oc.sim.itemAt(3,0)]
+holduntil KeyS 6000 __oc.sim.getState().chefs[0].y >= 5.45
+holduntil KeyD 7000 __oc.sim.getState().chefs[0].x >= 4.45
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 4.55
+hold KeyS 250
+hold ShiftLeft 3400
+eval ['chopped 2 waiting on the board', __oc.sim.itemAt(4,6)]
+
+# -- P2: fetch the extinguisher at (11,0) and bring it through the divider gap ----
+holduntil ArrowRight 9000 __oc.sim.getState().chefs[1].x >= 10.45
+holduntil ArrowUp 9000 __oc.sim.getState().chefs[1].y <= 1.6
+holduntil ArrowRight 6000 __oc.sim.getState().chefs[1].x >= 11.45
+hold ArrowUp 250
+eval ['P2 at the extinguisher', __oc.sim.getTargetTile(1), 'want', [11,0]]
+tap Enter
+wait 250
+eval ['P2 holds', __oc.sim.getState().chefs[1].holding]
+holduntil ArrowLeft 6000 __oc.sim.getState().chefs[1].x <= 7.55
+until 12000 __oc.sim.sliderOffset('1').y >= 0.85
+holduntil ArrowLeft 4000 __oc.sim.getState().chefs[1].x <= 5.5
+eval ['P2 through the gap at', +__oc.sim.getState().chefs[1].x.toFixed(2), +__oc.sim.getState().chefs[1].y.toFixed(2)]
+
+# -- wait for the pot to burn and catch fire -------------------------------------
+eval ['pot before burning', __oc.sim.itemAt(3,0)]
+until 40000 __oc.sim.itemAt(3,0)?.state === 'burnt'
+eval ['pot burnt at elapsed', Math.round(__oc.sim.getState().elapsed), __oc.sim.itemAt(3,0), 'fires', __oc.sim.getState().fires]
+shot 50-fire-started.png
+# -- and for it to spread to the neighbouring counter -----------------------------
+until 15000 __oc.sim.getState().fires.length >= 2
+eval ['fire spread', __oc.sim.getState().fires, 'burner (3,0) alight', __oc.sim.fireAt(3,0), 'counter (4,0) alight', __oc.sim.fireAt(4,0)]
+shot 51-fire-spread.png
+# a burning tile refuses every interaction except the spray
+holduntil KeyW 8000 __oc.sim.getState().chefs[0].y <= 1.6
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 3.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 3.45
+hold KeyW 250
+tap Space
+wait 250
+eval ['P1 cannot touch the burning pot', __oc.sim.getState().chefs[0].holding, __oc.sim.itemAt(3,0)]
+
+# -- P2 sprays both fires out -----------------------------------------------------
+holduntil ArrowLeft 6000 __oc.sim.getState().chefs[1].x <= 4.55
+holduntil ArrowRight 900 __oc.sim.getState().chefs[1].x >= 4.45
+hold ArrowUp,ShiftRight 1800
+eval ['after spraying the counter', __oc.sim.getState().fires]
+holduntil ArrowLeft 3000 __oc.sim.getState().chefs[1].x <= 3.55
+holduntil ArrowRight 900 __oc.sim.getState().chefs[1].x >= 3.45
+hold ArrowUp,ShiftRight 1800
+eval ['after spraying the burner', __oc.sim.getState().fires]
+shot 52-fires-out.png
+eval ['both fires out', __oc.sim.getState().fires.length === 0, 'pot', __oc.sim.itemAt(3,0)]
+
+# -- P1 empties the burnt pot in the bin at (1,5) and puts it back on the burner ---
+holduntil ArrowRight 3000 __oc.sim.getState().chefs[1].x >= 5.45
+holduntil KeyW 8000 __oc.sim.getState().chefs[0].y <= 1.6
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 3.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 3.45
+hold KeyW 250
+tap Space
+wait 250
+eval ['P1 holds the burnt pot', __oc.sim.getState().chefs[0].holding]
+holduntil KeyS 6000 __oc.sim.getState().chefs[0].y >= 5.45
+holduntil KeyA 6000 __oc.sim.getState().chefs[0].x <= 2.55
+holduntil KeyS 900 __oc.sim.getState().chefs[0].y >= 5.45
+hold KeyA 250
+eval ['P1 at the bin', __oc.sim.getTargetTile(0), 'want', [1,5]]
+tap Space
+wait 250
+eval ['pot emptied in the bin', __oc.sim.getState().chefs[0].holding]
+holduntil KeyW 6000 __oc.sim.getState().chefs[0].y <= 1.6
+holduntil KeyD 6000 __oc.sim.getState().chefs[0].x >= 3.45
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 3.55
+hold KeyW 250
+tap Space
+wait 250
+eval ['pot back on the burner', __oc.sim.itemAt(3,0)]
+# -- and the pot cooks again with the mushroom that was left chopped on (4,6) -----
+holduntil KeyS 6000 __oc.sim.getState().chefs[0].y >= 5.45
+holduntil KeyD 7000 __oc.sim.getState().chefs[0].x >= 4.45
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 4.55
+hold KeyS 250
+tap Space
+wait 250
+eval ['P1 picked the chopped mushroom back up', __oc.sim.getState().chefs[0].holding]
+holduntil KeyW 8000 __oc.sim.getState().chefs[0].y <= 1.6
+holduntil KeyA 6000 __oc.sim.getState().chefs[0].x <= 3.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 3.45
+hold KeyW 250
+tap Space
+wait 400
+eval ['the reused pot is cooking again', __oc.sim.itemAt(3,0)]
+shot 53-pot-reused.png
+eval ['invariants', JSON.parse(JSON.stringify(__mon))]
+logs
+errors
