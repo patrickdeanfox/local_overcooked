@@ -166,6 +166,7 @@
     "grid.cols",
     "grid.rows",
     "features.chokepointWidth",
-    "dynamics[0] lane row and cadence"
+    "dynamics[0] lane row and cadence",
+    "stations.extinguisher"
   ]
 }

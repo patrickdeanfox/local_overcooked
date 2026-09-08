@@ -1,0 +1,234 @@
+{
+  "id": "oc2-3-2",
+  "game": "oc2",
+  "world": 3,
+  "index": 2,
+  "name": "3-2",
+  "theme": "Conjurer's Kitchen",
+  "wiki": "https://overcooked.fandom.com/wiki/3-2_(Overcooked!_2)",
+  "screenshots": [
+    "oc2/3-2.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 18,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "meat_burger",
+    "cheese_burger",
+    "lettuce_cheese_burger"
+  ],
+  "orderVariants": 3,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 22,
+    "max": 4,
+    "timeSec": 90
+  },
+  "stars": {
+    "1": [
+      160,
+      240,
+      320,
+      750
+    ],
+    "2": [
+      300,
+      360,
+      500,
+      950
+    ],
+    "3": [
+      340,
+      480,
+      640,
+      1250
+    ],
+    "4": [
+      340,
+      480,
+      640,
+      1350
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "return-clean",
+    "count": 4
+  },
+  "grid": {
+    "cols": 17,
+    "rows": 9,
+    "confidence": "low",
+    "ascii": [
+      "##### ###### ####",
+      "@...# #pppp# ...@",
+      "U...# F....F ...#",
+      "L...# #....# ...#",
+      "#....+...... ...#",
+      "#...# #....# ...#",
+      "#...# F....F V..#",
+      "@...# #....# R..@",
+      "#BBB# #HA### #XE#"
+    ]
+  },
+  "legendExtensions": {
+    "H": "cheese crate",
+    "@": "portal; (0,7) ↔ (16,7) is the walkable pair that always joins left and right, (0,1) ↔ (16,1) is the upper pair that items can be thrown through",
+    "+": "the staircase between the middle and the left tier; it moves every 35 s"
+  },
+  "stations": {
+    "board": 3,
+    "potBurner": 0,
+    "panBurner": 4,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 0,
+    "drying": 0,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plateStack": 0,
+    "plate": 4,
+    "counter": 45,
+    "crates": {
+      "bun": 1,
+      "lettuce": 1,
+      "cheese": 1,
+      "beef": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 2,
+      "y": 5
+    },
+    {
+      "x": 8,
+      "y": 5
+    }
+  ],
+  "zones": [
+    {
+      "name": "left tier",
+      "stations": [
+        "bun crate",
+        "lettuce crate",
+        "3 chopping boards",
+        "2 portal tiles"
+      ],
+      "links": [
+        {
+          "to": "middle (sunken)",
+          "via": "walk (stairs, only while the stairs are on this side)"
+        },
+        {
+          "to": "right tier",
+          "via": "portal"
+        },
+        {
+          "to": "middle (sunken)",
+          "via": "throw"
+        }
+      ]
+    },
+    {
+      "name": "middle (sunken)",
+      "stations": [
+        "cheese crate",
+        "beef crate",
+        "4 pan burners",
+        "4 plates"
+      ],
+      "links": [
+        {
+          "to": "left tier",
+          "via": "walk (stairs) or throw"
+        },
+        {
+          "to": "right tier",
+          "via": "walk (stairs) or throw"
+        }
+      ]
+    },
+    {
+      "name": "right tier",
+      "stations": [
+        "serve",
+        "plate return",
+        "trash",
+        "extinguisher",
+        "2 portal tiles"
+      ],
+      "links": [
+        {
+          "to": "left tier",
+          "via": "portal"
+        },
+        {
+          "to": "middle (sunken)",
+          "via": "walk (stairs, only while the stairs are on this side)"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "moving-stairs",
+      "detail": "the staircase into the sunken middle starts on the left side and swaps sides every 35 seconds.",
+      "periodSec": 35
+    },
+    {
+      "type": "portals",
+      "detail": "two fixed portal pairs: the lower pair walks chefs between the left and right tiers, the upper pair carries thrown items.",
+      "periodSec": null
+    }
+  ],
+  "hazards": [
+    "pan fire — the extinguisher is on the right tier only",
+    "falling into the sunken middle from a tier (assumed; the wiki does not say)"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": true,
+    "movingPlatforms": true,
+    "conveyors": false,
+    "portals": true,
+    "floorTiles": 72,
+    "counterTiles": 64,
+    "stationTiles": 19,
+    "longestWalkTiles": 17,
+    "chokepointWidth": 1,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "portals",
+    "moving stairs",
+    "throwing",
+    "cheese",
+    "cheese/lettuce burger variants",
+    "clean plate return without a sink"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "spawns",
+    "grid.cols",
+    "grid.rows",
+    "features.chokepointWidth",
+    "which tier the stairs start on beyond the wiki's \"left\"",
+    "fall hazard into the sunken middle",
+    "plates.count",
+    "features.longestWalkTiles"
+  ]
+}

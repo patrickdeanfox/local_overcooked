@@ -181,6 +181,7 @@
     "spawns",
     "grid.cols",
     "grid.rows",
-    "features.chokepointWidth"
+    "features.chokepointWidth",
+    "stations.extinguisher"
   ]
 }

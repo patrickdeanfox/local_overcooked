@@ -1,0 +1,253 @@
+{
+  "id": "oc2-3-3",
+  "game": "oc2",
+  "world": 3,
+  "index": 3,
+  "name": "3-3",
+  "theme": "Conjurer's Kitchen",
+  "wiki": "https://overcooked.fandom.com/wiki/3-3_(Overcooked!_2)",
+  "screenshots": [
+    "oc2/3-3.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 20,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "pizza",
+    "pepperoni_pizza"
+  ],
+  "orderVariants": 2,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 26,
+    "max": 4,
+    "timeSec": 100
+  },
+  "stars": {
+    "1": [
+      200,
+      280,
+      380,
+      660
+    ],
+    "2": [
+      380,
+      480,
+      640,
+      1450
+    ],
+    "3": [
+      440,
+      600,
+      800,
+      1650
+    ],
+    "4": [
+      440,
+      600,
+      800,
+      1750
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 3
+  },
+  "grid": {
+    "cols": 13,
+    "rows": 11,
+    "confidence": "low",
+    "ascii": [
+      "##X#B###BE###",
+      "#...........#",
+      "#...........V",
+      "#.....#.....#",
+      "#.....&.....#",
+      "#.#pH.p.Tp#.#",
+      "#.....!.....#",
+      "#.....#.....#",
+      "#...........#",
+      "#...........#",
+      "#NWD#####NR##"
+    ]
+  },
+  "legendExtensions": {
+    "N": "oven",
+    "&": "dough crate",
+    "H": "cheese crate",
+    "!": "other crate — pepperoni at (6,6)"
+  },
+  "stations": {
+    "board": 2,
+    "potBurner": 0,
+    "panBurner": 0,
+    "fryer": 0,
+    "oven": 2,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 1,
+    "drying": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plateStack": 0,
+    "plate": 3,
+    "counter": 38,
+    "crates": {
+      "dough": 1,
+      "cheese": 1,
+      "tomato": 1,
+      "pepperoni": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 3,
+      "y": 8
+    },
+    {
+      "x": 9,
+      "y": 8
+    }
+  ],
+  "zones": [
+    {
+      "name": "top-left quadrant",
+      "stations": [
+        "trash",
+        "1 chopping board"
+      ],
+      "links": [
+        {
+          "to": "top-right quadrant",
+          "via": "walk while the split is horizontal"
+        },
+        {
+          "to": "bottom-left quadrant",
+          "via": "walk while the split is vertical"
+        },
+        {
+          "to": "any quadrant",
+          "via": "throw"
+        }
+      ]
+    },
+    {
+      "name": "top-right quadrant",
+      "stations": [
+        "1 chopping board",
+        "extinguisher",
+        "serve"
+      ],
+      "links": [
+        {
+          "to": "top-left quadrant",
+          "via": "walk while the split is horizontal"
+        },
+        {
+          "to": "bottom-right quadrant",
+          "via": "walk while the split is vertical"
+        },
+        {
+          "to": "any quadrant",
+          "via": "throw"
+        }
+      ]
+    },
+    {
+      "name": "bottom-left quadrant",
+      "stations": [
+        "oven",
+        "sink",
+        "drying"
+      ],
+      "links": [
+        {
+          "to": "top-left quadrant",
+          "via": "walk while the split is vertical"
+        },
+        {
+          "to": "bottom-right quadrant",
+          "via": "walk while the split is horizontal"
+        },
+        {
+          "to": "any quadrant",
+          "via": "throw"
+        }
+      ]
+    },
+    {
+      "name": "bottom-right quadrant",
+      "stations": [
+        "oven",
+        "plate return"
+      ],
+      "links": [
+        {
+          "to": "top-right quadrant",
+          "via": "walk while the split is vertical"
+        },
+        {
+          "to": "bottom-left quadrant",
+          "via": "walk while the split is horizontal"
+        },
+        {
+          "to": "any quadrant",
+          "via": "throw"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "moving-crates",
+      "detail": "the dough, pepperoni, tomato and cheese boxes slide to wall off quadrants. All four quadrants are open for the first 10 s; a vertical split closes next, and vertical and horizontal splits then alternate every 30–40 s.",
+      "periodSec": 35
+    }
+  ],
+  "hazards": [
+    "oven fire"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": true,
+    "movingPlatforms": false,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 88,
+    "counterTiles": 55,
+    "stationTiles": 17,
+    "longestWalkTiles": 9,
+    "chokepointWidth": 1,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "oven",
+    "pizza recipe",
+    "dough",
+    "cheese",
+    "pepperoni",
+    "crate counters that wall off regions",
+    "throwing"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "spawns",
+    "grid.cols",
+    "grid.rows",
+    "features.chokepointWidth",
+    "dynamics[0].periodSec (wiki says 30–40 s; 35 recorded)",
+    "the exact closed-state geometry"
+  ]
+}
