@@ -1,19 +1,20 @@
 # Roadmap
 
-Where the game goes after the first playable build (Overcooked 1 levels 1-1 to 1-3, two players on one screen). Ordered by value per effort. Each item names the files it touches so a future session can start without re-deriving the plan.
+Where the game goes after the current build (Overcooked 1 world 1, levels 1-1 to 1-6, two players on one screen, level select with saved stars, difficulty presets, seeded orders). Ordered by value per effort. Each item names the files it touches so a future session can start without re-deriving the plan.
 
-## 1. Tune the first three levels
+Done so far: first playable (1-1 to 1-3), research docs, headless playtest harness, https LAN server, desktop launcher, level select with progress and unlocks, difficulty presets and seed modes, burgers with frying pans, the earthquake gate, levels 1-4 to 1-6.
+
+## 1. Tune world 1 by play
 - Apply `docs/research/sim-constants-recommendations.md` to `src/sim/constants.ts`.
 - Play each level with two people; measure seconds per served dish; adjust `orders` settings per level JSON until 3 stars is hard but reachable (see `docs/LEVELS.md` tuning knobs).
 - Fix feel issues first: chef speed, interaction reach, chop and wash times.
 
-## 2. Level select, stars, progress
-- `TitleScene` gets a world map style list with stars earned per level; progress in `localStorage` under a new `STORAGE_KEYS.PROGRESS`.
-- Unlock rule from the wiki: next level opens at the star total listed in each level's infobox (`unlock` field in `docs/research/oc1-levels.md`).
+## 2. Level select, stars, progress (done)
+- Shipped: `src/game/progress.ts`, `settings.ts`, `ui/LevelList.ts`. Remaining polish: a world-map look, per-level best times, a "reset progress" entry.
 
 ## 3. Rest of Overcooked 1
-- Transcribe worlds 1-4 to 6-4 from `docs/research/screens/oc1/` using `docs/LEVEL_SCHEMA.md`. World 1 first (1-4 burgers, 1-5 soup, 1-6 burger).
-- New mechanics in order of first appearance (see `docs/research/oc1-levels.md` and `oc1-recipes.md`): burgers (frying pan on stove, buns, lettuce, tomato, assembly on a plate), fish and chips (fryer), pizza (oven), burritos, then level gimmicks (moving trucks in world 2, ice floors in world 3, dark kitchen and rat in world 4, lava and conveyor belts later).
+- Transcribe worlds 2-1 to 6-4 from `docs/research/screens/oc1/` using `docs/LEVEL_SCHEMA.md`. World 2 is burgers and soups on moving trucks (a 'sliders'-style dynamic for the two trucks plus a fall-off penalty), so it needs one new dynamic and no new recipes.
+- New mechanics in order of first appearance (see `docs/research/oc1-levels.md` and `oc1-recipes.md`): fish and chips (fryer basket, world 3), pizza (dough, cheese, oven, world 4), burritos (rice pot + pan, world 5), then level gimmicks (ice floors in world 3, dark kitchen and rat in world 4, lava and conveyor belts later).
 - Each new station is an additive `TileType` in `src/sim/types.ts`, a legend char in `src/levels/schema.ts`, a texture key in `src/art/keys.ts`, and drawing code in `src/art/`.
 
 ## 4. Overcooked 2 mechanics
@@ -21,9 +22,9 @@ Where the game goes after the first playable build (Overcooked 1 levels 1-1 to 1
 - Throw and dash need one new `PlayerInput` action each (`throwPressed`, `dashPressed`, optional fields), a `GameAction` in `src/input/types.ts`, and a `Projectile` list in `SimState`.
 - OC2 levels transcribe with the same schema; dynamic levels (moving platforms, portals) become new `Dynamic` variants.
 
-## 5. Replayability without procedural layouts
-- Randomised order sequences per seed (already seeded in `src/sim/rng.ts`); a "daily seed" mode.
-- Difficulty modifiers on authored kitchens: shorter timers, more concurrent orders, fewer plates, station swaps within slots. Expose as an optional `modifiers` block in `LevelDef`.
+## 5. Replayability without procedural layouts (partly done)
+- Shipped: seeded order sequences with random / daily / fixed modes and four difficulty presets (`src/game/settings.ts`, `Modifiers` in `src/sim/types.ts`).
+- Next: per-level leaderboards for the daily seed, station swaps within slots, fewer plates as a modifier.
 - Full procedural kitchens are deliberately last: layouts need a throughput/pathing scorer to be fun, which is a bigger project than the game. Revisit only after 20+ authored levels exist.
 
 ## 6. Two devices on the LAN

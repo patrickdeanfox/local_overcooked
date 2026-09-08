@@ -2,7 +2,7 @@
 
 A two-player Overcooked clone that runs in a browser on your home network. One screen, two Bluetooth gamepads (or the keyboard). Phaser 3 + TypeScript, no image or sound files: every sprite is drawn in code and every sound is synthesised.
 
-**Status: first playable.** Overcooked 1 levels 1-1, 1-2 and 1-3 are transcribed 1:1 from the wiki and fully playable: chopping, pot cooking, burning and fire, extinguisher, sink washing with dirty-plate return, plate stacks on the no-sink ship level, orders with tips and the exact-order combo rule, star thresholds, the 1-2 pedestrian crosswalk and the 1-3 sliding counters.
+**Status: Overcooked 1 world 1 complete.** Levels 1-1 to 1-6 are transcribed 1:1 from the wiki: soups (pots), burgers (frying pans, bun, lettuce, tomato), chopping, burning and fire, extinguisher, sink washing with dirty-plate return, plate stacks on the no-sink ship level, orders with tips and the exact-order combo rule, star thresholds and unlocks, the 1-2 pedestrian crosswalk, the 1-3 sliding counters, the 1-5 one-tile ring corridor and the 1-6 earthquake seam. Level select remembers your best scores and stars; difficulty presets and seeded order sequences add replay value.
 
 ## Quick start
 
@@ -36,6 +36,12 @@ npm install
 npm run build
 npm start                 # or: npm run install-launcher
 ```
+
+## Playing
+- **Level select.** The title screen lists the six kitchens with the stars you have earned and your best score. Levels unlock by total stars, using the thresholds from the original game (1-2 needs 2, 1-3 needs 4, 1-4 needs 5, 1-5 needs 6, 1-6 needs 8). Switch **Free play** on to play anything.
+- **Difficulty.** Relaxed, Normal, Hard and Chaos scale the order cadence, patience, ticket count and chef speed. Stars earned on Relaxed do not count toward unlocks.
+- **Seed.** Random gives a new order sequence every run, Daily gives everyone the same sequence for the day, Fixed replays a chosen number (edit it with left/right or the digit keys). The seed and preset are shown in the top-right during play and on the results screen; Retry replays the same seed.
+- **Burgers (1-4, 1-6).** Chop beef, fry it in a pan, put a bun on a plate, collect the patty from the pan with the plate, add chopped lettuce or tomato as the ticket asks, serve. Pans burn like pots.
 
 ## Hosting and hardware
 The server only hands out static files; the whole game runs in the browser of the device showing it.
@@ -93,9 +99,9 @@ docs/           PLAN, ROADMAP, LEVELS (the three transcriptions), CONTROLS, rese
 
 ## Adding a level
 1. Fetch the wiki page and screenshot: `python3 docs/research/tools/fetch_wiki.py page-images "1-4 (Overcooked!)"`.
-2. Write `src/levels/oc1/1-4.json` following `docs/LEVEL_SCHEMA.md` (fixed legend: `#` counter, `O`/`T`/`M` crates, `B` board, `S` stove, `W` sink, `D` drying, `R` plate return, `V` serve, `X` trash, `E` extinguisher, `P` plate stack, `p` plate, `1`-`4` sliders, `~` road, `.` floor, space void).
+2. Write `src/levels/oc1/2-1.json` following `docs/LEVEL_SCHEMA.md` (fixed legend: `#` counter, `O`/`T`/`M` soup crates, `A`/`U`/`L` meat, bun and lettuce crates, `B` board, `S` stove with pot, `F` stove with pan, `W` sink, `D` drying, `R` plate return, `V` serve, `X` trash, `E` extinguisher, `P` plate stack, `p` plate, `1`-`4` sliders, `G` earthquake gate, `~` road, `.` floor, space void). Add `unlockStars` from the wiki infobox.
 3. `npm test` validates the grid and checks every station is reachable; `npm run dev` lets you walk it.
 4. Timers and star thresholds come from the level page infobox and star chart; `docs/research/oc1-levels.md` has every OC1 level tabulated.
 
 ## What is not in this build
-Throwing and dashing (Overcooked 2), a level-select map with saved stars, playing from two devices, generated sprites, Tiled import, and any recipe beyond soup. The order in which those land, with the files each one touches, is in `docs/ROADMAP.md`.
+Overcooked 1 worlds 2 to 6 (moving trucks, fish and chips, pizza, burritos), throwing and dashing (Overcooked 2), playing from two devices, generated sprites, and Tiled import. The order in which those land, with the files each one touches, is in `docs/ROADMAP.md`.
