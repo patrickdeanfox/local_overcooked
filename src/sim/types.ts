@@ -126,6 +126,10 @@ export interface Modifiers {
   orderTimeScale?: number;     // 0.8 = orders expire sooner
   maxOrdersDelta?: number;     // +1 = one more concurrent ticket
   chefSpeedScale?: number;     // 1.15 = faster chefs
+  // Assists, all off by default. A run with any of them on is not saved and earns no stars.
+  instantCooking?: boolean;    // pots and pans are ready the moment they start cooking
+  ordersNeverExpire?: boolean; // tickets keep their full timer: no expiry, no fail penalty
+  noBurning?: boolean;         // cooked food stays cooked, so stoves never start fires
 }
 
 // ─── Snapshot ────────────────────────────────────────────────────────────────

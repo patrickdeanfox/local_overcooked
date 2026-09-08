@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { MAX_PLAYERS, STORAGE_KEYS } from '../src/config';
 import {
-  cyclePlayers, cyclePreset, cycleSeedMode, dailySeed, defaultSettings, describeModifiers,
-  loadSettings, normaliseSeed, PRESETS, PRESET_IDS, presetModifiers, presetName, presetSummary,
+  assistSummary, cyclePlayers, cyclePreset, cycleSeedMode, dailySeed, defaultSettings, describeModifiers,
+  isAssisted, loadSettings, normaliseSeed, PRESETS, PRESET_IDS, presetModifiers, presetName, presetSummary,
   saveSettings, SEED_LIMIT, seedFor, SETTINGS_VERSION, type Settings,
 } from '../src/game/settings';
 import type { StorageLike } from '../src/game/storage';
@@ -65,6 +65,42 @@ describe('difficulty presets', () => {
   });
 });
 
+// ─── Assists ────────────────────────────────────────────────────────────────
+describe('assists', () => {
+  it('default to off and add nothing to the preset modifiers', () => {
+    expect(defaultSettings().assists).toEqual({ instantCooking: false, ordersNeverExpire: false, noBurning: false });
+    expect(presetModifiers(defaultSettings())).toEqual({});
+    expect(isAssisted(presetModifiers(defaultSettings()))).toBe(false);
+    expect(isAssisted(undefined)).toBe(false);
+  });
+
+  it('fold the switched-on assists into the run modifiers', () => {
+    const settings: Settings = {
+      ...defaultSettings(),
+      preset: 'hard',
+      assists: { instantCooking: true, ordersNeverExpire: false, noBurning: true },
+    };
+    const mods = presetModifiers(settings);
+    expect(mods).toEqual({ ...PRESETS.hard.modifiers, instantCooking: true, noBurning: true });
+    expect(isAssisted(mods)).toBe(true);
+    expect(describeModifiers(mods)).toBe('order gap x0.8 · patience x0.85 · tickets +1 · instant cooking · no burning');
+  });
+
+  it('summarise the title row', () => {
+    expect(assistSummary(defaultSettings().assists)).toBe('off');
+    expect(assistSummary({ instantCooking: false, ordersNeverExpire: true, noBurning: true })).toBe('orders never expire · no burning');
+  });
+
+  it('read partial or malformed stored assists as off', () => {
+    const storage = fakeStorage({
+      [STORAGE_KEYS.SETTINGS]: JSON.stringify({ version: SETTINGS_VERSION, assists: { noBurning: true, instantCooking: 'yes' } }),
+    });
+    expect(loadSettings(storage).assists).toEqual({ instantCooking: false, ordersNeverExpire: false, noBurning: true });
+    expect(loadSettings(fakeStorage({ [STORAGE_KEYS.SETTINGS]: JSON.stringify({ version: SETTINGS_VERSION, assists: 'all' }) })).assists)
+      .toEqual(defaultSettings().assists);
+  });
+});
+
 // ─── Seeds ──────────────────────────────────────────────────────────────────
 describe('seedFor', () => {
   it('returns the pinned seed in fixed mode', () => {
@@ -113,7 +149,10 @@ describe('settings persistence', () => {
 
   it('round-trips through storage', () => {
     const storage = fakeStorage();
-    const settings: Settings = { players: 1, preset: 'chaos', seedMode: 'fixed', fixedSeed: 99, freePlay: true };
+    const settings: Settings = {
+      players: 1, preset: 'chaos', seedMode: 'fixed', fixedSeed: 99, freePlay: true,
+      assists: { instantCooking: true, ordersNeverExpire: false, noBurning: true },
+    };
     expect(saveSettings(settings, storage)).toBe(true);
     expect(loadSettings(storage)).toEqual(settings);
   });

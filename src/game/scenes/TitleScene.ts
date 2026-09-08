@@ -1,7 +1,7 @@
 // ─── Title scene ────────────────────────────────────────────────────────────
 // Level select over the saved progress, plus the run settings (players, difficulty
-// preset, seed, free play) and the controller screen. One cursor runs through the
-// level rows and then the settings rows; left / right edits the row it is on.
+// preset, seed, free play), the assists page and the controller screen. One cursor runs
+// through the level rows and then the settings rows; left / right edits the row it is on.
 // Navigable with the keyboard and with any device the input manager reports.
 import Phaser from 'phaser';
 import { TEX } from '../../art/keys';
@@ -13,8 +13,8 @@ import { getAudioBus, installAudioGestureResume, installMuteToggle } from '../au
 import { currentLevels, onLevelsHotReload } from '../levelHotReload';
 import { isUnlocked, levelProgress, loadProgress, totalStars, unlockingStars, type Progress } from '../progress';
 import {
-  cyclePlayers, cyclePreset, cycleSeedMode, dailySeed, DEFAULT_PRESET, loadSettings, presetName,
-  presetSummary, saveSettings, SEED_LIMIT, type Settings,
+  assistSummary, cyclePlayers, cyclePreset, cycleSeedMode, dailySeed, DEFAULT_PRESET, loadSettings,
+  presetName, presetSummary, saveSettings, SEED_LIMIT, type Settings,
 } from '../settings';
 import { LevelList, type LevelEntry } from '../ui/LevelList';
 import { MenuList, type MenuItemSpec } from '../ui/MenuList';
@@ -39,10 +39,10 @@ const TITLE = {
   levelSpacing: 50,
   levelAreaPx: 300,     // rows are squeezed together rather than run off the screen
   levelGapPx: 96,       // from the last level row down to the settings block
-  optionsMaxY: 496,     // however few levels there are, the settings stay above the hints
+  optionsMaxY: 460,     // however few levels there are, the settings stay above the hints
   statusGapPx: 44,      // the status line sits this far above the settings
   statusFontPx: 15,
-  optionsSpacing: 40,
+  optionsSpacing: 38,
   optionsWidth: 620,
   optionsFontPx: 20,
   hintY: GAME_HEIGHT - 74,
@@ -57,7 +57,7 @@ const HEADING = 'LOCAL OVERCOOKED';
 const TAGLINE = 'Two chefs, one kitchen, not enough time';
 
 /** Settings rows, in the order the cursor walks through them. */
-const OPTION = { players: 0, difficulty: 1, seedMode: 2, seedValue: 3, freePlay: 4, controllers: 5 } as const;
+const OPTION = { players: 0, difficulty: 1, seedMode: 2, seedValue: 3, freePlay: 4, assists: 5, controllers: 6 } as const;
 
 // Remembered between visits to the title within a session.
 let selectedIndex = 0;
@@ -241,6 +241,10 @@ export class TitleScene extends Phaser.Scene {
       onLeft: () => this.toggleFreePlay(),
       onRight: () => this.toggleFreePlay(),
     };
+    items[OPTION.assists] = {
+      label: () => `Assists: ${assistSummary(this.settings.assists)}`,
+      onSelect: () => this.openAssists(),
+    };
     items[OPTION.controllers] = { label: () => 'Controllers', onSelect: () => this.openControllers() };
 
     this.menu = new MenuList(this, GAME_WIDTH / 2, this.optionsY, items, {
@@ -286,6 +290,11 @@ export class TitleScene extends Phaser.Scene {
     this.settings.freePlay = !this.settings.freePlay;
     this.applySettings();
     this.buildLevelList(); // locks change with it
+  }
+
+  private openAssists(): void {
+    this.ready = false;
+    this.scene.start(SCENE.ASSISTS);
   }
 
   private openControllers(): void {

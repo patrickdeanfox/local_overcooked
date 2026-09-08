@@ -40,6 +40,7 @@ npm start                 # or: npm run install-launcher
 ## Playing
 - **Level select.** The title screen lists the six kitchens with the stars you have earned and your best score. Levels unlock by total stars, using the thresholds from the original game (1-2 needs 2, 1-3 needs 4, 1-4 needs 5, 1-5 needs 6, 1-6 needs 8). Switch **Free play** on to play anything.
 - **Difficulty.** Relaxed, Normal, Hard and Chaos scale the order cadence, patience, ticket count and chef speed. Stars earned on Relaxed do not count toward unlocks.
+- **Assists.** The **Assists** entry on the title screen opens a page with three toggles: instant cooking, orders never expire, and no burning. A run with any assist on is not saved and earns no stars.
 - **Seed.** Random gives a new order sequence every run, Daily gives everyone the same sequence for the day, Fixed replays a chosen number (edit it with left/right or the digit keys). The seed and preset are shown in the top-right during play and on the results screen; Retry replays the same seed.
 - **Burgers (1-4, 1-6).** Chop beef, fry it in a pan, put a bun on a plate, collect the patty from the pan with the plate, add chopped lettuce or tomato as the ticket asks, serve. Pans burn like pots.
 

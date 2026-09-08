@@ -875,3 +875,51 @@ describe('determinism', () => {
     expect(perStep).toBeLessThan(0.2);
   });
 });
+
+// ─── Assists ────────────────────────────────────────────────────────────────
+describe('assists', () => {
+  it('instant cooking finishes a pot the step it starts', () => {
+    const sim = new Sim(makeLevel(), { players: 1, seed: 3, modifiers: { instantCooking: true } });
+    const pot = potOnStove(sim);
+    pot.contents.push('onion', 'onion', 'onion');
+    const events = sim.step([NO_INPUT]);
+    expect(types(events)).toEqual(expect.arrayContaining(['cookStart', 'cookDone']));
+    expect(pot.state).toBe('cooked');
+    expect(pot.cookProgress).toBe(1);
+  });
+
+  it('no burning keeps a cooked pot cooked and never lights the stove', () => {
+    const sim = new Sim(makeLevel(), { players: 1, seed: 3, modifiers: { noBurning: true } });
+    const pot = potOnStove(sim);
+    pot.contents.push('onion', 'onion', 'onion');
+    const events = stepFor(sim, COOK_TIME + BURN_TIME * 2);
+    expect(types(events)).toContain('cookDone');
+    expect(types(events)).not.toContain('burnt');
+    expect(pot.state).toBe('cooked');
+    expect(pot.burnProgress).toBe(0);
+    expect(sim.fireAt(11, 2)).toBe(false);
+  });
+
+  it('orders never expire keeps every ticket at its full timer', () => {
+    const sim = new Sim(
+      makeLevel({ orders: { initial: 2, intervalSec: 1000, max: 4, timeSec: 2 } }),
+      { players: 1, seed: 5, modifiers: { ordersNeverExpire: true } },
+    );
+    const st = mutable(sim);
+    const events = stepFor(sim, 4);
+    expect(types(events)).not.toContain('orderExpired');
+    expect(st.orders.length).toBe(2);
+    expect(st.orders.every((o) => o.timeLeft === o.timeTotal)).toBe(true);
+    expect(st.failedCount).toBe(0);
+  });
+
+  it('are off unless the modifiers switch them on', () => {
+    const sim = new Sim(makeLevel(), { players: 1, seed: 3, modifiers: { timeLimitScale: 1.25 } });
+    const pot = potOnStove(sim);
+    pot.contents.push('onion', 'onion', 'onion');
+    const first = sim.step([NO_INPUT]);
+    expect(types(first)).toContain('cookStart');
+    expect(types(first)).not.toContain('cookDone');
+    expect(pot.state).toBe('cooking');
+  });
+});

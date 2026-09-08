@@ -1,10 +1,10 @@
 // ─── Game settings ──────────────────────────────────────────────────────────
-// Player count, difficulty preset, seed mode and free play, saved under
-// STORAGE_KEYS.SETTINGS. Pure module: no Phaser, no scene state. The title screen
-// edits it, GameScene reads it to build the Sim.
+// Player count, difficulty preset, seed mode, free play and assists, saved under
+// STORAGE_KEYS.SETTINGS. Pure module: no Phaser, no scene state. The title screen and
+// the assists page edit it, GameScene reads it to build the Sim.
 import { MAX_PLAYERS, STORAGE_KEYS } from '../config';
 import type { Modifiers } from '../sim/types';
-import { asBoolean, asCount, browserStorage, readStored, writeStored, type StorageLike } from './storage';
+import { asBoolean, asCount, asRecord, browserStorage, readStored, writeStored, type StorageLike } from './storage';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 export const SETTINGS_VERSION = 1;
@@ -34,12 +34,31 @@ export const PRESETS: Readonly<Record<PresetId, Preset>> = Object.freeze({
   chaos: { id: 'chaos', name: 'Chaos', modifiers: { orderIntervalScale: 0.65, orderTimeScale: 0.75, maxOrdersDelta: 2, chefSpeedScale: 1.1 } },
 });
 
+// ─── Assists ────────────────────────────────────────────────────────────────
+// Toggles that make a kitchen forgiving. Any assist on means the run is not saved and
+// earns no stars, whatever the difficulty preset.
+export interface Assists {
+  instantCooking: boolean;    // pots and pans are ready the moment they start
+  ordersNeverExpire: boolean; // tickets never time out
+  noBurning: boolean;         // cooked food never burns, so stoves never catch fire
+}
+export type AssistId = keyof Assists;
+/** The order the assists page lists them in. */
+export const ASSIST_IDS: readonly AssistId[] = ['instantCooking', 'ordersNeverExpire', 'noBurning'];
+export const ASSIST_NAMES: Readonly<Record<AssistId, string>> = Object.freeze({
+  instantCooking: 'Instant cooking',
+  ordersNeverExpire: 'Orders never expire',
+  noBurning: 'No burning',
+});
+export const NO_ASSISTS: Readonly<Assists> = Object.freeze({ instantCooking: false, ordersNeverExpire: false, noBurning: false });
+
 export interface Settings {
   players: number;      // 1..MAX_PLAYERS
   preset: PresetId;
   seedMode: SeedMode;
   fixedSeed: number;    // used when seedMode is 'fixed'
   freePlay: boolean;    // ignores unlock thresholds
+  assists: Assists;
 }
 
 export const DEFAULT_SETTINGS: Readonly<Settings> = Object.freeze({
@@ -48,11 +67,12 @@ export const DEFAULT_SETTINGS: Readonly<Settings> = Object.freeze({
   seedMode: 'random' as SeedMode,
   fixedSeed: 1,
   freePlay: false,
+  assists: NO_ASSISTS,
 });
 
 // ─── Pure helpers ───────────────────────────────────────────────────────────
 export function defaultSettings(): Settings {
-  return { ...DEFAULT_SETTINGS };
+  return { ...DEFAULT_SETTINGS, assists: { ...NO_ASSISTS } };
 }
 
 function asPreset(value: unknown): PresetId {
@@ -61,6 +81,15 @@ function asPreset(value: unknown): PresetId {
 
 function asSeedMode(value: unknown): SeedMode {
   return SEED_MODES.includes(value as SeedMode) ? (value as SeedMode) : DEFAULT_SETTINGS.seedMode;
+}
+
+function asAssists(value: unknown): Assists {
+  const stored = asRecord(value);
+  return {
+    instantCooking: asBoolean(stored?.instantCooking, NO_ASSISTS.instantCooking),
+    ordersNeverExpire: asBoolean(stored?.ordersNeverExpire, NO_ASSISTS.ordersNeverExpire),
+    noBurning: asBoolean(stored?.noBurning, NO_ASSISTS.noBurning),
+  };
 }
 
 /** Wraps any number into the 32-bit unsigned seed range. */
@@ -77,9 +106,29 @@ export function presetName(preset: PresetId): string {
   return (PRESETS[preset] ?? PRESETS[DEFAULT_PRESET]).name;
 }
 
-/** The Sim modifiers for the chosen preset. */
+/** The Sim modifiers for the chosen preset, plus whichever assists are switched on. */
 export function presetModifiers(settings: Readonly<Settings>): Modifiers {
-  return { ...presetOf(settings).modifiers };
+  return { ...presetOf(settings).modifiers, ...assistModifiers(settings.assists) };
+}
+
+/** Only the assists that are on, so untouched settings add nothing to a preset. */
+export function assistModifiers(assists: Readonly<Assists>): Modifiers {
+  const mods: Modifiers = {};
+  if (assists.instantCooking) mods.instantCooking = true;
+  if (assists.ordersNeverExpire) mods.ordersNeverExpire = true;
+  if (assists.noBurning) mods.noBurning = true;
+  return mods;
+}
+
+/** True when any assist is part of the run's modifiers: the run is not saved. */
+export function isAssisted(modifiers: Readonly<Modifiers> | undefined): boolean {
+  return modifiers?.instantCooking === true || modifiers?.ordersNeverExpire === true || modifiers?.noBurning === true;
+}
+
+/** The title row's summary: 'off', or the assists that are on. */
+export function assistSummary(assists: Readonly<Assists>): string {
+  const on = ASSIST_IDS.filter((id) => assists[id]).map((id) => ASSIST_NAMES[id].toLowerCase());
+  return on.length > 0 ? on.join(' · ') : 'off';
 }
 
 /** Stars earned on this preset count toward unlocks: 'normal' and anything harder. */
@@ -96,6 +145,9 @@ export function describeModifiers(modifiers: Readonly<Modifiers>): string {
   if (modifiers.orderTimeScale !== undefined) parts.push(`patience x${modifiers.orderTimeScale}`);
   if (modifiers.maxOrdersDelta !== undefined) parts.push(`tickets ${modifiers.maxOrdersDelta >= 0 ? '+' : ''}${modifiers.maxOrdersDelta}`);
   if (modifiers.chefSpeedScale !== undefined) parts.push(`chefs x${modifiers.chefSpeedScale}`);
+  if (modifiers.instantCooking) parts.push('instant cooking');
+  if (modifiers.ordersNeverExpire) parts.push('orders never expire');
+  if (modifiers.noBurning) parts.push('no burning');
   return parts.length > 0 ? parts.join(' · ') : 'level defaults';
 }
 
@@ -142,6 +194,7 @@ export function loadSettings(storage: StorageLike | null = browserStorage()): Se
     seedMode: asSeedMode(stored.seedMode),
     fixedSeed: normaliseSeed(asCount(stored.fixedSeed, DEFAULT_SETTINGS.fixedSeed)),
     freePlay: asBoolean(stored.freePlay, DEFAULT_SETTINGS.freePlay),
+    assists: asAssists(stored.assists),
   };
 }
 

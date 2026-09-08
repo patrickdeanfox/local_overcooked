@@ -48,6 +48,9 @@ export interface EffectiveSettings {
   timeLimitSec: number;
   orders: OrderSettings;
   chefSpeed: number;
+  instantCooking: boolean;
+  ordersNeverExpire: boolean;
+  noBurning: boolean;
 }
 
 interface SliderSpec { group: string; axis: 'x' | 'y'; amplitude: number; periodSec: number; phase: number; }
@@ -120,6 +123,9 @@ function effectiveSettings(level: LevelDef, mods: Modifiers | undefined): Effect
       timeSec: orders.timeSec * (mods?.orderTimeScale ?? 1),
     },
     chefSpeed: CHEF_SPEED * (mods?.chefSpeedScale ?? 1),
+    instantCooking: mods?.instantCooking === true,
+    ordersNeverExpire: mods?.ordersNeverExpire === true,
+    noBurning: mods?.noBurning === true,
   };
 }
 
@@ -1057,7 +1063,7 @@ export class Sim {
           item.state = 'cooking';
           events.push({ type: 'cookStart', x: tile.x, y: tile.y });
         }
-        item.cookProgress += dt / wareCookTime(item);
+        item.cookProgress += this.settings.instantCooking ? 1 : dt / wareCookTime(item);
         if (item.cookProgress >= 1) {
           item.cookProgress = 1;
           item.state = 'cooked';
@@ -1066,6 +1072,7 @@ export class Sim {
         continue;
       }
 
+      if (this.settings.noBurning) continue; // assist: cooked food waits on the stove for good
       item.burnProgress += dt / BURN_TIME;
       if (item.burnProgress >= 1) {
         item.burnProgress = 1;
@@ -1175,6 +1182,7 @@ export class Sim {
       this.orderTimer += Math.max(cfg.intervalSec, SIM_DT);
     }
 
+    if (this.settings.ordersNeverExpire) return; // assist: tickets keep their full timer
     for (let i = st.orders.length - 1; i >= 0; i--) {
       const order = st.orders[i];
       order.timeLeft -= dt;

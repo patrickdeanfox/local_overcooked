@@ -10,7 +10,7 @@ import { log } from '../../log';
 import { getAudioBus, installAudioGestureResume, installMuteToggle } from '../audioBus';
 import { currentLevels } from '../levelHotReload';
 import { isUnlocked, levelProgress, loadProgress, recordRun, saveProgress } from '../progress';
-import { countsTowardUnlock, loadSettings, presetName } from '../settings';
+import { countsTowardUnlock, isAssisted, loadSettings, presetName } from '../settings';
 import { MenuList, type MenuItemSpec } from '../ui/MenuList';
 import { KeyboardNav, MenuInput, mergeNav } from '../ui/menuInput';
 import { COLOR, TEXT_COLOR, textStyle } from '../ui/theme';
@@ -71,14 +71,17 @@ export class ResultsScene extends Phaser.Scene {
     const levelName = levels[result.levelId]?.name ?? result.levelId;
     const settings = loadSettings();
     const preset = result.preset ?? settings.preset;
-    log.info('results', result.levelId, 'score', result.score, 'stars', result.stars, 'seed', result.seed, preset);
+    const assisted = isAssisted(result.modifiers);
+    log.info('results', result.levelId, 'score', result.score, 'stars', result.stars, 'seed', result.seed, preset, assisted ? 'assisted' : '');
 
     // Save first: the unlock check for "Next level" reads the progress this run just made.
+    // A run with an assist on is shown but never saved.
+    const saving = result.levelId !== '' && !assisted;
     const before = loadProgress();
-    const recorded = result.levelId
+    const recorded = saving
       ? recordRun(before, { levelId: result.levelId, score: result.score, stars: result.stars, preset })
       : { progress: before, newBest: false, newStars: false };
-    if (result.levelId) saveProgress(recorded.progress);
+    if (saving) saveProgress(recorded.progress);
     const best = levelProgress(recorded.progress, result.levelId).bestScore;
 
     this.cameras.main.setBackgroundColor(COLOR.bg);
@@ -90,7 +93,7 @@ export class ResultsScene extends Phaser.Scene {
         GAME_WIDTH / 2,
         RESULTS.subheadingY,
         `${result.players} player${result.players === 1 ? '' : 's'} · ${presetName(preset)}` +
-          `${result.seed === undefined ? '' : ` · seed ${result.seed}`}`,
+          `${result.seed === undefined ? '' : ` · seed ${result.seed}`}${assisted ? ' · assists on' : ''}`,
         textStyle(RESULTS.subheadingFontPx, TEXT_COLOR.dim),
       )
       .setOrigin(0.5);
@@ -102,7 +105,16 @@ export class ResultsScene extends Phaser.Scene {
         .text(GAME_WIDTH / 2, RESULTS.newBestY, 'New best!', textStyle(RESULTS.newBestFontPx, TEXT_COLOR.accent))
         .setOrigin(0.5);
     }
-    if (!countsTowardUnlock(preset)) {
+    if (assisted) {
+      this.add
+        .text(
+          GAME_WIDTH / 2,
+          RESULTS.noteY,
+          'Assists were on: this run is not saved and earns no stars',
+          textStyle(RESULTS.noteFontPx, TEXT_COLOR.dim),
+        )
+        .setOrigin(0.5);
+    } else if (!countsTowardUnlock(preset)) {
       this.add
         .text(
           GAME_WIDTH / 2,
