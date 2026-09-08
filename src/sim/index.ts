@@ -868,7 +868,9 @@ export class Sim {
           }
           return;
         }
-        if (item && item.kind === 'plate' && held.state === 'cooked' && held.contents.length > 0) {
+        // wiki (Plate): a plate resting on a sink refuses food, poured as well as plated.
+        if (item && item.kind === 'plate' && tile.type !== 'sink'
+            && held.state === 'cooked' && held.contents.length > 0) {
           this.emptyOnto(item, held, idx, tx, ty, events);
           return;
         }
