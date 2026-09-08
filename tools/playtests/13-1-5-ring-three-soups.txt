@@ -1,0 +1,382 @@
+# -- 1-5: the ring. Two chefs circling the same way, one soup out of each of the three pots --
+#
+# The oval is one tile wide, so the only stable way to run it is a pipeline. Three waypoints
+# split the loop and a chef only ever walks an arc the other chef is not standing in:
+#   W1 (1,1)   top-left, under the mushroom crate
+#   W2 (8,6)   bottom-middle, at the first pot
+#   W3 (12,1)  top-right, beside the bin
+# The three arcs all run the SAME way round (down the left, right along the bottom, up the
+# right, left along the top):
+#   A1  W1 -> W2   down column 1, chop on a board at (1,7) or (3,7), on along row 6
+#   A2  W2 -> W3   right along row 6 past the pots at (10,7) and (12,7), up column 12
+#   A3  W3 -> W1   left along row 1 past the sink, the hatch and the crates
+# Station order round the loop is crate -> board -> pot -> plate -> hatch -> crate, so one lap
+# is one ingredient and the chefs never have to turn back.
+#
+# Two chopped ingredients per soup are parked on the island counters at (7,5)/(8,5) (and later
+# (9,5)/(10,5), free once their plates have been used) and the third chef tips all three in
+# together. Filling a pot one lap at a time does not work: a pot cooks as soon as ANY
+# ingredient is in it and catches fire BURN_TIME after that, which is less than two laps.
+#
+# Menu: Seed number +2 (1 -> 3, which also pins the mode to fixed), Free play on, then 1-5.
+# Seed 3 opens with a mushroom and an onion ticket and adds a tomato one at 20 s.
+# Wait for the title scene to be the live one before typing at it: on a loaded machine the
+# boot can take longer than a fixed wait and every menu tap is then thrown away.
+until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
+wait 600
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowRight
+wait 250
+tap ArrowRight
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowRight
+wait 250
+tap ArrowUp
+wait 250
+tap ArrowUp
+wait 250
+tap ArrowUp
+wait 250
+tap ArrowUp
+wait 250
+tap ArrowUp
+wait 250
+tap ArrowUp
+wait 250
+tap Enter
+wait 1200
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.sim
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval (0, eval)(await (await fetch('/tools/playtests/monitor.txt')).text())
+eval JSON.stringify([__oc.level.id, __oc.sim.getState().seed, __qa.orders()])
+shot 13-00-ring.png
+
+# -- The ring is one tile wide: two chefs facing each other cannot swap ---------------
+eval JSON.stringify(['start', __qa.cx(0), __qa.cx(1)])
+hold KeyD,ArrowLeft 1500
+eval JSON.stringify(['head-on', +__qa.cx(0).toFixed(3), +__qa.cx(1).toFixed(3), 'gap', +(__qa.cx(1) - __qa.cx(0)).toFixed(3)])
+hold KeyD,ArrowLeft 1500
+eval JSON.stringify(['still stuck', +__qa.cx(0).toFixed(3), +__qa.cx(1).toFixed(3), 'P1 still left of P2', __qa.cx(0) < __qa.cx(1)])
+eval JSON.stringify(['worst chef overlap', __mon.chefOverlap, 'worst tile overlap', __mon.tileOverlap])
+shot 13-01-head-on.png
+# Nobody is trapped: the ring is a loop, so P1 turns round and takes the long way.
+holduntil KeyA 6000 __qa.cx(0) <= 1.55
+eval JSON.stringify(['P1 came round the other way', __qa.chef(0).x, __qa.chef(0).y])
+
+# -- Setup: P1 holds W1 with a mushroom, P2 takes W3 ----------------------------------
+hold KeyW 150
+tap Space
+eval JSON.stringify(__qa.held(0))
+holduntil ArrowRight 7000 __qa.cx(1) >= 12.45
+eval JSON.stringify(__qa.mark('pipelineStart'))
+
+# -- T1  P1 A1: chop mushroom one at (1,7), park it on (7,5) --------------------------
+holduntil KeyS 5000 __qa.cy(0) >= 6.45
+hold KeyS 150
+tap Space
+hold ShiftLeft 3400
+tap Space
+holduntil KeyD 5000 __qa.cx(0) >= 7.45
+hold KeyW 150
+tap Space
+eval JSON.stringify(__qa.tile(7,5))
+holduntil KeyD 2000 __qa.cx(0) >= 8.45
+
+# -- T2  P2 A3: round the top to W1, take a mushroom ----------------------------------
+holduntil ArrowLeft 8000 __qa.cx(1) <= 1.55
+hold ArrowUp 150
+tap Enter
+eval JSON.stringify(__qa.held(1))
+
+# -- T3  P1 A2: on round to W3 ---------------------------------------------------------
+holduntil KeyD 5000 __qa.cx(0) >= 12.45
+holduntil KeyW 5000 __qa.cy(0) <= 1.55
+
+# -- T4  P2 A1: chop mushroom two at (3,7), park it on (8,5) ---------------------------
+holduntil ArrowDown 5000 __qa.cy(1) >= 6.45
+holduntil ArrowRight 3000 __qa.cx(1) >= 3.45
+hold ArrowDown 150
+tap Enter
+hold ShiftRight 3400
+tap Enter
+holduntil ArrowRight 5000 __qa.cx(1) >= 8.45
+hold ArrowUp 150
+tap Enter
+eval JSON.stringify(__qa.tile(8,5))
+
+# -- T5  P1 A3: back to W1, mushroom three ---------------------------------------------
+holduntil KeyA 8000 __qa.cx(0) <= 1.55
+hold KeyW 150
+tap Space
+eval JSON.stringify(__qa.held(0))
+
+# -- T6  P2 A2: on round to W3 ----------------------------------------------------------
+holduntil ArrowRight 5000 __qa.cx(1) >= 12.45
+holduntil ArrowUp 5000 __qa.cy(1) <= 1.55
+
+# -- T7  P1 A1: chop it, tip all three into the pot at (8,7), plate the soup ------------
+holduntil KeyS 5000 __qa.cy(0) >= 6.45
+hold KeyS 150
+tap Space
+hold ShiftLeft 3400
+tap Space
+holduntil KeyD 5000 __qa.cx(0) >= 8.45
+hold KeyS 150
+tap Space
+hold KeyW 150
+tap Space
+hold KeyS 150
+tap Space
+holduntil KeyA 2000 __qa.cx(0) <= 7.55
+hold KeyW 150
+tap Space
+holduntil KeyD 2000 __qa.cx(0) >= 8.45
+hold KeyS 150
+tap Space
+eval JSON.stringify(__qa.tile(8,7))
+eval JSON.stringify(__qa.mark('mushroomPotFull'))
+holduntil KeyD 2000 __qa.cx(0) >= 9.45
+hold KeyW 150
+tap Space
+eval JSON.stringify(__qa.held(0))
+holduntil KeyA 2000 __qa.cx(0) <= 8.55
+hold KeyS 150
+until 14000 __oc.sim.itemAt(8,7).state === 'cooked'
+tap Space
+eval JSON.stringify([__qa.held(0), __qa.tile(8,7).item])
+shot 13-02-mushroom-soup.png
+
+# -- T8  P2 A3: to W1 by way of the onion crate at (2,0) --------------------------------
+holduntil ArrowLeft 8000 __qa.cx(1) <= 2.55
+hold ArrowUp 150
+tap Enter
+eval JSON.stringify(__qa.held(1))
+holduntil ArrowLeft 2000 __qa.cx(1) <= 1.55
+
+# -- T9  P1 A2: carry the soup round to W3 ----------------------------------------------
+holduntil KeyD 5000 __qa.cx(0) >= 12.45
+holduntil KeyW 5000 __qa.cy(0) <= 1.55
+
+# -- T10 P2 A1: chop onion one at (3,7), park it on (7,5) -------------------------------
+holduntil ArrowDown 5000 __qa.cy(1) >= 6.45
+holduntil ArrowRight 3000 __qa.cx(1) >= 3.45
+hold ArrowDown 150
+tap Enter
+hold ShiftRight 3400
+tap Enter
+holduntil ArrowRight 5000 __qa.cx(1) >= 7.45
+hold ArrowUp 150
+tap Enter
+eval JSON.stringify(__qa.tile(7,5))
+
+# -- T11 P1 A3: serve the mushroom soup at (7,0), take an onion, on to W1 ---------------
+holduntil KeyA 6000 __qa.cx(0) <= 7.55
+hold KeyW 150
+tap Space
+wait 300
+eval JSON.stringify(__qa.score())
+eval JSON.stringify(__qa.of('serve'))
+shot 13-03-served-mushroom.png
+holduntil KeyA 6000 __qa.cx(0) <= 2.55
+hold KeyW 150
+tap Space
+eval JSON.stringify(__qa.held(0))
+holduntil KeyA 2000 __qa.cx(0) <= 1.55
+
+# -- T12 P2 A2: on round to W3 -----------------------------------------------------------
+holduntil ArrowRight 5000 __qa.cx(1) >= 12.45
+holduntil ArrowUp 5000 __qa.cy(1) <= 1.55
+
+# -- T13 P1 A1: chop onion two at (1,7), park it on (8,5) --------------------------------
+holduntil KeyS 5000 __qa.cy(0) >= 6.45
+hold KeyS 150
+tap Space
+hold ShiftLeft 3400
+tap Space
+holduntil KeyD 5000 __qa.cx(0) >= 8.45
+hold KeyW 150
+tap Space
+eval JSON.stringify(__qa.tile(8,5))
+
+# -- T14 P2 A3: to W1 by way of the onion crate ------------------------------------------
+holduntil ArrowLeft 8000 __qa.cx(1) <= 2.55
+hold ArrowUp 150
+tap Enter
+eval JSON.stringify(__qa.held(1))
+holduntil ArrowLeft 2000 __qa.cx(1) <= 1.55
+
+# -- T15 P1 A2: on round to W3 ------------------------------------------------------------
+holduntil KeyD 5000 __qa.cx(0) >= 12.45
+holduntil KeyW 5000 __qa.cy(0) <= 1.55
+
+# -- T16 P2 A1 + the pot at (10,7): chop onion three, tip all three in, plate it ----------
+holduntil ArrowDown 5000 __qa.cy(1) >= 6.45
+holduntil ArrowRight 3000 __qa.cx(1) >= 3.45
+hold ArrowDown 150
+tap Enter
+hold ShiftRight 3400
+tap Enter
+holduntil ArrowRight 6000 __qa.cx(1) >= 10.45
+hold ArrowDown 150
+tap Enter
+holduntil ArrowLeft 3000 __qa.cx(1) <= 8.55
+hold ArrowUp 150
+tap Enter
+holduntil ArrowRight 3000 __qa.cx(1) >= 10.45
+hold ArrowDown 150
+tap Enter
+holduntil ArrowLeft 4000 __qa.cx(1) <= 7.55
+hold ArrowUp 150
+tap Enter
+holduntil ArrowRight 4000 __qa.cx(1) >= 10.45
+hold ArrowDown 150
+tap Enter
+eval JSON.stringify(__qa.tile(10,7))
+eval JSON.stringify(__qa.mark('onionPotFull'))
+hold ArrowUp 150
+tap Enter
+eval JSON.stringify(__qa.held(1))
+hold ArrowDown 150
+until 14000 __oc.sim.itemAt(10,7).state === 'cooked'
+tap Enter
+eval JSON.stringify(__qa.held(1))
+shot 13-04-onion-soup.png
+
+# -- T17 P1 A3: to W1 by way of the tomato crate at (3,0) ---------------------------------
+holduntil KeyA 8000 __qa.cx(0) <= 3.55
+hold KeyW 150
+tap Space
+eval JSON.stringify(__qa.held(0))
+holduntil KeyA 3000 __qa.cx(0) <= 1.55
+
+# -- T18 P2 A2: carry the onion soup round to W3 -------------------------------------------
+holduntil ArrowRight 4000 __qa.cx(1) >= 12.45
+holduntil ArrowUp 5000 __qa.cy(1) <= 1.55
+
+# -- T19 P1 A1: chop tomato one at (1,7), park it on (9,5) ---------------------------------
+holduntil KeyS 5000 __qa.cy(0) >= 6.45
+hold KeyS 150
+tap Space
+hold ShiftLeft 3400
+tap Space
+holduntil KeyD 6000 __qa.cx(0) >= 9.45
+hold KeyW 150
+tap Space
+eval JSON.stringify(__qa.tile(9,5))
+
+# -- T20 P2 A3: serve the onion soup, take a tomato, on to W1 ------------------------------
+holduntil ArrowLeft 6000 __qa.cx(1) <= 7.55
+hold ArrowUp 150
+tap Enter
+wait 300
+eval JSON.stringify(__qa.score())
+eval JSON.stringify(__qa.of('serve'))
+shot 13-05-served-onion.png
+holduntil ArrowLeft 6000 __qa.cx(1) <= 3.55
+hold ArrowUp 150
+tap Enter
+eval JSON.stringify(__qa.held(1))
+holduntil ArrowLeft 3000 __qa.cx(1) <= 1.55
+
+# -- T21 P1 A2: on round to W3 --------------------------------------------------------------
+holduntil KeyD 5000 __qa.cx(0) >= 12.45
+holduntil KeyW 5000 __qa.cy(0) <= 1.55
+
+# -- T22 P2 A1: chop tomato two at (3,7), park it on (10,5) ---------------------------------
+holduntil ArrowDown 5000 __qa.cy(1) >= 6.45
+holduntil ArrowRight 3000 __qa.cx(1) >= 3.45
+hold ArrowDown 150
+tap Enter
+hold ShiftRight 3400
+tap Enter
+holduntil ArrowRight 7000 __qa.cx(1) >= 10.45
+hold ArrowUp 150
+tap Enter
+eval JSON.stringify(__qa.tile(10,5))
+
+# -- T23 P1 A3: to W1 by way of the tomato crate ---------------------------------------------
+holduntil KeyA 8000 __qa.cx(0) <= 3.55
+hold KeyW 150
+tap Space
+eval JSON.stringify(__qa.held(0))
+holduntil KeyA 3000 __qa.cx(0) <= 1.55
+
+# -- T24 P2 A2: on round to W3 ---------------------------------------------------------------
+holduntil ArrowRight 4000 __qa.cx(1) >= 12.45
+holduntil ArrowUp 5000 __qa.cy(1) <= 1.55
+
+# -- T25 P1 A1 + the pot at (12,7): chop tomato three, tip all three in, plate it -------------
+holduntil KeyS 5000 __qa.cy(0) >= 6.45
+hold KeyS 150
+tap Space
+hold ShiftLeft 3400
+tap Space
+holduntil KeyD 7000 __qa.cx(0) >= 12.45
+hold KeyS 150
+tap Space
+holduntil KeyA 3000 __qa.cx(0) <= 10.55
+hold KeyW 150
+tap Space
+holduntil KeyD 3000 __qa.cx(0) >= 12.45
+hold KeyS 150
+tap Space
+holduntil KeyA 4000 __qa.cx(0) <= 9.55
+hold KeyW 150
+tap Space
+holduntil KeyD 4000 __qa.cx(0) >= 12.45
+hold KeyS 150
+tap Space
+eval JSON.stringify(__qa.tile(12,7))
+eval JSON.stringify(__qa.mark('tomatoPotFull'))
+holduntil KeyA 3000 __qa.cx(0) <= 11.55
+hold KeyW 150
+tap Space
+eval JSON.stringify(__qa.held(0))
+holduntil KeyD 3000 __qa.cx(0) >= 12.45
+hold KeyS 150
+until 14000 __oc.sim.itemAt(12,7).state === 'cooked'
+tap Space
+eval JSON.stringify(__qa.held(0))
+
+# -- T26 P2 A3: clear W3 so P1 can come up column 12 --------------------------------------------
+holduntil ArrowLeft 9000 __qa.cx(1) <= 1.55
+
+# -- T27 P1 A2 + A3: round to the hatch and serve the tomato soup -------------------------------
+holduntil KeyW 5000 __qa.cy(0) <= 1.55
+holduntil KeyA 7000 __qa.cx(0) <= 7.55
+hold KeyW 150
+tap Space
+wait 300
+eval JSON.stringify(__qa.score())
+eval JSON.stringify(__qa.of('serve'))
+shot 13-06-served-tomato.png
+
+# -- Totals ---------------------------------------------------------------------------------------
+eval JSON.stringify(__qa.marks)
+eval JSON.stringify(__qa.orders())
+eval JSON.stringify(__qa.of('orderExpired').length)
+eval JSON.stringify(__qa.of('serveRejected'))
+eval JSON.stringify(__qa.of('burnt'))
+eval JSON.stringify(['invariants', JSON.parse(JSON.stringify(__mon))])
+eval JSON.stringify(__oc.sim.getState().phase)
+logs
+errors

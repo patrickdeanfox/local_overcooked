@@ -647,9 +647,11 @@ describe('order tuning', () => {
     'oc1-1-1': { initial: 2, intervalSec: 18, max: 4, timeSec: 60 },
     'oc1-1-2': { initial: 2, intervalSec: 26, max: 4, timeSec: 90 },
     'oc1-1-3': { initial: 2, intervalSec: 20, max: 4, timeSec: 85 },
-    // 1-4 to 1-6 are starting points, not playtested numbers: burgers are a longer dish
-    // than soup, so the burger kitchens get a slower drip and a longer ticket life.
-    'oc1-1-4': { initial: 2, intervalSec: 24, max: 4, timeSec: 100 },
+    // Burgers are a longer dish than soup, so the burger kitchens keep a longer ticket life
+    // than the soup ones. 1-4's drip was measured down from 24 s to 20 s because at 24 s the
+    // ticket supply, not the kitchen, capped the score short of three stars: see
+    // "World 1 playtest" in docs/LEVELS.md.
+    'oc1-1-4': { initial: 2, intervalSec: 20, max: 4, timeSec: 100 },
     'oc1-1-5': { initial: 2, intervalSec: 20, max: 4, timeSec: 85 },
     'oc1-1-6': { initial: 2, intervalSec: 24, max: 4, timeSec: 100 },
   };

@@ -1,0 +1,162 @@
+# -- 1-4: a patty left in the pan burns, catches fire, is put out and the pan reused --
+# COOK_TIME 9 s to 'cooked', then BURN_TIME 13 s to 'burnt' + fire. The extinguisher is
+# on the counter at (12,1), reachable from (11,1). The bin at (0,6) empties the burnt pan.
+#
+# Menu: Seed number +1 (1 -> 2, pins the mode to fixed), Free play on, then 1-4.
+# Wait for the title scene to be the live one before typing at it: on a loaded machine the
+# boot can take longer than a fixed wait and every menu tap is then thrown away.
+until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
+wait 600
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowRight
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowRight
+wait 250
+tap ArrowUp
+wait 250
+tap ArrowUp
+wait 250
+tap ArrowUp
+wait 250
+tap ArrowUp
+wait 250
+tap ArrowUp
+wait 250
+tap ArrowUp
+wait 250
+tap ArrowUp
+wait 250
+tap Enter
+wait 1200
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.sim
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval JSON.stringify([__oc.level.id, __oc.sim.getState().seed, __qa.tile(8,0)])
+
+# -- P1: beef from (0,2), chopped at (2,7), handed over on (7,2) ------------------
+holduntil KeyA 3000 __oc.sim.getState().chefs[0].x <= 1.55
+hold KeyA 150
+tap Space
+holduntil KeyS 4000 __oc.sim.getState().chefs[0].y >= 6.45
+holduntil KeyD 2000 __oc.sim.getState().chefs[0].x >= 2.45
+hold KeyS 150
+tap Space
+hold ShiftLeft 3400
+tap Space
+holduntil KeyW 5000 __oc.sim.getState().chefs[0].y <= 3.55
+holduntil KeyD 5000 __oc.sim.getState().chefs[0].x >= 7.45
+hold KeyW 150
+tap Space
+eval JSON.stringify(__qa.tile(7,2))
+
+# -- P2: into the pan at (8,0), then fetch the extinguisher and stand by -----------
+holduntil ArrowLeft 3000 __oc.sim.getState().chefs[1].x <= 8.55
+hold ArrowLeft 150
+tap Enter
+holduntil ArrowUp 3000 __oc.sim.getState().chefs[1].y <= 1.55
+hold ArrowUp 150
+tap Enter
+eval JSON.stringify(__qa.tile(8,0))
+eval JSON.stringify(__qa.mark('inPan'))
+holduntil ArrowRight 4000 __oc.sim.getState().chefs[1].x >= 11.45
+hold ArrowRight 150
+tap Enter
+eval JSON.stringify(__qa.chef(1).holding)
+holduntil ArrowLeft 4000 __oc.sim.getState().chefs[1].x <= 8.55
+hold ArrowUp 150
+
+# -- the patty cooks, then burns -------------------------------------------------
+until 15000 __oc.sim.itemAt(8,0).state === 'cooked'
+eval JSON.stringify(__qa.mark('cooked'))
+shot 12-01-cooked.png
+eval JSON.stringify(__qa.tile(8,0))
+until 20000 __oc.sim.itemAt(8,0).state === 'burnt'
+eval JSON.stringify(__qa.mark('burnt'))
+eval JSON.stringify([__qa.tile(8,0), __oc.sim.getState().fires, __oc.sim.fireAt(8,0)])
+eval JSON.stringify(__qa.of('burnt'))
+eval JSON.stringify(__qa.of('fireStart'))
+shot 12-02-fire.png
+
+# -- a burning tile refuses everything but the spray -------------------------------
+tap Enter
+eval JSON.stringify([__qa.chef(1).holding, __qa.tile(8,0).item])
+hold ArrowUp,ShiftRight 1600
+eval JSON.stringify([__oc.sim.getState().fires, __qa.of('fireOut'), __qa.count('spray')])
+eval JSON.stringify(__qa.mark('out'))
+shot 12-03-fire-out.png
+
+# -- park the extinguisher on (7,1), pick the burnt pan up -------------------------
+hold ArrowLeft 150
+tap Enter
+eval JSON.stringify([__qa.chef(1).holding, __qa.tile(7,1)])
+hold ArrowUp 150
+tap Enter
+eval JSON.stringify(__qa.chef(1).holding)
+
+# -- the bin at (0,6) empties the pan ---------------------------------------------
+holduntil ArrowDown 3000 __oc.sim.getState().chefs[1].y >= 3.45
+holduntil ArrowUp 1200 __oc.sim.getState().chefs[1].y <= 3.55
+holduntil ArrowLeft 9000 __oc.sim.getState().chefs[1].x <= 1.55
+holduntil ArrowDown 4000 __oc.sim.getState().chefs[1].y >= 6.45
+hold ArrowLeft 150
+tap Enter
+eval JSON.stringify(__qa.chef(1).holding)
+eval JSON.stringify(__qa.of('trash'))
+shot 12-04-pan-emptied.png
+
+# -- back onto the burner, and it cooks again --------------------------------------
+holduntil ArrowUp 4000 __oc.sim.getState().chefs[1].y <= 3.55
+holduntil ArrowRight 9000 __oc.sim.getState().chefs[1].x >= 8.45
+holduntil ArrowUp 4000 __oc.sim.getState().chefs[1].y <= 1.55
+hold ArrowUp 150
+tap Enter
+eval JSON.stringify(__qa.tile(8,0))
+
+# -- P1 chops a second patty, P2 fries it ------------------------------------------
+holduntil KeyA 6000 __oc.sim.getState().chefs[0].x <= 1.55
+holduntil KeyW 3000 __oc.sim.getState().chefs[0].y <= 2.55
+hold KeyA 150
+tap Space
+holduntil KeyS 4000 __oc.sim.getState().chefs[0].y >= 6.45
+holduntil KeyD 3000 __oc.sim.getState().chefs[0].x >= 2.45
+hold KeyS 150
+tap Space
+hold ShiftLeft 3400
+tap Space
+holduntil KeyW 5000 __oc.sim.getState().chefs[0].y <= 3.55
+holduntil KeyD 5000 __oc.sim.getState().chefs[0].x >= 7.45
+hold KeyW 150
+tap Space
+holduntil ArrowDown 3000 __oc.sim.getState().chefs[1].y >= 2.45
+hold ArrowLeft 150
+tap Enter
+eval JSON.stringify(__qa.chef(1).holding)
+holduntil ArrowUp 3000 __oc.sim.getState().chefs[1].y <= 1.55
+hold ArrowUp 150
+tap Enter
+eval JSON.stringify(__qa.tile(8,0))
+until 15000 __oc.sim.itemAt(8,0).state === 'cooked'
+eval JSON.stringify([__qa.tile(8,0), __qa.marks])
+shot 12-05-pan-reused.png
+eval JSON.stringify(__qa.score())
+eval JSON.stringify(__oc.sim.getState().fires)
+logs
+errors
