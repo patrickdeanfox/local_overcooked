@@ -56,4 +56,8 @@ export function ALL_TEXTURE_KEYS(): string[] {
   return keys;
 }
 
-export const TEXTURE_SIZES = { tile: TILE, item: 40, chefW: TILE, chefH: 80, icon: 32, orderCardW: 96, orderCardH: 120 } as const;
+export const TEXTURE_SIZES = {
+  tile: TILE, item: 40, chefW: TILE, chefH: 80, icon: 32, orderCardW: 96, orderCardH: 120,
+  // Added by the art module (additive): sizes of the remaining generated textures.
+  fire: TILE, fx: 40, panelW: 256, panelH: 160, promptW: 48, promptH: 32,
+} as const;
