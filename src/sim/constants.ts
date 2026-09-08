@@ -30,3 +30,4 @@ export const TIMER_WARNING_AT = 30;     // seconds left when the warning event f
 export const MOVE_DEADZONE = 0.2;         // stick magnitude below which the chef stands still
 export const TICK_EVENT_HZ = 4;           // max chopTick / washTick / spray events per second
 export const SPRAY_LATERAL_TOLERANCE = 0.6; // tiles either side of the spray ray that still get hit
+export const MAX_PUSH_ESCAPE = 1;         // tiles a slider or pedestrian push may shift a chef in one step

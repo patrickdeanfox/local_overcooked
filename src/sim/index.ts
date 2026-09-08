@@ -8,7 +8,7 @@ import type { LevelDef } from '../levels/schema';
 import { parseGrid, SOLID_TILES } from '../levels/schema';
 import {
   BURN_TIME, CHEF_HITBOX, CHEF_RADIUS, CHEF_SPEED, CHOP_TIME, COOK_TIME, EXTINGUISH_RATE,
-  FIRE_SPREAD_TIME, MOVE_DEADZONE, ORDER_FAIL_PENALTY, PLATE_RETURN_DELAY,
+  FIRE_SPREAD_TIME, MAX_PUSH_ESCAPE, MOVE_DEADZONE, ORDER_FAIL_PENALTY, PLATE_RETURN_DELAY,
   PLATE_STACK_RETURN_DELAY, POT_CAPACITY, REACH, SIM_DT, SPRAY_LATERAL_TOLERANCE, SPRAY_RANGE,
   TICK_EVENT_HZ, TIMER_WARNING_AT, TIP_BASE, TIP_MAX, WASH_TIME,
 } from './constants';
@@ -358,6 +358,49 @@ export class Sim {
     return y;
   }
 
+  /** True when a chef standing here is on the grid and clear of every solid box: static
+   *  tiles and slider tiles at their current offset. The pushes below pick their landing
+   *  spots with this, so no shove can hand a chef to a wall. */
+  private chefFits(x: number, y: number): boolean {
+    const st = this.state;
+    if (x < HALF - EPS || y < HALF - EPS) return false;
+    if (x > st.width - HALF + EPS || y > st.height - HALF + EPS) return false;
+    return this.collectSolidBoxes(x - HALF, y - HALF, x + HALF, y + HALF) === 0;
+  }
+
+  /** True when the chef box here is on the grid and clear of the static grid. Sliders are
+   *  ignored: a chef may end up under a passing slider, never inside a counter. */
+  private clearOfWalls(x: number, y: number): boolean {
+    const st = this.state;
+    if (x < HALF - EPS || y < HALF - EPS) return false;
+    if (x > st.width - HALF + EPS || y > st.height - HALF + EPS) return false;
+    const x0 = Math.max(0, Math.floor(x - HALF + EPS));
+    const x1 = Math.min(st.width - 1, Math.floor(x + HALF - EPS));
+    const y0 = Math.max(0, Math.floor(y - HALF + EPS));
+    const y1 = Math.min(st.height - 1, Math.floor(y + HALF - EPS));
+    for (let ty = y0; ty <= y1; ty++) {
+      const row = ty * st.width;
+      for (let tx = x0; tx <= x1; tx++) if (this.staticSolid[row + tx]) return false;
+    }
+    return true;
+  }
+
+  /** Moves the chef along one axis when the spot is clear and within a step's push budget of
+   *  (fromX, fromY), which is where the chef stood before this push started. */
+  private tryMoveX(chef: Chef, x: number, fromX: number, fromY: number): boolean {
+    if (Math.hypot(x - fromX, chef.y - fromY) > MAX_PUSH_ESCAPE) return false;
+    if (!this.chefFits(x, chef.y)) return false;
+    chef.x = x;
+    return true;
+  }
+
+  private tryMoveY(chef: Chef, y: number, fromX: number, fromY: number): boolean {
+    if (Math.hypot(chef.x - fromX, y - fromY) > MAX_PUSH_ESCAPE) return false;
+    if (!this.chefFits(chef.x, y)) return false;
+    chef.y = y;
+    return true;
+  }
+
   /** Shoves a chef out of any solid tile it ended up inside, along the shallowest axis.
    *  Runs after pedestrian and slider pushes so nothing can shove a chef into a wall. */
   private pushOutOfTiles(chef: Chef): void {
@@ -423,36 +466,103 @@ export class Sim {
       for (const p of this.state.pedestrians) {
         let dx = chef.x - p.x;
         let dy = chef.y - p.y;
-        let d = Math.hypot(dx, dy);
+        const d = Math.hypot(dx, dy);
         if (d >= minDist) continue;
-        if (d < DEGENERATE) { dx = -p.vx; dy = -p.vy; d = Math.hypot(dx, dy) || 1; }
-        const push = (minDist - d) / d; // the pedestrian never gives way
-        chef.x += dx * push;
-        chef.y += dy * push;
+        if (d < DEGENERATE) {
+          // Walked right onto the chef: step back along the walker's heading, or to the right
+          // when it is standing still, so the nudge stays small and deterministic.
+          const len = Math.hypot(p.vx, p.vy);
+          dx = len > DEGENERATE ? -p.vx / len : 1;
+          dy = len > DEGENERATE ? -p.vy / len : 0;
+        } else {
+          dx /= d;
+          dy /= d;
+        }
+        const push = minDist - d; // unit direction × how deep the overlap is; never more than minDist
+        // One axis at a time, the same sweep walking uses: a blocked axis costs the chef that
+        // part of the push and nothing more, so a shove along a wall still slides it clear and
+        // a shove into a wall leaves the pedestrian overlapping instead of the chef in a counter.
+        const wasX = chef.x;
+        const wasY = chef.y;
+        if (dx !== 0) chef.x = this.resolveX(chef, chef.x + dx * push);
+        if (dy !== 0) chef.y = this.resolveY(chef, chef.y + dy * push);
+        const rest = push - Math.hypot(chef.x - wasX, chef.y - wasY);
+        if (rest <= EPS) continue;
+        // The wall ate the push: step aside across the walker, whichever side is open.
+        const sx = -dy * rest;
+        const sy = dx * rest;
+        if (this.chefFits(chef.x + sx, chef.y + sy)) {
+          chef.x += sx;
+          chef.y += sy;
+        } else if (this.chefFits(chef.x - sx, chef.y - sy)) {
+          chef.x -= sx;
+          chef.y -= sy;
+        }
       }
     }
   }
 
   private pushChefsFromSliders(): void {
     for (const chef of this.state.chefs) {
+      const fromX = chef.x;
+      const fromY = chef.y;
       for (const s of this.sliderTiles) {
         const g = this.groupOffset(s.group);
         const bx = s.x + (g ? g.offsetX : 0);
         const by = s.y + (g ? g.offsetY : 0);
-        if (chef.x + HALF <= bx || chef.x - HALF >= bx + 1) continue;
-        if (chef.y + HALF <= by || chef.y - HALF >= by + 1) continue;
+        if (chef.x + HALF <= bx + EPS || chef.x - HALF >= bx + 1 - EPS) continue;
+        if (chef.y + HALF <= by + EPS || chef.y - HALF >= by + 1 - EPS) continue;
         const spec = this.specForGroup(s.group);
-        if (!spec || spec.axis === 'x') {
-          const penL = chef.x + HALF - bx;
-          const penR = bx + 1 - (chef.x - HALF);
-          chef.x += penL < penR ? -penL : penR;
-        } else {
-          const penU = chef.y + HALF - by;
-          const penD = by + 1 - (chef.y - HALF);
-          chef.y += penU < penD ? -penU : penD;
-        }
+        this.escapeSlider(chef, bx, by, !spec || spec.axis === 'x', fromX, fromY);
       }
     }
+  }
+
+  /** Gets a chef out of the slider box sweeping over it. First choice is the near side along
+   *  the slider's own axis; when that side is a wall, the grid edge or another slider, the
+   *  chef is squeezed out sideways instead (shorter way first) and only then rides out on the
+   *  far side. Every candidate clears this box, so the chef never ends up in a counter, and
+   *  none of them moves the chef more than MAX_PUSH_ESCAPE from where it started the step. */
+  private escapeSlider(chef: Chef, bx: number, by: number, alongX: boolean, fromX: number, fromY: number): void {
+    // Ways out along the slider's axis, then sideways across it; nearest of each pair first.
+    const aBase = alongX ? bx : by;
+    const aPos = alongX ? chef.x : chef.y;
+    const aLow = aPos - (aBase - HALF) <= aBase + 1 + HALF - aPos;
+    const aNear = aLow ? aBase - HALF : aBase + 1 + HALF;
+    const aFar = aLow ? aBase + 1 + HALF : aBase - HALF;
+    const cBase = alongX ? by : bx;
+    const cPos = alongX ? chef.y : chef.x;
+    const cLow = cPos - (cBase - HALF) <= cBase + 1 + HALF - cPos;
+    const cNear = cLow ? cBase - HALF : cBase + 1 + HALF;
+    const cFar = cLow ? cBase + 1 + HALF : cBase - HALF;
+
+    if (alongX) {
+      if (this.tryMoveX(chef, aNear, fromX, fromY)) return; // shoved along the slider's travel
+      if (this.tryMoveY(chef, cNear, fromX, fromY)) return; // squeezed out sideways
+      if (this.tryMoveY(chef, cFar, fromX, fromY)) return;
+      if (this.tryMoveX(chef, aFar, fromX, fromY)) return;  // rides out on the far side
+    } else {
+      if (this.tryMoveY(chef, aNear, fromX, fromY)) return;
+      if (this.tryMoveX(chef, cNear, fromX, fromY)) return;
+      if (this.tryMoveX(chef, cFar, fromX, fromY)) return;
+      if (this.tryMoveY(chef, aFar, fromX, fromY)) return;
+    }
+    // Boxed in: leave the box the way that is not a wall, and if both are, stay put and let
+    // the slider pass over the chef. Standing in a counter is the one outcome ruled out.
+    if (this.rideOut(chef, alongX, aFar, fromX, fromY)) return;
+    this.rideOut(chef, alongX, aNear, fromX, fromY);
+  }
+
+  /** Last resort for a boxed-in chef: clears the slider box even though something else is in
+   *  the way, as long as that spot is no wall and stays inside the step's push budget. */
+  private rideOut(chef: Chef, alongX: boolean, value: number, fromX: number, fromY: number): boolean {
+    const x = alongX ? value : chef.x;
+    const y = alongX ? chef.y : value;
+    if (Math.hypot(x - fromX, y - fromY) > MAX_PUSH_ESCAPE) return false;
+    if (!this.clearOfWalls(x, y)) return false;
+    chef.x = x;
+    chef.y = y;
+    return true;
   }
 
   // ─── Chef actions ─────────────────────────────────────────────────────────
