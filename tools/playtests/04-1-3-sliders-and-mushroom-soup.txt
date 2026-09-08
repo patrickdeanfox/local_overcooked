@@ -1,0 +1,284 @@
+# -- 1-3 Savoury Seas: sliding counters, mushroom soup, plate stack ---------------
+# The ship's divider is column 6: slider group 1 covers rows 1-3 and group 2 rows 4-5,
+# in opposite phase, so the gap in the divider moves up and down. Row 7 is open deck and
+# is always a way round. Plates come off a three-tile stack at (1,2)-(1,4), no sink.
+# NOTE: leave >=200 ms between two taps of the same key or the input manager sees one hold.
+wait 1600
+tap ArrowDown
+wait 500
+tap ArrowDown
+wait 500
+tap Enter
+wait 1200
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.sim
+eval ['level', __oc.level.id, 'players', __oc.sim.getState().chefs.length, 'timeLeft', Math.round(__oc.sim.getState().timeLeft)]
+eval (0, eval)(await (await fetch('/tools/playtests/monitor.txt')).text())
+shot 40-1-3-start.png
+# 1. the two slider groups move, in opposite phase
+eval ['t', +__oc.sim.getState().elapsed.toFixed(1), 'group 1 offsetY', +__oc.sim.sliderOffset('1').y.toFixed(3), 'group 2 offsetY', +__oc.sim.sliderOffset('2').y.toFixed(3)]
+wait 700
+eval ['t', +__oc.sim.getState().elapsed.toFixed(1), 'group 1 offsetY', +__oc.sim.sliderOffset('1').y.toFixed(3), 'group 2 offsetY', +__oc.sim.sliderOffset('2').y.toFixed(3)]
+wait 700
+eval ['t', +__oc.sim.getState().elapsed.toFixed(1), 'group 1 offsetY', +__oc.sim.sliderOffset('1').y.toFixed(3), 'group 2 offsetY', +__oc.sim.sliderOffset('2').y.toFixed(3)]
+wait 700
+eval ['t', +__oc.sim.getState().elapsed.toFixed(1), 'group 1 offsetY', +__oc.sim.sliderOffset('1').y.toFixed(3), 'group 2 offsetY', +__oc.sim.sliderOffset('2').y.toFixed(3)]
+wait 700
+eval ['t', +__oc.sim.getState().elapsed.toFixed(1), 'group 1 offsetY', +__oc.sim.sliderOffset('1').y.toFixed(3), 'group 2 offsetY', +__oc.sim.sliderOffset('2').y.toFixed(3)]
+wait 700
+eval ['t', +__oc.sim.getState().elapsed.toFixed(1), 'group 1 offsetY', +__oc.sim.sliderOffset('1').y.toFixed(3), 'group 2 offsetY', +__oc.sim.sliderOffset('2').y.toFixed(3)]
+wait 700
+eval ['t', +__oc.sim.getState().elapsed.toFixed(1), 'group 1 offsetY', +__oc.sim.sliderOffset('1').y.toFixed(3), 'group 2 offsetY', +__oc.sim.sliderOffset('2').y.toFixed(3)]
+wait 700
+eval ['t', +__oc.sim.getState().elapsed.toFixed(1), 'group 1 offsetY', +__oc.sim.sliderOffset('1').y.toFixed(3), 'group 2 offsetY', +__oc.sim.sliderOffset('2').y.toFixed(3)]
+wait 700
+# 2. wait for slider group 1 to drop clear of row 1, then walk through the gap and back
+holduntil KeyW 8000 __oc.sim.getState().chefs[0].y <= 1.6
+holduntil KeyD 6000 __oc.sim.getState().chefs[0].x >= 5.4
+eval ['waiting west of the divider at', +__oc.sim.getState().chefs[0].x.toFixed(3), +__oc.sim.getState().chefs[0].y.toFixed(3), 'group 1 offsetY', +__oc.sim.sliderOffset('1').y.toFixed(3)]
+until 12000 __oc.sim.sliderOffset('1').y >= 0.85
+eval ['gap open, group 1 offsetY', +__oc.sim.sliderOffset('1').y.toFixed(3)]
+holduntil KeyD 4000 __oc.sim.getState().chefs[0].x >= 7.4
+eval ['crossed east to', +__oc.sim.getState().chefs[0].x.toFixed(3), +__oc.sim.getState().chefs[0].y.toFixed(3)]
+shot 42-1-3-crossed-the-gap.png
+until 12000 __oc.sim.sliderOffset('1').y >= 0.85
+holduntil KeyA 4000 __oc.sim.getState().chefs[0].x <= 5.5
+eval ['and back west to', +__oc.sim.getState().chefs[0].x.toFixed(3), +__oc.sim.getState().chefs[0].y.toFixed(3)]
+eval ['invariants after two crossings', JSON.parse(JSON.stringify(__mon))]
+# 3. stand in the path of slider group 2 at (6,5) while it sweeps down onto the chef
+eval __monReset()
+until 12000 __oc.sim.sliderOffset('2').y <= -0.9
+holduntil KeyS 6000 __oc.sim.getState().chefs[0].y >= 5.45
+holduntil KeyD 6000 __oc.sim.getState().chefs[0].x >= 6.45
+eval ['chef parked in the divider column', +__oc.sim.getState().chefs[0].x.toFixed(3), +__oc.sim.getState().chefs[0].y.toFixed(3), 'group 2 offsetY', +__oc.sim.sliderOffset('2').y.toFixed(3)]
+eval ['t', +__oc.sim.getState().elapsed.toFixed(1), 'chef', +__oc.sim.getState().chefs[0].x.toFixed(3), +__oc.sim.getState().chefs[0].y.toFixed(3), 'group 2 offsetY', +__oc.sim.sliderOffset('2').y.toFixed(3)]
+wait 600
+eval ['t', +__oc.sim.getState().elapsed.toFixed(1), 'chef', +__oc.sim.getState().chefs[0].x.toFixed(3), +__oc.sim.getState().chefs[0].y.toFixed(3), 'group 2 offsetY', +__oc.sim.sliderOffset('2').y.toFixed(3)]
+wait 600
+eval ['t', +__oc.sim.getState().elapsed.toFixed(1), 'chef', +__oc.sim.getState().chefs[0].x.toFixed(3), +__oc.sim.getState().chefs[0].y.toFixed(3), 'group 2 offsetY', +__oc.sim.sliderOffset('2').y.toFixed(3)]
+wait 600
+eval ['t', +__oc.sim.getState().elapsed.toFixed(1), 'chef', +__oc.sim.getState().chefs[0].x.toFixed(3), +__oc.sim.getState().chefs[0].y.toFixed(3), 'group 2 offsetY', +__oc.sim.sliderOffset('2').y.toFixed(3)]
+wait 600
+eval ['t', +__oc.sim.getState().elapsed.toFixed(1), 'chef', +__oc.sim.getState().chefs[0].x.toFixed(3), +__oc.sim.getState().chefs[0].y.toFixed(3), 'group 2 offsetY', +__oc.sim.sliderOffset('2').y.toFixed(3)]
+wait 600
+eval ['t', +__oc.sim.getState().elapsed.toFixed(1), 'chef', +__oc.sim.getState().chefs[0].x.toFixed(3), +__oc.sim.getState().chefs[0].y.toFixed(3), 'group 2 offsetY', +__oc.sim.sliderOffset('2').y.toFixed(3)]
+wait 600
+shot 41-1-3-pushed-by-slider.png
+eval ['invariants while the divider sweeps', JSON.parse(JSON.stringify(__mon))]
+# P1: back off the open deck - column 0 is the only way up on the left
+holduntil KeyS 6000 __oc.sim.getState().chefs[0].y >= 7.4
+holduntil KeyA 9000 __oc.sim.getState().chefs[0].x <= 0.55
+holduntil KeyW 9000 __oc.sim.getState().chefs[0].y <= 0.6
+holduntil KeyD 6000 __oc.sim.getState().chefs[0].x >= 2.45
+holduntil KeyS 6000 __oc.sim.getState().chefs[0].y >= 1.45
+# 4. mushroom soup: three mushrooms chopped and staged before any goes in the pot
+# P2: mushroom 1 - mushroom crate (9,6) round the bottom row to (2,6)
+holduntil ArrowRight 6000 __oc.sim.getState().chefs[1].x >= 10.45
+holduntil ArrowUp 6000 __oc.sim.getState().chefs[1].y <= 5.55
+holduntil ArrowDown 6000 __oc.sim.getState().chefs[1].y >= 5.45
+holduntil ArrowLeft 6000 __oc.sim.getState().chefs[1].x <= 9.55
+holduntil ArrowLeft 900 __oc.sim.getState().chefs[1].x <= 9.55
+holduntil ArrowRight 900 __oc.sim.getState().chefs[1].x >= 9.45
+hold ArrowDown 250
+eval ['P2 at the mushroom crate for mushroom 1', 'target', __oc.sim.getTargetTile(1), 'want', [9,6]]
+tap Enter
+wait 250
+eval ['P2 holds', __oc.sim.getState().chefs[1].holding?.type]
+holduntil ArrowRight 6000 __oc.sim.getState().chefs[1].x >= 10.45
+holduntil ArrowDown 6000 __oc.sim.getState().chefs[1].y >= 7.4
+holduntil ArrowLeft 9000 __oc.sim.getState().chefs[1].x <= 2.55
+holduntil ArrowLeft 900 __oc.sim.getState().chefs[1].x <= 2.55
+holduntil ArrowRight 900 __oc.sim.getState().chefs[1].x >= 2.45
+hold ArrowUp 250
+eval ['P2 drops mushroom 1', 'target', __oc.sim.getTargetTile(1), 'want', [2,6]]
+tap Enter
+wait 250
+eval ['mushroom 1 landed', __oc.sim.itemAt(2,6)]
+# P2 walks back round the bottom
+holduntil ArrowRight 9000 __oc.sim.getState().chefs[1].x >= 10.45
+holduntil ArrowUp 6000 __oc.sim.getState().chefs[1].y <= 5.55
+# P2: mushroom 2 - mushroom crate (9,6) round the bottom row to (4,6)
+holduntil ArrowRight 6000 __oc.sim.getState().chefs[1].x >= 10.45
+holduntil ArrowUp 6000 __oc.sim.getState().chefs[1].y <= 5.55
+holduntil ArrowDown 6000 __oc.sim.getState().chefs[1].y >= 5.45
+holduntil ArrowLeft 6000 __oc.sim.getState().chefs[1].x <= 9.55
+holduntil ArrowLeft 900 __oc.sim.getState().chefs[1].x <= 9.55
+holduntil ArrowRight 900 __oc.sim.getState().chefs[1].x >= 9.45
+hold ArrowDown 250
+eval ['P2 at the mushroom crate for mushroom 2', 'target', __oc.sim.getTargetTile(1), 'want', [9,6]]
+tap Enter
+wait 250
+eval ['P2 holds', __oc.sim.getState().chefs[1].holding?.type]
+holduntil ArrowRight 6000 __oc.sim.getState().chefs[1].x >= 10.45
+holduntil ArrowDown 6000 __oc.sim.getState().chefs[1].y >= 7.4
+holduntil ArrowLeft 9000 __oc.sim.getState().chefs[1].x <= 4.55
+holduntil ArrowLeft 900 __oc.sim.getState().chefs[1].x <= 4.55
+holduntil ArrowRight 900 __oc.sim.getState().chefs[1].x >= 4.45
+hold ArrowUp 250
+eval ['P2 drops mushroom 2', 'target', __oc.sim.getTargetTile(1), 'want', [4,6]]
+tap Enter
+wait 250
+eval ['mushroom 2 landed', __oc.sim.itemAt(4,6)]
+# P2 walks back round the bottom
+holduntil ArrowRight 9000 __oc.sim.getState().chefs[1].x >= 10.45
+holduntil ArrowUp 6000 __oc.sim.getState().chefs[1].y <= 5.55
+# P2: mushroom 3 - mushroom crate (9,6) round the bottom row to (3,6)
+holduntil ArrowRight 6000 __oc.sim.getState().chefs[1].x >= 10.45
+holduntil ArrowUp 6000 __oc.sim.getState().chefs[1].y <= 5.55
+holduntil ArrowDown 6000 __oc.sim.getState().chefs[1].y >= 5.45
+holduntil ArrowLeft 6000 __oc.sim.getState().chefs[1].x <= 9.55
+holduntil ArrowLeft 900 __oc.sim.getState().chefs[1].x <= 9.55
+holduntil ArrowRight 900 __oc.sim.getState().chefs[1].x >= 9.45
+hold ArrowDown 250
+eval ['P2 at the mushroom crate for mushroom 3', 'target', __oc.sim.getTargetTile(1), 'want', [9,6]]
+tap Enter
+wait 250
+eval ['P2 holds', __oc.sim.getState().chefs[1].holding?.type]
+holduntil ArrowRight 6000 __oc.sim.getState().chefs[1].x >= 10.45
+holduntil ArrowDown 6000 __oc.sim.getState().chefs[1].y >= 7.4
+holduntil ArrowLeft 9000 __oc.sim.getState().chefs[1].x <= 3.55
+holduntil ArrowLeft 900 __oc.sim.getState().chefs[1].x <= 3.55
+holduntil ArrowRight 900 __oc.sim.getState().chefs[1].x >= 3.45
+hold ArrowUp 250
+eval ['P2 drops mushroom 3', 'target', __oc.sim.getTargetTile(1), 'want', [3,6]]
+tap Enter
+wait 250
+eval ['mushroom 3 landed', __oc.sim.itemAt(3,6)]
+# P2 walks back round the bottom
+holduntil ArrowRight 9000 __oc.sim.getState().chefs[1].x >= 10.45
+holduntil ArrowUp 6000 __oc.sim.getState().chefs[1].y <= 5.55
+# P1: chop mushroom 1 on the board at (2,6), then into the pot at (3,0)
+holduntil KeyS 6000 __oc.sim.getState().chefs[0].y >= 5.45
+holduntil KeyA 7000 __oc.sim.getState().chefs[0].x <= 2.55
+holduntil KeyD 7000 __oc.sim.getState().chefs[0].x >= 2.45
+holduntil KeyW 900 __oc.sim.getState().chefs[0].y <= 5.55
+holduntil KeyS 900 __oc.sim.getState().chefs[0].y >= 5.45
+hold KeyS 250
+eval ['P1 at the board', __oc.sim.getTargetTile(0), 'want', [2,6]]
+hold ShiftLeft 3400
+eval ['chopped?', __oc.sim.itemAt(2,6)]
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 2.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 2.45
+hold KeyS 250
+eval ['P1 lifts the chopped mushroom 1', 'target', __oc.sim.getTargetTile(0), 'want', [2,6]]
+tap Space
+wait 250
+eval ['P1 holds', __oc.sim.getState().chefs[0].holding]
+holduntil KeyW 8000 __oc.sim.getState().chefs[0].y <= 1.6
+holduntil KeyD 6000 __oc.sim.getState().chefs[0].x >= 3.45
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 3.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 3.45
+hold KeyW 250
+eval ['P1 at the burner with mushroom 1', 'target', __oc.sim.getTargetTile(0), 'want', [3,0]]
+tap Space
+wait 250
+eval ['pot (3,0)', __oc.sim.itemAt(3,0)]
+# P1: chop mushroom 2 on the board at (4,6), then into the pot at (3,0)
+holduntil KeyS 6000 __oc.sim.getState().chefs[0].y >= 5.45
+holduntil KeyA 7000 __oc.sim.getState().chefs[0].x <= 4.55
+holduntil KeyD 7000 __oc.sim.getState().chefs[0].x >= 4.45
+holduntil KeyW 900 __oc.sim.getState().chefs[0].y <= 5.55
+holduntil KeyS 900 __oc.sim.getState().chefs[0].y >= 5.45
+hold KeyS 250
+eval ['P1 at the board', __oc.sim.getTargetTile(0), 'want', [4,6]]
+hold ShiftLeft 3400
+eval ['chopped?', __oc.sim.itemAt(4,6)]
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 4.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 4.45
+hold KeyS 250
+eval ['P1 lifts the chopped mushroom 2', 'target', __oc.sim.getTargetTile(0), 'want', [4,6]]
+tap Space
+wait 250
+eval ['P1 holds', __oc.sim.getState().chefs[0].holding]
+holduntil KeyW 8000 __oc.sim.getState().chefs[0].y <= 1.6
+holduntil KeyD 6000 __oc.sim.getState().chefs[0].x >= 3.45
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 3.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 3.45
+hold KeyW 250
+eval ['P1 at the burner with mushroom 2', 'target', __oc.sim.getTargetTile(0), 'want', [3,0]]
+tap Space
+wait 250
+eval ['pot (3,0)', __oc.sim.itemAt(3,0)]
+# P1: move the spare mushroom off the counter at (3,6) onto the free board at (2,6)
+holduntil KeyS 6000 __oc.sim.getState().chefs[0].y >= 5.45
+holduntil KeyA 7000 __oc.sim.getState().chefs[0].x <= 3.55
+holduntil KeyD 7000 __oc.sim.getState().chefs[0].x >= 3.45
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 3.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 3.45
+hold KeyS 250
+eval ['P1 lifts the spare mushroom', 'target', __oc.sim.getTargetTile(0), 'want', [3,6]]
+tap Space
+wait 250
+holduntil KeyA 5000 __oc.sim.getState().chefs[0].x <= 2.55
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 2.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 2.45
+hold KeyS 250
+eval ['P1 puts the mushroom on the board', 'target', __oc.sim.getTargetTile(0), 'want', [2,6]]
+tap Space
+wait 250
+# P1: chop mushroom 3 on the board at (2,6), then into the pot at (3,0)
+holduntil KeyS 6000 __oc.sim.getState().chefs[0].y >= 5.45
+holduntil KeyA 7000 __oc.sim.getState().chefs[0].x <= 2.55
+holduntil KeyD 7000 __oc.sim.getState().chefs[0].x >= 2.45
+holduntil KeyW 900 __oc.sim.getState().chefs[0].y <= 5.55
+holduntil KeyS 900 __oc.sim.getState().chefs[0].y >= 5.45
+hold KeyS 250
+eval ['P1 at the board', __oc.sim.getTargetTile(0), 'want', [2,6]]
+hold ShiftLeft 3400
+eval ['chopped?', __oc.sim.itemAt(2,6)]
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 2.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 2.45
+hold KeyS 250
+eval ['P1 lifts the chopped mushroom 3', 'target', __oc.sim.getTargetTile(0), 'want', [2,6]]
+tap Space
+wait 250
+eval ['P1 holds', __oc.sim.getState().chefs[0].holding]
+holduntil KeyW 8000 __oc.sim.getState().chefs[0].y <= 1.6
+holduntil KeyD 6000 __oc.sim.getState().chefs[0].x >= 3.45
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 3.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 3.45
+hold KeyW 250
+eval ['P1 at the burner with mushroom 3', 'target', __oc.sim.getTargetTile(0), 'want', [3,0]]
+tap Space
+wait 250
+eval ['pot (3,0)', __oc.sim.itemAt(3,0)]
+# 5. take a plate off the stack at (1,2), pour the soup and serve it at (8,0)
+holduntil KeyS 5000 __oc.sim.getState().chefs[0].y >= 2.45
+holduntil KeyA 6000 __oc.sim.getState().chefs[0].x <= 2.55
+holduntil KeyW 900 __oc.sim.getState().chefs[0].y <= 2.55
+holduntil KeyS 900 __oc.sim.getState().chefs[0].y >= 2.45
+hold KeyA 250
+eval ['P1 at the plate stack', 'target', __oc.sim.getTargetTile(0), 'want', [1,2]]
+tap Space
+wait 250
+eval ['P1 has a plate', __oc.sim.getState().chefs[0].holding, 'stack tile (1,2) now', __oc.sim.itemAt(1,2)]
+holduntil KeyD 6000 __oc.sim.getState().chefs[0].x >= 3.45
+until 25000 __oc.sim.itemAt(3,0)?.state === 'cooked'
+eval ['pot before pouring', __oc.sim.itemAt(3,0), 'fires', __oc.sim.getState().fires]
+holduntil KeyW 6000 __oc.sim.getState().chefs[0].y <= 1.6
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 3.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 3.45
+hold KeyW 250
+eval ['P1 pours the pot into the plate', 'target', __oc.sim.getTargetTile(0), 'want', [3,0]]
+tap Space
+wait 250
+eval ['P1 has the mushroom soup', __oc.sim.getState().chefs[0].holding]
+holduntil KeyD 6000 __oc.sim.getState().chefs[0].x >= 5.4
+until 12000 __oc.sim.sliderOffset('1').y >= 0.85
+holduntil KeyD 4000 __oc.sim.getState().chefs[0].x >= 7.4
+holduntil KeyD 6000 __oc.sim.getState().chefs[0].x >= 8.45
+eval ['orders', __oc.sim.getState().orders.map(o => [o.recipeId, Math.round(o.timeLeft)])]
+holduntil KeyA 900 __oc.sim.getState().chefs[0].x <= 8.55
+holduntil KeyD 900 __oc.sim.getState().chefs[0].x >= 8.45
+hold KeyW 250
+eval ['P1 at the serving hatch', 'target', __oc.sim.getTargetTile(0), 'want', [8,0]]
+tap Space
+wait 250
+eval ['SERVE mushroom soup', 'score', __oc.sim.getState().score, 'served', __oc.sim.getState().servedCount, 'failed', __oc.sim.getState().failedCount, 'elapsed', Math.round(__oc.sim.getState().elapsed), 'stars', __oc.sim.getState().stars]
+shot 43-1-3-after-serve.png
+# 6. plates.mode 'stack': a clean plate reappears on the stack a few seconds after a serve
+eval ['pending plate returns', __oc.sim.getState().pendingPlateReturns.map(v => +v.toFixed(1)), 'stack tile (1,2)', __oc.sim.itemAt(1,2)]
+until 12000 __oc.sim.itemAt(1,2) !== null
+eval ['stack refilled', __oc.sim.itemAt(1,2), 'other stack tiles', __oc.sim.itemAt(1,3), __oc.sim.itemAt(1,4)]
+eval ['final invariants', JSON.parse(JSON.stringify(__mon))]
+logs
+errors

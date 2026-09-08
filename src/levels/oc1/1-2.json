@@ -9,7 +9,7 @@
   "timeLimitSec": 240,
   "timerStartsOnFirstServe": false,
   "recipes": ["onion_soup", "tomato_soup"],
-  "orders": { "initial": 2, "intervalSec": 18, "max": 5, "timeSec": 70 },
+  "orders": { "initial": 2, "intervalSec": 26, "max": 4, "timeSec": 90 },
   "stars": { "1": [20, 60, 80], "2": [20, 60, 150] },
   "plates": { "mode": "sink", "count": 2 },
   "grid": [

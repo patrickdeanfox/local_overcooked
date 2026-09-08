@@ -1,0 +1,101 @@
+// Invariant sampler for the playtest harness. Fetched and eval'd by the scripts:
+//   eval (0, eval)(await (await fetch('/tools/playtests/monitor.txt')).text())
+// Samples every 16 ms and records the worst violation of the collision invariants:
+//   - a chef body (0.6 tile square) overlapping a static solid tile
+//   - a chef body overlapping a slider tile at its CURRENT offset
+//   - a chef centre closer to a pedestrian than the two radii allow
+// __mon holds the readings, __monReset() clears them, __monStop() stops sampling.
+(() => {
+  const STATIC_SOLID = ['void', 'counter', 'crate', 'board', 'stove', 'sink', 'drying',
+    'plateReturn', 'serve', 'trash', 'plateStack'];
+  const HALF = 0.3;            // CHEF_HITBOX / 2
+  const CHEF_RADIUS = 0.35;
+  const TOL = 0.02;            // ignore floating-point touching
+  const fresh = () => ({
+    samples: 0,
+    tileOverlap: 0, tileWorst: null,
+    sliderOverlap: 0, sliderWorst: null,
+    pedOverlap: 0, pedWorst: null,
+    chefOverlap: 0,
+    pedMax: 0, pedSeen: 0,
+    sliderOffsetMin: 0, sliderOffsetMax: 0,
+    fireMax: 0, burntPots: 0,
+  });
+  let m = fresh();
+  const sliderBoxes = () => {
+    const st = __oc.sim.getState();
+    const out = [];
+    for (const t of st.tiles) {
+      if (t.type !== 'slider') continue;
+      const off = __oc.sim.sliderOffset(t.group);
+      out.push([t.x + off.x, t.y + off.y]);
+    }
+    return out;
+  };
+  const sample = () => {
+    if (!window.__oc) return;
+    const st = __oc.sim.getState();
+    m.samples++;
+    m.pedSeen += st.pedestrians.length;
+    if (st.pedestrians.length > m.pedMax) m.pedMax = st.pedestrians.length;
+    for (const g of st.sliders) {
+      const v = g.offsetX || g.offsetY;
+      if (v < m.sliderOffsetMin) m.sliderOffsetMin = v;
+      if (v > m.sliderOffsetMax) m.sliderOffsetMax = v;
+    }
+    if (st.fires.length > m.fireMax) m.fireMax = st.fires.length;
+    const burnt = st.tileItems.filter((i) => i && i.kind === 'pot' && i.state === 'burnt').length;
+    if (burnt > m.burntPots) m.burntPots = burnt;
+    const boxes = sliderBoxes();
+    for (const c of st.chefs) {
+      // static tiles under the chef body
+      for (const dx of [-HALF + TOL, HALF - TOL]) {
+        for (const dy of [-HALF + TOL, HALF - TOL]) {
+          const t = __oc.sim.tileAt(Math.floor(c.x + dx), Math.floor(c.y + dy));
+          if (t && STATIC_SOLID.includes(t.type)) {
+            const pen = Math.min(
+              Math.abs(c.x + dx - t.x), Math.abs(t.x + 1 - (c.x + dx)),
+              Math.abs(c.y + dy - t.y), Math.abs(t.y + 1 - (c.y + dy)),
+            );
+            if (pen > m.tileOverlap) {
+              m.tileOverlap = pen;
+              m.tileWorst = { chef: c.index, x: +c.x.toFixed(3), y: +c.y.toFixed(3), tile: t.type, tx: t.x, ty: t.y };
+            }
+          }
+        }
+      }
+      // slider tiles at their live offset
+      for (const [bx, by] of boxes) {
+        const ox = Math.min(c.x + HALF, bx + 1) - Math.max(c.x - HALF, bx);
+        const oy = Math.min(c.y + HALF, by + 1) - Math.max(c.y - HALF, by);
+        if (ox > TOL && oy > TOL) {
+          const pen = Math.min(ox, oy);
+          if (pen > m.sliderOverlap) {
+            m.sliderOverlap = pen;
+            m.sliderWorst = { chef: c.index, x: +c.x.toFixed(3), y: +c.y.toFixed(3), bx: +bx.toFixed(3), by: +by.toFixed(3) };
+          }
+        }
+      }
+      // pedestrians
+      for (const p of st.pedestrians) {
+        const d = Math.hypot(c.x - p.x, c.y - p.y);
+        const pen = CHEF_RADIUS * 2 - d;
+        if (pen > m.pedOverlap) {
+          m.pedOverlap = pen;
+          m.pedWorst = { chef: c.index, x: +c.x.toFixed(3), y: +c.y.toFixed(3), px: +p.x.toFixed(3), py: +p.y.toFixed(3), d: +d.toFixed(3) };
+        }
+      }
+    }
+    if (st.chefs.length === 2) {
+      const d = Math.hypot(st.chefs[0].x - st.chefs[1].x, st.chefs[0].y - st.chefs[1].y);
+      const pen = CHEF_RADIUS * 2 - d;
+      if (pen > m.chefOverlap) m.chefOverlap = pen;
+    }
+  };
+  window.__monReset = () => { m = fresh(); window.__mon = m; return 'reset'; };
+  window.__monStop = () => { clearInterval(window.__monId); return 'stopped'; };
+  window.__mon = m;
+  clearInterval(window.__monId);
+  window.__monId = setInterval(sample, 16);
+  return 'monitor installed';
+})()

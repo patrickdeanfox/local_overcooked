@@ -1,0 +1,67 @@
+# ── 1-2 Treacle Town crosswalk ─────────────────────────────────────────────
+# 1. map the crossing: which row a chef can actually get through
+# 2. walk up pedestrian lane x=6 head-on into a walker: the chef must stall/be pushed,
+#    never overlap the walker and never end up inside a counter (monitor invariants)
+# 3. wedge the chef into the corner of the crossing while walkers pass
+# 4. cross for real and pick a clean plate off the counter at (9,2)
+# NOTE: leave >=200 ms between two taps of the same key or the input manager sees one hold.
+wait 1200
+tap ArrowDown
+wait 400
+tap Enter
+wait 800
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.sim
+eval ['level', __oc.level.id, 'timeLeft', Math.round(__oc.sim.getState().timeLeft)]
+eval (0, eval)(await (await fetch('/tools/playtests/monitor.txt')).text())
+eval ['east wall of the crossing', [0,1,2,3,4,5].map(y => [y, __oc.sim.tileAt(9,y).type])]
+eval ['west wall of the crossing', [0,1,2,3,4,5].map(y => [y, __oc.sim.tileAt(5,y).type])]
+
+# ── 1. into lane x=6 at the bottom of the crossing ─────────────────────────
+holduntil KeyD 4000 __oc.sim.getState().chefs[0].x >= 6.45
+holduntil KeyS 3000 __oc.sim.getState().chefs[0].y >= 5.6
+eval ['at the kerb', +__oc.sim.getState().chefs[0].x.toFixed(2), +__oc.sim.getState().chefs[0].y.toFixed(2)]
+# wait for a walker to enter lane 6, then push north into it
+until 9000 __oc.sim.getState().pedestrians.some(p => p.x === 6.5 && p.y < 2)
+holduntil KeyW 500 false
+eval ['t', +__oc.sim.getState().elapsed.toFixed(1), 'chef y', +__oc.sim.getState().chefs[0].y.toFixed(2), 'lane 6 walkers', __oc.sim.getState().pedestrians.filter(p => p.x === 6.5).map(p => +p.y.toFixed(2))]
+holduntil KeyW 500 false
+eval ['t', +__oc.sim.getState().elapsed.toFixed(1), 'chef y', +__oc.sim.getState().chefs[0].y.toFixed(2), 'lane 6 walkers', __oc.sim.getState().pedestrians.filter(p => p.x === 6.5).map(p => +p.y.toFixed(2))]
+holduntil KeyW 500 false
+eval ['t', +__oc.sim.getState().elapsed.toFixed(1), 'chef y', +__oc.sim.getState().chefs[0].y.toFixed(2), 'lane 6 walkers', __oc.sim.getState().pedestrians.filter(p => p.x === 6.5).map(p => +p.y.toFixed(2))]
+holduntil KeyW 500 false
+eval ['t', +__oc.sim.getState().elapsed.toFixed(1), 'chef y', +__oc.sim.getState().chefs[0].y.toFixed(2), 'lane 6 walkers', __oc.sim.getState().pedestrians.filter(p => p.x === 6.5).map(p => +p.y.toFixed(2))]
+holduntil KeyW 500 false
+eval ['t', +__oc.sim.getState().elapsed.toFixed(1), 'chef y', +__oc.sim.getState().chefs[0].y.toFixed(2), 'lane 6 walkers', __oc.sim.getState().pedestrians.filter(p => p.x === 6.5).map(p => +p.y.toFixed(2))]
+holduntil KeyW 500 false
+eval ['t', +__oc.sim.getState().elapsed.toFixed(1), 'chef y', +__oc.sim.getState().chefs[0].y.toFixed(2), 'lane 6 walkers', __oc.sim.getState().pedestrians.filter(p => p.x === 6.5).map(p => +p.y.toFixed(2))]
+shot 20-1-2-in-traffic.png
+eval ['invariants after traffic', JSON.parse(JSON.stringify(__mon))]
+
+# ── 2. wedge into the south-east corner of the crossing and let walkers pass ─
+eval __monReset()
+holduntil KeyS 4000 __oc.sim.getState().chefs[0].y >= 5.6
+holduntil KeyD,KeyS 3000 false
+eval ['wedged at', +__oc.sim.getState().chefs[0].x.toFixed(3), +__oc.sim.getState().chefs[0].y.toFixed(3)]
+holduntil KeyD,KeyS 4000 false
+eval ['invariants while wedged', JSON.parse(JSON.stringify(__mon))]
+shot 22-1-2-wedged.png
+
+# ── 3. cross for real: up the lane to row 1, east through the (9,1) gap ────
+eval __monReset()
+holduntil KeyW 8000 __oc.sim.getState().chefs[0].y <= 1.6
+holduntil KeyD 8000 __oc.sim.getState().chefs[0].x >= 10.45
+eval ['crossed', +__oc.sim.getState().chefs[0].x.toFixed(2), +__oc.sim.getState().chefs[0].y.toFixed(2), 'took', Math.round(240 - __oc.sim.getState().timeLeft), 's since level start']
+shot 21-1-2-crossed.png
+
+# ── 4. a plate on a counter can be picked up and put back ─────────────────
+holduntil KeyS 2000 __oc.sim.getState().chefs[0].y >= 2.5
+hold KeyA 250
+tap Space
+wait 300
+eval ['plate off the counter', __oc.sim.getState().chefs[0].holding, 'counter now', __oc.sim.itemAt(9,2)]
+tap Space
+wait 300
+eval ['put back', __oc.sim.itemAt(9,2), 'holding', __oc.sim.getState().chefs[0].holding]
+eval ['final invariants', JSON.parse(JSON.stringify(__mon))]
+logs
+errors

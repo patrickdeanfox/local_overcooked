@@ -109,7 +109,7 @@ class Cdp {
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function launch(chrome) {
-  const args = ['--headless=new', '--remote-debugging-port=0', `--window-size=${VIEW_W},${VIEW_H}`, '--no-sandbox', '--disable-dev-shm-usage', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--autoplay-policy=no-user-gesture-required', '--no-first-run', 'about:blank'];
+  const args = ['--headless=new', '--mute-audio', '--remote-debugging-port=0', `--window-size=${VIEW_W},${VIEW_H}`, '--no-sandbox', '--disable-dev-shm-usage', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--autoplay-policy=no-user-gesture-required', '--no-first-run', 'about:blank'];
   const proc = spawn(chrome, args, { stdio: ['ignore', 'ignore', 'pipe'] });
   const wsUrl = await new Promise((resolve, reject) => {
     let buf = '';

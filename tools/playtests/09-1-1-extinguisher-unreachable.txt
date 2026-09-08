@@ -1,0 +1,31 @@
+# -- 1-1: the fire extinguisher at (12,0) cannot be reached ------------------------
+# Row 0 of 1-1 is "###O####S###E" and row 1 is "#...........#", so the extinguisher tile
+# (12,0) has a counter at (11,0) and a counter at (12,1) and no walkable neighbour at all.
+# A chef in the top-right corner of the corridor can face up or right and never target it,
+# so a fire on 1-1 can never be put out. Moving the E one tile left, to (11,0), fixes it:
+# that tile is adjacent to the walkable (11,1).
+wait 1600
+tap Enter
+wait 1200
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.sim
+eval ['level', __oc.level.id]
+eval ['neighbours of the extinguisher tile (12,0)', [[11,0],[13,0],[12,1]].map(([x,y]) => [x, y, __oc.sim.tileAt(x,y) ? __oc.sim.tileAt(x,y).type : 'off grid'])]
+eval ['and the extinguisher really is on (12,0)', __oc.sim.itemAt(12,0)]
+# Walk P1 into the corner nearest the extinguisher, along row 2 so it passes under P2:
+# two chefs cannot squeeze past each other in the one-tile-tall row 1 corridor.
+holduntil KeyS 4000 __oc.sim.getState().chefs[0].y >= 2.4
+holduntil KeyD 6000 __oc.sim.getState().chefs[0].x >= 11.45
+holduntil KeyW 4000 __oc.sim.getState().chefs[0].y <= 1.6
+hold KeyW 300
+eval ['facing up from the corner', __oc.sim.getTargetTile(0), 'holds', __oc.sim.itemAt(11,0)]
+tap Space
+wait 300
+eval ['P1 holding', __oc.sim.getState().chefs[0].holding]
+hold KeyD 300
+eval ['facing right from the corner', __oc.sim.getTargetTile(0), 'holds', __oc.sim.itemAt(12,1)]
+tap Space
+wait 300
+eval ['P1 holding', __oc.sim.getState().chefs[0].holding, 'extinguisher still stranded on (12,0)', __oc.sim.itemAt(12,0)]
+shot 90-1-1-extinguisher-corner.png
+logs
+errors

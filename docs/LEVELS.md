@@ -67,9 +67,10 @@ Uncertainties, and how they were settled:
 - Chef start tiles come straight off the screenshot. Both chefs stand in the upper corridor, one
   over on the crate side and one directly under the burner.
 
-Tuning knobs: `orders` (initial 1, a new order every 18 s, at most 4 at a time, 60 s each) is a
-guess sized to the one pot. Star thresholds are the only scoring numbers the wiki supplies, so
-order pressure is the dial to turn if the level plays badly.
+Tuning knobs: `orders` (initial 2, a new order every 18 s, at most 4 at a time, 60 s each) is
+sized to the one pot. Star thresholds are the only scoring numbers the wiki supplies, so order
+pressure is the dial to turn if the level plays badly. `initial` was 1 until the playtest; see
+"Order tuning after the playtest" below.
 
 ## 1-2 — Treacle Town crosswalk
 
@@ -127,7 +128,8 @@ lanes (x 6 and x 8) every 4 s, starting at 1.5 s; the second walks people up the
 cross, so the crossing is usually passable but not reliably so. Tuning knobs: `intervalSec`,
 `speed`, `firstDelaySec`, and how many lanes each dynamic owns.
 
-Order tuning: initial 2, a new order every 18 s, at most 5, 70 s each.
+Order tuning: initial 2, a new order every 26 s, at most 4, 90 s each. That is slower and more
+forgiving than the first guess of 18 s / 5 / 70 s; see "Order tuning after the playtest" below.
 
 ## 1-3 — Savoury Seas
 
@@ -186,9 +188,95 @@ Uncertainties, and how they were settled:
   tiles are scenery — barrels, cannons, a mast — and nothing is reachable through them.
 
 Tuning knobs: slider `amplitude`, `periodSec` and `phase`; the 3 + 2 split between groups `1`
-and `2`; orders (initial 2, a new order every 16 s, at most 5, 75 s each). Three recipes and no
-sink means order pressure and plate count are what decide whether the plate stack becomes the
-bottleneck.
+and `2`; orders (initial 2, a new order every 20 s, at most 4, 85 s each — 16 s / 5 / 75 s
+before the playtest). Three recipes and no sink means order pressure and plate count are what
+decide whether the plate stack becomes the bottleneck.
+
+## Order tuning after the playtest
+
+The order numbers above were guesses. They have now been measured against the levels as built,
+using the scripts in `tools/playtests/` to drive both chefs through the headless harness
+(`node tools/playtest.mjs --file tools/playtests/<script>`). Every figure below came out of a
+recorded run, and the scripts are kept so the measurements can be repeated.
+
+### What a soup actually costs
+
+The harness moves one chef at a time, so its timings are an upper bound. Two people overlap the
+fetching with the chopping and will beat them. The ratios between the levels are the part to
+trust.
+
+| Level | Measured, script | Estimated, two competent players | Why |
+| --- | --- | --- | --- |
+| 1-1 | 41 s serve-to-serve | 20-25 s | Onions are passed over the row-3 counter, so nobody walks the long way round |
+| 1-2 | 70 s to the first serve | 35-45 s | Every ingredient crosses the road, and the crossing is one tile wide |
+| 1-3 | ~50 s for the soup phase | 30-35 s | The crate-to-board run goes round the open bottom deck, about 16 tiles each way |
+
+### Is three stars reachable?
+
+- **1-1: yes, comfortably.** Three stars is 60 points, which is three soups. The clock does not
+  start until the first serve, so the first soup is free, and 150 s buys three or four more at
+  the measured pace. If anything the level is soft, which suits a first kitchen.
+- **1-2: the arithmetic used to forbid it. Now it is only hard.** Three stars for two players is
+  150. At one order every 18 s the queue produced about fifteen tickets in four minutes while the
+  kitchen could serve six or seven, so eight or nine expired at -10 each and the score never
+  climbed. Orders now arrive every 26 s, at most four are live at once, and a ticket lasts 90 s.
+  That puts about eleven tickets on the board, a good pair serves seven or eight, and the penalty
+  stream stops cancelling the score out. Three stars now asks for roughly eight soups in four
+  minutes. Demanding, and reachable.
+- **1-3: two stars for a competent pair, three for experts.** Three stars for two players is 200,
+  which is nine or ten soups — beyond 240 s at 30-35 s a soup. Two stars (120) is comfortable.
+  Orders were arriving every 16 s against a 30 s production rate, so the board sat permanently
+  full and every extra ticket became a penalty. At 20 s, capped at four and lasting 85 s, the
+  queue saturates gently instead: a pair serving seven soups lands around 120 rather than 100.
+
+`max` is worth understanding here. `updateOrders` skips a spawn entirely when the board is
+already full, so lowering `max` lowers the number of tickets that ever exist, not just how many
+are on screen. That is why dropping 5 to 4 on 1-2 and 1-3 does more than tidy the HUD.
+
+### The changes
+
+| Level | Before | After |
+| --- | --- | --- |
+| 1-1 | initial 1, every 18 s, max 4, 60 s | initial **2**, every 18 s, max 4, 60 s |
+| 1-2 | initial 2, every 18 s, max 5, 70 s | initial 2, every **26** s, max **4**, **90** s |
+| 1-3 | initial 2, every 16 s, max 5, 75 s | initial 2, every **20** s, max **4**, **85** s |
+
+The 1-1 change is not about difficulty. With a single starting ticket, serving it leaves the
+kitchen with nothing to serve for a further 18 s, and a soup carried to the hatch in that window
+is rejected outright and costs its plate. A second ticket on the board removes the dead window.
+
+`tests/levels.test.ts` asserts these four numbers per level, so a future change to them has to
+be deliberate.
+
+### Geometry the playtest turned up
+
+None of it is order tuning, so none of it was changed here. Each item is a one- or
+two-character edit for whoever owns the grids.
+
+- **1-1's fire extinguisher cannot be picked up.** `E` sits at (12,0) with a counter at (11,0),
+  a counter at (12,1) and the edge of the map on its other two sides, so no chef can ever face
+  it. A fire in this kitchen can never be put out. Moving the `E` one column left, to (11,0),
+  fixes it: that tile is reachable from the walkable (11,1). Evidence:
+  `tools/playtests/09-1-1-extinguisher-unreachable.txt`.
+- **1-2 has exactly one way through the crossing.** Column 9 is counter at every row except
+  y=1, and column 5 opens only at y=3 and y=4, so every ingredient, every plate and every
+  finished dish funnels through the single tile (9,1). Two chefs cannot pass each other in it,
+  and one left standing there blocks the other completely. A second gap — opening (9,3) or
+  (9,4) — would turn the level from a queue into a kitchen.
+- **1-2's crossing is never empty.** Lanes 6 and 8 are occupied from 1.5 s to 3.5 s of every 4 s
+  cycle and lane 7 from 3.5 s to 5.5 s, so the union covers the whole timeline. A single lane is
+  clear about half the time, which is what makes crossing possible at all, but there is no
+  moment when a chef can simply walk across. If the level plays as too hostile, raising
+  `intervalSec` on one of the two pedestrian dynamics is the dial.
+- **1-3's open deck is nearly sealed off.** Row 7 runs the full width, but row 6 is solid at
+  every column except 0, 10 and 11. A chef on the deck on the left-hand side has to walk to
+  column 0 and up through row 0 to get back to the burners. That is fine — it is a real
+  Overcooked detour — but it makes the left half slower than the map suggests at a glance.
+- **1-3's two divider segments pass through each other.** At amplitude 1 in opposite phase the
+  three-tile group and the two-tile group overlap by up to 1.6 tiles, so the divider is five
+  tiles long only at offset 0 and about 3.4 tiles the rest of the time. It reads fine on screen
+  and the gap behaviour is what the level wants, but the two runs of counter are occupying the
+  same space, and a smaller amplitude or a different split would avoid it.
 
 ## Schema
 

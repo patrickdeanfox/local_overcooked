@@ -1,0 +1,70 @@
+# -- Level end -> results -> Retry -> Next level -> Back to title -> Controllers ---
+# 1-2 is used because its clock runs from the start, so timeLeft can be pushed to zero.
+# The results menu is Retry / Next level (1-3) / Back to title.
+wait 1600
+tap ArrowDown
+wait 500
+tap Enter
+wait 1200
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.sim
+eval ['level', __oc.level.id, 'active scenes', __oc.scene.game.scene.getScenes(true).map(s => s.scene.key)]
+eval (__oc.sim.getState().score = 65, __oc.sim.getState().stars = 2, 'seeded a score and star count so the star row has something to show')
+eval (__oc.sim.getState().timeLeft = 0.3, 'clock pushed to zero')
+wait 1200
+shot 70-times-up-flash.png
+wait 2500
+shot 71-results.png
+eval ['active scenes', __oc.scene.game.scene.getScenes(true).map(s => s.scene.key)]
+eval ['1-2 star thresholds shown', __oc.level.stars]
+
+# -- Retry restarts the same level cleanly ----------------------------------------
+tap Enter
+wait 1500
+eval ['after Retry', __oc.level.id, 'timeLeft', Math.round(__oc.sim.getState().timeLeft), 'score', __oc.sim.getState().score, 'served', __oc.sim.getState().servedCount, 'failed', __oc.sim.getState().failedCount, 'phase', __oc.sim.getState().phase]
+eval ['chefs back at their spawns', __oc.sim.getState().chefs.map(c => [c.x, c.y]), 'level spawns', __oc.level.spawns]
+shot 72-after-retry.png
+
+# -- end it again and take Next level ---------------------------------------------
+eval (__oc.sim.getState().timeLeft = 0.3, 'clock pushed to zero')
+wait 3500
+tap ArrowDown
+wait 500
+tap Enter
+wait 1500
+eval ['after Next level', __oc.level.id, 'timeLeft', Math.round(__oc.sim.getState().timeLeft)]
+shot 73-next-level.png
+
+# -- end it again and take Back to title ------------------------------------------
+# 1-3 is the last level, so its results menu is only Retry / Back to title.
+eval (__oc.sim.getState().timeLeft = 0.3, 'clock pushed to zero')
+wait 3500
+shot 74-results-1-3.png
+tap ArrowDown
+wait 500
+tap Enter
+wait 1200
+eval ['active scenes', __oc.scene.game.scene.getScenes(true).map(s => s.scene.key)]
+shot 75-title.png
+
+# -- Controllers screen, then Escape back to the title ----------------------------
+# The title remembers the row you left on, so read it before stepping down to Controllers
+# (the last row of 1-1 / 1-2 / 1-3 / Players / Controllers).
+eval ['title menu index on arrival', __oc.scene.game.scene.getScene('Title').menu.selectedIndex]
+tap ArrowDown
+wait 500
+tap ArrowDown
+wait 500
+tap ArrowDown
+wait 500
+eval ['title menu index now', __oc.scene.game.scene.getScene('Title').menu.selectedIndex]
+shot 76-title-controllers-selected.png
+tap Enter
+wait 1200
+eval ['active scenes', __oc.scene.game.scene.getScenes(true).map(s => s.scene.key)]
+shot 77-controllers.png
+tap Escape
+wait 1200
+eval ['active scenes', __oc.scene.game.scene.getScenes(true).map(s => s.scene.key)]
+shot 78-back-at-title.png
+logs
+errors

@@ -1,0 +1,37 @@
+# -- Orders: the concurrent cap, an expiry, the penalty and the streak reset -------
+# Run on 1-3 (orders: initial 2, one every 16 s, at most 5, 75 s each). The cap is watched
+# live, then one order is pushed to the brink with an eval so the expiry can be seen without
+# waiting out a whole 75 s ticket.
+wait 1600
+tap ArrowDown
+wait 500
+tap ArrowDown
+wait 500
+tap Enter
+wait 1200
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.sim
+eval ['level', __oc.level.id, 'orders setting', __oc.level.orders]
+eval ['orders at start', __oc.sim.getState().orders.map(o => [o.id, o.recipeId, Math.round(o.timeLeft)])]
+
+# -- the concurrent cap ----------------------------------------------------------
+until 80000 __oc.sim.getState().orders.length >= __oc.level.orders.max
+eval ['reached the cap at elapsed', Math.round(__oc.sim.getState().elapsed), 'orders', __oc.sim.getState().orders.length, 'max', __oc.level.orders.max]
+shot 60-orders-at-cap.png
+wait 8000
+eval ['still capped after another 8 s', __oc.sim.getState().orders.length, 'ids', __oc.sim.getState().orders.map(o => o.id)]
+wait 8000
+eval ['and after 8 s more', __oc.sim.getState().orders.length, 'ids', __oc.sim.getState().orders.map(o => o.id)]
+
+# -- one order expires -----------------------------------------------------------
+# Seed a score and a tip streak so the penalty and the streak reset are visible.
+eval (__oc.sim.getState().score = 50, __oc.sim.getState().tipStreak = 3, 'seeded')
+eval ['before the expiry', 'score', __oc.sim.getState().score, 'failed', __oc.sim.getState().failedCount, 'streak', __oc.sim.getState().tipStreak, 'orders', __oc.sim.getState().orders.map(o => o.id), 'stars', __oc.sim.getState().stars]
+shot 61-before-expiry.png
+eval (__oc.sim.getState().orders[0].timeLeft = 0.7, 'first order pushed to the brink')
+wait 2500
+eval ['after the expiry', 'score', __oc.sim.getState().score, 'failed', __oc.sim.getState().failedCount, 'streak', __oc.sim.getState().tipStreak, 'orders', __oc.sim.getState().orders.map(o => o.id), 'stars', __oc.sim.getState().stars]
+shot 62-after-expiry.png
+# the HUD card for that order should be gone: compare 61- and 62-
+eval ['penalty was', 50 - __oc.sim.getState().score, 'expected', 10]
+logs
+errors
