@@ -1,0 +1,51 @@
+{
+  "id": "oc1-6-2", "game": "oc1", "world": 6, "index": 2, "name": "6-2", "theme": "Treacle Town",
+  "wiki": "https://overcooked.fandom.com/wiki/6-2_(Overcooked!)", "screenshots": ["oc1/6-2.jpg", "oc1/6-2-4p.jpg"],
+  "timeLimitSec": 240, "timerStartsOnFirstServe": false, "unlockStars": 68, "players": [1, 2, 3, 4],
+  "recipes": ["onion_soup", "tomato_soup", "mushroom_soup"], "orderVariants": 3,
+  "orders": {"initial": 2, "intervalSec": 18, "max": 4, "timeSec": 60},
+  "stars": {"1": [80, 180, 280], "2": [180, 400, 620], "3": [220, 480, 760], "4": [160, 360, 580]},
+  "starsProvenance": "ayce-switch",
+  "plates": {"mode": "sink", "count": 4},
+  "grid": {
+    "cols": 13, "rows": 12, "confidence": "med",
+    "ascii": [
+      "#WD###X##X###",
+      "S....Tv.....#",
+      "S....Ov.....p",
+      "#.....v.....p",
+      "#.....v.....R",
+      "V.....vB....V",
+      "V....Bv.....V",
+      "R.....v.....#",
+      "p.....v.....#",
+      "p.....vO....S",
+      "#.....vM....S",
+      "###X##X###DW#"
+    ]
+  },
+  "legendExtensions": {"v": "conveyor belt running south down the centre column, terminating in bins at both ends"},
+  "stations": {
+    "board": 2, "potBurner": 4, "panBurner": 0, "fryer": 0, "oven": 0, "mixer": 0, "steamer": 0,
+    "sink": 2, "serve": 2, "plateReturn": 2, "trash": 4, "extinguisher": 0, "plate": 4, "counter": 24,
+    "conveyor": 10,
+    "crates": {"tomato": 1, "onion": 2, "mushroom": 1}
+  },
+  "spawns": [{"x": 3, "y": 8}, {"x": 9, "y": 8}],
+  "zones": [
+    {"name": "left kitchen", "stations": ["sink", "potBurner", "board", "serve", "plateReturn", "plate", "trash", "tomato crate", "onion crate"], "links": [{"to": "right kitchen", "via": "conveyor into a bin (pointless)"}]},
+    {"name": "right kitchen", "stations": ["sink", "potBurner", "board", "serve", "plateReturn", "plate", "trash", "onion crate", "mushroom crate"], "links": [{"to": "left kitchen", "via": "conveyor into a bin (pointless)"}]}
+  ],
+  "dynamics": [
+    {"type": "conveyor", "detail": "1-3P: one south-running belt down the centre, ending in bins. 4P: a second belt crosses east-west, the pair forming a clockwise ring, and all belts end in bins", "periodSec": null},
+    {"type": "layout-varies-by-player-count", "detail": "1-3 players get two mirrored self-sufficient kitchens; 4 players get four quadrants, with crates and sink in the upper-left and lower-right and serving counters in the lower-left and upper-right (the wiki states this diagonal the wrong way round)", "periodSec": null}
+  ],
+  "hazards": ["conveyors end in bins: uncaught items are destroyed; cookware respawns after 5 s"],
+  "features": {
+    "splitKitchen": true, "throwRequired": false, "movingPlatforms": false, "conveyors": true,
+    "portals": false, "floorTiles": 94, "counterTiles": 62, "stationTiles": 38,
+    "longestWalkTiles": 7, "chokepointWidth": 4, "recipeSteps": 4
+  },
+  "missingMechanics": ["a layout variant per player count", "conveyor belts ending in bins", "two complete station sets (two sinks, two serving counters, two plate returns) in one level"],
+  "estimates": ["orders.initial", "orders.intervalSec", "orders.max", "orders.timeSec", "spawns", "conveyor speed", "grid", "stars (AYCE-Switch, not OC1)", "extinguisher count (none visible in the capture)"]
+}

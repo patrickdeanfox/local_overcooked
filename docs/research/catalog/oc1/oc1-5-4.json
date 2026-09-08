@@ -6,7 +6,7 @@
   "orders": {"initial": 2, "intervalSec": 24, "max": 4, "timeSec": 90},
   "stars": {"1": [140, 300, 480], "2": [100, 240, 380], "3": [140, 320, 520], "4": [160, 340, 540]},
   "starsProvenance": "ayce-switch",
-  "plates": {"mode": "return-clean", "count": 2},
+  "plates": {"mode": "return-clean", "count": 2, "startOn": "plateReturn"},
   "grid": {
     "cols": 17, "rows": 9, "confidence": "low",
     "ascii": [

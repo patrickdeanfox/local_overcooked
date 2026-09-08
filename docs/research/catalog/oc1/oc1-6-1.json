@@ -1,0 +1,50 @@
+{
+  "id": "oc1-6-1", "game": "oc1", "world": 6, "index": 1, "name": "6-1", "theme": "Savoury Seas",
+  "wiki": "https://overcooked.fandom.com/wiki/6-1_(Overcooked!)", "screenshots": ["oc1/6-1.jpg"],
+  "timeLimitSec": 240, "timerStartsOnFirstServe": false, "unlockStars": 65, "players": [1, 2, 3, 4],
+  "recipes": ["onion_soup", "tomato_soup", "mushroom_soup"], "orderVariants": 3,
+  "orders": {"initial": 2, "intervalSec": 20, "max": 4, "timeSec": 75},
+  "stars": {"1": [80, 180, 280], "2": [220, 480, 740], "3": [200, 460, 720], "4": [200, 440, 700]},
+  "starsProvenance": "ayce-switch",
+  "plates": {"mode": "return-clean", "count": 3, "startOn": "plateReturn"},
+  "grid": {
+    "cols": 16, "rows": 10, "confidence": "low",
+    "ascii": [
+      "...##RVVQ#Q#....",
+      "....B...........",
+      "....#....._.....",
+      "....B...........",
+      "E#####TOM##X####",
+      "................",
+      "................",
+      "..._............",
+      "................",
+      "...Q#Q#####....."
+    ]
+  },
+  "legendExtensions": {"Q": "empty burner, no cookware", "_": "open cargo grate: a hole in the deck, neither walkable nor usable as a counter"},
+  "stations": {
+    "board": 2, "potBurner": 0, "panBurner": 0, "emptyBurner": 4, "fryer": 0, "oven": 0, "mixer": 0,
+    "steamer": 0, "sink": 0, "serve": 1, "plateReturn": 1, "trash": 1, "extinguisher": 1, "plate": 3,
+    "counter": 22, "loosePots": 2,
+    "crates": {"tomato": 1, "onion": 1, "mushroom": 1}
+  },
+  "spawns": [{"x": 6, "y": 3}, {"x": 6, "y": 5}],
+  "zones": [
+    {"name": "north deck", "stations": ["serve", "plateReturn", "plate", "emptyBurner"], "links": [{"to": "central run", "via": "walk"}, {"to": "south deck", "via": "walk-when-the-block-slides"}]},
+    {"name": "south deck", "stations": ["emptyBurner"], "links": [{"to": "central run", "via": "walk"}, {"to": "north deck", "via": "walk-when-the-block-slides"}]},
+    {"name": "central run", "stations": ["crates", "trash", "extinguisher", "loosePots"], "links": [{"to": "north deck", "via": "counter hand-off"}, {"to": "south deck", "via": "counter hand-off"}]},
+    {"name": "moving block", "stations": ["board"], "links": [{"to": "north deck", "via": "circuit"}, {"to": "south deck", "via": "circuit"}]}
+  ],
+  "dynamics": [
+    {"type": "circling-counter-group", "detail": "two chopping boards with a counter between them travel a rectangular clockwise circuit around the ship, starting from the top-left corner; when the block slides vertically, two loose counters on the opposite side shift too and open the only window for chefs to change sides", "periodSec": null}
+  ],
+  "hazards": ["open cargo grates: permanent holes in the deck at (10,2) and (3,7)"],
+  "features": {
+    "splitKitchen": true, "throwRequired": true, "movingPlatforms": false, "conveyors": false,
+    "portals": false, "floorTiles": 122, "counterTiles": 36, "stationTiles": 14,
+    "longestWalkTiles": 3, "chokepointWidth": 1, "recipeSteps": 4
+  },
+  "missingMechanics": ["a counter group travelling a closed rectangular circuit with its stations", "coupled movement: a second group shifting in sync to open a gap", "empty burners plus loose pots that must be carried", "hole tiles that are neither floor nor counter"],
+  "estimates": ["orders.initial", "orders.intervalSec", "orders.max", "orders.timeSec", "spawns", "dynamics[0] lap time and crossing window", "grid", "stars (AYCE-Switch, not OC1)"]
+}

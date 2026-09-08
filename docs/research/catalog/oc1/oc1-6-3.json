@@ -1,0 +1,49 @@
+{
+  "id": "oc1-6-3", "game": "oc1", "world": 6, "index": 3, "name": "6-3", "theme": "Glazed Glacier",
+  "wiki": "https://overcooked.fandom.com/wiki/6-3_(Overcooked!)", "screenshots": ["oc1/6-3.jpg"],
+  "timeLimitSec": 240, "timerStartsOnFirstServe": false, "unlockStars": 71, "players": [1, 2, 3, 4],
+  "recipes": ["onion_soup", "tomato_soup", "mushroom_soup"], "orderVariants": 3,
+  "orders": {"initial": 2, "intervalSec": 22, "max": 4, "timeSec": 90},
+  "stars": {"1": [40, 80, 140], "2": [40, 100, 180], "3": [60, 140, 220], "4": [60, 160, 260]},
+  "starsProvenance": "ayce-switch",
+  "plates": {"mode": "sink", "count": 3},
+  "grid": {
+    "cols": 18, "rows": 11, "confidence": "low",
+    "ascii": [
+      "#S####==_==_#B#B##",
+      "#.....______.....W",
+      "#.....==_==_.....D",
+      "S.....______......",
+      "#####E==_==_.....V",
+      "M....._=__=_.....R",
+      "O....._=__=_......",
+      "#.....______.....T",
+      "X.....______......",
+      "#.....==_==_......",
+      "######______##ppp#"
+    ]
+  },
+  "legendExtensions": {"_": "freezing river (fall hazard, 5 s time penalty)", "=": "ice floe: a walkable moving platform; the positions shown are one frame"},
+  "stations": {
+    "board": 2, "potBurner": 2, "panBurner": 0, "fryer": 0, "oven": 0, "mixer": 0, "steamer": 0,
+    "sink": 1, "serve": 1, "plateReturn": 1, "trash": 1, "extinguisher": 1, "plate": 3, "counter": 27,
+    "crates": {"mushroom": 1, "onion": 1, "tomato": 1}
+  },
+  "spawns": [{"x": 2, "y": 6}, {"x": 4, "y": 5}],
+  "zones": [
+    {"name": "upper-left bank", "stations": ["potBurner"], "links": [{"to": "right bank", "via": "ice floes"}]},
+    {"name": "lower-left bank", "stations": ["trash", "mushroom crate", "onion crate", "extinguisher"], "links": [{"to": "right bank", "via": "ice floes"}, {"to": "upper-left bank", "via": "outer ledge"}]},
+    {"name": "right bank", "stations": ["sink", "board", "serve", "plateReturn", "plate", "tomato crate"], "links": [{"to": "lower-left bank", "via": "ice floes"}, {"to": "upper-left bank", "via": "ice floes"}]}
+  ],
+  "dynamics": [
+    {"type": "moving-platforms", "detail": "two lanes of ice floes cross the river, the left lane running north and the right lane south; floes vary in size and shape and arrive quickly", "periodSec": null}
+  ],
+  "hazards": ["freezing river: 5 s time penalty on falling in", "slippery ice on both banks and on the floes"],
+  "features": {
+    "splitKitchen": true, "throwRequired": true, "movingPlatforms": true, "conveyors": false,
+    "portals": false, "floorTiles": 109, "counterTiles": 43, "stationTiles": 16,
+    "longestWalkTiles": 3, "chokepointWidth": 1, "recipeSteps": 4
+  },
+  "missingMechanics": ["moving platforms over a fall hazard, in two counter-running lanes", "water tiles with a fall time penalty", "slippery floor with momentum", "carrying a pot off its burner as a portable container"],
+  "estimates": ["orders.initial", "orders.intervalSec", "orders.max", "orders.timeSec", "spawns", "dynamics[0] floe speed, spacing and sizes", "grid", "stars (AYCE-Switch, not OC1)", "the outer ledges are not on the grid"]
+}
