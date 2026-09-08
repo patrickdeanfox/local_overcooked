@@ -15,7 +15,7 @@ import { ChefRig } from './three/chefs';
 import { FxPool } from './three/fx';
 import { buildItemView, itemSignature } from './three/items';
 import { acquireStage, type Stage } from './three/stage';
-import { TileSet } from './three/tiles';
+import { TileSet, themeSceneHeight } from './three/tiles';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 const HELD = { scale: 0.9 } as const;
@@ -84,6 +84,7 @@ export class KitchenRenderer {
   private readonly pedestrians = new Map<number, ChefRig>();
   private readonly highlights: THREE.Mesh[] = [];
   private readonly firePositions = new Map<string, THREE.Vector3>();
+  private readonly choppingBoards = new Set<number>();
   private readonly sprayTimer: number[] = [];
   private readonly sliderOffsets = new Map<string, { x: number; y: number }>();
   private readonly screen = { x: 0, y: 0 };
@@ -91,7 +92,7 @@ export class KitchenRenderer {
   private gridH = 0;
   private elapsed = 0;
 
-  constructor(private readonly scene: Phaser.Scene, state: Readonly<SimState>) {
+  constructor(private readonly scene: Phaser.Scene, state: Readonly<SimState>, private readonly theme?: string) {
     this.stage = acquireStage(scene.game.canvas);
     this.stage.resetScene();
     this.container = scene.add.container(0, 0);
@@ -120,6 +121,7 @@ export class KitchenRenderer {
     this.drawGates(state);
     this.drawTileItems(state);
     this.drawHighlights(state, targets);
+    this.drawChopping(state, targets);
     this.drawChefs(state, dtSec);
     this.drawPedestrians(state, dtSec);
     this.drawFires(state);
@@ -160,8 +162,8 @@ export class KitchenRenderer {
     this.badges.clear();
     this.gridW = state.width;
     this.gridH = state.height;
-    this.tiles = new TileSet(this.scene, this.stage.scene, state);
-    this.stage.fitToGrid(state.width, state.height);
+    this.tiles = new TileSet(this.scene, this.stage.scene, state, this.theme);
+    this.stage.fitToGrid(state.width, state.height, themeSceneHeight(this.theme));
   }
 
   private readSliderOffsets(state: Readonly<SimState>): void {
@@ -269,6 +271,18 @@ export class KitchenRenderer {
       ring.position.copy(position);
       ring.visible = true;
     });
+  }
+
+  /** Boards a chef is chopping on right now, so their knives move. */
+  private drawChopping(state: Readonly<SimState>, targets: readonly (TilePos | null)[]): void {
+    if (!this.tiles) return;
+    this.choppingBoards.clear();
+    state.chefs.forEach((chef, i) => {
+      const target = targets[i];
+      if (chef.action !== 'chopping' || !target) return;
+      this.choppingBoards.add(target.y * state.width + target.x);
+    });
+    this.tiles.animateKnives(this.choppingBoards, this.elapsed);
   }
 
   private drawChefs(state: Readonly<SimState>, dtSec: number): void {

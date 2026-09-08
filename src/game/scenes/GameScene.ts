@@ -188,7 +188,7 @@ export class GameScene extends Phaser.Scene {
     this.sim = new Sim(level, { players: this.players, seed: this.seed, modifiers: this.modifiers });
     // Dev-only hook for the headless playtest harness (tools/playtest.mjs): read sim state via window.__oc.
     if (import.meta.env.DEV) (globalThis as unknown as { __oc?: unknown }).__oc = { sim: this.sim, level, scene: this };
-    this.kitchen = new KitchenRenderer(this, this.sim.getState());
+    this.kitchen = new KitchenRenderer(this, this.sim.getState(), level.theme);
     this.hud = new Hud(this, level.name, `seed ${this.seed} · ${presetName(this.preset)}`);
     this.accumulator = 0;
     this.ending = false;

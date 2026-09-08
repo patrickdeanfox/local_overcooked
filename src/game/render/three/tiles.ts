@@ -13,7 +13,26 @@ import { modelInstance, modelSize } from './loader';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 const GROUND = { thickness: 0.001, roadTint: 0xffffff } as const;
+const BACKDROP = { margin: 30, depth: -0.02, roughness: 1 } as const; // the outside world
+const CHOP = { liftRad: 0.55, hz: 7, bob: 0.05 } as const;
 const UP = new THREE.Vector3(0, 1, 0);
+
+/** Per-theme dressing. Themes come from the level JSON (`theme`); unknown themes use `default`. */
+interface ThemeDressing {
+  backdropColor: number;
+  floorColor: number | null;      // flat floor colour instead of the checker texture
+  backWall: boolean;              // KayKit wall pieces behind the top row of stations
+}
+const THEMES: Readonly<Record<string, ThemeDressing>> = {
+  default: { backdropColor: 0x3d322b, floorColor: null, backWall: false },
+  'treacle-town': { backdropColor: 0x4b3d33, floorColor: null, backWall: true },
+  'savoury-seas': { backdropColor: 0x2e6b8a, floorColor: 0xc99a63, backWall: false },
+};
+const WALL = { span: 2, height: 2, depth: 0.25, windowEvery: 3 } as const; // tiles, at the manifest scale
+/** Wall height in tiles, for the camera fit; 0 when the theme has no wall. */
+export function themeSceneHeight(theme: string | undefined): number {
+  return (THEMES[theme ?? 'default'] ?? THEMES.default).backWall ? WALL.height : 0;
+}
 const GATE = { height: 0.22, warnEmissive: 0.6 } as const;
 const CRATE = { scale: 0.8, mushrooms: 3, mushroomRing: 0.17, mushroomTilt: 0.25 } as const;
 const BOARD = { knifeOffset: new THREE.Vector3(0.36, 0, 0.1), knifeYaw: 0.35 } as const;
@@ -113,14 +132,50 @@ function crateTile(ingredient: IngredientType): { root: THREE.Group; surfaceY: n
   return { root, surfaceY: topOf(root) };
 }
 
-function boardTile(): { root: THREE.Group; surfaceY: number } {
+function boardTile(): { root: THREE.Group; surfaceY: number; knife: THREE.Group } {
   const built = counterWith('cuttingBoard');
   const counterTop = modelSize('counter').y;
   const knife = modelInstance('knife');
   knife.rotation.set(-Math.PI / 2, 0, BOARD.knifeYaw);
   place(knife, BOARD.knifeOffset.x, counterTop + 0.02, BOARD.knifeOffset.z);
   built.root.add(knife);
-  return built;
+  return { ...built, knife };
+}
+
+function backdrop(width: number, height: number, color: number): THREE.Mesh {
+  const plane = new THREE.Mesh(
+    new THREE.PlaneGeometry(width + BACKDROP.margin * 2, height + BACKDROP.margin * 2),
+    new THREE.MeshStandardMaterial({ color, roughness: BACKDROP.roughness }),
+  );
+  plane.rotation.x = -Math.PI / 2;
+  plane.position.set(width / 2, BACKDROP.depth, height / 2);
+  plane.receiveShadow = true;
+  return plane;
+}
+
+const SOLID_FOR_WALL: ReadonlySet<TileType> = new Set<TileType>([
+  'counter', 'crate', 'board', 'stove', 'sink', 'drying', 'plateReturn', 'serve', 'trash', 'plateStack',
+]);
+
+/** Wall pieces behind the top row, only where the tiles they cover are stations (never over a road or a gap). */
+function backWall(state: Readonly<SimState>): THREE.Group {
+  const group = new THREE.Group();
+  const pieces = Math.ceil(state.width / WALL.span);
+  const startX = (state.width - pieces * WALL.span) / 2;
+  for (let i = 0; i < pieces; i++) {
+    const x0 = startX + i * WALL.span;
+    let covered = true;
+    for (let dx = 0; dx < WALL.span; dx++) {
+      const column = Math.floor(x0 + dx);
+      const tile = column >= 0 && column < state.width ? state.tiles[column] : undefined;
+      if (tile && !SOLID_FOR_WALL.has(tile.type)) covered = false;
+    }
+    if (!covered) continue;
+    const piece = modelInstance(i % WALL.windowEvery === 1 ? 'wallWindow' : 'wall');
+    piece.position.set(x0 + WALL.span / 2, 0, -WALL.depth / 2);
+    group.add(piece);
+  }
+  return group;
 }
 
 function gateSlab(): GateView {
@@ -133,7 +188,9 @@ function gateSlab(): GateView {
   return { slab, material };
 }
 
-function buildStation(tile: Tile): { root: THREE.Group; surfaceY: number; itemOffset: THREE.Vector3; solid: boolean } {
+interface Station { root: THREE.Group; surfaceY: number; itemOffset: THREE.Vector3; solid: boolean; knife?: THREE.Group; }
+
+function buildStation(tile: Tile): Station {
   const offset = new THREE.Vector3();
   switch (tile.type) {
     case 'counter': case 'plateStack': case 'plateReturn':
@@ -167,17 +224,24 @@ export class TileSet {
   readonly sliderIndices: number[] = [];
   readonly gateIndices: number[] = [];
   private readonly gates = new Map<number, GateView>();
+  private readonly knives = new Map<number, THREE.Group>();
   private readonly root = new THREE.Group();
   private readonly textures = new Map<string, THREE.Texture>();
 
-  constructor(phaserScene: Phaser.Scene, scene: THREE.Scene, state: Readonly<SimState>) {
+  constructor(phaserScene: Phaser.Scene, scene: THREE.Scene, state: Readonly<SimState>, theme?: string) {
+    const dressing = THEMES[theme ?? 'default'] ?? THEMES.default;
     const groundGeometry = new THREE.PlaneGeometry(1, 1);
+    this.root.add(backdrop(state.width, state.height, dressing.backdropColor));
+    if (dressing.backWall) this.root.add(backWall(state));
     state.tiles.forEach((tile, index) => {
       const cx = tile.x + 0.5;
       const cz = tile.y + 0.5;
       const textureKey = GROUND_TEXTURE[tile.type];
       if (textureKey) {
-        const material = new THREE.MeshStandardMaterial({ map: groundTexture(phaserScene, textureKey, this.textures), color: GROUND.roadTint });
+        const flat = dressing.floorColor !== null && tile.type !== 'road' && tile.type !== 'gate';
+        const material = flat
+          ? new THREE.MeshStandardMaterial({ color: dressing.floorColor ?? 0xffffff, roughness: 0.9 })
+          : new THREE.MeshStandardMaterial({ map: groundTexture(phaserScene, textureKey, this.textures), color: GROUND.roadTint });
         const ground = new THREE.Mesh(groundGeometry, material);
         ground.rotation.x = -Math.PI / 2;
         ground.position.set(cx, GROUND.thickness, cz);
@@ -192,6 +256,7 @@ export class TileSet {
         station.itemOffset.applyAxisAngle(UP, yaw);
       }
       this.root.add(station.root);
+      if (station.knife) this.knives.set(index, station.knife);
       this.views.push({ root: station.root, surfaceY: station.surfaceY, itemOffset: station.itemOffset, solid: station.solid });
       if (tile.type === 'slider') this.sliderIndices.push(index);
       if (tile.type === 'gate') {
@@ -220,6 +285,16 @@ export class TileSet {
     gate.slab.position.y = closed ? GATE.height / 2 : -GATE.height / 2 + GATE.height * warnAlpha * 0.35;
     gate.material.emissiveIntensity = closed ? 0 : warnAlpha * GATE.warnEmissive;
     this.views[index].surfaceY = closed ? GATE.height : 0;
+  }
+
+  /** Knives on the boards in `chopping` rise and fall; every other knife lies flat. */
+  animateKnives(chopping: ReadonlySet<number>, elapsed: number): void {
+    for (const [index, knife] of this.knives) {
+      const active = chopping.has(index);
+      const wave = active ? 0.5 + 0.5 * Math.sin(elapsed * CHOP.hz * Math.PI * 2) : 0;
+      knife.rotation.x = -Math.PI / 2 + wave * CHOP.liftRad;
+      knife.position.y = modelSize('counter').y + 0.02 + wave * CHOP.bob;
+    }
   }
 
   dispose(): void {

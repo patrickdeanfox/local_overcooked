@@ -89,9 +89,11 @@ export class Stage {
   show(): void { this.canvas.style.display = ''; }
   hide(): void { this.canvas.style.display = 'none'; }
 
-  /** Places the camera so a `width` x `height` tile kitchen fills the band between the HUDs. */
-  fitToGrid(width: number, height: number): void {
-    const box = new THREE.Box3(new THREE.Vector3(0, 0, 0), new THREE.Vector3(width, CAMERA.kitchenHeight, height));
+  /** Places the camera so a `width` x `height` tile kitchen fills the band between the HUDs.
+   *  `dressingHeight` is the tallest scenery behind the top row (a back wall), in tiles. */
+  fitToGrid(width: number, height: number, dressingHeight = 0): void {
+    const top = Math.max(CAMERA.kitchenHeight, dressingHeight);
+    const box = new THREE.Box3(new THREE.Vector3(0, 0, 0), new THREE.Vector3(width, top, height));
     this.target.copy(box.getCenter(new THREE.Vector3()));
     const pitch = THREE.MathUtils.degToRad(CAMERA.pitchDeg);
     const direction = new THREE.Vector3(0, Math.sin(pitch), Math.cos(pitch)); // from the target towards the camera
