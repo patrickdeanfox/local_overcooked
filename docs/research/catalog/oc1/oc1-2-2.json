@@ -1,0 +1,211 @@
+{
+  "id": "oc1-2-2",
+  "game": "oc1",
+  "world": 2,
+  "index": 2,
+  "name": "2-2",
+  "theme": "unnamed on the wiki (`theme = TBA`)",
+  "wiki": "https://overcooked.fandom.com/wiki/2-2_(Overcooked!)",
+  "screenshots": [
+    "oc1/2-2.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 12,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "onion_soup",
+    "tomato_soup",
+    "mushroom_soup"
+  ],
+  "orderVariants": 3,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 22,
+    "max": 4,
+    "timeSec": 90
+  },
+  "stars": {
+    "1": [
+      null,
+      null,
+      160
+    ],
+    "2": [
+      null,
+      null,
+      200
+    ],
+    "3": null,
+    "4": null
+  },
+  "starsProvenance": "oc1",
+  "plates": {
+    "mode": "sink",
+    "count": 3
+  },
+  "grid": {
+    "cols": 13,
+    "rows": 8,
+    "confidence": "low",
+    "ascii": [
+      "##S##>V<##S##",
+      "O...#...#...T",
+      "#*..#...#..*#",
+      "S...........S",
+      "S...#...#...S",
+      "#*..#...#..*#",
+      "W...#...#...R",
+      "#DB#X#M#X#Bp#"
+    ]
+  },
+  "legendExtensions": {
+    "*": "rat hole in a counter",
+    ">": "serving conveyor, carries right",
+    "<": "serving conveyor, carries left"
+  },
+  "stations": {
+    "board": 2,
+    "potBurner": 6,
+    "panBurner": 0,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 2,
+    "extinguisher": 0,
+    "plate": 3,
+    "counter": 29,
+    "crates": {
+      "onion": 1,
+      "tomato": 1,
+      "mushroom": 1
+    },
+    "conveyor": 2,
+    "ratHole": 4,
+    "drying": 1
+  },
+  "spawns": [
+    {
+      "x": 6,
+      "y": 4
+    },
+    {
+      "x": 2,
+      "y": 4
+    }
+  ],
+  "zones": [
+    {
+      "name": "west section",
+      "stations": [
+        "onion crate",
+        "potBurner",
+        "sink",
+        "board",
+        "trash"
+      ],
+      "links": [
+        {
+          "to": "middle section",
+          "via": "walk (row 3 strip)"
+        },
+        {
+          "to": "middle section",
+          "via": "counter hand-off"
+        }
+      ]
+    },
+    {
+      "name": "middle section",
+      "stations": [
+        "serve",
+        "conveyor",
+        "mushroom crate"
+      ],
+      "links": [
+        {
+          "to": "west section",
+          "via": "walk"
+        },
+        {
+          "to": "east section",
+          "via": "walk"
+        }
+      ]
+    },
+    {
+      "name": "east section",
+      "stations": [
+        "tomato crate",
+        "potBurner",
+        "plateReturn",
+        "board",
+        "trash"
+      ],
+      "links": [
+        {
+          "to": "middle section",
+          "via": "walk (row 3 strip)"
+        },
+        {
+          "to": "middle section",
+          "via": "counter hand-off"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "rats",
+      "detail": "rats emerge from counter holes, take chopped or raw tomato, onion and mushroom back into the hole; a dash stops one",
+      "periodSec": 10
+    },
+    {
+      "type": "conveyor",
+      "detail": "the serving hatch is fed by a short belt (the Overview's \"Serving Conveyor\")",
+      "periodSec": null
+    }
+  ],
+  "hazards": [
+    "rats steal unattended ingredients permanently"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": false,
+    "movingPlatforms": false,
+    "conveyors": true,
+    "portals": false,
+    "floorTiles": 52,
+    "counterTiles": 52,
+    "stationTiles": 23,
+    "longestWalkTiles": 9,
+    "chokepointWidth": 1,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "rats",
+    "dash that stops an NPC",
+    "conveyor belts"
+  ],
+  "estimates": [
+    "orders",
+    "spawns",
+    "plates.count",
+    "stars.1[0]",
+    "stars.1[1]",
+    "stars.2[0]",
+    "stars.2[1]",
+    "grid.ascii",
+    "dynamics[0].periodSec",
+    "dynamics[1]"
+  ]
+}

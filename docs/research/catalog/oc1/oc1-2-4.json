@@ -1,0 +1,177 @@
+{
+  "id": "oc1-2-4",
+  "game": "oc1",
+  "world": 2,
+  "index": 4,
+  "name": "2-4",
+  "theme": "Treacle Town",
+  "wiki": "https://overcooked.fandom.com/wiki/2-4_(Overcooked!)",
+  "screenshots": [
+    "oc1/2-4.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 17,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "meat_burger",
+    "lettuce_burger",
+    "tomato_lettuce_burger"
+  ],
+  "orderVariants": 3,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 24,
+    "max": 4,
+    "timeSec": 110
+  },
+  "stars": {
+    "1": [
+      null,
+      null,
+      110
+    ],
+    "2": [
+      null,
+      null,
+      160
+    ],
+    "3": null,
+    "4": null
+  },
+  "starsProvenance": "oc1",
+  "plates": {
+    "mode": "sink",
+    "count": 3
+  },
+  "grid": {
+    "cols": 15,
+    "rows": 8,
+    "confidence": "med",
+    "ascii": [
+      "#ppp##B#B######",
+      "#.............V",
+      "#.............R",
+      "X<<<>>>X<<<>>>X",
+      "F.............#",
+      "F.............#",
+      "F.............#",
+      "###WD##E##ULTA#"
+    ]
+  },
+  "legendExtensions": {
+    ">": "conveyor carrying east into a bin",
+    "<": "conveyor carrying west into a bin"
+  },
+  "stations": {
+    "board": 2,
+    "potBurner": 0,
+    "panBurner": 3,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 3,
+    "extinguisher": 1,
+    "plate": 3,
+    "counter": 26,
+    "crates": {
+      "bun": 1,
+      "lettuce": 1,
+      "tomato": 1,
+      "meat": 1
+    },
+    "conveyor": 12,
+    "drying": 1
+  },
+  "spawns": [
+    {
+      "x": 5,
+      "y": 1
+    },
+    {
+      "x": 7,
+      "y": 5
+    }
+  ],
+  "zones": [
+    {
+      "name": "north room",
+      "stations": [
+        "board",
+        "plate",
+        "serve",
+        "plateReturn"
+      ],
+      "links": [
+        {
+          "to": "south room",
+          "via": "conveyor"
+        }
+      ]
+    },
+    {
+      "name": "south room",
+      "stations": [
+        "panBurner",
+        "sink",
+        "extinguisher",
+        "crates"
+      ],
+      "links": [
+        {
+          "to": "north room",
+          "via": "conveyor"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "conveyor-to-bin",
+      "detail": "belts in the middle band run toward one of three trash bins; an uncaught item is destroyed and cookware respawns 5 s later where it started",
+      "periodSec": null,
+      "speedTilesPerSec": 1.5
+    }
+  ],
+  "hazards": [
+    "items lost into a bin if the other chef does not catch them",
+    "pan fire, on the south chef's side"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": false,
+    "movingPlatforms": false,
+    "conveyors": true,
+    "portals": false,
+    "floorTiles": 65,
+    "counterTiles": 55,
+    "stationTiles": 29,
+    "longestWalkTiles": null,
+    "chokepointWidth": 0,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "conveyor belts",
+    "conveyor terminating in a bin",
+    "cookware respawn after being trashed"
+  ],
+  "estimates": [
+    "orders",
+    "spawns",
+    "stars.1[0]",
+    "stars.1[1]",
+    "stars.2[0]",
+    "stars.2[1]",
+    "grid.ascii (station columns within each half)",
+    "dynamics[0].speedTilesPerSec"
+  ]
+}

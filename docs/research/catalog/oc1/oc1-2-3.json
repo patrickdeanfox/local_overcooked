@@ -1,0 +1,179 @@
+{
+  "id": "oc1-2-3",
+  "game": "oc1",
+  "world": 2,
+  "index": 3,
+  "name": "2-3",
+  "theme": "Treacle Town",
+  "wiki": "https://overcooked.fandom.com/wiki/2-3_(Overcooked!)",
+  "screenshots": [
+    "oc1/2-3.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 15,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "meat_burger",
+    "lettuce_burger",
+    "tomato_lettuce_burger"
+  ],
+  "orderVariants": 3,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 26,
+    "max": 4,
+    "timeSec": 110
+  },
+  "stars": {
+    "1": [
+      null,
+      null,
+      120
+    ],
+    "2": [
+      null,
+      null,
+      180
+    ],
+    "3": null,
+    "4": null
+  },
+  "starsProvenance": "oc1",
+  "plates": {
+    "mode": "sink",
+    "count": 3
+  },
+  "grid": {
+    "cols": 13,
+    "rows": 8,
+    "confidence": "med",
+    "ascii": [
+      ">>>>>>#>>>>>>",
+      "^W...E#pp..#v",
+      "^D...F#B...#v",
+      "^A....#....Vv",
+      "^L...F#B...Rv",
+      "^U....#....#v",
+      "^T...X#p..X#v",
+      "<<<<<<#<<<<<<"
+    ]
+  },
+  "legendExtensions": {
+    ">": "conveyor carrying east",
+    "<": "conveyor carrying west",
+    "^": "conveyor carrying north",
+    "v": "conveyor carrying south"
+  },
+  "stations": {
+    "board": 2,
+    "potBurner": 0,
+    "panBurner": 2,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 2,
+    "extinguisher": 1,
+    "plate": 3,
+    "counter": 15,
+    "crates": {
+      "meat": 1,
+      "lettuce": 1,
+      "bun": 1,
+      "tomato": 1
+    },
+    "conveyor": 36,
+    "drying": 1
+  },
+  "spawns": [
+    {
+      "x": 3,
+      "y": 2
+    },
+    {
+      "x": 9,
+      "y": 2
+    }
+  ],
+  "zones": [
+    {
+      "name": "west room",
+      "stations": [
+        "sink",
+        "crates",
+        "panBurner",
+        "extinguisher",
+        "trash"
+      ],
+      "links": [
+        {
+          "to": "east room",
+          "via": "conveyor"
+        }
+      ]
+    },
+    {
+      "name": "east room",
+      "stations": [
+        "board",
+        "plate",
+        "serve",
+        "plateReturn",
+        "trash"
+      ],
+      "links": [
+        {
+          "to": "west room",
+          "via": "conveyor"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "conveyor",
+      "detail": "one belt around the whole kitchen perimeter, running clockwise; the only way to move items between the two separated chefs",
+      "periodSec": null,
+      "speedTilesPerSec": 1.5
+    }
+  ],
+  "hazards": [
+    "pan fire, on the west chef's side only \u2014 the extinguisher is there too"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": false,
+    "movingPlatforms": false,
+    "conveyors": true,
+    "portals": false,
+    "floorTiles": 38,
+    "counterTiles": 66,
+    "stationTiles": 51,
+    "longestWalkTiles": null,
+    "chokepointWidth": 0,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "conveyor belts"
+  ],
+  "estimates": [
+    "orders",
+    "spawns",
+    "plates.count",
+    "stars.1[0]",
+    "stars.1[1]",
+    "stars.2[0]",
+    "stars.2[1]",
+    "grid.ascii (station rows)",
+    "dynamics[0].speedTilesPerSec"
+  ]
+}
