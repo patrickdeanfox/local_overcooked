@@ -603,6 +603,8 @@ export class Sim {
           item.contents.push(held.type);
           // Keep the cooked fraction proportional when the pot gains an ingredient mid-cook.
           if (before > 0 && item.cookProgress > 0) item.cookProgress *= before / item.contents.length;
+          // A finished soup that gains an ingredient is cooking again: the burn clock stops and resets.
+          if (item.state === 'cooked') { item.state = 'cooking'; item.burnProgress = 0; }
           chef.holding = null;
           events.push({ type: 'potAdd', chef: idx, x: tx, y: ty });
           return;
