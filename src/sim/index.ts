@@ -758,6 +758,10 @@ export class Sim {
       const tile = st.tiles[i];
       if (tile.type !== 'stove') continue; // pots off the stove hold their progress
       if (item.state === 'burnt' || item.contents.length === 0) continue;
+      // wiki (Fire): "Any cooking device affected by tabletop fire cannot cook food until
+      // the fire is extinguished." The burn clock stops with it, so a fire that reaches a
+      // second stove cannot force a second burnt pot the chefs are not allowed to rescue.
+      if (this.fireAt(tile.x, tile.y)) continue;
 
       if (item.cookProgress < 1) {
         if (item.state !== 'cooking') {

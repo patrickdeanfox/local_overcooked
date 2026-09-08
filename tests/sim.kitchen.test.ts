@@ -400,6 +400,24 @@ describe('burning and fire', () => {
     expect(chef.holding).toMatchObject({ kind: 'extinguisher' });
   });
 
+  it('stops cooking and burning while the stove is on fire, and resumes once it is out', () => {
+    const sim = new Sim(makeLevel(), { players: 1, seed: 3 });
+    const st = mutable(sim);
+    const pot = potOnStove(sim);
+    pot.contents.push('onion', 'onion', 'onion');
+    st.fires.push({ x: 11, y: 2, health: 1, spreadTimer: FIRE_SPREAD_TIME });
+
+    const events = stepFor(sim, COOK_TIME + BURN_TIME + 1);
+    expect(pot.cookProgress).toBe(0);
+    expect(pot.state).toBe('empty');
+    expect(types(events)).not.toContain('cookStart');
+    expect(types(events)).not.toContain('burnt');
+
+    st.fires.length = 0;
+    stepFor(sim, COOK_TIME + 0.1);
+    expect(pot.state).toBe('cooked');
+  });
+
   it('never spreads onto the tile the extinguisher is resting on', () => {
     const sim = new Sim(makeLevel(), { players: 1, seed: 7 });
     const st = mutable(sim);
