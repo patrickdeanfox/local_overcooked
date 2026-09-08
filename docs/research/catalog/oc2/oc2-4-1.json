@@ -1,0 +1,215 @@
+{
+  "id": "oc2-4-1",
+  "game": "oc2",
+  "world": 4,
+  "index": 1,
+  "name": "4-1",
+  "theme": "Sushi City",
+  "wiki": "https://overcooked.fandom.com/wiki/4-1_(Overcooked!_2)",
+  "screenshots": [
+    "oc2/4-1.jpg"
+  ],
+  "timeLimitSec": 180,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 28,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "fish_sashimi",
+    "prawn_sashimi",
+    "cucumber_sushi",
+    "fish_sushi",
+    "fish_cucumber_sushi"
+  ],
+  "orderVariants": 5,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 15,
+    "max": 5,
+    "timeSec": 60
+  },
+  "stars": {
+    "1": [
+      140,
+      180,
+      240
+    ],
+    "2": [
+      260,
+      340,
+      460
+    ],
+    "3": [
+      380,
+      480,
+      640
+    ],
+    "4": [
+      380,
+      480,
+      640
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 2
+  },
+  "grid": {
+    "cols": 13,
+    "rows": 8,
+    "confidence": "low",
+    "ascii": [
+      "#WSS#~~~#VR##",
+      "v...B~~~#...v",
+      "v...B~~~E...v",
+      "v.....~~....v",
+      "v.....~~....v",
+      "v...#~~~#...v",
+      "#...#~~~#...v",
+      "#!pp#~~~X####"
+    ]
+  },
+  "legendExtensions": {
+    "v": "counter-height conveyor belt running away from the camera; the left one dispenses rice and nori, the right one prawn and fish",
+    "!": "cucumber crate (1,7)",
+    "~": "the road the cars use — not a pedestrian crossing"
+  },
+  "stations": {
+    "board": 2,
+    "potBurner": 2,
+    "panBurner": 0,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plate": 2,
+    "counter": 17,
+    "crates": {
+      "cucumber": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 2,
+      "y": 4
+    },
+    {
+      "x": 10,
+      "y": 4
+    }
+  ],
+  "zones": [
+    {
+      "name": "left kitchen",
+      "stations": [
+        "potBurner",
+        "board",
+        "sink",
+        "cucumber crate",
+        "rice/nori belt",
+        "plate"
+      ],
+      "links": [
+        {
+          "to": "road",
+          "via": "walk"
+        },
+        {
+          "to": "right kitchen",
+          "via": "throw"
+        }
+      ]
+    },
+    {
+      "name": "road",
+      "stations": [],
+      "links": [
+        {
+          "to": "left kitchen",
+          "via": "walk"
+        },
+        {
+          "to": "right kitchen",
+          "via": "walk"
+        }
+      ]
+    },
+    {
+      "name": "right kitchen",
+      "stations": [
+        "serve",
+        "plateReturn",
+        "extinguisher",
+        "trash",
+        "prawn/fish belt"
+      ],
+      "links": [
+        {
+          "to": "road",
+          "via": "walk"
+        },
+        {
+          "to": "left kitchen",
+          "via": "throw"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "cars",
+      "detail": "cars drive down the road and run chefs over while the traffic light is green",
+      "periodSec": null
+    },
+    {
+      "type": "dispenser-conveyors",
+      "detail": "two belts spawn ingredients instead of crates: rice + nori on the left, prawn + fish on the right",
+      "periodSec": null
+    }
+  ],
+  "hazards": [
+    "cars: run over on the road while the light is green"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": true,
+    "movingPlatforms": false,
+    "conveyors": true,
+    "portals": false,
+    "floorTiles": 64,
+    "counterTiles": 40,
+    "stationTiles": 23,
+    "longestWalkTiles": 13,
+    "chokepointWidth": 2,
+    "recipeSteps": 3
+  },
+  "missingMechanics": [
+    "cars as a lethal road hazard",
+    "ingredient-dispensing conveyor belts",
+    "traffic light phase",
+    "rice / nori / fish / prawn / cucumber ingredients",
+    "sashimi and sushi recipes"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "plates.count",
+    "spawns",
+    "grid.ascii",
+    "dynamics[0].periodSec",
+    "dynamics[1].periodSec",
+    "features.chokepointWidth"
+  ]
+}

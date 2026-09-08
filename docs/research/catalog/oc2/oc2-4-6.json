@@ -1,0 +1,212 @@
+{
+  "id": "oc2-4-6",
+  "game": "oc2",
+  "world": 4,
+  "index": 6,
+  "name": "4-6",
+  "theme": "Moreish Mines",
+  "wiki": "https://overcooked.fandom.com/wiki/4-6_(Overcooked!_2)",
+  "screenshots": [
+    "oc2/4-6.jpg"
+  ],
+  "timeLimitSec": 210,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 41,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "beef_burrito",
+    "chicken_burrito",
+    "mushroom_burrito"
+  ],
+  "orderVariants": 3,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 20,
+    "max": 5,
+    "timeSec": 80
+  },
+  "stars": {
+    "1": [
+      180,
+      240,
+      320
+    ],
+    "2": [
+      380,
+      420,
+      580
+    ],
+    "3": [
+      500,
+      640,
+      860
+    ],
+    "4": [
+      500,
+      640,
+      860
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 2
+  },
+  "grid": {
+    "cols": 14,
+    "rows": 8,
+    "confidence": "med",
+    "ascii": [
+      "###W######V###",
+      "I...#>>>#...B#",
+      "C...F___S...B#",
+      "M...#___p...!#",
+      "#...#___#...A#",
+      "#...F___S...##",
+      "#...#<<<#...##",
+      "#XpE######R###"
+    ]
+  },
+  "legendExtensions": {
+    "I": "rice crate",
+    "C": "chicken crate",
+    "!": "tortilla crate (12,3)",
+    "_": "the mine shaft in the middle of the kitchen",
+    "> <": "walkable conveyor floor; the top belt runs right, the bottom belt runs left"
+  },
+  "stations": {
+    "board": 2,
+    "potBurner": 2,
+    "panBurner": 2,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plate": 2,
+    "counter": 40,
+    "crates": {
+      "beef": 1,
+      "chicken": 1,
+      "mushroom": 1,
+      "rice": 1,
+      "tortilla": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 2,
+      "y": 3
+    },
+    {
+      "x": 10,
+      "y": 3
+    }
+  ],
+  "zones": [
+    {
+      "name": "left side",
+      "stations": [
+        "sink",
+        "trash",
+        "panBurner x2",
+        "rice crate",
+        "chicken crate",
+        "mushroom crate",
+        "plate"
+      ],
+      "links": [
+        {
+          "to": "right side",
+          "via": "conveyor (walkable, top and bottom)"
+        },
+        {
+          "to": "right side",
+          "via": "throw"
+        }
+      ]
+    },
+    {
+      "name": "right side",
+      "stations": [
+        "potBurner x2",
+        "serve",
+        "plateReturn",
+        "board x2",
+        "tortilla crate",
+        "beef crate",
+        "plate"
+      ],
+      "links": [
+        {
+          "to": "left side",
+          "via": "conveyor (walkable, top and bottom)"
+        },
+        {
+          "to": "left side",
+          "via": "throw"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "swapping-counters",
+      "detail": "the counter sets on the leftmost and rightmost walls alternate what they hold every 30 seconds; the left set starts with rice, chicken and mushroom, the right set with two boards plus tortilla and beef",
+      "periodSec": 30
+    },
+    {
+      "type": "conveyors",
+      "detail": "the top and bottom links are walkable belts, right and left respectively",
+      "periodSec": null
+    },
+    {
+      "type": "fire",
+      "detail": "the infobox lists fire as an obstacle",
+      "periodSec": null
+    }
+  ],
+  "hazards": [
+    "mine shaft in the middle",
+    "fire"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": false,
+    "movingPlatforms": false,
+    "conveyors": true,
+    "portals": false,
+    "floorTiles": 42,
+    "counterTiles": 58,
+    "stationTiles": 18,
+    "longestWalkTiles": 4,
+    "chokepointWidth": 3,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "walkable conveyor floors",
+    "counters that swap their contents on a timer",
+    "rice / chicken / tortilla",
+    "burrito recipe"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "plates.count",
+    "spawns",
+    "grid.ascii",
+    "dynamics[1].periodSec",
+    "dynamics[2].periodSec"
+  ]
+}

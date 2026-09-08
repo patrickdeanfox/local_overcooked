@@ -1,0 +1,209 @@
+{
+  "id": "oc2-4-2",
+  "game": "oc2",
+  "world": 4,
+  "index": 2,
+  "name": "4-2",
+  "theme": "Ravenous Rapids",
+  "wiki": "https://overcooked.fandom.com/wiki/4-2_(Overcooked!_2)",
+  "screenshots": [
+    "oc2/4-2.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 30,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "lettuce_salad",
+    "tomato_salad",
+    "chips",
+    "nuggets",
+    "nuggets_and_chips"
+  ],
+  "orderVariants": 5,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 20,
+    "max": 5,
+    "timeSec": 80
+  },
+  "stars": {
+    "1": [
+      240,
+      300,
+      400
+    ],
+    "2": [
+      240,
+      300,
+      420
+    ],
+    "3": [
+      280,
+      360,
+      480
+    ],
+    "4": [
+      280,
+      360,
+      480
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 4
+  },
+  "grid": {
+    "cols": 11,
+    "rows": 13,
+    "confidence": "med",
+    "ascii": [
+      "_#WpYpYB##_",
+      "_L.......v_",
+      "_T.......v_",
+      "_#.......v_",
+      "_#X<<<<<<<_",
+      "___________",
+      "___________",
+      "_>>>>>>>X#_",
+      "_^.......R_",
+      "_^.......%_",
+      "_#.......C_",
+      "_#.......#_",
+      "_#pBEBpV##_"
+    ]
+  },
+  "legendExtensions": {
+    "Y": "deep fryer (frying basket on a fryer)",
+    "%": "potato crate",
+    "C": "chicken crate",
+    "_": "river — falling in costs a respawn",
+    "> < ^ v": "floor-level conveyor belt; each raft has one L-shaped belt that ends in that raft's bin, and the two Ls meet when the rafts line up"
+  },
+  "stations": {
+    "board": 3,
+    "potBurner": 0,
+    "panBurner": 0,
+    "fryer": 2,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 2,
+    "extinguisher": 1,
+    "plate": 4,
+    "counter": 12,
+    "crates": {
+      "chicken": 1,
+      "lettuce": 1,
+      "potato": 1,
+      "tomato": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 5,
+      "y": 2
+    },
+    {
+      "x": 5,
+      "y": 9
+    }
+  ],
+  "zones": [
+    {
+      "name": "top raft",
+      "stations": [
+        "fryer x2",
+        "sink",
+        "board",
+        "tomato crate",
+        "lettuce crate",
+        "trash",
+        "plate x2"
+      ],
+      "links": [
+        {
+          "to": "bottom raft",
+          "via": "throw"
+        },
+        {
+          "to": "bottom raft",
+          "via": "conveyor (plates only)"
+        }
+      ]
+    },
+    {
+      "name": "bottom raft",
+      "stations": [
+        "board x2",
+        "serve",
+        "plateReturn",
+        "extinguisher",
+        "potato crate",
+        "chicken crate",
+        "trash",
+        "plate x2"
+      ],
+      "links": [
+        {
+          "to": "top raft",
+          "via": "throw"
+        },
+        {
+          "to": "top raft",
+          "via": "conveyor (plates only)"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "moving-platforms",
+      "detail": "the two rafts alternate between being connected vertically and horizontally; the belts only line up while they are close",
+      "periodSec": null
+    }
+  ],
+  "hazards": [
+    "river: fall in and respawn"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": true,
+    "movingPlatforms": true,
+    "conveyors": true,
+    "portals": false,
+    "floorTiles": 68,
+    "counterTiles": 31,
+    "stationTiles": 19,
+    "longestWalkTiles": 3,
+    "chokepointWidth": 1,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "drifting rafts that re-dock",
+    "conveyor belts as the plate ferry",
+    "deep fryer",
+    "potato / chicken / lettuce-tomato salad",
+    "fast food recipes",
+    "plate-dash throw"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "spawns",
+    "grid.ascii",
+    "dynamics[0].periodSec",
+    "features.chokepointWidth"
+  ]
+}
