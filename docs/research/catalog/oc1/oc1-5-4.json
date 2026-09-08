@@ -1,0 +1,48 @@
+{
+  "id": "oc1-5-4", "game": "oc1", "world": 5, "index": 4, "name": "5-4", "theme": "Melting Magma",
+  "wiki": "https://overcooked.fandom.com/wiki/5-4_(Overcooked!)", "screenshots": ["oc1/5-4.jpg"],
+  "timeLimitSec": 240, "timerStartsOnFirstServe": false, "unlockStars": 54, "players": [1, 2, 3, 4],
+  "recipes": ["beef_burrito", "chicken_burrito"], "orderVariants": 2,
+  "orders": {"initial": 2, "intervalSec": 24, "max": 4, "timeSec": 90},
+  "stars": {"1": [140, 300, 480], "2": [100, 240, 380], "3": [140, 320, 520], "4": [160, 340, 540]},
+  "starsProvenance": "ayce-switch",
+  "plates": {"mode": "return-clean", "count": 2},
+  "grid": {
+    "cols": 17, "rows": 9, "confidence": "low",
+    "ascii": [
+      "_____________S___",
+      "_________#_______",
+      "_......___......_",
+      "V.#BA#._F_.BC#E._",
+      "R.#I##.___.!##X._",
+      "Q......___......_",
+      "_......___......_",
+      "______#_______#__",
+      "_________________"
+    ]
+  },
+  "legendExtensions": {"_": "lava (fall hazard, 5 s time penalty)", "Q": "empty burner, no cookware", "I": "rice crate", "C": "chicken crate", "!": "tortilla crate"},
+  "stations": {
+    "board": 2, "potBurner": 1, "panBurner": 1, "emptyBurner": 1, "fryer": 0, "oven": 0, "mixer": 0,
+    "steamer": 0, "sink": 0, "serve": 1, "plateReturn": 1, "trash": 1, "extinguisher": 1, "plate": 2,
+    "counter": 11,
+    "crates": {"rice": 1, "meat": 1, "chicken": 1, "tortilla": 1}
+  },
+  "spawns": [{"x": 3, "y": 2}, {"x": 12, "y": 2}],
+  "zones": [
+    {"name": "left platform", "stations": ["board", "rice crate", "meat crate", "serve", "plateReturn", "plate"], "links": [{"to": "right platform", "via": "orbiting counters and burners"}]},
+    {"name": "right platform", "stations": ["board", "chicken crate", "tortilla crate", "trash", "extinguisher"], "links": [{"to": "left platform", "via": "orbiting counters and burners"}]},
+    {"name": "orbit", "stations": ["potBurner", "panBurner", "emptyBurner", "counter"], "links": [{"to": "left platform", "via": "passes alongside"}, {"to": "right platform", "via": "passes alongside"}]}
+  ],
+  "dynamics": [
+    {"type": "orbiting-stations", "detail": "three counters and three burners (one with a pot, one with a pan, one empty) travel a figure-8 loop around both platforms; part of the loop passes behind the serving counter where nothing can be retrieved and food burns", "periodSec": null}
+  ],
+  "hazards": ["lava: 5 s time penalty on falling in", "orbit dead zone behind the serving counter: food left there burns unreachable"],
+  "features": {
+    "splitKitchen": true, "throwRequired": true, "movingPlatforms": true, "conveyors": false,
+    "portals": false, "floorTiles": 44, "counterTiles": 24, "stationTiles": 13,
+    "longestWalkTiles": 4, "chokepointWidth": 1, "recipeSteps": 5
+  },
+  "missingMechanics": ["stations orbiting a closed waypoint path, carrying cookware and items", "lava / pit tiles with a fall time penalty", "empty burners without cookware", "burrito recipe family", "rice / tortilla / chicken crates", "plates that start on the plate return", "dashing along a moving tile to change platform"],
+  "estimates": ["orders.initial", "orders.intervalSec", "orders.max", "orders.timeSec", "spawns", "dynamics[0] lap period and phase", "grid", "stars (AYCE-Switch, not OC1)", "which orbiting burner carries the pot vs the pan"]
+}

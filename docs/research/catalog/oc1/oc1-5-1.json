@@ -1,0 +1,48 @@
+{
+  "id": "oc1-5-1", "game": "oc1", "world": 5, "index": 1, "name": "5-1", "theme": "Cosmic Canteen",
+  "wiki": "https://overcooked.fandom.com/wiki/5-1_(Overcooked!)", "screenshots": ["oc1/5-1.jpg"],
+  "timeLimitSec": 240, "timerStartsOnFirstServe": false, "unlockStars": 44, "players": [1, 2, 3, 4],
+  "recipes": ["beef_burrito", "chicken_burrito"], "orderVariants": 2,
+  "orders": {"initial": 2, "intervalSec": 22, "max": 4, "timeSec": 75},
+  "stars": {"1": [120, 260, 400], "2": [140, 320, 520], "3": [180, 400, 640], "4": [240, 520, 800]},
+  "starsProvenance": "ayce-switch",
+  "plates": {"mode": "sink", "count": 4},
+  "grid": {
+    "cols": 21, "rows": 9, "confidence": "med",
+    "ascii": [
+      "##RVV#S#F# #F#S#VVRE#",
+      "E........p #........p",
+      "#........p #........p",
+      "B........? ?........B",
+      "#........# #........#",
+      "###..##### ##########",
+      "X......#             ",
+      "#......#             ",
+      "#WDI!CA#             "
+    ]
+  },
+  "legendExtensions": {"?": "button (green at 9,3 / red at 11,3) that sends the shuttle chamber to the other side", "I": "rice crate", "C": "chicken crate", "!": "tortilla crate"},
+  "stations": {
+    "board": 2, "potBurner": 2, "panBurner": 2, "fryer": 0, "oven": 0, "mixer": 0, "steamer": 0,
+    "sink": 1, "serve": 2, "plateReturn": 2, "trash": 1, "extinguisher": 2, "plate": 4, "counter": 39,
+    "button": 2,
+    "crates": {"rice": 1, "tortilla": 1, "chicken": 1, "meat": 1}
+  },
+  "spawns": [{"x": 2, "y": 2}, {"x": 16, "y": 3}],
+  "zones": [
+    {"name": "left cooking chamber", "stations": ["potBurner", "panBurner", "board", "extinguisher", "plate", "serve", "plateReturn", "button"], "links": [{"to": "shuttle chamber", "via": "walk-when-docked"}]},
+    {"name": "right cooking chamber", "stations": ["potBurner", "panBurner", "board", "extinguisher", "plate", "serve", "plateReturn", "button"], "links": [{"to": "shuttle chamber", "via": "walk-when-docked"}]},
+    {"name": "shuttle chamber", "stations": ["crates", "sink", "trash"], "links": [{"to": "left cooking chamber", "via": "moving room"}, {"to": "right cooking chamber", "via": "moving room"}]}
+  ],
+  "dynamics": [
+    {"type": "shuttle-room", "detail": "a walkable room holding every crate, the sink and the bin slides between a dock under the left chamber and a dock under the right chamber; a button inside the docked chamber sends it away", "periodSec": null}
+  ],
+  "hazards": [],
+  "features": {
+    "splitKitchen": true, "throwRequired": false, "movingPlatforms": true, "conveyors": false,
+    "portals": false, "floorTiles": 78, "counterTiles": 66, "stationTiles": 27,
+    "longestWalkTiles": 8, "chokepointWidth": 2, "recipeSteps": 5
+  },
+  "missingMechanics": ["buttons", "a moving room that carries floor, stations and chefs between docks", "burrito recipe family (boiled rice + fried meat + tortilla)", "rice / tortilla / chicken crates", "two serving counters and plate returns in one level"],
+  "estimates": ["orders.initial", "orders.intervalSec", "orders.max", "orders.timeSec", "spawns", "dynamics[0] travel time", "grid", "stars (AYCE-Switch, not OC1)"]
+}

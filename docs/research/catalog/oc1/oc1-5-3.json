@@ -1,0 +1,49 @@
+{
+  "id": "oc1-5-3", "game": "oc1", "world": 5, "index": 3, "name": "5-3", "theme": "Cosmic Canteen",
+  "wiki": "https://overcooked.fandom.com/wiki/5-3_(Overcooked!)", "screenshots": ["oc1/5-3.jpg"],
+  "timeLimitSec": 240, "timerStartsOnFirstServe": false, "unlockStars": 51, "players": [1, 2, 3, 4],
+  "recipes": ["beef_burrito", "chicken_burrito"], "orderVariants": 2,
+  "orders": {"initial": 2, "intervalSec": 24, "max": 4, "timeSec": 90},
+  "stars": {"1": [80, 180, 300], "2": [120, 260, 400], "3": [220, 500, 780], "4": [280, 600, 940]},
+  "starsProvenance": "ayce-switch",
+  "plates": {"mode": "return-clean", "count": 3},
+  "grid": {
+    "cols": 15, "rows": 9, "confidence": "med",
+    "ascii": [
+      "##ppp#I###B#B##",
+      "V.......#.....#",
+      "R.....?.G.....#",
+      "#.......#.....#",
+      "E##############",
+      "#.......#.....#",
+      "#.....?.G.....#",
+      "#.......#.....#",
+      "F#S#F#S####!CA#"
+    ]
+  },
+  "legendExtensions": {"?": "pressure plate; holds open the door in the other half", "G": "door through the vertical divider, open only while the other half's pressure plate is held", "I": "rice crate", "C": "chicken crate", "!": "tortilla crate"},
+  "stations": {
+    "board": 2, "potBurner": 2, "panBurner": 2, "fryer": 0, "oven": 0, "mixer": 0, "steamer": 0,
+    "sink": 0, "serve": 1, "plateReturn": 1, "trash": 0, "extinguisher": 1, "plate": 3, "counter": 45,
+    "pressurePlate": 2, "door": 2,
+    "crates": {"rice": 1, "tortilla": 1, "chicken": 1, "meat": 1}
+  },
+  "spawns": [{"x": 4, "y": 1}, {"x": 3, "y": 5}],
+  "zones": [
+    {"name": "upper-left", "stations": ["serve", "plateReturn", "plate", "rice crate", "pressurePlate"], "links": [{"to": "upper-right", "via": "door opened by the lower plate"}, {"to": "lower-left", "via": "counter hand-off"}]},
+    {"name": "upper-right", "stations": ["board"], "links": [{"to": "upper-left", "via": "door opened by the lower plate"}]},
+    {"name": "lower-left", "stations": ["potBurner", "panBurner", "extinguisher", "pressurePlate"], "links": [{"to": "lower-right", "via": "door opened by the upper plate"}, {"to": "upper-left", "via": "counter hand-off"}]},
+    {"name": "lower-right", "stations": ["tortilla crate", "chicken crate", "meat crate"], "links": [{"to": "lower-left", "via": "door opened by the upper plate"}]}
+  ],
+  "dynamics": [
+    {"type": "pressure-plate-doors", "detail": "two pressure plates, cross-wired: the upper half's plate holds the lower door open and vice versa; the doors are held, not timed", "periodSec": null}
+  ],
+  "hazards": [],
+  "features": {
+    "splitKitchen": true, "throwRequired": true, "movingPlatforms": false, "conveyors": false,
+    "portals": false, "floorTiles": 72, "counterTiles": 63, "stationTiles": 18,
+    "longestWalkTiles": 5, "chokepointWidth": 1, "recipeSteps": 5
+  },
+  "missingMechanics": ["pressure plates bound to gate groups (held, not timed)", "cross-wired doors", "burrito recipe family", "rice / tortilla / chicken crates", "a sink-less kitchen where dirty plates return clean at the plate return"],
+  "estimates": ["orders.initial", "orders.intervalSec", "orders.max", "orders.timeSec", "spawns", "doors are held-open rather than timed", "grid", "stars (AYCE-Switch, not OC1)"]
+}

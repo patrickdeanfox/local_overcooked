@@ -1,0 +1,52 @@
+{
+  "id": "oc1-5-2", "game": "oc1", "world": 5, "index": 2, "name": "5-2", "theme": "Melting Magma",
+  "wiki": "https://overcooked.fandom.com/wiki/5-2_(Overcooked!)", "screenshots": ["oc1/5-2.jpg", "oc1/5-2-ayce.jpg"],
+  "timeLimitSec": 240, "timerStartsOnFirstServe": false, "unlockStars": 47, "players": [1, 2, 3, 4],
+  "recipes": ["beef_burrito", "chicken_burrito"], "orderVariants": 2,
+  "orders": {"initial": 3, "intervalSec": 20, "max": 5, "timeSec": 75},
+  "stars": {"1": [80, 180, 280], "2": [100, 220, 360], "3": [160, 360, 580], "4": [140, 320, 520]},
+  "starsProvenance": "ayce-switch",
+  "plates": {"mode": "sink", "count": 2},
+  "grid": {
+    "cols": 13, "rows": 11, "confidence": "low",
+    "ascii": [
+      "_____________",
+      "_ES#B#_X#FF#_",
+      "_.....=....p_",
+      "_....._....p_",
+      "_....._....._",
+      "___=______=__",
+      "_WD..._....._",
+      "_....._=...V_",
+      "_....._....R_",
+      "_ACI!#_....._",
+      "_____________"
+    ]
+  },
+  "legendExtensions": {"_": "lava (fall hazard, 5 s time penalty)", "=": "rock bridge that raises and lowers", "I": "rice crate", "C": "chicken crate", "!": "tortilla crate"},
+  "stations": {
+    "board": 1, "potBurner": 1, "panBurner": 2, "fryer": 0, "oven": 0, "mixer": 0, "steamer": 0,
+    "sink": 1, "serve": 1, "plateReturn": 1, "trash": 1, "extinguisher": 1, "plate": 2, "counter": 5,
+    "bridge": 4,
+    "crates": {"meat": 1, "chicken": 1, "rice": 1, "tortilla": 1}
+  },
+  "spawns": [{"x": 5, "y": 3}, {"x": 4, "y": 7}],
+  "zones": [
+    {"name": "upper-left", "stations": ["extinguisher", "potBurner", "board"], "links": [{"to": "upper-right", "via": "bridge"}, {"to": "lower-left", "via": "bridge"}]},
+    {"name": "upper-right", "stations": ["trash", "panBurner", "plate"], "links": [{"to": "upper-left", "via": "bridge"}, {"to": "lower-right", "via": "bridge"}]},
+    {"name": "lower-left", "stations": ["sink", "crates"], "links": [{"to": "upper-left", "via": "bridge"}, {"to": "lower-right", "via": "bridge"}]},
+    {"name": "lower-right", "stations": ["serve", "plateReturn"], "links": [{"to": "upper-right", "via": "bridge"}, {"to": "lower-left", "via": "bridge"}]}
+  ],
+  "dynamics": [
+    {"type": "shifting-bridges", "detail": "four rock bridges form a ring between the quadrants; exactly three are up at any moment, and swaps drop one into the lava while raising another", "periodSec": null},
+    {"type": "cannon", "detail": "a cannon fires down the centre column of the kitchen; the OC1 capture shows three balls in flight at once", "periodSec": null}
+  ],
+  "hazards": ["lava: 5 s time penalty on falling in", "cannonballs down the centre column"],
+  "features": {
+    "splitKitchen": true, "throwRequired": true, "movingPlatforms": false, "conveyors": false,
+    "portals": false, "floorTiles": 62, "counterTiles": 21, "stationTiles": 16,
+    "longestWalkTiles": 20, "chokepointWidth": 1, "recipeSteps": 5
+  },
+  "missingMechanics": ["lava / pit tiles with a fall time penalty", "bridges that raise and lower with a 3-of-4 group rule", "a cannon projectile that knocks chefs down", "burrito recipe family", "rice / tortilla / chicken crates", "throwing an item onto the floor to free a counter"],
+  "estimates": ["orders.initial", "orders.intervalSec", "orders.timeSec", "spawns", "dynamics[0].periodSec", "dynamics[1] fire rate and effect", "grid", "stars (AYCE-Switch, not OC1)"]
+}
