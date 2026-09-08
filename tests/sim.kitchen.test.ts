@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Sim } from '../src/sim';
 import {
-  BURN_TIME, CHEF_RADIUS, CHOP_TIME, COOK_TIME, FIRE_SPREAD_TIME, ORDER_FAIL_PENALTY,
+  BURN_TIME, CHEF_RADIUS, CHEF_SPEED, CHOP_TIME, COOK_TIME, FIRE_SPREAD_TIME, ORDER_FAIL_PENALTY,
   PLATE_RETURN_DELAY, PLATE_STACK_RETURN_DELAY, SIM_DT, TIP_BASE, WASH_TIME,
 } from '../src/sim/constants';
 import { RECIPES } from '../src/sim/recipes';
@@ -730,6 +730,78 @@ describe('sliders', () => {
     sim.step([inp({ pickupPressed: true })]);
     expect(chef.holding).toBeNull();
     expect(sim.itemAt(5, 2)).toMatchObject({ kind: 'ingredient', type: 'onion' });
+  });
+});
+
+// ─── Difficulty modifiers ───────────────────────────────────────────────────
+describe('modifiers and seed', () => {
+  it('reports the level\'s own numbers when there are no modifiers', () => {
+    const sim = new Sim(makeLevel(), { players: 1, seed: 3 });
+    const eff = sim.getEffectiveSettings();
+    expect(eff.timeLimitSec).toBe(BASE.timeLimitSec);
+    expect(eff.orders).toEqual(BASE.orders);
+    expect(eff.chefSpeed).toBe(CHEF_SPEED);
+    expect(sim.getState().timeLeft).toBe(BASE.timeLimitSec);
+  });
+
+  it('scales the time limit', () => {
+    const sim = new Sim(makeLevel(), { players: 1, seed: 3, modifiers: { timeLimitScale: 0.5 } });
+    expect(sim.getEffectiveSettings().timeLimitSec).toBe(150);
+    expect(sim.getState().timeLeft).toBe(150);
+    stepFor(sim, 1);
+    expect(sim.getState().timeLeft).toBeCloseTo(149, 6);
+  });
+
+  it('scales how long an order lives', () => {
+    const sim = new Sim(makeLevel(), { players: 1, seed: 3, modifiers: { orderTimeScale: 0.25 } });
+    expect(sim.getEffectiveSettings().orders.timeSec).toBe(30);
+    expect(sim.getState().orders[0].timeTotal).toBe(30);
+    expect(sim.getState().orders[0].timeLeft).toBe(30);
+  });
+
+  it('scales the gap between orders', () => {
+    const level = makeLevel({ orders: { initial: 0, intervalSec: 10, max: 4, timeSec: 120 } });
+    const sim = new Sim(level, { players: 1, seed: 3, modifiers: { orderIntervalScale: 0.5 } });
+    expect(sim.getEffectiveSettings().orders.intervalSec).toBe(5);
+    expect(types(stepFor(sim, 4.8))).not.toContain('orderNew');
+    expect(types(stepFor(sim, 0.4))).toContain('orderNew');
+  });
+
+  it('shifts the concurrent order cap and never drops below one', () => {
+    const level = makeLevel({ orders: { initial: 1, intervalSec: 0.5, max: 2, timeSec: 120 } });
+    const more = new Sim(level, { players: 1, seed: 3, modifiers: { maxOrdersDelta: 2 } });
+    expect(more.getEffectiveSettings().orders.max).toBe(4);
+    stepFor(more, 6);
+    expect(more.getState().orders.length).toBe(4);
+
+    const fewer = new Sim(level, { players: 1, seed: 3, modifiers: { maxOrdersDelta: -5 } });
+    expect(fewer.getEffectiveSettings().orders.max).toBe(1);
+    stepFor(fewer, 6);
+    expect(fewer.getState().orders.length).toBe(1);
+  });
+
+  it('scales chef speed', () => {
+    const sim = new Sim(makeLevel(), { players: 1, seed: 3, modifiers: { chefSpeedScale: 1.5 } });
+    expect(sim.getEffectiveSettings().chefSpeed).toBeCloseTo(CHEF_SPEED * 1.5, 6);
+    const chef = mutable(sim).chefs[0];
+    const x0 = chef.x;
+    stepFor(sim, 0.25, inp({ moveX: 1 }));
+    expect(chef.x - x0).toBeCloseTo(CHEF_SPEED * 1.5 * 0.25, 4);
+  });
+
+  it('never writes the scaled numbers back into the level', () => {
+    const level = makeLevel();
+    new Sim(level, {
+      players: 1, seed: 3,
+      modifiers: { timeLimitScale: 0.5, orderIntervalScale: 0.5, orderTimeScale: 0.5, maxOrdersDelta: 3, chefSpeedScale: 2 },
+    });
+    expect(level.timeLimitSec).toBe(BASE.timeLimitSec);
+    expect(level.orders).toEqual(BASE.orders);
+  });
+
+  it('carries the run seed in the snapshot', () => {
+    expect(new Sim(makeLevel(), { players: 1, seed: 4242 }).getState().seed).toBe(4242);
+    expect(new Sim(makeLevel(), { players: 1, seed: 0 }).getState().seed).toBe(0);
   });
 });
 
