@@ -1,5 +1,5 @@
 {
-  "chef": { "url": "models/chef/chef.glb", "height": 1.08 },
+  "chef": { "url": "models/chef/chef.glb", "height": 1.4 },
 
   "counter": { "src": "KayKit_Restaurant_Bits_1.0_FREE/Assets/gltf/kitchencounter_straight_A.gltf", "url": "models/kaykit/kitchencounter_straight_A.gltf", "scale": 0.5 },
   "counterAlt": { "src": "KayKit_Restaurant_Bits_1.0_FREE/Assets/gltf/kitchencounter_straight_B.gltf", "url": "models/kaykit/kitchencounter_straight_B.gltf", "scale": 0.5 },
