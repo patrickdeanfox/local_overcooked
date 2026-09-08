@@ -15,22 +15,24 @@ export function createInputManager(_scene: Phaser.Scene, players: number): Input
   window.addEventListener('keydown', onDown);
   window.addEventListener('keyup', onUp);
   const bindings: Binding[] = DEFAULT_KEYBOARD_BINDINGS.slice(0, players);
-  const prev: Record<number, { pickup: boolean; interact: boolean }> = {};
+  const prev: Record<number, { pickup: boolean; interact: boolean; pause: boolean }> = {};
   const held = (b: KeyboardBinding, a: GameAction): boolean => b.keys[a].some((k) => down.has(k));
   return {
     players,
     poll(): PlayerInput[] {
       return bindings.map((b, i) => {
         if (b.kind !== 'keyboard') throw new Error('stub supports keyboard only');
-        const p = prev[i] ?? { pickup: false, interact: false };
-        const pickup = held(b, 'pickup'), interact = held(b, 'interact');
-        prev[i] = { pickup, interact };
+        const p = prev[i] ?? { pickup: false, interact: false, pause: false };
+        const pickup = held(b, 'pickup'), interact = held(b, 'interact'), pause = held(b, 'pause');
+        prev[i] = { pickup, interact, pause };
         return {
           moveX: (held(b, 'right') ? 1 : 0) - (held(b, 'left') ? 1 : 0),
           moveY: (held(b, 'down') ? 1 : 0) - (held(b, 'up') ? 1 : 0),
           pickupPressed: pickup && !p.pickup,
           interactPressed: interact && !p.interact,
           interactHeld: interact,
+          pausePressed: pause && !p.pause,
+          backPressed: false,
         };
       });
     },
