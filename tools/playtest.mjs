@@ -28,6 +28,9 @@ const VIEW_W = 1280;
 const VIEW_H = 800;
 const LOAD_SETTLE_MS = 800;
 const TAP_MS = 60;
+// After a tap, wait a couple of frames before the next key event. A release and re-press inside
+// one frame is invisible to the game's per-frame edge detection (a physical key cannot do it).
+const TAP_SETTLE_MS = 50;
 const DEFAULT_URL = 'http://localhost:5173/';
 
 const KEY_INFO = {
@@ -146,7 +149,7 @@ async function main() {
       const arg = rest.join(' ');
       if (cmd === 'goto') await goto(cdp, arg);
       else if (cmd === 'wait') await sleep(Number(arg));
-      else if (cmd === 'tap') { await cdp.key(arg, 'keyDown'); await sleep(TAP_MS); await cdp.key(arg, 'keyUp'); }
+      else if (cmd === 'tap') { await cdp.key(arg, 'keyDown'); await sleep(TAP_MS); await cdp.key(arg, 'keyUp'); await sleep(TAP_SETTLE_MS); }
       else if (cmd === 'hold') { const [codes, ms] = rest; const list = codes.split(','); for (const c of list) await cdp.key(c, 'keyDown'); await sleep(Number(ms)); for (const c of list) await cdp.key(c, 'keyUp'); }
       else if (cmd === 'holduntil') {
         const [codes, maxMs, ...jsParts] = rest; const list = codes.split(','); const js = jsParts.join(' ');
