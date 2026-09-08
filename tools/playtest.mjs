@@ -38,7 +38,7 @@ const KEY_INFO = {
   ShiftLeft: { key: 'Shift', vk: 16 }, ShiftRight: { key: 'Shift', vk: 16 }, ControlLeft: { key: 'Control', vk: 17 }, ControlRight: { key: 'Control', vk: 17 },
   ArrowUp: { key: 'ArrowUp', vk: 38 }, ArrowDown: { key: 'ArrowDown', vk: 40 }, ArrowLeft: { key: 'ArrowLeft', vk: 37 }, ArrowRight: { key: 'ArrowRight', vk: 39 },
   Backspace: { key: 'Backspace', vk: 8 }, Tab: { key: 'Tab', vk: 9 }, Backquote: { key: '`', vk: 192 },
-  F3: { key: 'F3', vk: 114 }, F4: { key: 'F4', vk: 115 },
+  F3: { key: 'F3', vk: 114 }, F4: { key: 'F4', vk: 115 }, F8: { key: 'F8', vk: 119 },
 };
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -151,6 +151,15 @@ async function main() {
       else if (cmd === 'wait') await sleep(Number(arg));
       else if (cmd === 'tap') { await cdp.key(arg, 'keyDown'); await sleep(TAP_MS); await cdp.key(arg, 'keyUp'); await sleep(TAP_SETTLE_MS); }
       else if (cmd === 'hold') { const [codes, ms] = rest; const list = codes.split(','); for (const c of list) await cdp.key(c, 'keyDown'); await sleep(Number(ms)); for (const c of list) await cdp.key(c, 'keyUp'); }
+      else if (cmd === 'type') { // real typing: per-character key events carrying text, like a keyboard
+        for (const ch of arg) {
+          const upper = ch.toUpperCase();
+          const code = /^[a-z]$/i.test(ch) ? `Key${upper}` : ch === ' ' ? 'Space' : /^[0-9]$/.test(ch) ? `Digit${ch}` : 'Unidentified';
+          await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', key: ch, code, text: ch, unmodifiedText: ch, windowsVirtualKeyCode: upper.charCodeAt(0) });
+          await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', key: ch, code, windowsVirtualKeyCode: upper.charCodeAt(0) });
+          await sleep(20);
+        }
+      }
       else if (cmd === 'holduntil') {
         const [codes, maxMs, ...jsParts] = rest; const list = codes.split(','); const js = jsParts.join(' ');
         for (const c of list) await cdp.key(c, 'keyDown');

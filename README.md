@@ -43,6 +43,15 @@ npm start                 # or: npm run install-launcher
 - **Seed.** Random gives a new order sequence every run, Daily gives everyone the same sequence for the day, Fixed replays a chosen number (edit it with left/right or the digit keys). The seed and preset are shown in the top-right during play and on the results screen; Retry replays the same seed.
 - **Burgers (1-4, 1-6).** Chop beef, fry it in a pan, put a bun on a plate, collect the patty from the pan with the plate, add chopped lettuce or tomato as the ticket asks, serve. Pans burn like pots.
 
+## Play notes (bug reports and ideas)
+Press **F8** on any screen, or click the **Note** button in the corner, to leave a bug report, idea or note while you play. The game pauses, you type, **Ctrl+Enter** sends (Esc cancels). Each note records the screen, level, seed, difficulty, players, clock, score, current tickets, chef positions, the last few events and a screenshot. Notes are stored on the machine running the server in `playnotes/notes.jsonl` with the screenshots beside it (the desktop launcher's copy lives in `~/.local/share/local-overcooked/playnotes/`). If the server is unreachable, the note waits in the browser and goes out with the next one.
+
+```bash
+npm run notes            # readable list of every note
+npm run notes -- --json  # raw JSON
+```
+A keyboard is needed to type; pads cannot open the box.
+
 ## Hosting and hardware
 The server only hands out static files; the whole game runs in the browser of the device showing it.
 

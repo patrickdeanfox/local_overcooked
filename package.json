@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit",
     "playtest": "node tools/playtest.mjs",
     "cert": "node tools/make-cert.mjs",
-    "install-launcher": "bash tools/install-launcher.sh"
+    "install-launcher": "bash tools/install-launcher.sh",
+    "notes": "node tools/playnotes.mjs"
   },
   "keywords": [],
   "author": "",

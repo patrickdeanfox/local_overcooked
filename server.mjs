@@ -12,6 +12,7 @@ import { readFile, stat } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import { extname, join, normalize, resolve } from 'node:path';
 import { ensureCert, lanAddresses } from './tools/make-cert.mjs';
+import { createPlayNotesHandler } from './tools/playnotes-store.mjs';
 
 const PORT = Number(process.env.PORT) || 7777;
 const HTTPS_PORT = Number(process.env.HTTPS_PORT) || 7778;
@@ -20,6 +21,9 @@ const HOST = process.env.HOST || '0.0.0.0';
 const ROOT = resolve(process.env.ROOT || 'dist');
 const CERT_DIR = resolve(process.env.CERT_DIR || 'certs');
 const NO_HTTPS = process.env.NO_HTTPS === '1';
+const PLAYNOTES_DIR = resolve(process.env.PLAYNOTES_DIR || 'playnotes'); // in-game F8 reports land here
+
+const playNotes = createPlayNotesHandler(PLAYNOTES_DIR);
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -42,6 +46,7 @@ const MIME = {
 
 async function handle(req, res) {
   try {
+    if (await playNotes(req, res)) return;
     const url = new URL(req.url || '/', 'http://localhost');
     let path = decodeURIComponent(url.pathname);
     if (path.endsWith('/')) path += 'index.html';
@@ -93,6 +98,7 @@ function listenOnFreePort(server, port, scheme, onListening) {
 }
 
 console.log(`Serving ${ROOT}`);
+console.log(`Play notes (F8 in the game) are written to ${PLAYNOTES_DIR}; read them with: npm run notes`);
 listenOnFreePort(createServer(handle), PORT, 'http', (p) => banner('http', p));
 
 const certs = NO_HTTPS ? null : ensureCert(CERT_DIR);

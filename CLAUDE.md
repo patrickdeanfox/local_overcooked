@@ -38,6 +38,9 @@ These files are the shared interface between modules. **Additive changes only** 
 ## Playtesting from a session
 The claude-in-chrome extension tab stays hidden here (no animation frames), so Phaser never runs in it. Use the headless harness instead: start `npx vite --host --port 5173` in the background, then `node tools/playtest.mjs --url http://localhost:5173/ --out <dir> --file <script>` (commands: goto, wait, tap, hold, holduntil, until, shot, eval, logs, errors). Dev builds expose `window.__oc = { sim, level, scene }` for `eval`/`holduntil` conditions. Read screenshots with the Read tool. Scripted scenarios live in `tools/playtests/`.
 
+## Play notes from the user
+The game has an F8 bug/idea reporter (`src/game/playnotes.ts`). Notes land in `playnotes/notes.jsonl` (repo, when run through `npm start` or `npm run dev` here) or `~/.local/share/local-overcooked/playnotes/` (desktop launcher), with screenshots beside them. **At the start of a session run `npm run notes`** and treat every note as the user's play feedback: fix bugs, weigh ideas against `docs/ROADMAP.md`, and tell the user which notes you acted on. The `context` field carries level, seed, preset, players, clock, score, tickets, chef positions and recent events, so a bug can usually be reproduced with the playtest harness on the same seed.
+
 ## Level loading
 Scenes read levels through `src/game/levelHotReload.ts` (`currentLevels()`, `defaultLevelId()`), never by importing `src/levels` directly, otherwise a JSON edit triggers a full page reload instead of an in-place rebuild.
 
