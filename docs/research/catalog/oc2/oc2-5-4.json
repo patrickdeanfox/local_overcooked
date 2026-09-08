@@ -1,0 +1,219 @@
+{
+  "id": "oc2-5-4",
+  "game": "oc2",
+  "world": 5,
+  "index": 4,
+  "name": "5-4",
+  "theme": "Conjurer's Kitchen",
+  "wiki": "https://overcooked.fandom.com/wiki/5-4_(Overcooked!_2)",
+  "screenshots": [
+    "oc2/5-4.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 54,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "pancake",
+    "chocolate_pancake"
+  ],
+  "orderVariants": 2,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 20,
+    "max": 5,
+    "timeSec": 80
+  },
+  "stars": {
+    "1": [
+      160,
+      200,
+      280
+    ],
+    "2": [
+      260,
+      340,
+      460
+    ],
+    "3": [
+      240,
+      300,
+      400
+    ],
+    "4": [
+      240,
+      300,
+      400
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 2
+  },
+  "grid": {
+    "cols": 15,
+    "rows": 10,
+    "confidence": "med",
+    "ascii": [
+      "###############",
+      "#pW#R#####&B#B#",
+      "#....#####....#",
+      "!....#####....V",
+      "#..@p#####..@.#",
+      "###G#######G###",
+      "#.............#",
+      "#......@......#",
+      "#.............#",
+      "#K#K#F#F#$#X#E#"
+    ]
+  },
+  "legendExtensions": {
+    "K": "mixer",
+    "&": "flour crate",
+    "$": "egg crate",
+    "!": "chocolate crate (0,3)",
+    "G": "the two staircases: walkable while the stairs are up, gone for the rest of the ~35 s cycle",
+    "@": "portal; the two top ones drop you into the bottom section, the bottom one spits you out wherever the floating portal happens to be"
+  },
+  "stations": {
+    "board": 2,
+    "potBurner": 0,
+    "panBurner": 2,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 2,
+    "steamer": 0,
+    "sink": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plate": 2,
+    "counter": 70,
+    "crates": {
+      "chocolate": 1,
+      "egg": 1,
+      "flour": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 3,
+      "y": 7
+    },
+    {
+      "x": 10,
+      "y": 7
+    }
+  ],
+  "zones": [
+    {
+      "name": "top-left section",
+      "stations": [
+        "sink",
+        "plateReturn",
+        "chocolate crate",
+        "plate x2"
+      ],
+      "links": [
+        {
+          "to": "bottom section",
+          "via": "stairs / portal"
+        },
+        {
+          "to": "top-right section",
+          "via": "throw"
+        }
+      ]
+    },
+    {
+      "name": "top-right section",
+      "stations": [
+        "flour crate",
+        "board x2",
+        "serve"
+      ],
+      "links": [
+        {
+          "to": "bottom section",
+          "via": "stairs / portal"
+        },
+        {
+          "to": "top-left section",
+          "via": "throw"
+        }
+      ]
+    },
+    {
+      "name": "bottom section",
+      "stations": [
+        "mixer x2",
+        "panBurner x2",
+        "egg crate",
+        "trash",
+        "extinguisher"
+      ],
+      "links": [
+        {
+          "to": "top-left section",
+          "via": "stairs / portal"
+        },
+        {
+          "to": "top-right section",
+          "via": "stairs / portal"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "stairs-portal-swap",
+      "detail": "both staircases disappear and are replaced by portals roughly every 35 s, then come back",
+      "periodSec": 35
+    },
+    {
+      "type": "moving-portal",
+      "detail": "a third portal drifts left and right over the two top sections and decides where the bottom portal delivers you — sometimes into the pit",
+      "periodSec": null
+    }
+  ],
+  "hazards": [
+    "the pit under the top sections; the moving portal can drop you into it"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": true,
+    "movingPlatforms": true,
+    "conveyors": false,
+    "portals": true,
+    "floorTiles": 64,
+    "counterTiles": 86,
+    "stationTiles": 16,
+    "longestWalkTiles": 18,
+    "chokepointWidth": 1,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "portals",
+    "stairs that appear and disappear on a timer",
+    "a portal exit that moves",
+    "mixer",
+    "flour / egg / chocolate",
+    "pancake recipe"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "spawns",
+    "grid.ascii",
+    "dynamics[1].periodSec"
+  ]
+}

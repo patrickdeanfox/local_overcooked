@@ -1,0 +1,231 @@
+{
+  "id": "oc2-5-5",
+  "game": "oc2",
+  "world": 5,
+  "index": 5,
+  "name": "5-5",
+  "theme": "Conjurer's Kitchen",
+  "wiki": "https://overcooked.fandom.com/wiki/5-5_(Overcooked!_2)",
+  "screenshots": [
+    "oc2/5-5.jpg"
+  ],
+  "timeLimitSec": 210,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 58,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "beef_pasta",
+    "mushroom_pasta",
+    "tomato_pasta"
+  ],
+  "orderVariants": 3,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 20,
+    "max": 5,
+    "timeSec": 80
+  },
+  "stars": {
+    "1": [
+      160,
+      200,
+      280
+    ],
+    "2": [
+      280,
+      360,
+      480
+    ],
+    "3": [
+      280,
+      360,
+      480
+    ],
+    "4": [
+      280,
+      360,
+      480
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 3
+  },
+  "grid": {
+    "cols": 13,
+    "rows": 8,
+    "confidence": "med",
+    "ascii": [
+      "#V#FFF#SSS#p#",
+      "#...?.#.?...p",
+      "B.....#.....p",
+      "#___=_#_=___#",
+      "B.....#.....W",
+      "#...?.#.?...R",
+      "E.....#.....#",
+      "#X#AT###M!#X#"
+    ]
+  },
+  "legendExtensions": {
+    "_": "the magic rift that splits each half into a top and a bottom corner",
+    "=": "the small moving platform that bridges that rift",
+    "?": "a control switch; the two on the left drive the right-hand platform and vice versa",
+    "!": "pasta crate (9,7)"
+  },
+  "stations": {
+    "board": 2,
+    "potBurner": 3,
+    "panBurner": 3,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 2,
+    "extinguisher": 1,
+    "plate": 3,
+    "counter": 23,
+    "crates": {
+      "beef": 1,
+      "mushroom": 1,
+      "pasta": 1,
+      "tomato": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 3,
+      "y": 1
+    },
+    {
+      "x": 9,
+      "y": 1
+    }
+  ],
+  "zones": [
+    {
+      "name": "top-left corner",
+      "stations": [
+        "serve",
+        "panBurner x3",
+        "switch"
+      ],
+      "links": [
+        {
+          "to": "bottom-left corner",
+          "via": "left moving platform"
+        },
+        {
+          "to": "top-right corner",
+          "via": "throw over the centre counter"
+        }
+      ]
+    },
+    {
+      "name": "bottom-left corner",
+      "stations": [
+        "trash",
+        "extinguisher",
+        "beef crate",
+        "tomato crate",
+        "board x2",
+        "switch"
+      ],
+      "links": [
+        {
+          "to": "top-left corner",
+          "via": "left moving platform"
+        },
+        {
+          "to": "bottom-right corner",
+          "via": "throw"
+        }
+      ]
+    },
+    {
+      "name": "top-right corner",
+      "stations": [
+        "potBurner x3",
+        "plate x3",
+        "switch"
+      ],
+      "links": [
+        {
+          "to": "bottom-right corner",
+          "via": "right moving platform"
+        },
+        {
+          "to": "top-left corner",
+          "via": "throw"
+        }
+      ]
+    },
+    {
+      "name": "bottom-right corner",
+      "stations": [
+        "plateReturn",
+        "trash",
+        "sink",
+        "mushroom crate",
+        "pasta crate",
+        "switch"
+      ],
+      "links": [
+        {
+          "to": "top-right corner",
+          "via": "right moving platform"
+        },
+        {
+          "to": "bottom-left corner",
+          "via": "throw"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "cross-controlled-platforms",
+      "detail": "each half's small platform is driven only by the switches in the other half's two corners; the useful stops are in front of the sink / boards and up beside the cooking stations",
+      "periodSec": null
+    }
+  ],
+  "hazards": [
+    "the rift: walk in and respawn"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": true,
+    "movingPlatforms": true,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 52,
+    "counterTiles": 44,
+    "stationTiles": 21,
+    "longestWalkTiles": 9,
+    "chokepointWidth": 1,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "moving platforms driven by the other player's switch",
+    "control switch station",
+    "pasta",
+    "pasta recipe"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "spawns",
+    "grid.ascii",
+    "dynamics[0].periodSec"
+  ]
+}

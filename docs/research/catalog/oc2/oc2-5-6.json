@@ -1,0 +1,230 @@
+{
+  "id": "oc2-5-6",
+  "game": "oc2",
+  "world": 5,
+  "index": 6,
+  "name": "5-6",
+  "theme": "Gourmet Galaxy -> ??? -> Conjurer's Kitchen",
+  "wiki": "https://overcooked.fandom.com/wiki/5-6_(Overcooked!_2)",
+  "screenshots": [
+    "oc2/5-6.jpg"
+  ],
+  "timeLimitSec": 310,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 62,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "beef_pasta",
+    "mushroom_pasta",
+    "tomato_pasta",
+    "fish_prawn_pasta"
+  ],
+  "orderVariants": 4,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 25,
+    "max": 5,
+    "timeSec": 80
+  },
+  "stars": {
+    "1": [
+      280,
+      360,
+      480
+    ],
+    "2": [
+      300,
+      380,
+      520
+    ],
+    "3": [
+      320,
+      400,
+      500
+    ],
+    "4": [
+      320,
+      400,
+      500
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 3
+  },
+  "grid": {
+    "cols": 14,
+    "rows": 11,
+    "confidence": "low",
+    "ascii": [
+      "_______#XVRE#_",
+      "_####__#....#_",
+      "_M..#__#....#_",
+      "_T..S__######_",
+      "_A..S_________",
+      "_!..#_=_______",
+      "_####___=_____",
+      "_______##W###_",
+      "_______B...p#_",
+      "_______B..pp#_",
+      "_______#F#F##_"
+    ]
+  },
+  "legendExtensions": {
+    "_": "the river between the three islands (phase 1) / the void (phase 3)",
+    "=": "one of the small pieces of land that drift into place and briefly connect two islands",
+    "!": "pasta crate (1,5)"
+  },
+  "stations": {
+    "board": 2,
+    "potBurner": 2,
+    "panBurner": 2,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plate": 3,
+    "counter": 33,
+    "crates": {
+      "beef": 1,
+      "mushroom": 1,
+      "pasta": 1,
+      "tomato": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 2,
+      "y": 3
+    },
+    {
+      "x": 9,
+      "y": 8
+    }
+  ],
+  "zones": [
+    {
+      "name": "left island (phase 1)",
+      "stations": [
+        "potBurner x2",
+        "mushroom crate",
+        "tomato crate",
+        "beef crate",
+        "pasta crate"
+      ],
+      "links": [
+        {
+          "to": "bottom-right island",
+          "via": "drifting land bridge"
+        },
+        {
+          "to": "bottom-right island",
+          "via": "throw"
+        }
+      ]
+    },
+    {
+      "name": "bottom-right island (phase 1)",
+      "stations": [
+        "panBurner x2",
+        "board x2",
+        "sink",
+        "plate x3"
+      ],
+      "links": [
+        {
+          "to": "top-right island",
+          "via": "walk"
+        },
+        {
+          "to": "left island",
+          "via": "drifting land bridge"
+        }
+      ]
+    },
+    {
+      "name": "top-right island (phase 1)",
+      "stations": [
+        "serve",
+        "plateReturn",
+        "trash",
+        "extinguisher"
+      ],
+      "links": [
+        {
+          "to": "bottom-right island",
+          "via": "drifting land bridge"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "phases",
+      "detail": "phase 2 begins at 3:48 remaining (the river becomes solid ground and counters start sliding to new places); phase 3 begins at 1:58 remaining (a left/right split with an extra pot and burner, new fish and prawn crates, a ledge you drop off and a portal back)",
+      "periodSec": null
+    },
+    {
+      "type": "moving-platforms",
+      "detail": "phase 1: small land bridges drift between the islands and pause briefly when it is safe to cross",
+      "periodSec": null
+    },
+    {
+      "type": "sliders",
+      "detail": "phase 2: counters split and slide across the kitchen into their phase-3 positions",
+      "periodSec": null
+    },
+    {
+      "type": "portal",
+      "detail": "phase 3 only: a portal returns you from the right area to the left",
+      "periodSec": null
+    }
+  ],
+  "hazards": [
+    "river (phase 1)",
+    "the ledge and the void (phase 3)"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": true,
+    "movingPlatforms": true,
+    "conveyors": false,
+    "portals": true,
+    "floorTiles": 23,
+    "counterTiles": 51,
+    "stationTiles": 18,
+    "longestWalkTiles": null,
+    "chokepointWidth": 1,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "multi-phase levels driven by the clock",
+    "drifting land bridges",
+    "counters that slide to new positions mid-run",
+    "portals",
+    "a recipe variant that only unlocks in a later phase",
+    "pasta / fish / prawn",
+    "pasta recipe"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "spawns",
+    "grid.ascii",
+    "dynamics[1].periodSec",
+    "dynamics[2].periodSec"
+  ]
+}

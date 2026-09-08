@@ -1,0 +1,189 @@
+{
+  "id": "oc2-5-3",
+  "game": "oc2",
+  "world": 5,
+  "index": 3,
+  "name": "5-3",
+  "theme": "Moreish Mines",
+  "wiki": "https://overcooked.fandom.com/wiki/5-3_(Overcooked!_2)",
+  "screenshots": [
+    "oc2/5-3.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 50,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "beef_burrito",
+    "chicken_burrito",
+    "mushroom_burrito"
+  ],
+  "orderVariants": 3,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 20,
+    "max": 5,
+    "timeSec": 80
+  },
+  "stars": {
+    "1": [
+      120,
+      140,
+      200
+    ],
+    "2": [
+      280,
+      360,
+      480
+    ],
+    "3": [
+      300,
+      360,
+      500
+    ],
+    "4": [
+      300,
+      360,
+      500
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 4
+  },
+  "grid": {
+    "cols": 13,
+    "rows": 8,
+    "confidence": "high",
+    "ascii": [
+      "#pW#BBB###p##",
+      "I___________X",
+      "A___________V",
+      "C__====_____#",
+      "M__=?==_____R",
+      "!__====_____E",
+      "#___________#",
+      "#pSSS#FFF#p##"
+    ]
+  },
+  "legendExtensions": {
+    "_": "the pit the platform floats in — everything except the platform is a fall",
+    "=": "the steerable platform the chefs stand on",
+    "?": "the joystick in the middle of the platform",
+    "I": "rice crate",
+    "C": "chicken crate",
+    "!": "tortilla crate (0,5)"
+  },
+  "stations": {
+    "board": 3,
+    "potBurner": 3,
+    "panBurner": 3,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plate": 4,
+    "counter": 15,
+    "crates": {
+      "beef": 1,
+      "chicken": 1,
+      "mushroom": 1,
+      "rice": 1,
+      "tortilla": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 4,
+      "y": 3
+    },
+    {
+      "x": 5,
+      "y": 4
+    }
+  ],
+  "zones": [
+    {
+      "name": "steerable platform",
+      "stations": [
+        "joystick"
+      ],
+      "links": [
+        {
+          "to": "station ring",
+          "via": "drive the platform to the wall you want"
+        }
+      ]
+    },
+    {
+      "name": "station ring",
+      "stations": [
+        "potBurner x3",
+        "panBurner x3",
+        "board x3",
+        "sink",
+        "serve",
+        "plateReturn",
+        "trash",
+        "extinguisher",
+        "plate x4",
+        "5 crates"
+      ],
+      "links": [
+        {
+          "to": "steerable platform",
+          "via": "reach across from the platform"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "steerable-platform",
+      "detail": "the whole kitchen floor is one platform the chefs drive around a pit ringed with stations; you cannot be at two walls at once",
+      "periodSec": null
+    }
+  ],
+  "hazards": [
+    "pit around the platform"
+  ],
+  "features": {
+    "splitKitchen": false,
+    "throwRequired": false,
+    "movingPlatforms": true,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 12,
+    "counterTiles": 38,
+    "stationTiles": 23,
+    "longestWalkTiles": null,
+    "chokepointWidth": 4,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "player-steered platform as the only floor",
+    "joystick station",
+    "rice / chicken / tortilla",
+    "burrito recipe"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "spawns",
+    "dynamics[0].periodSec",
+    "features.chokepointWidth"
+  ]
+}
