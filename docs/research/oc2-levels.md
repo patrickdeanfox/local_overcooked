@@ -23,50 +23,50 @@ Notes on the columns:
 
 | Level | Theme | Recipes (variants) | Time | Plates | Gimmick / dynamic element | Star (2P) 1/2/3/4 | Wiki | Screenshot |
 |---|---|---|---|---|---|---|---|---|
-| 1-1 | Sushi City | Sashimi (2) | 2:30 | no sink | — | 20/160/300/2650 | [page](https://overcooked.fandom.com/wiki/1-1_(Overcooked!_2)) | `1-1.png` |
-| 1-2 | Sushi City | Sushi (1) | 2:30 | no sink | Pedestrians | 60/220/420/2200 | [page](https://overcooked.fandom.com/wiki/1-2_(Overcooked!_2)) | `1-2.png` |
-| 1-3 | Sushi City | Sashimi, Sushi (2) | 3:00 | sink | — | 40/160/320/1250 | [page](https://overcooked.fandom.com/wiki/1-3_(Overcooked!_2)) | `1-3.png` |
-| 1-4 | Sushi City | Sushi (2) | 3:30 | sink | Conveyor belts, narrow corridor | 120/260/400/1100 | [page](https://overcooked.fandom.com/wiki/1-4_(Overcooked!_2)) | `1-4.png` |
-| 1-5 | Buffet Balloons | Pasta (1) | 3:00 | sink | **dynamic** — shifting platforms, moving tables | 80/180/260/900 | [page](https://overcooked.fandom.com/wiki/1-5_(Overcooked!_2)) | `1-5.png` |
-| 1-6 | Buffet Balloons → Sushi City | Salad, Sushi (5) | 4:10 | sink | **dynamic** — balloon crashes into a restaurant at 2:20; floor fire, conveyor belts | 260/320/440/1500 | [page](https://overcooked.fandom.com/wiki/1-6_(Overcooked!_2)) | `1-6.png`, `1-6-shake1.png`, `1-6-shake2.png`, `1-6-sushicity.png` |
-| 2-1 | Ravenous Rapids | Fast Food (2) | 2:20 | no sink | Moving platforms | 160/240/320/820 | [page](https://overcooked.fandom.com/wiki/2-1_(Overcooked!_2)) | `2-1.png` |
-| 2-2 | Buffet Balloons | Pasta (2) | 3:30 | no sink | Moving platforms | 260/360/480/1050 | [page](https://overcooked.fandom.com/wiki/2-2_(Overcooked!_2)) | `2-2.png` |
-| 2-3 | Buffet Balloons | Pasta (2) | 3:30 | sink | Moving platforms | 220/300/400/750 | [page](https://overcooked.fandom.com/wiki/2-3_(Overcooked!_2)) | `2-3.png` |
-| 2-4 | Moreish Mines | Burrito (2) | 4:00 | sink | Bottleneck | 360/480/660/1700 | [page](https://overcooked.fandom.com/wiki/2-4_(Overcooked!_2)) | `2-4.png` |
-| 2-5 | Moreish Mines | Burrito (2) | 3:30 | sink | Moving tables, bottleneck | 240/340/460/1000 | [page](https://overcooked.fandom.com/wiki/2-5_(Overcooked!_2)) | `2-5.png` |
-| 2-6 | Moreish Mines | Burger (2) | 4:00 | sink | Rotating counter (30 s), bottleneck, isolated chefs | 400/540/740/1600 | [page](https://overcooked.fandom.com/wiki/2-6_(Overcooked!_2)) | `2-6.png` |
-| 3-1 | Conjurer's Kitchen | Pizza (1) | 3:30 | sink | **dynamic** — sliding counter (~30 s), isolated chefs | 480/600/820/1500 | [page](https://overcooked.fandom.com/wiki/3-1_(Overcooked!_2)) | `3-1.png` |
-| 3-2 | Conjurer's Kitchen | Burger (3) | 4:00 | no sink | Moving staircases (~35 s), portals | 300/360/500/950 | [page](https://overcooked.fandom.com/wiki/3-2_(Overcooked!_2)) | `3-2.png` |
-| 3-3 | Conjurer's Kitchen | Pizza (2) | 4:00 | sink | Moving ingredient boxes section the kitchen (30–40 s), isolated chefs | 380/480/640/1450 | [page](https://overcooked.fandom.com/wiki/3-3_(Overcooked!_2)) | `3-3.png` |
-| 3-4 | Conjurer's Kitchen | Burger (4) | 4:00 | sink | Portals; an uncrossable rift you can only throw across | 260/320/440/950 | [page](https://overcooked.fandom.com/wiki/3-4_(Overcooked!_2)) | `3-4.png` |
-| 3-5 | Ravenous Rapids | Fast Food (3) | 4:00 | sink | Drifting rafts, only 2 plates | 240/300/420/850 | [page](https://overcooked.fandom.com/wiki/3-5_(Overcooked!_2)) | `3-5.png` |
-| 3-6 | Moreish Mines → Ravenous Rapids | Burrito (2) | 4:10 | no sink | **dynamic** — mine floods into a raft kitchen at 2:20; swinging middle platform | 320/420/560/1600 | [page](https://overcooked.fandom.com/wiki/3-6_(Overcooked!_2)) | `3-6.png` |
-| 4-1 | Sushi City | Sashimi, Sushi (5) | 3:00 | sink | Conveyor-belt ingredient dispensers, cars on a road | 260/340/460/1000 | [page](https://overcooked.fandom.com/wiki/4-1_(Overcooked!_2)) | `4-1.png` |
-| 4-2 | Ravenous Rapids | Salad, Fast Food (5) | 4:00 | sink | Rafts realign; L-shaped belts into bins are the only cross-raft transfer | 240/300/420/1080 | [page](https://overcooked.fandom.com/wiki/4-2_(Overcooked!_2)) | `4-2.png` |
-| 4-3 | Moreish Mines | Burger (3) | 4:00 | sink | S-shaped conveyors reverse every 30 s, bottleneck | 200/240/340/950 | [page](https://overcooked.fandom.com/wiki/4-3_(Overcooked!_2)) | `4-3.png` |
-| 4-4 | Moreish Mines | Fast Food (3) | 3:30 | sink | Wind flips every ~13 s, moving counters, bottleneck | 300/380/520/980 | [page](https://overcooked.fandom.com/wiki/4-4_(Overcooked!_2)) | `4-4.png` |
-| 4-5 | Sushi City | Sashimi, Sushi (4) | 4:00 | sink | Ring conveyor + button-switched belts into bins, isolated chefs, 2 plates | 280/360/480/950 | [page](https://overcooked.fandom.com/wiki/4-5_(Overcooked!_2)) | `4-5.png` |
-| 4-6 | Moreish Mines | Burrito (3) | 3:30 | sink | Walkable conveyor floors, counters swap contents every 30 s, fire | 380/420/580/1050 | [page](https://overcooked.fandom.com/wiki/4-6_(Overcooked!_2)) | `4-6.png` |
-| 5-1 | Sushi City | Burger, Sushi (4) | 4:00 | sink | Player-steered bridge platform, isolated chefs | 280/360/480/1000 | [page](https://overcooked.fandom.com/wiki/5-1_(Overcooked!_2)) | `5-1.png` |
-| 5-2 | Buffet Balloons | Burger (4) | 4:00 | sink | Random floor fires block the ring corridor | 240/300/420/1100 | [page](https://overcooked.fandom.com/wiki/5-2_(Overcooked!_2)) | `5-2.png` |
-| 5-3 | Moreish Mines | Burrito (3) | 4:00 | sink | The whole kitchen is a steerable platform inside a ring of stations | 280/360/480/1050 | [page](https://overcooked.fandom.com/wiki/5-3_(Overcooked!_2)) | `5-3.png` |
-| 5-4 | Conjurer's Kitchen | Pancake (2) | 4:00 | sink | Stairs ↔ portals swap every ~35 s; one portal exit drifts | 260/340/460/1450 | [page](https://overcooked.fandom.com/wiki/5-4_(Overcooked!_2)) | `5-4.png` |
-| 5-5 | Conjurer's Kitchen | Pasta (3) | 3:30 | sink | Each chef steers the *other* chef's bridge platform | 280/360/480/1000 | [page](https://overcooked.fandom.com/wiki/5-5_(Overcooked!_2)) | `5-5.png` |
-| 5-6 | Gourmet Galaxy → Conjurer's Kitchen | Pasta (4) | 5:10 | sink | **dynamic** — 3 phases (at 3:48 and 1:58 remaining); counters slide across during phase 2; a 4th recipe variant only appears in phase 3 | 300/380/520/1540 | [page](https://overcooked.fandom.com/wiki/5-6_(Overcooked!_2)) | `5-6.png` |
-| 6-1 | Buffet Balloons | Cake (3) | 4:00 | sink | Three walled areas linked by conveyors and one corridor; random floor fires | 420/520/700/1250 | [page](https://overcooked.fandom.com/wiki/6-1_(Overcooked!_2)) | `6-1.png` |
-| 6-2 | Gourmet Galaxy | Pancake, Cake (5) | 4:00 | sink | Three islands joined by platforms that surface ~13 s and sink ~5 s in a fixed shape cycle | 180/220/300/650 | [page](https://overcooked.fandom.com/wiki/6-2_(Overcooked!_2)) | `6-2.png` |
-| 6-3 | Gourmet Galaxy | Pancake, Cake (4) | 4:00 | sink | Belts drop ingredients into bins unless a button redirects them; bottleneck | 380/480/640/1200 | [page](https://overcooked.fandom.com/wiki/6-3_(Overcooked!_2)) | `6-3.png` |
-| 6-4 | Buffet Balloons | Burger, Pizza (6) | 4:00 | sink | Two control sticks drive two 2×2 ingredient-box islands around the kitchen | 260/320/440/900 | [page](https://overcooked.fandom.com/wiki/6-4_(Overcooked!_2)) | `6-4.png` |
-| 6-5 | Gourmet Galaxy | Burger (3) | 4:00 | sink | Left/right sections sink alternately every 45 s; a ring conveyor is the only link between halves | 240/300/400/750 | [page](https://overcooked.fandom.com/wiki/6-5_(Overcooked!_2)) | `6-5.png` |
-| 6-6 | Gourmet Galaxy | Salad, Sashimi, Sushi, Fast Food, Pasta, Burger, Burrito, Steamed, Pizza, Pancake, Cake (23) | 15:00 (2+ players) / 25:00 (solo) | sink | **dynamic** — layout changes when the burgers are delivered (progress-driven); button-gated door, moving counters, conveyors, portals | 500/1000/1500/2100 | [page](https://overcooked.fandom.com/wiki/6-6_(Overcooked!_2)) | `6-6.png` |
-| Kevin 1 | Kevin Level | Steamed (2) | 4:00 | sink | Isolated chefs, mirrored halves | 480/600/820/1460 | [page](https://overcooked.fandom.com/wiki/Kevin_1) | `kevin-1.png` |
-| Kevin 2 | Kevin Level | Steamed (4) | 4:00 | sink | Four 3×3 squares rotate around the centre every ~23 s from 3:00 remaining | 380/480/640/1300 | [page](https://overcooked.fandom.com/wiki/Kevin_2) | `kevin-2.png` |
-| Kevin 3 | Kevin Level | Steamed (4) | 4:00 | sink | An elevator is the only link between three height levels | 240/300/400/800 | [page](https://overcooked.fandom.com/wiki/Kevin_3) | `kevin-3.png` |
-| Kevin 4 | Kevin Level | Steamed (4) | 4:00 | sink | Central fireplace shoots floor fire everywhere | 340/420/580/960 | [page](https://overcooked.fandom.com/wiki/Kevin_4) | `kevin-4.png` |
-| Kevin 5 | Kevin Level | Steamed (4) | 4:00 | sink | Two work areas swap sides on gusts of wind; cars drive between them | 260/320/440/1000 | [page](https://overcooked.fandom.com/wiki/Kevin_5) | `kevin-5.png` |
-| Kevin 6 | Kevin Level | Steamed (4) | 4:00 | sink | Conveyors run clockwise around four quadrants; 2 plates | 280/360/480/900 | [page](https://overcooked.fandom.com/wiki/Kevin_6) | `kevin-6.png` |
-| Kevin 7 | Kevin Level | Steamed (4) | 4:30 | sink | Two moving platforms carry the mixers and the steamers; one shared centre counter | 300/360/500/1280 | [page](https://overcooked.fandom.com/wiki/Kevin_7) | `kevin-7.png` |
-| Kevin 8 | Kevin Level | Steamed (4) | 4:00 | sink | A fast conveyor floor fed by 5 dispensers splits the kitchen and ends in three bins | 180/240/320/800 | [page](https://overcooked.fandom.com/wiki/Kevin_8) | `kevin-8.png` |
+| 1-1 | Sushi City | Sashimi (2) | 2:30 | no sink | — | 20/160/300/2650 | [page](https://overcooked.fandom.com/wiki/1-1_(Overcooked!_2)) | `1-1.jpg` |
+| 1-2 | Sushi City | Sushi (1) | 2:30 | no sink | Pedestrians | 60/220/420/2200 | [page](https://overcooked.fandom.com/wiki/1-2_(Overcooked!_2)) | `1-2.jpg` |
+| 1-3 | Sushi City | Sashimi, Sushi (2) | 3:00 | sink | — | 40/160/320/1250 | [page](https://overcooked.fandom.com/wiki/1-3_(Overcooked!_2)) | `1-3.jpg` |
+| 1-4 | Sushi City | Sushi (2) | 3:30 | sink | Conveyor belts, narrow corridor | 120/260/400/1100 | [page](https://overcooked.fandom.com/wiki/1-4_(Overcooked!_2)) | `1-4.jpg` |
+| 1-5 | Buffet Balloons | Pasta (1) | 3:00 | sink | **dynamic** — shifting platforms, moving tables | 80/180/260/900 | [page](https://overcooked.fandom.com/wiki/1-5_(Overcooked!_2)) | `1-5.jpg` |
+| 1-6 | Buffet Balloons → Sushi City | Salad, Sushi (5) | 4:10 | sink | **dynamic** — balloon crashes into a restaurant at 2:20; floor fire, conveyor belts | 260/320/440/1500 | [page](https://overcooked.fandom.com/wiki/1-6_(Overcooked!_2)) | `1-6.jpg`, `1-6-shake1.jpg`, `1-6-shake2.jpg`, `1-6-sushicity.jpg` |
+| 2-1 | Ravenous Rapids | Fast Food (2) | 2:20 | no sink | Moving platforms | 160/240/320/820 | [page](https://overcooked.fandom.com/wiki/2-1_(Overcooked!_2)) | `2-1.jpg` |
+| 2-2 | Buffet Balloons | Pasta (2) | 3:30 | no sink | Moving platforms | 260/360/480/1050 | [page](https://overcooked.fandom.com/wiki/2-2_(Overcooked!_2)) | `2-2.jpg` |
+| 2-3 | Buffet Balloons | Pasta (2) | 3:30 | sink | Moving platforms | 220/300/400/750 | [page](https://overcooked.fandom.com/wiki/2-3_(Overcooked!_2)) | `2-3.jpg` |
+| 2-4 | Moreish Mines | Burrito (2) | 4:00 | sink | Bottleneck | 360/480/660/1700 | [page](https://overcooked.fandom.com/wiki/2-4_(Overcooked!_2)) | `2-4.jpg` |
+| 2-5 | Moreish Mines | Burrito (2) | 3:30 | sink | Moving tables, bottleneck | 240/340/460/1000 | [page](https://overcooked.fandom.com/wiki/2-5_(Overcooked!_2)) | `2-5.jpg` |
+| 2-6 | Moreish Mines | Burger (2) | 4:00 | sink | Rotating counter (30 s), bottleneck, isolated chefs | 400/540/740/1600 | [page](https://overcooked.fandom.com/wiki/2-6_(Overcooked!_2)) | `2-6.jpg` |
+| 3-1 | Conjurer's Kitchen | Pizza (1) | 3:30 | sink | **dynamic** — sliding counter (~30 s), isolated chefs | 480/600/820/1500 | [page](https://overcooked.fandom.com/wiki/3-1_(Overcooked!_2)) | `3-1.jpg` |
+| 3-2 | Conjurer's Kitchen | Burger (3) | 4:00 | no sink | Moving staircases (~35 s), portals | 300/360/500/950 | [page](https://overcooked.fandom.com/wiki/3-2_(Overcooked!_2)) | `3-2.jpg` |
+| 3-3 | Conjurer's Kitchen | Pizza (2) | 4:00 | sink | Moving ingredient boxes section the kitchen (30–40 s), isolated chefs | 380/480/640/1450 | [page](https://overcooked.fandom.com/wiki/3-3_(Overcooked!_2)) | `3-3.jpg` |
+| 3-4 | Conjurer's Kitchen | Burger (4) | 4:00 | sink | Portals; an uncrossable rift you can only throw across | 260/320/440/950 | [page](https://overcooked.fandom.com/wiki/3-4_(Overcooked!_2)) | `3-4.jpg` |
+| 3-5 | Ravenous Rapids | Fast Food (3) | 4:00 | sink | Drifting rafts, only 2 plates | 240/300/420/850 | [page](https://overcooked.fandom.com/wiki/3-5_(Overcooked!_2)) | `3-5.jpg` |
+| 3-6 | Moreish Mines → Ravenous Rapids | Burrito (2) | 4:10 | no sink | **dynamic** — mine floods into a raft kitchen at 2:20; swinging middle platform | 320/420/560/1600 | [page](https://overcooked.fandom.com/wiki/3-6_(Overcooked!_2)) | `3-6.jpg` |
+| 4-1 | Sushi City | Sashimi, Sushi (5) | 3:00 | sink | Conveyor-belt ingredient dispensers, cars on a road | 260/340/460/1000 | [page](https://overcooked.fandom.com/wiki/4-1_(Overcooked!_2)) | `4-1.jpg` |
+| 4-2 | Ravenous Rapids | Salad, Fast Food (5) | 4:00 | sink | Rafts realign; L-shaped belts into bins are the only cross-raft transfer | 240/300/420/1080 | [page](https://overcooked.fandom.com/wiki/4-2_(Overcooked!_2)) | `4-2.jpg` |
+| 4-3 | Moreish Mines | Burger (3) | 4:00 | sink | S-shaped conveyors reverse every 30 s, bottleneck | 200/240/340/950 | [page](https://overcooked.fandom.com/wiki/4-3_(Overcooked!_2)) | `4-3.jpg` |
+| 4-4 | Moreish Mines | Fast Food (3) | 3:30 | sink | Wind flips every ~13 s, moving counters, bottleneck | 300/380/520/980 | [page](https://overcooked.fandom.com/wiki/4-4_(Overcooked!_2)) | `4-4.jpg` |
+| 4-5 | Sushi City | Sashimi, Sushi (4) | 4:00 | sink | Ring conveyor + button-switched belts into bins, isolated chefs, 2 plates | 280/360/480/950 | [page](https://overcooked.fandom.com/wiki/4-5_(Overcooked!_2)) | `4-5.jpg` |
+| 4-6 | Moreish Mines | Burrito (3) | 3:30 | sink | Walkable conveyor floors, counters swap contents every 30 s, fire | 380/420/580/1050 | [page](https://overcooked.fandom.com/wiki/4-6_(Overcooked!_2)) | `4-6.jpg` |
+| 5-1 | Sushi City | Burger, Sushi (4) | 4:00 | sink | Player-steered bridge platform, isolated chefs | 280/360/480/1000 | [page](https://overcooked.fandom.com/wiki/5-1_(Overcooked!_2)) | `5-1.jpg` |
+| 5-2 | Buffet Balloons | Burger (4) | 4:00 | sink | Random floor fires block the ring corridor | 240/300/420/1100 | [page](https://overcooked.fandom.com/wiki/5-2_(Overcooked!_2)) | `5-2.jpg` |
+| 5-3 | Moreish Mines | Burrito (3) | 4:00 | sink | The whole kitchen is a steerable platform inside a ring of stations | 280/360/480/1050 | [page](https://overcooked.fandom.com/wiki/5-3_(Overcooked!_2)) | `5-3.jpg` |
+| 5-4 | Conjurer's Kitchen | Pancake (2) | 4:00 | sink | Stairs ↔ portals swap every ~35 s; one portal exit drifts | 260/340/460/1450 | [page](https://overcooked.fandom.com/wiki/5-4_(Overcooked!_2)) | `5-4.jpg` |
+| 5-5 | Conjurer's Kitchen | Pasta (3) | 3:30 | sink | Each chef steers the *other* chef's bridge platform | 280/360/480/1000 | [page](https://overcooked.fandom.com/wiki/5-5_(Overcooked!_2)) | `5-5.jpg` |
+| 5-6 | Gourmet Galaxy → Conjurer's Kitchen | Pasta (4) | 5:10 | sink | **dynamic** — 3 phases (at 3:48 and 1:58 remaining); counters slide across during phase 2; a 4th recipe variant only appears in phase 3 | 300/380/520/1540 | [page](https://overcooked.fandom.com/wiki/5-6_(Overcooked!_2)) | `5-6.jpg` |
+| 6-1 | Buffet Balloons | Cake (3) | 4:00 | sink | Three walled areas linked by conveyors and one corridor; random floor fires | 420/520/700/1250 | [page](https://overcooked.fandom.com/wiki/6-1_(Overcooked!_2)) | `6-1.jpg` |
+| 6-2 | Gourmet Galaxy | Pancake, Cake (5) | 4:00 | sink | Three islands joined by platforms that surface ~13 s and sink ~5 s in a fixed shape cycle | 180/220/300/650 | [page](https://overcooked.fandom.com/wiki/6-2_(Overcooked!_2)) | `6-2.jpg` |
+| 6-3 | Gourmet Galaxy | Pancake, Cake (4) | 4:00 | sink | Belts drop ingredients into bins unless a button redirects them; bottleneck | 380/480/640/1200 | [page](https://overcooked.fandom.com/wiki/6-3_(Overcooked!_2)) | `6-3.jpg` |
+| 6-4 | Buffet Balloons | Burger, Pizza (6) | 4:00 | sink | Two control sticks drive two 2×2 ingredient-box islands around the kitchen | 260/320/440/900 | [page](https://overcooked.fandom.com/wiki/6-4_(Overcooked!_2)) | `6-4.jpg` |
+| 6-5 | Gourmet Galaxy | Burger (3) | 4:00 | sink | Left/right sections sink alternately every 45 s; a ring conveyor is the only link between halves | 240/300/400/750 | [page](https://overcooked.fandom.com/wiki/6-5_(Overcooked!_2)) | `6-5.jpg` |
+| 6-6 | Gourmet Galaxy | Salad, Sashimi, Sushi, Fast Food, Pasta, Burger, Burrito, Steamed, Pizza, Pancake, Cake (23) | 15:00 (2+ players) / 25:00 (solo) | sink | **dynamic** — layout changes when the burgers are delivered (progress-driven); button-gated door, moving counters, conveyors, portals | 500/1000/1500/2100 | [page](https://overcooked.fandom.com/wiki/6-6_(Overcooked!_2)) | `6-6.jpg` |
+| Kevin 1 | Kevin Level | Steamed (2) | 4:00 | sink | Isolated chefs, mirrored halves | 480/600/820/1460 | [page](https://overcooked.fandom.com/wiki/Kevin_1) | `kevin-1.jpg` |
+| Kevin 2 | Kevin Level | Steamed (4) | 4:00 | sink | Four 3×3 squares rotate around the centre every ~23 s from 3:00 remaining | 380/480/640/1300 | [page](https://overcooked.fandom.com/wiki/Kevin_2) | `kevin-2.jpg` |
+| Kevin 3 | Kevin Level | Steamed (4) | 4:00 | sink | An elevator is the only link between three height levels | 240/300/400/800 | [page](https://overcooked.fandom.com/wiki/Kevin_3) | `kevin-3.jpg` |
+| Kevin 4 | Kevin Level | Steamed (4) | 4:00 | sink | Central fireplace shoots floor fire everywhere | 340/420/580/960 | [page](https://overcooked.fandom.com/wiki/Kevin_4) | `kevin-4.jpg` |
+| Kevin 5 | Kevin Level | Steamed (4) | 4:00 | sink | Two work areas swap sides on gusts of wind; cars drive between them | 260/320/440/1000 | [page](https://overcooked.fandom.com/wiki/Kevin_5) | `kevin-5.jpg` |
+| Kevin 6 | Kevin Level | Steamed (4) | 4:00 | sink | Conveyors run clockwise around four quadrants; 2 plates | 280/360/480/900 | [page](https://overcooked.fandom.com/wiki/Kevin_6) | `kevin-6.jpg` |
+| Kevin 7 | Kevin Level | Steamed (4) | 4:30 | sink | Two moving platforms carry the mixers and the steamers; one shared centre counter | 300/360/500/1280 | [page](https://overcooked.fandom.com/wiki/Kevin_7) | `kevin-7.jpg` |
+| Kevin 8 | Kevin Level | Steamed (4) | 4:00 | sink | A fast conveyor floor fed by 5 dispensers splits the kitchen and ends in three bins | 180/240/320/800 | [page](https://overcooked.fandom.com/wiki/Kevin_8) | `kevin-8.jpg` |
 
 **Tutorial (0-0)** — Salad, 1:30, no sink, no obstacles. Two chopping boards top-left and top-right;
 bin middle-left; lettuce/tomato/cucumber boxes and the plate return along the bottom. Star (2P)
@@ -374,10 +374,11 @@ Hangry Horde and Carnival of Chaos ([Levels](https://overcooked.fandom.com/wiki/
 
 ## 5. Screenshots
 
-`screens/oc2/` holds one PNG per level, named after the level (`4-3.png`, `kevin-7.png`). They are the
+`screens/oc2/` holds one JPEG per level, named after the level (`4-3.jpg`, `kevin-7.jpg`). They are the
 wiki's level-select "polaroid" shots — small (roughly 384×280) but they show the whole kitchen in one
-frame, which is what you need for transcribing a grid. 1-6 additionally has `1-6-shake1.png`,
-`1-6-shake2.png` and `1-6-sushicity.png` (1280 px wide) showing its dynamic phases.
+frame, which is what you need for transcribing a grid. 1-6 additionally has `1-6-shake1.jpg`,
+`1-6-shake2.jpg` and `1-6-sushicity.jpg` (1280 px wide) showing its dynamic phases.
 
-Everything came back as WebP despite the `.jpg` names and was converted with Pillow, as `CLAUDE.md`
-describes.
+Everything came back from the wiki as WebP despite the `.jpg` names on the file pages, and was
+converted with Pillow as `CLAUDE.md` describes, then re-encoded to JPEG at quality 88 to keep the
+repository light — 47 images, 1.7 MB total, all at full resolution.
