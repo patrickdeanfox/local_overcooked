@@ -1,0 +1,77 @@
+# -- Stars earned on Relaxed must not open the next level -----------------------------------
+#
+# progress.ts counts a level's stars toward unlocks only for presets ranked 'normal' or
+# harder. So a three-star run of 1-1 on Relaxed has to show three stars in the header, zero
+# counting toward unlocks, and 1-2 still shut.
+until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
+wait 600
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval JSON.stringify(['settings', __ui.settings(), 'header', __ui.stars()])
+
+# -- Difficulty row: left one step, Normal -> Relaxed ------------------------------------------
+tap ArrowDown
+wait 200
+tap ArrowDown
+wait 200
+tap ArrowDown
+wait 200
+tap ArrowDown
+wait 200
+tap ArrowDown
+wait 200
+tap ArrowDown
+wait 200
+tap ArrowDown
+wait 200
+eval JSON.stringify(['cursor on', __ui.index(), __ui.options()[1]])
+tap ArrowLeft
+wait 300
+eval JSON.stringify(['preset', __ui.settings().preset, __ui.options()[1]])
+shot 17-00-relaxed.png
+
+# -- 1-1 on Relaxed, forced to three stars -------------------------------------------------------
+tap ArrowUp
+wait 200
+tap ArrowUp
+wait 200
+tap ArrowUp
+wait 200
+tap ArrowUp
+wait 200
+tap ArrowUp
+wait 200
+tap ArrowUp
+wait 200
+tap ArrowUp
+wait 200
+tap Enter
+wait 1500
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.sim
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval JSON.stringify(['level', __oc.level.id, 'timeLeft', Math.round(__oc.sim.getState().timeLeft), 'level json timeLimit', __oc.level.timeLimitSec])
+eval JSON.stringify(['effective', __oc.sim.getEffectiveSettings()])
+eval JSON.stringify(Object.assign(__oc.sim.getState(), {score: 60, stars: 3, phase: 'running', timerRunning: true, timeLeft: 0.3}).score)
+wait 3800
+eval JSON.stringify(['scenes', __ui.scenes()])
+eval JSON.stringify(['results text', __ui.texts('Results')])
+eval JSON.stringify(['results menu', __ui.menu('Results')])
+eval JSON.stringify(['progress', JSON.parse(localStorage.getItem('local-overcooked.progress.v1'))])
+shot 17-01-results-relaxed.png
+
+# -- Back to title: three stars shown, none of them counting toward unlocks ------------------------
+tap ArrowDown
+wait 300
+tap ArrowDown
+wait 300
+tap Enter
+wait 1500
+eval JSON.stringify(['scenes', __ui.scenes()])
+eval JSON.stringify(['header', __ui.stars()])
+eval JSON.stringify(__ui.levels())
+eval JSON.stringify(['row 1 status', __ui.status()])
+shot 17-02-title-relaxed-stars.png
+tap ArrowDown
+wait 300
+eval JSON.stringify(['row 1 status', __ui.status()])
+logs
+errors

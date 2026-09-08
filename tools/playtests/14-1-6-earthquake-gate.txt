@@ -1,0 +1,256 @@
+# -- 1-6: the earthquake seam. Gate cycle, crossings, being shoved off the seam, and a burger --
+#
+# The seam is the gate column at x=6, rows 1-6, group '1': open 4 s, shut 6 s, phase 0 so it
+# starts open. Low side (left, x1-5) has the crates, boards, sink, bin and one pan at (5,7).
+# High side (right, x7-11) has the three plates at (7,0)/(9,0)/(11,0), the pans at (8,0),
+# (10,0) and (9,7), the bun crate at (11,7), the hatch at (12,3)/(12,4) and the plate return.
+#
+# Seed 1 opens with a lettuce_burger and a meat_burger ticket, 100 s each, so both serves have
+# to land inside the first 100 s. The lettuce burger is fried in the LOW-side pan at (5,7) and
+# the meat burger in the HIGH-side pan at (8,0).
+#
+# Menu: Seed -> fixed (seed stays 1), Free play on, then 1-6.
+# Wait for the title scene to be the live one before typing at it: on a loaded machine the
+# boot can take longer than a fixed wait and every menu tap is then thrown away.
+until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
+wait 600
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowRight
+wait 250
+tap ArrowRight
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowRight
+wait 250
+tap ArrowUp
+wait 250
+tap ArrowUp
+wait 250
+tap ArrowUp
+wait 250
+tap ArrowUp
+wait 250
+tap ArrowUp
+wait 250
+tap Enter
+wait 1200
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.sim
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval (0, eval)(await (await fetch('/tools/playtests/monitor.txt')).text())
+eval JSON.stringify([__oc.level.id, __oc.sim.getState().seed, __qa.orders(), __qa.gates()])
+shot 14-00-kitchen.png
+
+# -- P1 low side: beef from (0,1), chopped at (2,7), left on the board -------------------
+holduntil KeyA 4000 __qa.cx(0) <= 1.55
+holduntil KeyW 3000 __qa.cy(0) <= 1.55
+hold KeyA 150
+tap Space
+eval JSON.stringify(__qa.held(0))
+holduntil KeyS 5000 __qa.cy(0) >= 6.45
+holduntil KeyD 3000 __qa.cx(0) >= 2.45
+hold KeyS 150
+tap Space
+hold ShiftLeft 3400
+eval JSON.stringify(__qa.tile(2,7))
+
+# -- P1 low side: lettuce from (0,3), chopped at (4,7), left on the board -----------------
+holduntil KeyA 4000 __qa.cx(0) <= 1.55
+holduntil KeyW 4000 __qa.cy(0) <= 3.55
+hold KeyA 150
+tap Space
+eval JSON.stringify(__qa.held(0))
+holduntil KeyS 5000 __qa.cy(0) >= 6.45
+holduntil KeyD 3000 __qa.cx(0) >= 4.45
+hold KeyS 150
+tap Space
+hold ShiftLeft 3400
+eval JSON.stringify(__qa.tile(4,7))
+
+# -- P2 high side: a bun from (11,7) onto the plate at (11,0), then plate in hand ---------
+holduntil ArrowRight 4000 __qa.cx(1) >= 11.45
+holduntil ArrowDown 5000 __qa.cy(1) >= 6.45
+hold ArrowDown 150
+tap Enter
+eval JSON.stringify(__qa.held(1))
+holduntil ArrowUp 5000 __qa.cy(1) <= 1.55
+hold ArrowUp 150
+tap Enter
+wait 300
+eval JSON.stringify(__qa.tile(11,0))
+tap Enter
+eval JSON.stringify(__qa.held(1))
+
+# -- The gate cycle so far: open 4 s, shut 6 s -------------------------------------------
+eval JSON.stringify(['open events', __qa.times('gateOpen'), 'close events', __qa.times('gateClose')])
+eval JSON.stringify(__qa.gates())
+shot 14-01-gate.png
+
+# -- P2 crosses the seam westward while it is open ---------------------------------------
+holduntil ArrowDown 4000 __qa.cy(1) >= 3.45
+holduntil ArrowLeft 5000 __qa.cx(1) <= 7.55
+eval JSON.stringify(['P2 waiting on the high side', +__qa.cx(1).toFixed(2), __qa.gates()])
+until 15000 __oc.sim.getState().gates[0].open && __oc.sim.getState().gates[0].secondsToChange > 2.5
+holduntil ArrowLeft 3000 __qa.cx(1) <= 4.55
+eval JSON.stringify(['P2 crossed to the low side', +__qa.cx(1).toFixed(2), +__qa.cy(1).toFixed(2), __qa.gates()])
+shot 14-02-crossed.png
+
+# -- P1 puts the patty in the low-side pan at (5,7) now that the plate is here ------------
+holduntil KeyA 3000 __qa.cx(0) <= 2.55
+hold KeyS 150
+tap Space
+eval JSON.stringify(__qa.held(0))
+holduntil KeyD 4000 __qa.cx(0) >= 5.45
+hold KeyS 150
+tap Space
+eval JSON.stringify(__qa.tile(5,7))
+eval JSON.stringify(__qa.mark('lowPanStart'))
+
+# -- P1 goes back for the second patty while the first fries ------------------------------
+holduntil KeyA 5000 __qa.cx(0) <= 1.55
+holduntil KeyW 5000 __qa.cy(0) <= 1.55
+hold KeyA 150
+tap Space
+holduntil KeyS 5000 __qa.cy(0) >= 6.45
+holduntil KeyD 3000 __qa.cx(0) >= 2.45
+hold KeyS 150
+tap Space
+hold ShiftLeft 3400
+tap Space
+eval JSON.stringify(__qa.held(0))
+
+# -- P2 takes the patty and the lettuce onto the plate ------------------------------------
+holduntil ArrowDown 4000 __qa.cy(1) >= 6.45
+holduntil ArrowRight 3000 __qa.cx(1) >= 5.45
+hold ArrowDown 150
+until 14000 __oc.sim.itemAt(5,7).state === 'cooked'
+tap Enter
+eval JSON.stringify([__qa.held(1), __qa.tile(5,7).item])
+holduntil ArrowLeft 3000 __qa.cx(1) <= 4.55
+hold ArrowDown 150
+tap Enter
+eval JSON.stringify(__qa.held(1))
+shot 14-03-lettuce-burger.png
+
+# -- P2 crosses back east and serves at (12,3) ---------------------------------------------
+holduntil ArrowUp 5000 __qa.cy(1) <= 3.55
+until 15000 __oc.sim.getState().gates[0].open && __oc.sim.getState().gates[0].secondsToChange > 2.5
+holduntil ArrowRight 3000 __qa.cx(1) >= 7.45
+eval JSON.stringify(['P2 back on the high side', +__qa.cx(1).toFixed(2), __qa.gates()])
+holduntil ArrowRight 4000 __qa.cx(1) >= 11.45
+hold ArrowRight 150
+tap Enter
+wait 300
+eval JSON.stringify(__qa.score())
+eval JSON.stringify(__qa.of('serve'))
+shot 14-04-served-lettuce-burger.png
+
+# -- P1 carries the second patty across the seam into the high-side pan at (8,0) ------------
+holduntil KeyD 4000 __qa.cx(0) >= 5.45
+holduntil KeyW 5000 __qa.cy(0) <= 3.55
+until 15000 __oc.sim.getState().gates[0].open && __oc.sim.getState().gates[0].secondsToChange > 2.5
+holduntil KeyD 3000 __qa.cx(0) >= 7.45
+eval JSON.stringify(['P1 crossed to the high side', +__qa.cx(0).toFixed(2), __qa.gates()])
+holduntil KeyW 4000 __qa.cy(0) <= 1.55
+holduntil KeyD 3000 __qa.cx(0) >= 8.45
+hold KeyW 150
+tap Space
+eval JSON.stringify(__qa.tile(8,0))
+eval JSON.stringify(__qa.mark('highPanStart'))
+
+# -- P2 puts a bun on the plate at (9,0) and collects the patty ------------------------------
+holduntil ArrowDown 5000 __qa.cy(1) >= 6.45
+hold ArrowDown 150
+tap Enter
+eval JSON.stringify(__qa.held(1))
+holduntil ArrowUp 5000 __qa.cy(1) <= 1.55
+holduntil ArrowLeft 4000 __qa.cx(1) <= 9.55
+hold ArrowUp 150
+tap Enter
+wait 300
+eval JSON.stringify(__qa.tile(9,0))
+tap Enter
+eval JSON.stringify(__qa.held(1))
+holduntil ArrowLeft 3000 __qa.cx(1) <= 8.55
+hold ArrowUp 150
+until 14000 __oc.sim.itemAt(8,0).state === 'cooked'
+tap Enter
+eval JSON.stringify(__qa.held(1))
+holduntil ArrowDown 4000 __qa.cy(1) >= 3.45
+holduntil ArrowRight 4000 __qa.cx(1) >= 11.45
+hold ArrowRight 150
+tap Enter
+wait 300
+eval JSON.stringify(__qa.score())
+eval JSON.stringify(__qa.of('serve'))
+shot 14-05-served-meat-burger.png
+
+# -- P1 steps onto the seam just before it shuts and is shoved off ----------------------------
+holduntil KeyA 5000 __qa.cx(0) <= 7.55
+holduntil KeyS 4000 __qa.cy(0) >= 3.45
+holduntil KeyW 1500 __qa.cy(0) <= 3.55
+until 15000 __oc.sim.getState().gates[0].open && __oc.sim.getState().gates[0].secondsToChange < 1.2
+holduntil KeyA 600 __qa.cx(0) <= 6.45
+eval JSON.stringify(['P1 on the seam', +__qa.cx(0).toFixed(3), +__qa.cy(0).toFixed(3), __qa.gates()])
+until 6000 __oc.sim.getState().gates[0].open === false
+wait 250
+eval JSON.stringify(['after the seam shut', +__qa.cx(0).toFixed(3), +__qa.cy(0).toFixed(3), __qa.gates()])
+eval JSON.stringify(['chef box', +(__qa.cx(0) - 0.3).toFixed(3), +(__qa.cx(0) + 0.3).toFixed(3), 'seam column is x 6 to 7'])
+eval JSON.stringify(['tile under the chef', __oc.sim.tileAt(Math.floor(__qa.cx(0) - 0.3), Math.floor(__qa.cy(0))), __oc.sim.tileAt(Math.floor(__qa.cx(0) + 0.3), Math.floor(__qa.cy(0)))])
+eval JSON.stringify(['monitor worst tile overlap', __mon.tileOverlap, __mon.tileWorst])
+shot 14-06-shoved-off-the-seam.png
+
+# -- With the seam shut, both sides still reach their own counters ------------------------------
+# Both chefs take up station next to a counter on their own side first, because the shut
+# window is only 6 s. P1 carries a tomato to put down, P2 takes the plate off (7,0).
+eval JSON.stringify(['gate', __qa.gates(), 'P1 x', +__qa.cx(0).toFixed(2), 'P2 x', +__qa.cx(1).toFixed(2)])
+holduntil KeyA 6000 __qa.cx(0) <= 1.55
+holduntil KeyW 5000 __qa.cy(0) <= 2.55
+hold KeyA 150
+tap Space
+eval JSON.stringify(['P1 took a tomato from the low-side crate', __qa.held(0)])
+holduntil KeyW 3000 __qa.cy(0) <= 1.55
+holduntil KeyD 4000 __qa.cx(0) >= 5.45
+hold KeyW 150
+holduntil ArrowUp 5000 __qa.cy(1) <= 1.55
+holduntil ArrowLeft 5000 __qa.cx(1) <= 7.55
+hold ArrowUp 150
+eval JSON.stringify(['in position', __qa.chef(0).target, __qa.chef(1).target])
+until 15000 __oc.sim.getState().gates[0].open === false
+eval JSON.stringify(['seam shut', __qa.gates()])
+tap Space
+tap Enter
+eval JSON.stringify(['low side placed on (5,0)', __qa.tile(5,0).item, 'high side took (7,0)', __qa.held(1), 'gate', __qa.gates()])
+shot 14-07-both-sides-while-shut.png
+# and neither chef can step or reach through the shut seam
+hold KeyD 400
+eval JSON.stringify(['P1 stopped at the seam', +__qa.cx(0).toFixed(3), 'target', __qa.chef(0).target, 'gate', __qa.gates()])
+tap Space
+eval JSON.stringify(['nothing came through the seam', __qa.held(0)])
+
+# -- Totals -------------------------------------------------------------------------------------
+eval JSON.stringify(__qa.marks)
+eval JSON.stringify(__qa.score())
+eval JSON.stringify(['gate opens', __qa.times('gateOpen'), 'gate closes', __qa.times('gateClose')])
+eval JSON.stringify(__qa.of('serveRejected'))
+eval JSON.stringify(__qa.of('burnt'))
+eval JSON.stringify(['invariants', JSON.parse(JSON.stringify(__mon))])
+logs
+errors

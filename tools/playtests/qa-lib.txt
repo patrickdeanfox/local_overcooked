@@ -1,0 +1,162 @@
+// QA helper library for the playtest harness. Fetched and eval'd by the world-1 scripts:
+//   eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+//
+// The harness splits a script line on ';' as well as newlines, so an `eval` line can never
+// contain a semicolon. Anything that needs statements lives here instead.
+//
+// Installs window.__qa:
+//   __qa.log            every SimEvent since install, each stamped with sim elapsed seconds
+//   __qa.of(type)       events of one type
+//   __qa.count(type)    how many of one type
+//   __qa.times(type)    just the elapsed stamps
+//   __qa.last(type)     the most recent event of a type, or null
+//   __qa.clear()        empties the log
+//   __qa.mark(name)     records a named stamp, for measuring phases of a run
+//   __qa.marks          the named stamps
+//   __qa.cx(i)          chef x, for holduntil conditions
+//   __qa.cy(i)          chef y
+//   __qa.held(i)        what chef i is holding
+//   __qa.chef(i)        rounded chef pose, for compact eval output
+//   __qa.tile(x,y)      tile type + item at a tile
+//   __qa.orders()       the live tickets as 'recipe:secondsLeft'
+//   __qa.score()        score, served, missed, streak, stars, timeLeft, elapsed
+//   __qa.sim(seed, players, mods)      a detached Sim on the current level
+//   __qa.schedule(seed, secs, players) [[elapsed, recipeId], ...] of every ticket that arrives
+//   __qa.findSeed(pred, limit)         first seeds whose initial ticket list satisfies pred
+//
+// Also installs window.__ui, which works on every scene (the title and the results screen
+// included) and does not need __oc:
+//   __ui.game()         the Phaser.Game, found through a Text object in the canvas pool
+//   __ui.scenes()       the keys of the scenes that are running
+//   __ui.scene(key)     one scene instance
+//   __ui.levels()       the level-select rows: name, locked, stars, best, unlockStars
+//   __ui.status()       the title's status line
+//   __ui.options()      the title's settings rows, as rendered
+//   __ui.stars()        the title header: total stars and how many count toward unlocks
+//   __ui.menu(key)      the MenuList rows of a scene, as rendered
+//   __ui.texts(key)     every top-level Text object of a scene, as rendered
+//   __ui.settings()     the settings the title screen is holding
+//   __ui.progress()     the progress the title screen is holding
+//
+// The event log works by shadowing step() on the live Sim instance, so it has to be
+// re-installed after every scene change (retry, next level, back to the title and in again).
+// Call __qaInstall() again, or just eval the fetch line again.
+(() => {
+  const findGame = () => Phaser.Display.Canvas.CanvasPool.pool
+    .map((e) => e.parent)
+    .map((p) => (p && p.scene && p.scene.sys ? p.scene.sys.game : null))
+    .find(Boolean) || null;
+  const sceneOf = (key) => {
+    const game = findGame();
+    return game ? game.scene.getScene(key) : null;
+  };
+  window.__ui = {
+    game: findGame,
+    scene: sceneOf,
+    scenes: () => {
+      const game = findGame();
+      return game ? game.scene.getScenes(true).map((s) => s.scene.key) : [];
+    },
+    levels: () => {
+      const t = sceneOf('Title');
+      if (!t || !t.levelList) return [];
+      const out = [];
+      for (let i = 0; i < t.levelList.length; i++) {
+        const e = t.levelList.entryAt(i);
+        out.push({ name: e.name, locked: e.locked, stars: e.stars, best: e.bestScore, needs: e.unlockStars });
+      }
+      return out;
+    },
+    status: () => { const t = sceneOf('Title'); return t && t.statusText ? t.statusText.text : null; },
+    options: () => {
+      const t = sceneOf('Title');
+      return t && t.menu ? t.menu.rows.map((r) => r.text) : [];
+    },
+    stars: () => {
+      const t = sceneOf('Title');
+      return t ? t.headerObjects.filter((o) => o.text !== undefined).map((o) => o.text) : [];
+    },
+    menu: (key) => {
+      const s = sceneOf(key);
+      return s && s.menu ? s.menu.rows.map((r) => r.text) : [];
+    },
+    texts: (key) => {
+      const s = sceneOf(key);
+      return s && s.children ? s.children.list.filter((o) => typeof o.text === 'string').map((o) => o.text) : [];
+    },
+    settings: () => { const t = sceneOf('Title'); return t ? t.settings : null; },
+    progress: () => { const t = sceneOf('Title'); return t ? t.progress : null; },
+    index: () => { const t = sceneOf('Title'); return t ? t.index : null; },
+  };
+  const install = () => {
+    const sim = window.__oc && window.__oc.sim;
+    if (!sim) return 'no __oc yet';
+    if (window.__qa && window.__qa.simRef === sim) return 'already installed';
+    const inner = Object.getPrototypeOf(sim).step.bind(sim);
+    const log = [];
+    const marks = {};
+    sim.step = (inputs, dt) => {
+      const events = inner(inputs, dt);
+      const t = +sim.getState().elapsed.toFixed(2);
+      for (const e of events) log.push(Object.assign({ t }, e));
+      return events;
+    };
+    const round = (v) => +v.toFixed(2);
+    window.__qa = {
+      simRef: sim,
+      log,
+      of: (type) => log.filter((e) => e.type === type),
+      count: (type) => log.filter((e) => e.type === type).length,
+      times: (type) => log.filter((e) => e.type === type).map((e) => e.t),
+      last: (type) => log.filter((e) => e.type === type).pop() || null,
+      clear: () => { log.length = 0; return 'cleared'; },
+      marks,
+      mark: (name) => { marks[name] = round(sim.getState().elapsed); return marks; },
+      cx: (i) => sim.getState().chefs[i].x,
+      cy: (i) => sim.getState().chefs[i].y,
+      held: (i) => sim.getState().chefs[i].holding,
+      chef: (i) => {
+        const c = sim.getState().chefs[i];
+        return { x: round(c.x), y: round(c.y), facing: c.facing, holding: c.holding, target: sim.getTargetTile(i) };
+      },
+      tile: (x, y) => ({ tile: sim.tileAt(x, y), item: sim.itemAt(x, y) }),
+      orders: () => sim.getState().orders.map((o) => `${o.recipeId}:${Math.round(o.timeLeft)}`),
+      score: () => {
+        const s = sim.getState();
+        return {
+          score: s.score, served: s.servedCount, missed: s.failedCount, streak: s.tipStreak,
+          stars: s.stars, timeLeft: round(s.timeLeft), elapsed: round(s.elapsed),
+        };
+      },
+      gates: () => (sim.getState().gates || []).map((g) => `${g.id}:${g.open ? 'open' : 'shut'}:${round(g.secondsToChange)}`),
+      sim: (seed, players, mods) => new (Object.getPrototypeOf(sim).constructor)(
+        window.__oc.level, { players: players || 2, seed, modifiers: mods },
+      ),
+      schedule: (seed, secs, players) => {
+        const s = window.__qa.sim(seed, players);
+        const out = s.getState().orders.map((o) => [0, o.recipeId]);
+        const steps = Math.round((secs || 240) * 60);
+        for (let i = 0; i < steps; i++) {
+          for (const e of s.step([], 1 / 60)) {
+            if (e.type !== 'orderNew') continue;
+            const st = s.getState();
+            out.push([round(st.elapsed), st.orders[st.orders.length - 1].recipeId]);
+          }
+        }
+        return out;
+      },
+      findSeed: (pred, limit, from) => {
+        const found = [];
+        const start = from || 0;
+        for (let seed = start; seed < start + 4000 && found.length < (limit || 5); seed++) {
+          const s = window.__qa.sim(seed);
+          if (pred(s.getState().orders.map((o) => o.recipeId))) found.push(seed);
+        }
+        return found;
+      },
+    };
+    return 'installed';
+  };
+  window.__qaInstall = install;
+  return install();
+})()

@@ -1,0 +1,109 @@
+# -- Level select: locks on a fresh profile, stars, unlocks, Retry's seed, Next level ------
+#
+# A fresh browser profile has no saved progress, so only 1-1 is open. 1-1 is finished with a
+# forced score of 60, which is three stars for two players ([10, 40, 60]), and the title then
+# has to show three stars, 1-2 open (needs 2) and 1-3 still shut (needs 4).
+#
+# The level is ended by writing the sim state: 1-1's clock only starts on the first serve, so
+# phase and timerRunning have to be forced along with timeLeft.
+until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
+wait 600
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval JSON.stringify(__ui.scenes())
+eval JSON.stringify(__ui.levels())
+eval JSON.stringify(['header', __ui.stars(), 'settings', __ui.settings()])
+shot 15-00-fresh-title.png
+
+# -- Every locked row says what it needs ----------------------------------------------------
+eval JSON.stringify(['row 0', __ui.status()])
+tap ArrowDown
+wait 250
+eval JSON.stringify(['row 1', __ui.status()])
+tap ArrowDown
+wait 250
+eval JSON.stringify(['row 2', __ui.status()])
+tap ArrowDown
+wait 250
+eval JSON.stringify(['row 3', __ui.status()])
+tap ArrowDown
+wait 250
+eval JSON.stringify(['row 4', __ui.status()])
+tap ArrowDown
+wait 250
+eval JSON.stringify(['row 5', __ui.status()])
+# selecting a locked row refuses and says so, and the title stays up
+tap Enter
+wait 400
+eval JSON.stringify(['after Enter on a locked row', __ui.scenes(), __ui.status()])
+shot 15-01-locked-row.png
+
+# -- 1-1 is open: play it and force three stars ----------------------------------------------
+tap ArrowUp
+wait 250
+tap ArrowUp
+wait 250
+tap ArrowUp
+wait 250
+tap ArrowUp
+wait 250
+tap ArrowUp
+wait 250
+eval JSON.stringify(['row 0 again', __ui.status()])
+tap Enter
+wait 1500
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.sim
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval JSON.stringify([__oc.level.id, __oc.sim.getState().phase, __oc.sim.getState().chefs.length])
+eval window.__seed1 = __oc.sim.getState().seed
+eval JSON.stringify(Object.assign(__oc.sim.getState(), {score: 60, stars: 3, phase: 'running', timerRunning: true, timeLeft: 0.3}).score)
+wait 1200
+shot 15-02-times-up.png
+wait 2600
+eval JSON.stringify(['scenes', __ui.scenes()])
+eval JSON.stringify(['results menu', __ui.menu('Results')])
+eval JSON.stringify(['saved progress', JSON.parse(localStorage.getItem('local-overcooked.progress.v1'))])
+shot 15-03-results.png
+
+# -- Retry runs the same seed again -------------------------------------------------------------
+tap Enter
+wait 1800
+until 20000 typeof __oc !== 'undefined' && __oc.sim
+eval JSON.stringify(['retry level', __oc.level.id, 'seed before', __seed1, 'seed now', __oc.sim.getState().seed, 'same', __seed1 === __oc.sim.getState().seed])
+eval JSON.stringify(['fresh run', __oc.sim.getState().score, __oc.sim.getState().servedCount, __oc.sim.getState().phase])
+shot 15-04-retry.png
+
+# -- End it again and take Next level, which is unlocked now -------------------------------------
+eval JSON.stringify(Object.assign(__oc.sim.getState(), {score: 0, stars: 0, phase: 'running', timerRunning: true, timeLeft: 0.3}).score)
+wait 3800
+eval JSON.stringify(['results menu', __ui.menu('Results')])
+tap ArrowDown
+wait 300
+tap Enter
+wait 1800
+until 20000 typeof __oc !== 'undefined' && __oc.sim
+eval JSON.stringify(['next level', __oc.level.id, 'seed', __oc.sim.getState().seed])
+shot 15-05-next-level.png
+
+# -- 1-2 with nothing scored: its Next level (1-3, needs 4) stays locked ---------------------------
+eval JSON.stringify(Object.assign(__oc.sim.getState(), {score: 0, stars: 0, phase: 'running', timerRunning: true, timeLeft: 0.3}).score)
+wait 3800
+eval JSON.stringify(['results menu', __ui.menu('Results')])
+shot 15-06-next-level-locked.png
+# the locked row has no onSelect, so Enter on it does nothing and the results stay up
+tap ArrowDown
+wait 300
+tap Enter
+wait 600
+eval JSON.stringify(['still on results', __ui.scenes()])
+# down to Back to title
+tap ArrowDown
+wait 300
+tap Enter
+wait 1500
+eval JSON.stringify(['scenes', __ui.scenes()])
+eval JSON.stringify(__ui.levels())
+eval JSON.stringify(['header', __ui.stars()])
+eval JSON.stringify(['progress', JSON.parse(localStorage.getItem('local-overcooked.progress.v1'))])
+shot 15-07-title-after-three-stars.png
+logs
+errors

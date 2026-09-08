@@ -262,11 +262,11 @@ Uncertainties, and how they were settled:
   2-star values for two players are the one-player row scaled by 280/160 = 1.75 and rounded
   to tens: 40 → 70, 90 → 157.5 → **160**, so `[70, 160, 280]`.
 
-Tuning knobs: `orders` (initial 2, a new order every 24 s, at most 4 at a time, 100 s each).
-These are a starting point, not measured — a burger is a longer dish than a soup (fetch,
-chop, fry, plate, and up to four components), so the drip is slower and the ticket life
-longer than the soup kitchens'. Four pans mean the level can absorb a faster drip than 1-1
-ever could; `intervalSec` is the first dial to turn.
+Tuning knobs: `orders` (initial 2, a new order every 20 s, at most 4 at a time, 100 s each).
+A burger is a longer dish than a soup (fetch, chop, fry, plate, and up to four components),
+so the ticket life is longer than the soup kitchens'. The drip started at 24 s and was
+measured down to 20 s because at 24 s the ticket supply, not the kitchen, was what kept the
+score short of three stars — see "World 1 playtest" below.
 
 ## 1-5 — the ring
 
@@ -423,8 +423,8 @@ disagree.
 
 ## Order tuning after the playtest
 
-This section covers 1-1, 1-2 and 1-3 only. 1-4 to 1-6 have not been through the harness yet;
-their order settings are the starting points documented in each level's section above.
+This section covers 1-1, 1-2 and 1-3. 1-4 to 1-6 were measured later, in "World 1 playtest"
+below.
 
 The 1-1 to 1-3 order numbers were guesses. They have since been measured against the levels as
 built, using the scripts in `tools/playtests/` to drive both chefs through the headless harness
@@ -508,6 +508,103 @@ two-character edit for whoever owns the grids.
   and the gap behaviour is what the level wants, but the two runs of counter are occupying the
   same space, and a smaller amplitude or a different split would avoid it.
 
+## World 1 playtest: 1-4, 1-5 and 1-6
+
+Measured with the headless harness once the sim could cook burgers, run the gate and hold a
+saved profile. One script per subject, all under `tools/playtests/`:
+
+| Script | What it drives |
+| --- | --- |
+| `11-1-4-two-player-burgers.txt` | Two chefs, two burgers, the tip, the plate return, the sink |
+| `12-1-4-pan-burn-and-fire.txt` | A patty left in the pan: burn, fire, extinguisher, bin, reuse |
+| `13-1-5-ring-three-soups.txt` | The ring pipeline, head-on blocking, one soup from each pot |
+| `14-1-6-earthquake-gate.txt` | Gate cycle, crossings, being shoved off the seam, both pans |
+| `15-level-select-locks-and-progress.txt` | Locks, stars, unlocks, Retry's seed, Next level |
+| `16-settings-difficulty-seed-freeplay.txt` | Difficulty, seed modes, free play, saved settings |
+| `17-relaxed-stars-do-not-unlock.txt` | Relaxed stars count on the header but not toward unlocks |
+
+`tools/playtests/qa-lib.txt` is the shared helper the scripts fetch: it stamps every SimEvent
+with the sim clock, and it reads the title and results screens through the live Phaser scenes,
+so the assertions are about what is on screen rather than about localStorage.
+
+### What a burger and a soup actually cost
+
+The harness drives one chef at a time, so every figure is an upper bound. Two people
+overlapping the fetching with the frying beat them, and the ratios are the part to trust.
+
+| Level | Measured | What two players should manage | Why |
+| --- | --- | --- | --- |
+| 1-4 | 37.8 s to the first salad burger, 22.0 s for the burger after it | 20-25 s and 12-15 s | Four components against two, and the fry is 9 s of it |
+| 1-5 | 60.9 s to the first soup, then 47.7 s and 39.6 s | 25-30 s | Walking, not cooking: one ingredient is one lap of the ring |
+| 1-6 | 41.8 s to the first burger, 20.0 s for the second | 20-25 s | Every burger crosses the seam, which is shut 6 s in 10 |
+
+Frying and burning, timed on 1-4: patty into the pan at 10.0 s, cooked at 18.9 s (`COOK_TIME`
+9), burnt with a fire at 31.9 s (`BURN_TIME` 13), sprayed out in 1.1 s, emptied in the bin, and
+cooking again on the same burner. A burning tile refuses every interaction but the spray.
+
+### The one change: 1-4's drip, 24 s to 20 s
+
+1-4 was the only level where the arithmetic forbade its own three-star target.
+
+`updateOrders` spawns the first ticket one `intervalSec` in, so a 240 s level on a 24 s drip
+sees 2 + 9 = 11 tickets in the whole run (the tenth arrival lands as the clock runs out). The
+three burgers average 25 points and the tip ladder caps at 8, so a flawless run — every ticket
+served, every serve in order — is worth about 343. Two players cost about 20 s a burger, well
+inside the drip, so the kitchen waits for tickets a quarter of the time and still has to serve
+all eleven to clear the two-player three-star of 280.
+
+At 20 s the run sees 2 + 11 = 13 tickets, a flawless one is worth about 409, and three stars
+asks for nine or ten of the thirteen. Demanding, and no longer flawless-or-nothing, and the
+chefs stop idling. Nothing else moved: `initial` 2, `max` 4 and `timeSec` 100 are unchanged,
+and the one-player thresholds ([40, 90, 160]) were comfortable at either drip.
+
+1-5 and 1-6 keep their numbers:
+
+- **1-5, every 20 s, 85 s each.** Three stars for two players is 160, or eight soups. A pair
+  circling at 25-30 s a soup manages nine or ten, and the same 20 s drip already suits 1-3,
+  which is the closest level in shape. The scripted run served three and lost two tickets to
+  the clock, which is what a rigid one-chef-at-a-time pipeline looks like, not what the level
+  costs.
+- **1-6, every 24 s, 100 s each.** Same recipes as 1-4, but the seam is shut 60% of the time
+  and every burger crosses it at least once, so the slower drip is buying something here. Three
+  stars for two players is 200, or eight of the eleven tickets, against a measured pace that
+  supports twelve.
+
+### Behaviour the playtest turned up
+
+None of it is order tuning, so none of it was changed here.
+
+- **A pot burns before the ring can fill it.** A pot starts cooking on its first ingredient
+  and is cooked 9 s later, then burns 13 s after that, so a pot has to be filled within 22 s
+  of the first ingredient going in. One lap of 1-5's ring is about 30 tiles, or 8 s, plus a
+  3 s chop, so a player who fetches, chops and delivers one ingredient per lap needs 22-36 s
+  for three and sets the pot on fire. The strategy that works — and the one the script uses —
+  is to park two chopped ingredients on the island counters at (7,5) and (8,5) and tip all
+  three in together. Worth knowing before anyone reads a burnt pot on 1-5 as a bug.
+- **1-5 cannot deadlock, but it cannot let anyone pass either.** Two chefs walked into each
+  other along the top run stop 0.700 tiles apart, exactly two chef radii, and neither budges:
+  the corridor is one tile wide everywhere. Nobody is trapped, because the ring is a loop and
+  either chef can turn round and reach any station the other way. What the real 1-5 has and
+  this one does not is the passing place in front of the serving counter, which the infobox
+  describes and which was flattened to keep the loop true (see the 1-5 section above). Adding
+  it back is a row and two open tiles behind `V`.
+- **1-4's hand-off happens on the divider, not in the corridor.** The counters at (7,2) and
+  (7,4) can be reached from inside the 1x3 corridor at row 3 as well as from column 8, so the
+  prep chef steps three tiles into the corridor, puts the part down and turns back, and the
+  cooking chef picks it up from its own side; (5,2) and (5,4) are the mirror pair on the left.
+  That is what makes the wiki's "place chopped beef on the counters in the middle" work, and
+  it is what script 11 does. 1-6 has no equivalent: its two halves only meet on the seam, so
+  every part is carried across during an open window.
+- **The seam shoves rather than swallows.** A chef standing at x=6.4 when 1-6's gate shuts is
+  put down at x=5.7, flush against the seam column on the side it came from, and the sampler
+  in `tools/playtests/monitor.txt` recorded no overlap with a solid tile across the whole run.
+  While the seam is shut each side still works its own counters, and a chef walking into it
+  stops at x=5.7 with the gate tile as its target and can do nothing with it.
+- **1-6's hand-off ledges are only usable while the gate is open.** (6,0) and (6,7) can be
+  reached only from a gate tile, so for 6 s in every 10 they belong to nobody. That is the
+  intended reading of the seam, but it means a dish parked there is stranded for the shut
+  window.
+
 ## Schema
 
 No schema changes were needed for any of the six. Every station maps onto a `LEGEND`
@@ -516,7 +613,6 @@ character and every obstacle onto a `Dynamic` variant that already exists: 1-4 n
 needs `G` plus the `gate` dynamic. `unlockStars` was already declared optional on `LevelDef`,
 so filling it in on 1-1 to 1-3 is additive.
 
-The order settings on 1-4, 1-5 and 1-6 are starting points rather than measurements. The
-`tools/playtests/` scripts that produced the 1-1 to 1-3 numbers have no equivalent here yet,
-because the sim does not cook burgers at the time these grids were written; `tests/levels.test.ts`
-pins the four numbers per level so that changing them stays deliberate.
+The order settings on 1-4, 1-5 and 1-6 have since been measured too — see "World 1 playtest"
+above. `tests/levels.test.ts` pins the four numbers per level so that changing them stays
+deliberate.

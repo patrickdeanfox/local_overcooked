@@ -1,0 +1,257 @@
+# -- 1-4: two chefs, two burgers, the tip, the plate return and the sink ---------
+# Seed 2 opens with tomato_lettuce_burger then meat_burger, so both serves are in order
+# and the second one pays a tip.
+#
+# Division of labour follows the spawns rather than the brief: P1 (WASD) spawns in the
+# LEFT sector, which owns the crates, boards and sink, so P1 preps. P2 (arrows) spawns in
+# the RIGHT sector, which owns the pans, plates and hatch, so P2 fries, plates and serves.
+# Hand-offs go on the divider counters (7,2) and (7,4): P1 reaches them from inside the
+# corridor at row 3, P2 from column 8. (5,2)/(5,4) are the mirror pair on the left.
+#
+# Menu: Seed number +1 (1 -> 2, which also pins the mode to fixed), Free play on, then 1-4.
+# Wait for the title scene to be the live one before typing at it: on a loaded machine the
+# boot can take longer than a fixed wait and every menu tap is then thrown away.
+until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
+wait 600
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowRight
+wait 250
+tap ArrowDown
+wait 250
+tap ArrowRight
+wait 250
+tap ArrowUp
+wait 250
+tap ArrowUp
+wait 250
+tap ArrowUp
+wait 250
+tap ArrowUp
+wait 250
+tap ArrowUp
+wait 250
+tap ArrowUp
+wait 250
+tap ArrowUp
+wait 250
+shot 11-00-title.png
+tap Enter
+wait 1200
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.sim
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval JSON.stringify([__oc.level.id, __oc.sim.getState().seed, __oc.sim.getState().chefs.length, __qa.orders()])
+shot 11-01-kitchen.png
+
+# -- A. P1: beef from the crate at (0,2), chopped at (2,7), handed over on (7,2) --
+holduntil KeyA 3000 __oc.sim.getState().chefs[0].x <= 1.55
+hold KeyA 150
+tap Space
+eval JSON.stringify(__qa.chef(0).holding)
+holduntil KeyS 4000 __oc.sim.getState().chefs[0].y >= 6.45
+holduntil KeyD 2000 __oc.sim.getState().chefs[0].x >= 2.45
+hold KeyS 150
+tap Space
+hold ShiftLeft 3400
+eval JSON.stringify(__qa.tile(2,7))
+tap Space
+holduntil KeyW 5000 __oc.sim.getState().chefs[0].y <= 3.55
+holduntil KeyD 5000 __oc.sim.getState().chefs[0].x >= 7.45
+hold KeyW 150
+tap Space
+eval JSON.stringify(__qa.tile(7,2))
+
+# -- B. P2: takes the beef through the divider, fries it, then picks up a plate ---
+holduntil ArrowLeft 3000 __oc.sim.getState().chefs[1].x <= 8.55
+hold ArrowLeft 150
+tap Enter
+eval JSON.stringify(__qa.chef(1).holding)
+holduntil ArrowUp 3000 __oc.sim.getState().chefs[1].y <= 1.55
+hold ArrowUp 150
+tap Enter
+eval JSON.stringify(__qa.tile(8,0))
+holduntil ArrowDown 4000 __oc.sim.getState().chefs[1].y >= 6.45
+hold ArrowDown 150
+tap Enter
+eval JSON.stringify(__qa.chef(1).holding)
+
+# -- C. P1: lettuce from (0,4), chopped at (4,7), handed over on (7,4) ------------
+holduntil KeyA 6000 __oc.sim.getState().chefs[0].x <= 1.55
+holduntil KeyS 3000 __oc.sim.getState().chefs[0].y >= 4.45
+hold KeyA 150
+tap Space
+eval JSON.stringify(__qa.chef(0).holding)
+holduntil KeyD 3000 __oc.sim.getState().chefs[0].x >= 4.45
+holduntil KeyS 3000 __oc.sim.getState().chefs[0].y >= 6.45
+hold KeyS 150
+tap Space
+hold ShiftLeft 3400
+tap Space
+holduntil KeyW 5000 __oc.sim.getState().chefs[0].y <= 3.55
+holduntil KeyD 5000 __oc.sim.getState().chefs[0].x >= 7.45
+hold KeyS 150
+tap Space
+eval JSON.stringify(__qa.tile(7,4))
+
+# -- D. P2: lettuce onto the plate, then the patty out of the pan -----------------
+holduntil ArrowUp 4000 __oc.sim.getState().chefs[1].y <= 4.55
+hold ArrowLeft 150
+tap Enter
+eval JSON.stringify(__qa.chef(1).holding)
+holduntil ArrowUp 4000 __oc.sim.getState().chefs[1].y <= 1.55
+hold ArrowUp 150
+until 15000 __oc.sim.itemAt(8,0).state === 'cooked'
+tap Enter
+eval JSON.stringify([__qa.chef(1).holding, __qa.tile(8,0).item])
+shot 11-02-patty-plated.png
+
+# -- E. P1: tomato from (0,1), chopped at (2,7), handed over on (7,2) -------------
+holduntil KeyA 6000 __oc.sim.getState().chefs[0].x <= 1.55
+holduntil KeyW 3000 __oc.sim.getState().chefs[0].y <= 1.55
+hold KeyA 150
+tap Space
+eval JSON.stringify(__qa.chef(0).holding)
+holduntil KeyS 4000 __oc.sim.getState().chefs[0].y >= 6.45
+holduntil KeyD 3000 __oc.sim.getState().chefs[0].x >= 2.45
+hold KeyS 150
+tap Space
+hold ShiftLeft 3400
+tap Space
+holduntil KeyW 5000 __oc.sim.getState().chefs[0].y <= 3.55
+holduntil KeyD 5000 __oc.sim.getState().chefs[0].x >= 7.45
+hold KeyW 150
+tap Space
+eval JSON.stringify(__qa.tile(7,2))
+
+# -- F. P1: a bun needs no board, straight from (0,3) to (7,4) --------------------
+holduntil KeyA 6000 __oc.sim.getState().chefs[0].x <= 1.55
+hold KeyA 150
+tap Space
+eval JSON.stringify(__qa.chef(0).holding)
+holduntil KeyD 6000 __oc.sim.getState().chefs[0].x >= 7.45
+hold KeyS 150
+tap Space
+eval JSON.stringify(__qa.tile(7,4))
+
+# -- G. P2: tomato, bun, then the hatch at (12,3) ---------------------------------
+holduntil ArrowDown 3000 __oc.sim.getState().chefs[1].y >= 2.45
+hold ArrowLeft 150
+tap Enter
+eval JSON.stringify(__qa.chef(1).holding)
+holduntil ArrowDown 3000 __oc.sim.getState().chefs[1].y >= 4.45
+hold ArrowLeft 150
+tap Enter
+eval JSON.stringify(__qa.chef(1).holding)
+shot 11-03-salad-burger.png
+holduntil ArrowUp 3000 __oc.sim.getState().chefs[1].y <= 3.55
+holduntil ArrowRight 4000 __oc.sim.getState().chefs[1].x >= 11.45
+hold ArrowRight 150
+tap Enter
+wait 300
+eval JSON.stringify(__qa.score())
+eval JSON.stringify(__qa.of('serve'))
+shot 11-04-served-salad-burger.png
+
+# -- H. the second burger: beef and a bun, no toppings ---------------------------
+holduntil KeyA 6000 __oc.sim.getState().chefs[0].x <= 1.55
+holduntil KeyW 3000 __oc.sim.getState().chefs[0].y <= 2.55
+hold KeyA 150
+tap Space
+eval JSON.stringify(__qa.chef(0).holding)
+holduntil KeyS 4000 __oc.sim.getState().chefs[0].y >= 6.45
+holduntil KeyD 3000 __oc.sim.getState().chefs[0].x >= 2.45
+hold KeyS 150
+tap Space
+hold ShiftLeft 3400
+tap Space
+holduntil KeyW 5000 __oc.sim.getState().chefs[0].y <= 3.55
+holduntil KeyD 5000 __oc.sim.getState().chefs[0].x >= 7.45
+hold KeyW 150
+tap Space
+eval JSON.stringify(__qa.tile(7,2))
+holduntil ArrowLeft 4000 __oc.sim.getState().chefs[1].x <= 8.55
+holduntil ArrowUp 3000 __oc.sim.getState().chefs[1].y <= 2.55
+hold ArrowLeft 150
+tap Enter
+eval JSON.stringify(__qa.chef(1).holding)
+holduntil ArrowUp 3000 __oc.sim.getState().chefs[1].y <= 1.55
+hold ArrowUp 150
+tap Enter
+eval JSON.stringify(__qa.tile(8,0))
+holduntil ArrowDown 4000 __oc.sim.getState().chefs[1].y >= 6.45
+holduntil ArrowRight 3000 __oc.sim.getState().chefs[1].x >= 9.45
+hold ArrowDown 150
+tap Enter
+eval JSON.stringify(__qa.chef(1).holding)
+holduntil KeyA 6000 __oc.sim.getState().chefs[0].x <= 1.55
+hold KeyA 150
+tap Space
+eval JSON.stringify(__qa.chef(0).holding)
+holduntil KeyD 6000 __oc.sim.getState().chefs[0].x >= 7.45
+hold KeyS 150
+tap Space
+eval JSON.stringify(__qa.tile(7,4))
+holduntil ArrowLeft 3000 __oc.sim.getState().chefs[1].x <= 8.55
+holduntil ArrowUp 4000 __oc.sim.getState().chefs[1].y <= 4.55
+hold ArrowLeft 150
+tap Enter
+eval JSON.stringify(__qa.chef(1).holding)
+holduntil ArrowUp 4000 __oc.sim.getState().chefs[1].y <= 1.55
+hold ArrowUp 150
+until 15000 __oc.sim.itemAt(8,0).state === 'cooked'
+tap Enter
+eval JSON.stringify(__qa.chef(1).holding)
+holduntil ArrowDown 3000 __oc.sim.getState().chefs[1].y >= 3.45
+holduntil ArrowUp 1500 __oc.sim.getState().chefs[1].y <= 3.55
+holduntil ArrowRight 4000 __oc.sim.getState().chefs[1].x >= 11.45
+hold ArrowRight 150
+tap Enter
+wait 300
+eval JSON.stringify(__qa.score())
+eval JSON.stringify(__qa.of('serve'))
+shot 11-05-served-burger.png
+
+# -- I. the dirty plates come back at (12,5) and are washed in the sink at (2,0) --
+eval JSON.stringify([__qa.tile(12,5), __oc.sim.getState().pendingPlateReturns])
+until 10000 __oc.sim.itemAt(12,5) && __oc.sim.itemAt(12,5).kind === 'dirtyPlate'
+eval JSON.stringify(__qa.of('plateReturned'))
+holduntil ArrowDown 3000 __oc.sim.getState().chefs[1].y >= 5.45
+hold ArrowRight 150
+tap Enter
+eval JSON.stringify(__qa.chef(1).holding)
+holduntil ArrowUp 3000 __oc.sim.getState().chefs[1].y <= 3.55
+holduntil ArrowLeft 9000 __oc.sim.getState().chefs[1].x <= 2.55
+holduntil ArrowUp 3000 __oc.sim.getState().chefs[1].y <= 1.55
+hold ArrowUp 150
+tap Enter
+eval JSON.stringify(__qa.tile(2,0))
+hold ShiftRight 2400
+eval JSON.stringify([__qa.tile(2,0), __qa.tile(3,0)])
+hold ShiftRight 2400
+eval JSON.stringify([__qa.tile(2,0), __qa.tile(3,0)])
+eval JSON.stringify(__qa.of('washDone'))
+shot 11-06-washed.png
+
+# -- Totals -----------------------------------------------------------------------
+eval JSON.stringify(__qa.score())
+eval JSON.stringify(__qa.orders())
+eval JSON.stringify(__qa.of('serveRejected'))
+eval JSON.stringify(__qa.of('orderExpired'))
+logs
+errors

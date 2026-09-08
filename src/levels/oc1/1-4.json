@@ -10,7 +10,7 @@
   "timeLimitSec": 240,
   "timerStartsOnFirstServe": false,
   "recipes": ["meat_burger", "lettuce_burger", "tomato_lettuce_burger"],
-  "orders": { "initial": 2, "intervalSec": 24, "max": 4, "timeSec": 100 },
+  "orders": { "initial": 2, "intervalSec": 20, "max": 4, "timeSec": 100 },
   "stars": { "1": [40, 90, 160], "2": [70, 160, 280] },
   "plates": { "mode": "sink", "count": 5 },
   "grid": [
