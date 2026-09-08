@@ -22,8 +22,13 @@ left it blank and filled the remaster columns instead.
   only real conflict is 1-1's 2P 3★ (level Star Chart says 60, the overview table says 80).
 
 Screenshot provenance: `1-1`, `1-2`, `1-3`, `1-4` and `5-2` are genuine OC1 captures.
-**Every other `<level>.png` is an *All You Can Eat* remaster capture** — the layouts are
+**Every other `<level>.jpg` is an *All You Can Eat* remaster capture** — the layouts are
 faithful, the art is not. Where both exist the AYCE one is suffixed `-ayce`.
+
+All shots are stored as JPEG at quality 88 and full source resolution (mostly 1248×776,
+the OC1 originals 1280×800) to keep the repo light. Counter edges stay crisp enough to
+count tiles; if you ever need a lossless copy, re-download it with
+`docs/research/tools/fetch_wiki.py download --png "File:<name>" out.png`.
 
 ---
 
@@ -31,36 +36,36 @@ faithful, the art is not. Where both exist the AYCE one is suffixed `-ayce`.
 
 | Level | Theme | Recipes | Time | Obstacle / gimmick | Sink? | Prep? | 1★/2★/3★ 1P | 1★/2★/3★ 2P | Wiki | Screenshot |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Intro Apocalypse | Treacle Town (Apocalypse) | Salad | 1:40 | separated chefs (multiplayer only) | no | **yes** | 60 / 180 / 300 | 60 / 220 / 420 | [link](https://overcooked.fandom.com/wiki/Intro_Apocalypse) | `intro-apocalypse.png`, `intro-apocalypse-2p.png` |
-| 1-1 | Treacle Town | Onion Soup | **2:30, starts on first serve** | counter island to walk around | **yes** | **yes** | 10 / 40 / 60 | 10 / 40 / 60 | [link](https://overcooked.fandom.com/wiki/1-1_(Overcooked!)) | `1-1.png` (OC1), `1-1-ayce.png` |
-| 1-2 | Treacle Town | Onion + Tomato Soup | 4:00 | pedestrians on a crosswalk | **yes** | no | 20 / 60 / 80 | 20 / 60 / 150 | [link](https://overcooked.fandom.com/wiki/1-2_(Overcooked!)) | `1-2.png` (OC1), `1-2-ayce.png` |
-| 1-3 | Savoury Seas | Onion + Tomato + Mushroom Soup | 4:00 | sliding counters (ship sway) | no | no | 40 / 80 / 100 | – / – / 200 | [link](https://overcooked.fandom.com/wiki/1-3_(Overcooked!)) | `1-3.png` (OC1), `1-3-ayce.png` |
-| 1-4 | Treacle Town | Burger | 4:00 | one 1×3 corridor between halves | **yes** | no | 40 / 90 / 160 | – / – / 280 | [link](https://overcooked.fandom.com/wiki/1-4_(Overcooked!)) | `1-4.png` (OC1), `1-4-ayce.png` |
-| 1-5 | Treacle Town | all 3 Soups | 4:00 | 1-tile-wide ring corridor | **yes** | no | 30 / 70 / 120 | – / – / 160 | [link](https://overcooked.fandom.com/wiki/1-5_(Overcooked!)) | `1-5.png` |
-| 1-6 | Treacle Town | Burger | 4:00 | earthquake; right half raises and lowers | **yes** | no | 40 / 60 / 90 | – / – / 200 | [link](https://overcooked.fandom.com/wiki/1-6_(Overcooked!)) | `1-6.png` |
-| 2-1 | Ravenous Roads | Burger | 4:00 | two moving trucks; 5 s penalty for falling off | no | no | – / – / 180 | – / – / 240 | [link](https://overcooked.fandom.com/wiki/2-1_(Overcooked!)) | `2-1.png` |
-| 2-2 | (unnamed on wiki) | all 3 Soups | 4:00 | rats steal ingredients off counters | **yes** | no | – / – / 160 | – / – / 200 | [link](https://overcooked.fandom.com/wiki/2-2_(Overcooked!)) | `2-2.png` (low-res) |
-| 2-3 | Treacle Town | Burger | 4:00 | separated chefs; conveyor loop | **yes** | no | – / – / 120 | – / – / 180 | [link](https://overcooked.fandom.com/wiki/2-3_(Overcooked!)) | `2-3.png` |
-| 2-4 | Treacle Town | Burger | 4:00 | separated chefs; conveyors into bins | **yes** | no | – / – / 110 | – / – / 160 | [link](https://overcooked.fandom.com/wiki/2-4_(Overcooked!)) | `2-4.png` |
-| 3-1 | Glazed Glacier | Fish and Chips | 4:00 | slippery ice floe; 5 s penalty for falling in the sea | **yes** | no | – / – / 200 | – / – / 220 | [link](https://overcooked.fandom.com/wiki/3-1_(Overcooked!)) | `3-1.png` |
-| 3-2 | Savoury Seas | all 3 Soups | 4:00 | separated chefs | no | no | – / – / 100 | – / – / 160 | [link](https://overcooked.fandom.com/wiki/3-2_(Overcooked!)) | `3-2.png` |
-| 3-3 | Ravenous Road | Fish and Chips **+** Soup | 4:00 | moving trucks; 5 s fall penalty; first two-recipe kitchen | no | no | – / – / 150 | – / – / 270 | [link](https://overcooked.fandom.com/wiki/3-3_(Overcooked!)) | `3-3.png` |
-| 3-4 | Glazed Glacier | Fish and Chips | 4:00 | ice floes ferry chefs across a river; 5 s fall penalty | **yes** | no | – / – / 170 | – / – / 180 | [link](https://overcooked.fandom.com/wiki/3-4_(Overcooked!)) | `3-4.png` |
-| 4-1 | Munch Mansion | Pizza | 4:00 | free-floating counters re-partition the kitchen | **yes** | no | – / – / 120 | – / – / 200 | [link](https://overcooked.fandom.com/wiki/4-1_(Overcooked!)) | `4-1.png` |
-| 4-2 | Munch Mansion | all 3 Soups | 4:00 | darkness — chef flashlights only | **yes** | no | – / – / 100 | – / – / 110 | [link](https://overcooked.fandom.com/wiki/4-2_(Overcooked!)) | `4-2.png`, `4-2-lit.png` |
-| 4-3 | Munch Mansion | Burger | 4:00 | the stations themselves move between quadrants; only 1 board | **yes** | no | – / – / 90 | – / – / 120 | [link](https://overcooked.fandom.com/wiki/4-3_(Overcooked!)) | `4-3.png` |
-| 4-4 | Munch Mansion | Pizza **+** Burger | 4:00 | separated chefs; heights shift; conveyor to a bin between halves | **yes** | no | – / – / 100 | – / – / 120 | [link](https://overcooked.fandom.com/wiki/4-4_(Overcooked!)) | `4-4.png` |
-| 5-1 | Cosmic Canteen | Burrito | 4:00 | button-driven shuttle chamber carries the shared stations | **yes** | no | *AYCE-SW* 120 / 260 / 400 | *AYCE-SW* 140 / 320 / 520 | [link](https://overcooked.fandom.com/wiki/5-1_(Overcooked!)) | `5-1.png` |
-| 5-2 | Melting Magma | Burrito | 4:00 | 4 quadrants, 3 of 4 lava bridges up at a time; a cannon fires down the middle | **yes** | no | *AYCE-SW* 80 / 180 / 280 | *AYCE-SW* 100 / 220 / 360 | [link](https://overcooked.fandom.com/wiki/5-2_(Overcooked!)) | `5-2.png` (OC1), `5-2-ayce.png` |
-| 5-3 | Cosmic Canteen | Burrito | 4:00 | separated chefs; two pressure plates open each other's doors | no | no | *AYCE-SW* 80 / 180 / 300 | *AYCE-SW* 120 / 260 / 400 | [link](https://overcooked.fandom.com/wiki/5-3_(Overcooked!)) | `5-3.png` |
-| 5-4 | Melting Magma | Burrito | 4:00 | counters and burners orbit two platforms in a figure-8 | no | no | *AYCE-SW* 140 / 300 / 480 | *AYCE-SW* 100 / 240 / 380 | [link](https://overcooked.fandom.com/wiki/5-4_(Overcooked!)) | `5-4.png` |
-| 5-5 | Cosmic Canteen | all 3 Soups | 4:00 | separated chefs; two button-shuttled side chambers | **yes** | no | *AYCE-SW* 20 / 60 / 120 | *AYCE-SW* 80 / 180 / 280 | [link](https://overcooked.fandom.com/wiki/5-5_(Overcooked!)) | `5-5.png` |
-| 5-6 | Cosmic Canteen | all 3 Soups | 4:00 | 4 walled rooms, pressure-plate doors, conveyors between them | **yes** | no | *AYCE-SW* 20 / 60 / 100 | *AYCE-SW* 40 / 80 / 140 | [link](https://overcooked.fandom.com/wiki/5-6_(Overcooked!)) | `5-6.png` |
-| 6-1 | Savoury Seas | all 3 Soups | 4:00 | a chopping-board block circles the ship clockwise | no | no | *AYCE-SW* 80 / 180 / 280 | *AYCE-SW* 220 / 480 / 740 | [link](https://overcooked.fandom.com/wiki/6-1_(Overcooked!)) | `6-1.png` |
-| 6-2 | Treacle Town | all 3 Soups | 4:00 | **layout differs by player count**; conveyors into bins | **yes** | no | *AYCE-SW* 80 / 180 / 280 | *AYCE-SW* 180 / 400 / 620 | [link](https://overcooked.fandom.com/wiki/6-2_(Overcooked!)) | `6-2.png` (1-3P), `6-2-4p.png` |
-| 6-3 | Glazed Glacier | all 3 Soups | 4:00 | two rows of ice floes running opposite ways; slippery | **yes** | no | *AYCE-SW* 40 / 80 / 140 | *AYCE-SW* 40 / 100 / 180 | [link](https://overcooked.fandom.com/wiki/6-3_(Overcooked!)) | `6-3.png` |
-| 6-4 | Cosmic Canteen | Soup **+** Salad **+** Burger | 4:00 | buttons rotate four outer chambers 90°; two of four reachable | **yes** | no | *AYCE-SW* 60 / 160 / 260 | *AYCE-SW* 80 / 180 / 280 | [link](https://overcooked.fandom.com/wiki/6-4_(Overcooked!)) | `6-4.png` |
-| The Peckening | Treacle Town (Apocalypse) | 4 phases: Soup → Burger → Pizza+F&C → all five | **17:00** | falling meteors set counters alight; a helicopter platform ferries between two buildings; **starts with 3 dirty plates** | **yes** | no | *AYCE-SW* 240 / 540 / 840 | *AYCE-SW* 240 / 520 / 820 | [link](https://overcooked.fandom.com/wiki/The_Peckening) | `peckening.png` |
+| Intro Apocalypse | Treacle Town (Apocalypse) | Salad | 1:40 | separated chefs (multiplayer only) | no | **yes** | 60 / 180 / 300 | 60 / 220 / 420 | [link](https://overcooked.fandom.com/wiki/Intro_Apocalypse) | `intro-apocalypse.jpg`, `intro-apocalypse-2p.jpg` |
+| 1-1 | Treacle Town | Onion Soup | **2:30, starts on first serve** | counter island to walk around | **yes** | **yes** | 10 / 40 / 60 | 10 / 40 / 60 | [link](https://overcooked.fandom.com/wiki/1-1_(Overcooked!)) | `1-1.jpg` (OC1), `1-1-ayce.jpg` |
+| 1-2 | Treacle Town | Onion + Tomato Soup | 4:00 | pedestrians on a crosswalk | **yes** | no | 20 / 60 / 80 | 20 / 60 / 150 | [link](https://overcooked.fandom.com/wiki/1-2_(Overcooked!)) | `1-2.jpg` (OC1), `1-2-ayce.jpg` |
+| 1-3 | Savoury Seas | Onion + Tomato + Mushroom Soup | 4:00 | sliding counters (ship sway) | no | no | 40 / 80 / 100 | – / – / 200 | [link](https://overcooked.fandom.com/wiki/1-3_(Overcooked!)) | `1-3.jpg` (OC1), `1-3-ayce.jpg` |
+| 1-4 | Treacle Town | Burger | 4:00 | one 1×3 corridor between halves | **yes** | no | 40 / 90 / 160 | – / – / 280 | [link](https://overcooked.fandom.com/wiki/1-4_(Overcooked!)) | `1-4.jpg` (OC1), `1-4-ayce.jpg` |
+| 1-5 | Treacle Town | all 3 Soups | 4:00 | 1-tile-wide ring corridor | **yes** | no | 30 / 70 / 120 | – / – / 160 | [link](https://overcooked.fandom.com/wiki/1-5_(Overcooked!)) | `1-5.jpg` |
+| 1-6 | Treacle Town | Burger | 4:00 | earthquake; right half raises and lowers | **yes** | no | 40 / 60 / 90 | – / – / 200 | [link](https://overcooked.fandom.com/wiki/1-6_(Overcooked!)) | `1-6.jpg` |
+| 2-1 | Ravenous Roads | Burger | 4:00 | two moving trucks; 5 s penalty for falling off | no | no | – / – / 180 | – / – / 240 | [link](https://overcooked.fandom.com/wiki/2-1_(Overcooked!)) | `2-1.jpg` |
+| 2-2 | (unnamed on wiki) | all 3 Soups | 4:00 | rats steal ingredients off counters | **yes** | no | – / – / 160 | – / – / 200 | [link](https://overcooked.fandom.com/wiki/2-2_(Overcooked!)) | `2-2.jpg` (low-res) |
+| 2-3 | Treacle Town | Burger | 4:00 | separated chefs; conveyor loop | **yes** | no | – / – / 120 | – / – / 180 | [link](https://overcooked.fandom.com/wiki/2-3_(Overcooked!)) | `2-3.jpg` |
+| 2-4 | Treacle Town | Burger | 4:00 | separated chefs; conveyors into bins | **yes** | no | – / – / 110 | – / – / 160 | [link](https://overcooked.fandom.com/wiki/2-4_(Overcooked!)) | `2-4.jpg` |
+| 3-1 | Glazed Glacier | Fish and Chips | 4:00 | slippery ice floe; 5 s penalty for falling in the sea | **yes** | no | – / – / 200 | – / – / 220 | [link](https://overcooked.fandom.com/wiki/3-1_(Overcooked!)) | `3-1.jpg` |
+| 3-2 | Savoury Seas | all 3 Soups | 4:00 | separated chefs | no | no | – / – / 100 | – / – / 160 | [link](https://overcooked.fandom.com/wiki/3-2_(Overcooked!)) | `3-2.jpg` |
+| 3-3 | Ravenous Road | Fish and Chips **+** Soup | 4:00 | moving trucks; 5 s fall penalty; first two-recipe kitchen | no | no | – / – / 150 | – / – / 270 | [link](https://overcooked.fandom.com/wiki/3-3_(Overcooked!)) | `3-3.jpg` |
+| 3-4 | Glazed Glacier | Fish and Chips | 4:00 | ice floes ferry chefs across a river; 5 s fall penalty | **yes** | no | – / – / 170 | – / – / 180 | [link](https://overcooked.fandom.com/wiki/3-4_(Overcooked!)) | `3-4.jpg` |
+| 4-1 | Munch Mansion | Pizza | 4:00 | free-floating counters re-partition the kitchen | **yes** | no | – / – / 120 | – / – / 200 | [link](https://overcooked.fandom.com/wiki/4-1_(Overcooked!)) | `4-1.jpg` |
+| 4-2 | Munch Mansion | all 3 Soups | 4:00 | darkness — chef flashlights only | **yes** | no | – / – / 100 | – / – / 110 | [link](https://overcooked.fandom.com/wiki/4-2_(Overcooked!)) | `4-2.jpg`, `4-2-lit.jpg` |
+| 4-3 | Munch Mansion | Burger | 4:00 | the stations themselves move between quadrants; only 1 board | **yes** | no | – / – / 90 | – / – / 120 | [link](https://overcooked.fandom.com/wiki/4-3_(Overcooked!)) | `4-3.jpg` |
+| 4-4 | Munch Mansion | Pizza **+** Burger | 4:00 | separated chefs; heights shift; conveyor to a bin between halves | **yes** | no | – / – / 100 | – / – / 120 | [link](https://overcooked.fandom.com/wiki/4-4_(Overcooked!)) | `4-4.jpg` |
+| 5-1 | Cosmic Canteen | Burrito | 4:00 | button-driven shuttle chamber carries the shared stations | **yes** | no | *AYCE-SW* 120 / 260 / 400 | *AYCE-SW* 140 / 320 / 520 | [link](https://overcooked.fandom.com/wiki/5-1_(Overcooked!)) | `5-1.jpg` |
+| 5-2 | Melting Magma | Burrito | 4:00 | 4 quadrants, 3 of 4 lava bridges up at a time; a cannon fires down the middle | **yes** | no | *AYCE-SW* 80 / 180 / 280 | *AYCE-SW* 100 / 220 / 360 | [link](https://overcooked.fandom.com/wiki/5-2_(Overcooked!)) | `5-2.jpg` (OC1), `5-2-ayce.jpg` |
+| 5-3 | Cosmic Canteen | Burrito | 4:00 | separated chefs; two pressure plates open each other's doors | no | no | *AYCE-SW* 80 / 180 / 300 | *AYCE-SW* 120 / 260 / 400 | [link](https://overcooked.fandom.com/wiki/5-3_(Overcooked!)) | `5-3.jpg` |
+| 5-4 | Melting Magma | Burrito | 4:00 | counters and burners orbit two platforms in a figure-8 | no | no | *AYCE-SW* 140 / 300 / 480 | *AYCE-SW* 100 / 240 / 380 | [link](https://overcooked.fandom.com/wiki/5-4_(Overcooked!)) | `5-4.jpg` |
+| 5-5 | Cosmic Canteen | all 3 Soups | 4:00 | separated chefs; two button-shuttled side chambers | **yes** | no | *AYCE-SW* 20 / 60 / 120 | *AYCE-SW* 80 / 180 / 280 | [link](https://overcooked.fandom.com/wiki/5-5_(Overcooked!)) | `5-5.jpg` |
+| 5-6 | Cosmic Canteen | all 3 Soups | 4:00 | 4 walled rooms, pressure-plate doors, conveyors between them | **yes** | no | *AYCE-SW* 20 / 60 / 100 | *AYCE-SW* 40 / 80 / 140 | [link](https://overcooked.fandom.com/wiki/5-6_(Overcooked!)) | `5-6.jpg` |
+| 6-1 | Savoury Seas | all 3 Soups | 4:00 | a chopping-board block circles the ship clockwise | no | no | *AYCE-SW* 80 / 180 / 280 | *AYCE-SW* 220 / 480 / 740 | [link](https://overcooked.fandom.com/wiki/6-1_(Overcooked!)) | `6-1.jpg` |
+| 6-2 | Treacle Town | all 3 Soups | 4:00 | **layout differs by player count**; conveyors into bins | **yes** | no | *AYCE-SW* 80 / 180 / 280 | *AYCE-SW* 180 / 400 / 620 | [link](https://overcooked.fandom.com/wiki/6-2_(Overcooked!)) | `6-2.jpg` (1-3P), `6-2-4p.jpg` |
+| 6-3 | Glazed Glacier | all 3 Soups | 4:00 | two rows of ice floes running opposite ways; slippery | **yes** | no | *AYCE-SW* 40 / 80 / 140 | *AYCE-SW* 40 / 100 / 180 | [link](https://overcooked.fandom.com/wiki/6-3_(Overcooked!)) | `6-3.jpg` |
+| 6-4 | Cosmic Canteen | Soup **+** Salad **+** Burger | 4:00 | buttons rotate four outer chambers 90°; two of four reachable | **yes** | no | *AYCE-SW* 60 / 160 / 260 | *AYCE-SW* 80 / 180 / 280 | [link](https://overcooked.fandom.com/wiki/6-4_(Overcooked!)) | `6-4.jpg` |
+| The Peckening | Treacle Town (Apocalypse) | 4 phases: Soup → Burger → Pizza+F&C → all five | **17:00** | falling meteors set counters alight; a helicopter platform ferries between two buildings; **starts with 3 dirty plates** | **yes** | no | *AYCE-SW* 240 / 540 / 840 | *AYCE-SW* 240 / 520 / 820 | [link](https://overcooked.fandom.com/wiki/The_Peckening) | `peckening.jpg` |
 
 Campaign star gates (from [Stars to Unlock](https://overcooked.fandom.com/wiki/Stars_to_Unlock)):
 1-1 needs 1 star, 1-2 needs 2, 1-3 needs 4, 1-4 5, 1-5 6, 1-6 8, 2-1 10, 2-2 12, 2-3 15,
@@ -202,7 +207,7 @@ burner, then a chopping board. Top-left: a second chopping board and the sink. M
 second pot, with the onion crate below it. A two-wide counter island sits in the middle
 with the trash bin on its top face and the tomato crate on its bottom face. Mushrooms are in
 the lower-left. Raw ingredients glow in the dark and can be used as landmarks.
-(`4-2-lit.png` is the same kitchen with the lights on.)
+(`4-2-lit.jpg` is the same kitchen with the lights on.)
 
 ### 4-3
 Four quadrants. Lower-left: ingredient crates. Upper-left: the level's **single** chopping

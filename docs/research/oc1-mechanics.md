@@ -19,7 +19,7 @@ this project needs are estimates.
 | Fact | Value | Source |
 |---|---|---|
 | Chef moves in 8 directions, faces the direction of travel | yes | universal to the series; no wiki page states it |
-| Chef walk speed | wiki: none. Estimate **4.2 tiles/s**. Reasoning: in the 1-1 screenshot (`screens/oc1/1-1.png`) the kitchen is ~12 tiles wide and a chef crosses it in a bit under 3 s of normal play footage; 4.2 tiles/s puts a full lap of the 1-1 loop at ~8 s, which matches the pace the level's 2:30 timer assumes. | estimate |
+| Chef walk speed | wiki: none. Estimate **4.2 tiles/s**. Reasoning: in the 1-1 screenshot (`screens/oc1/1-1.jpg`) the kitchen is ~12 tiles wide and a chef crosses it in a bit under 3 s of normal play footage; 4.2 tiles/s puts a full lap of the 1-1 loop at ~8 s, which matches the pace the level's 2:30 timer assumes. | estimate |
 | Dash | propels the chef forward, outruns conveyor belts, flings held ingredients further, and knocks items out of other chefs' hands. **Just over 0.5 s cooldown.** | [Dash](https://overcooked.fandom.com/wiki/Dash) |
 | Dash duration / distance | wiki: none. Estimate **0.25 s at ~2.5x walk speed** (≈1.7 tiles). Reasoning: the cooldown is stated as "just above half a second", so the dash itself must be well under that to feel like a burst rather than a run. | estimate |
 | Chefs collide with each other and with pedestrians | yes — pedestrians in 1-2 "interrupt the chefs" | [1-2](https://overcooked.fandom.com/wiki/1-2_(Overcooked!)) |

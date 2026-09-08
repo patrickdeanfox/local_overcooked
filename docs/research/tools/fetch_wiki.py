@@ -3,15 +3,21 @@
 
 The wiki rejects plain library user-agents (402), so every request sends a browser UA.
 Image files are served as WebP even when the title ends in .png, so downloads are
-converted with Pillow.
+converted with Pillow: JPEG at quality 88 by default (screenshots), or PNG with
+--png when transparency matters (icons, sprites).
 
 Usage:
     fetch_wiki.py text "1-1 (Overcooked!)"                 # print wikitext
     fetch_wiki.py images "1-1 (Overcooked!)"               # list image file titles
     fetch_wiki.py search soup                              # search page titles
     fetch_wiki.py category "Category:Levels"               # list category members
-    fetch_wiki.py download "File:1-1.webp" out/1-1.png     # download + convert to PNG
-    fetch_wiki.py page-images "1-1 (Overcooked!)" out/     # download every image on a page
+    fetch_wiki.py download "File:1-1.webp" out/1-1.jpg     # download -> JPEG q88
+    fetch_wiki.py download --png "File:Onionhi.png" o.png  # download -> PNG, alpha kept
+    fetch_wiki.py page-images "1-1 (Overcooked!)" out/     # every image on a page -> JPEG
+    fetch_wiki.py page-images --png "Soup" out/            # every image on a page -> PNG
+
+The output extension follows the flag, not the name you pass: `download` rewrites the
+destination extension to .jpg (or .png with --png) so the file never lies about itself.
 """
 
 # --- config -----------------------------------------------------------------
@@ -25,6 +31,7 @@ API = "https://overcooked.fandom.com/api.php"
 UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
 TIMEOUT = 60
 MAX_BYTES = 8 * 1024 * 1024  # skip anything larger; screenshots are well under this
+JPEG_QUALITY = 88            # default output; --png overrides for anything needing alpha
 
 
 # --- api helpers ------------------------------------------------------------
@@ -78,7 +85,7 @@ def image_url(file_title):
 
 
 # --- download ---------------------------------------------------------------
-def download(file_title, dest):
+def download(file_title, dest, as_png=False):
     url, size = image_url(file_title)
     if not url:
         print(f"  no url for {file_title}", file=sys.stderr)
@@ -89,6 +96,7 @@ def download(file_title, dest):
     req = urllib.request.Request(url, headers={"User-Agent": UA, "Referer": "https://overcooked.fandom.com/"})
     with urllib.request.urlopen(req, timeout=TIMEOUT) as fh:
         raw = fh.read()
+    dest = os.path.splitext(dest)[0] + (".png" if as_png else ".jpg")
     os.makedirs(os.path.dirname(os.path.abspath(dest)) or ".", exist_ok=True)
     tmp = dest + ".raw"
     with open(tmp, "wb") as fh:
@@ -96,26 +104,32 @@ def download(file_title, dest):
     try:
         from PIL import Image
         im = Image.open(tmp)
-        # keep transparency for icons, flatten photos/screenshots to RGB
-        im.convert("RGBA" if "A" in im.getbands() else "RGB").save(dest)
+        if as_png:  # keep transparency where the source has it
+            im.convert("RGBA" if "A" in im.getbands() else "RGB").save(dest)
+        else:       # screenshots: JPEG q88 keeps counter edges crisp at a fifth the size
+            im.convert("RGB").save(dest, quality=JPEG_QUALITY, optimize=True)
         os.remove(tmp)
     except Exception as exc:  # not an image Pillow understands: keep the raw bytes
         os.replace(tmp, dest)
         print(f"  raw copy for {file_title}: {exc}", file=sys.stderr)
-    print(f"  {file_title} -> {dest} ({len(raw)} bytes)")
+    print(f"  {file_title} -> {dest} ({os.path.getsize(dest)} bytes)")
     return True
 
 
-def download_page_images(page, out_dir):
+def download_page_images(page, out_dir, as_png=False):
     for name in page_images(page):
         if not name.lower().endswith((".png", ".jpg", ".jpeg", ".webp")):
             continue
         stem = os.path.splitext(name)[0]
-        download("File:" + name, os.path.join(out_dir, stem + ".png"))
+        download("File:" + name, os.path.join(out_dir, stem), as_png)
 
 
 # --- cli --------------------------------------------------------------------
 def main(argv):
+    argv = list(argv)
+    as_png = "--png" in argv
+    if as_png:
+        argv.remove("--png")
     if len(argv) < 3:
         print(__doc__)
         return 1
@@ -132,9 +146,9 @@ def main(argv):
     elif cmd == "url":
         print(image_url(arg))
     elif cmd == "download":
-        download(arg, argv[3])
+        download(arg, argv[3], as_png)
     elif cmd == "page-images":
-        download_page_images(arg, argv[3])
+        download_page_images(arg, argv[3], as_png)
     else:
         print(__doc__)
         return 1
