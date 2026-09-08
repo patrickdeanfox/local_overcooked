@@ -1,0 +1,7769 @@
+[
+  {
+    "id": "cheese_burger",
+    "game": "oc2",
+    "name": "Cheese Burger",
+    "wiki": "https://overcooked.fandom.com/wiki/Burger",
+    "ingredients": [
+      {
+        "name": "bun",
+        "steps": []
+      },
+      {
+        "name": "cheese",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "fry"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "panBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "double_pineapple_burger",
+      "lettuce_burger",
+      "lettuce_cheese_burger",
+      "meat_burger",
+      "tomato_lettuce_burger"
+    ],
+    "levels": [
+      "oc2-2-6",
+      "oc2-3-2",
+      "oc2-3-4",
+      "oc2-4-3",
+      "oc2-5-2",
+      "oc2-6-5",
+      "oc2-6-6"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "double_pineapple_burger",
+    "game": "oc2",
+    "name": "Double Pineapple Burger",
+    "wiki": "https://overcooked.fandom.com/wiki/Burger",
+    "ingredients": [
+      {
+        "name": "bun",
+        "steps": []
+      },
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "fry"
+        ]
+      },
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "fry"
+        ]
+      },
+      {
+        "name": "pineapple",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "panBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "cheese_burger",
+      "lettuce_burger",
+      "lettuce_cheese_burger",
+      "meat_burger",
+      "tomato_lettuce_burger"
+    ],
+    "levels": [],
+    "dlc": "Surf 'n' Turf",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "lettuce_burger",
+    "game": "oc1",
+    "name": "Lettuce Burger",
+    "wiki": "https://overcooked.fandom.com/wiki/Burger",
+    "ingredients": [
+      {
+        "name": "bun",
+        "steps": []
+      },
+      {
+        "name": "lettuce",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "fry"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "panBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "cheese_burger",
+      "double_pineapple_burger",
+      "lettuce_cheese_burger",
+      "meat_burger",
+      "tomato_lettuce_burger"
+    ],
+    "levels": [
+      "oc1-1-4",
+      "oc1-1-6",
+      "oc1-2-1",
+      "oc1-2-3",
+      "oc1-2-4",
+      "oc1-4-3",
+      "oc1-4-4",
+      "oc1-6-4",
+      "oc1-peckening"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "levels: the wiki names the recipe family per level but not which variant each level offers",
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "lettuce_cheese_burger",
+    "game": "oc2",
+    "name": "Lettuce & Cheese Burger",
+    "wiki": "https://overcooked.fandom.com/wiki/Burger",
+    "ingredients": [
+      {
+        "name": "bun",
+        "steps": []
+      },
+      {
+        "name": "cheese",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "lettuce",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "fry"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "panBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "cheese_burger",
+      "double_pineapple_burger",
+      "lettuce_burger",
+      "meat_burger",
+      "tomato_lettuce_burger"
+    ],
+    "levels": [
+      "oc2-3-2",
+      "oc2-3-4",
+      "oc2-4-3",
+      "oc2-5-2",
+      "oc2-6-4",
+      "oc2-6-5",
+      "oc2-6-6"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "meat_burger",
+    "game": "both",
+    "name": "Meat Burger",
+    "wiki": "https://overcooked.fandom.com/wiki/Burger",
+    "ingredients": [
+      {
+        "name": "bun",
+        "steps": []
+      },
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "fry"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "panBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "cheese_burger",
+      "double_pineapple_burger",
+      "lettuce_burger",
+      "lettuce_cheese_burger",
+      "tomato_lettuce_burger"
+    ],
+    "levels": [
+      "oc1-1-4",
+      "oc1-1-6",
+      "oc1-2-1",
+      "oc1-2-3",
+      "oc1-2-4",
+      "oc1-4-3",
+      "oc1-4-4",
+      "oc1-6-4",
+      "oc1-peckening",
+      "oc2-2-6",
+      "oc2-3-2",
+      "oc2-3-4",
+      "oc2-4-3",
+      "oc2-5-1",
+      "oc2-5-2",
+      "oc2-6-4",
+      "oc2-6-5"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "levels: the wiki names the recipe family per level but not which variant each level offers",
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "tomato_lettuce_burger",
+    "game": "both",
+    "name": "Tomato & Lettuce Burger (OC1: Salad Burger)",
+    "wiki": "https://overcooked.fandom.com/wiki/Burger",
+    "ingredients": [
+      {
+        "name": "bun",
+        "steps": []
+      },
+      {
+        "name": "lettuce",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "tomato",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "fry"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "panBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "cheese_burger",
+      "double_pineapple_burger",
+      "lettuce_burger",
+      "lettuce_cheese_burger",
+      "meat_burger"
+    ],
+    "levels": [
+      "oc1-1-4",
+      "oc1-1-6",
+      "oc1-2-1",
+      "oc1-2-3",
+      "oc1-2-4",
+      "oc1-4-3",
+      "oc1-4-4",
+      "oc1-6-4",
+      "oc1-peckening",
+      "oc2-3-4",
+      "oc2-5-2",
+      "oc2-6-4",
+      "oc2-6-6"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "levels: the wiki names the recipe family per level but not which variant each level offers",
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "beef_burrito",
+    "game": "both",
+    "name": "Beef Burrito",
+    "wiki": "https://overcooked.fandom.com/wiki/Burrito",
+    "ingredients": [
+      {
+        "name": "tortilla",
+        "steps": []
+      },
+      {
+        "name": "rice",
+        "steps": [
+          "boil"
+        ]
+      },
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "fry"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner",
+      "panBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "chicken_burrito",
+      "mushroom_burrito"
+    ],
+    "levels": [
+      "oc1-5-1",
+      "oc1-5-2",
+      "oc1-5-3",
+      "oc1-5-4",
+      "oc2-2-4",
+      "oc2-2-5",
+      "oc2-3-6",
+      "oc2-4-6",
+      "oc2-5-3",
+      "oc2-6-6"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "levels: the wiki names the recipe family per level but not which variant each level offers",
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "chicken_burrito",
+    "game": "both",
+    "name": "Chicken Burrito",
+    "wiki": "https://overcooked.fandom.com/wiki/Burrito",
+    "ingredients": [
+      {
+        "name": "tortilla",
+        "steps": []
+      },
+      {
+        "name": "rice",
+        "steps": [
+          "boil"
+        ]
+      },
+      {
+        "name": "chicken",
+        "steps": [
+          "chop",
+          "fry"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner",
+      "panBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "beef_burrito",
+      "mushroom_burrito"
+    ],
+    "levels": [
+      "oc1-5-1",
+      "oc1-5-2",
+      "oc1-5-3",
+      "oc1-5-4",
+      "oc2-2-5",
+      "oc2-3-6",
+      "oc2-4-6",
+      "oc2-5-3"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "levels: the wiki names the recipe family per level but not which variant each level offers",
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "mushroom_burrito",
+    "game": "oc2",
+    "name": "Mushroom Burrito",
+    "wiki": "https://overcooked.fandom.com/wiki/Burrito",
+    "ingredients": [
+      {
+        "name": "tortilla",
+        "steps": []
+      },
+      {
+        "name": "rice",
+        "steps": [
+          "boil"
+        ]
+      },
+      {
+        "name": "mushroom",
+        "steps": [
+          "chop",
+          "fry"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner",
+      "panBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "beef_burrito",
+      "chicken_burrito"
+    ],
+    "levels": [
+      "oc2-2-4",
+      "oc2-4-6",
+      "oc2-5-3",
+      "oc2-6-6"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "cake",
+    "game": "oc2",
+    "name": "Cake",
+    "wiki": "https://overcooked.fandom.com/wiki/Cake",
+    "ingredients": [
+      {
+        "name": "flour",
+        "steps": [
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "egg",
+        "steps": [
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "honey",
+        "steps": [
+          "chop",
+          "mix",
+          "bake"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "mixer",
+      "oven"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "oven to plate",
+    "variants": [
+      "carrot_cake",
+      "chocolate_cake"
+    ],
+    "levels": [
+      "oc2-6-1",
+      "oc2-6-2",
+      "oc2-6-3"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "carrot_cake",
+    "game": "oc2",
+    "name": "Carrot Cake",
+    "wiki": "https://overcooked.fandom.com/wiki/Cake",
+    "ingredients": [
+      {
+        "name": "flour",
+        "steps": [
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "egg",
+        "steps": [
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "honey",
+        "steps": [
+          "chop",
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "carrot",
+        "steps": [
+          "chop",
+          "mix",
+          "bake"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "mixer",
+      "oven"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "oven to plate",
+    "variants": [
+      "cake",
+      "chocolate_cake"
+    ],
+    "levels": [
+      "oc2-6-1",
+      "oc2-6-2",
+      "oc2-6-6"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "chocolate_cake",
+    "game": "oc2",
+    "name": "Chocolate Cake",
+    "wiki": "https://overcooked.fandom.com/wiki/Cake",
+    "ingredients": [
+      {
+        "name": "flour",
+        "steps": [
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "egg",
+        "steps": [
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "honey",
+        "steps": [
+          "chop",
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "chocolate",
+        "steps": [
+          "chop",
+          "mix",
+          "bake"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "mixer",
+      "oven"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "oven to plate",
+    "variants": [
+      "cake",
+      "carrot_cake"
+    ],
+    "levels": [
+      "oc2-6-1",
+      "oc2-6-2",
+      "oc2-6-3",
+      "oc2-6-6"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "christmas_cookies",
+    "game": "oc2",
+    "name": "Christmas Cookies",
+    "wiki": "https://overcooked.fandom.com/wiki/Christmas_Dessert",
+    "ingredients": [
+      {
+        "name": "flour",
+        "steps": [
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "egg",
+        "steps": [
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "dried fruit",
+        "steps": [
+          "chop",
+          "mix",
+          "bake"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "mixer",
+      "oven"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "oven to plate",
+    "variants": [
+      "christmas_pudding"
+    ],
+    "levels": [],
+    "dlc": "Kevin's Christmas Cracker (also Winter Wonderland)",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "christmas_pudding",
+    "game": "oc2",
+    "name": "Christmas Pudding",
+    "wiki": "https://overcooked.fandom.com/wiki/Christmas_Dessert",
+    "ingredients": [
+      {
+        "name": "flour",
+        "steps": [
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "egg",
+        "steps": [
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "dried fruit",
+        "steps": [
+          "chop",
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "orange",
+        "steps": [
+          "chop",
+          "mix",
+          "bake"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "mixer",
+      "oven"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "oven to plate",
+    "variants": [
+      "christmas_cookies"
+    ],
+    "levels": [],
+    "dlc": "Kevin's Christmas Cracker (also Winter Wonderland)",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "bacon_breakfast",
+    "game": "oc2",
+    "name": "Bacon Breakfast",
+    "wiki": "https://overcooked.fandom.com/wiki/Cooked_Breakfast",
+    "ingredients": [
+      {
+        "name": "bacon",
+        "steps": [
+          "chop",
+          "fry"
+        ]
+      },
+      {
+        "name": "egg",
+        "steps": [
+          "fry"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "panBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "four-slot pan to plate",
+    "variants": [
+      "bacon_sausage_breakfast",
+      "sausage_breakfast",
+      "sausage_egg_breakfast"
+    ],
+    "levels": [],
+    "dlc": "Campfire Cook Off",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "bacon_sausage_breakfast",
+    "game": "oc2",
+    "name": "Bacon Sausage Breakfast",
+    "wiki": "https://overcooked.fandom.com/wiki/Cooked_Breakfast",
+    "ingredients": [
+      {
+        "name": "bacon",
+        "steps": [
+          "chop",
+          "fry"
+        ]
+      },
+      {
+        "name": "beans",
+        "steps": [
+          "fry"
+        ]
+      },
+      {
+        "name": "egg",
+        "steps": [
+          "fry"
+        ]
+      },
+      {
+        "name": "sausage",
+        "steps": [
+          "chop",
+          "fry"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "panBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "four-slot pan to plate",
+    "variants": [
+      "bacon_breakfast",
+      "sausage_breakfast",
+      "sausage_egg_breakfast"
+    ],
+    "levels": [],
+    "dlc": "Campfire Cook Off",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "sausage_breakfast",
+    "game": "oc2",
+    "name": "Sausage Breakfast",
+    "wiki": "https://overcooked.fandom.com/wiki/Cooked_Breakfast",
+    "ingredients": [
+      {
+        "name": "sausage",
+        "steps": [
+          "chop",
+          "fry"
+        ]
+      },
+      {
+        "name": "beans",
+        "steps": [
+          "fry"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "panBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "four-slot pan to plate",
+    "variants": [
+      "bacon_breakfast",
+      "bacon_sausage_breakfast",
+      "sausage_egg_breakfast"
+    ],
+    "levels": [],
+    "dlc": "Campfire Cook Off",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "sausage_egg_breakfast",
+    "game": "oc2",
+    "name": "Sausage Egg Breakfast",
+    "wiki": "https://overcooked.fandom.com/wiki/Cooked_Breakfast",
+    "ingredients": [
+      {
+        "name": "sausage",
+        "steps": [
+          "chop",
+          "fry"
+        ]
+      },
+      {
+        "name": "egg",
+        "steps": [
+          "fry"
+        ]
+      },
+      {
+        "name": "beans",
+        "steps": [
+          "fry"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "panBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "four-slot pan to plate",
+    "variants": [
+      "bacon_breakfast",
+      "bacon_sausage_breakfast",
+      "sausage_breakfast"
+    ],
+    "levels": [],
+    "dlc": "Campfire Cook Off",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "chocolate_donut",
+    "game": "oc2",
+    "name": "Chocolate Donut",
+    "wiki": "https://overcooked.fandom.com/wiki/Donut",
+    "ingredients": [
+      {
+        "name": "flour",
+        "steps": [
+          "mix",
+          "deep fry"
+        ]
+      },
+      {
+        "name": "egg",
+        "steps": [
+          "mix",
+          "deep fry"
+        ]
+      },
+      {
+        "name": "chocolate",
+        "steps": [
+          "chop",
+          "mix",
+          "deep fry"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "mixer",
+      "fryer"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "fryer to plate",
+    "variants": [
+      "honey_donut",
+      "raspberry_donut"
+    ],
+    "levels": [],
+    "dlc": "Carnival of Chaos",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "honey_donut",
+    "game": "oc2",
+    "name": "Honey Donut",
+    "wiki": "https://overcooked.fandom.com/wiki/Donut",
+    "ingredients": [
+      {
+        "name": "flour",
+        "steps": [
+          "mix",
+          "deep fry"
+        ]
+      },
+      {
+        "name": "egg",
+        "steps": [
+          "mix",
+          "deep fry"
+        ]
+      },
+      {
+        "name": "honey",
+        "steps": [
+          "chop",
+          "mix",
+          "deep fry"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "mixer",
+      "fryer"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "fryer to plate",
+    "variants": [
+      "chocolate_donut",
+      "raspberry_donut"
+    ],
+    "levels": [],
+    "dlc": "Carnival of Chaos",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "raspberry_donut",
+    "game": "oc2",
+    "name": "Raspberry Donut",
+    "wiki": "https://overcooked.fandom.com/wiki/Donut",
+    "ingredients": [
+      {
+        "name": "flour",
+        "steps": [
+          "mix",
+          "deep fry"
+        ]
+      },
+      {
+        "name": "egg",
+        "steps": [
+          "mix",
+          "deep fry"
+        ]
+      },
+      {
+        "name": "raspberry",
+        "steps": [
+          "chop",
+          "mix",
+          "deep fry"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "mixer",
+      "fryer"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "fryer to plate",
+    "variants": [
+      "chocolate_donut",
+      "honey_donut"
+    ],
+    "levels": [],
+    "dlc": "Carnival of Chaos",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "chips",
+    "game": "both",
+    "name": "Chips",
+    "wiki": "https://overcooked.fandom.com/wiki/Fast_Food",
+    "ingredients": [
+      {
+        "name": "potato",
+        "steps": [
+          "chop",
+          "deep fry"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "fryer"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "frying basket to plate",
+    "variants": [
+      "fish_and_chips",
+      "fried_fish",
+      "nuggets",
+      "nuggets_and_chips"
+    ],
+    "levels": [
+      "oc1-3-1",
+      "oc1-3-3",
+      "oc1-3-4",
+      "oc1-peckening",
+      "oc2-3-5",
+      "oc2-4-2",
+      "oc2-4-4"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "levels: the wiki names the recipe family per level but not which variant each level offers",
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "fish_and_chips",
+    "game": "oc1",
+    "name": "Fish and Chips",
+    "wiki": "https://overcooked.fandom.com/wiki/Fast_Food",
+    "ingredients": [
+      {
+        "name": "fish",
+        "steps": [
+          "chop",
+          "deep fry"
+        ]
+      },
+      {
+        "name": "potato",
+        "steps": [
+          "chop",
+          "deep fry"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "fryer"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "frying basket to plate",
+    "variants": [
+      "chips",
+      "fried_fish",
+      "nuggets",
+      "nuggets_and_chips"
+    ],
+    "levels": [
+      "oc1-3-1",
+      "oc1-3-3",
+      "oc1-3-4",
+      "oc1-peckening"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "fried_fish",
+    "game": "oc1",
+    "name": "Fried Fish",
+    "wiki": "https://overcooked.fandom.com/wiki/Fast_Food",
+    "ingredients": [
+      {
+        "name": "fish",
+        "steps": [
+          "chop",
+          "deep fry"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "fryer"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "frying basket to plate",
+    "variants": [
+      "chips",
+      "fish_and_chips",
+      "nuggets",
+      "nuggets_and_chips"
+    ],
+    "levels": [
+      "oc1-3-1",
+      "oc1-3-3",
+      "oc1-3-4",
+      "oc1-peckening"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "levels: the wiki names the recipe family per level but not which variant each level offers",
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "nuggets",
+    "game": "oc2",
+    "name": "Nuggets",
+    "wiki": "https://overcooked.fandom.com/wiki/Fast_Food",
+    "ingredients": [
+      {
+        "name": "chicken",
+        "steps": [
+          "chop",
+          "deep fry"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "fryer"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "frying basket to plate",
+    "variants": [
+      "chips",
+      "fish_and_chips",
+      "fried_fish",
+      "nuggets_and_chips"
+    ],
+    "levels": [
+      "oc2-2-1",
+      "oc2-3-5",
+      "oc2-4-2",
+      "oc2-4-4",
+      "oc2-6-6"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "nuggets_and_chips",
+    "game": "oc2",
+    "name": "Nuggets & Chips",
+    "wiki": "https://overcooked.fandom.com/wiki/Fast_Food",
+    "ingredients": [
+      {
+        "name": "chicken",
+        "steps": [
+          "chop",
+          "deep fry"
+        ]
+      },
+      {
+        "name": "potato",
+        "steps": [
+          "chop",
+          "deep fry"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "fryer"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "frying basket to plate",
+    "variants": [
+      "chips",
+      "fish_and_chips",
+      "fried_fish",
+      "nuggets"
+    ],
+    "levels": [
+      "oc2-2-1",
+      "oc2-3-5",
+      "oc2-4-2",
+      "oc2-4-4",
+      "oc2-6-6"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "apple_blackberry_pie",
+    "game": "oc2",
+    "name": "Apple Blackberry Pie",
+    "wiki": "https://overcooked.fandom.com/wiki/Fruit_Pie",
+    "ingredients": [
+      {
+        "name": "flour",
+        "steps": [
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "egg",
+        "steps": [
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "apple",
+        "steps": [
+          "chop",
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "blackberry",
+        "steps": [
+          "chop",
+          "mix",
+          "bake"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "mixer",
+      "oven"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "oven to plate",
+    "variants": [
+      "apple_cherry_pie",
+      "apple_pie",
+      "blackberry_pie",
+      "cherry_pie"
+    ],
+    "levels": [],
+    "dlc": "Night of the Hangry Horde",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "apple_cherry_pie",
+    "game": "oc2",
+    "name": "Apple Cherry Pie",
+    "wiki": "https://overcooked.fandom.com/wiki/Fruit_Pie",
+    "ingredients": [
+      {
+        "name": "flour",
+        "steps": [
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "egg",
+        "steps": [
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "apple",
+        "steps": [
+          "chop",
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "cherry",
+        "steps": [
+          "chop",
+          "mix",
+          "bake"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "mixer",
+      "oven"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "oven to plate",
+    "variants": [
+      "apple_blackberry_pie",
+      "apple_pie",
+      "blackberry_pie",
+      "cherry_pie"
+    ],
+    "levels": [],
+    "dlc": "Night of the Hangry Horde",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "apple_pie",
+    "game": "oc2",
+    "name": "Apple Pie",
+    "wiki": "https://overcooked.fandom.com/wiki/Fruit_Pie",
+    "ingredients": [
+      {
+        "name": "flour",
+        "steps": [
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "egg",
+        "steps": [
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "apple",
+        "steps": [
+          "chop",
+          "mix",
+          "bake"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "mixer",
+      "oven"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "oven to plate",
+    "variants": [
+      "apple_blackberry_pie",
+      "apple_cherry_pie",
+      "blackberry_pie",
+      "cherry_pie"
+    ],
+    "levels": [],
+    "dlc": "Night of the Hangry Horde",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "blackberry_pie",
+    "game": "oc2",
+    "name": "Blackberry Pie",
+    "wiki": "https://overcooked.fandom.com/wiki/Fruit_Pie",
+    "ingredients": [
+      {
+        "name": "flour",
+        "steps": [
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "egg",
+        "steps": [
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "blackberry",
+        "steps": [
+          "chop",
+          "mix",
+          "bake"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "mixer",
+      "oven"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "oven to plate",
+    "variants": [
+      "apple_blackberry_pie",
+      "apple_cherry_pie",
+      "apple_pie",
+      "cherry_pie"
+    ],
+    "levels": [],
+    "dlc": "Night of the Hangry Horde",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "cherry_pie",
+    "game": "oc2",
+    "name": "Cherry Pie",
+    "wiki": "https://overcooked.fandom.com/wiki/Fruit_Pie",
+    "ingredients": [
+      {
+        "name": "flour",
+        "steps": [
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "egg",
+        "steps": [
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "cherry",
+        "steps": [
+          "chop",
+          "mix",
+          "bake"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "mixer",
+      "oven"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "oven to plate",
+    "variants": [
+      "apple_blackberry_pie",
+      "apple_cherry_pie",
+      "apple_pie",
+      "blackberry_pie"
+    ],
+    "levels": [],
+    "dlc": "Night of the Hangry Horde",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "grape_peach_platter",
+    "game": "oc2",
+    "name": "Grape Peach Platter",
+    "wiki": "https://overcooked.fandom.com/wiki/Fruit_Platter",
+    "ingredients": [
+      {
+        "name": "grapes",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "peach",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "orange_grape_platter",
+      "orange_peach_grape_platter",
+      "orange_peach_platter"
+    ],
+    "levels": [],
+    "dlc": "Chinese New Year (also Spring Festival, Moon Harvest)",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "orange_grape_platter",
+    "game": "oc2",
+    "name": "Orange Grape Platter",
+    "wiki": "https://overcooked.fandom.com/wiki/Fruit_Platter",
+    "ingredients": [
+      {
+        "name": "orange",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "grapes",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "grape_peach_platter",
+      "orange_peach_grape_platter",
+      "orange_peach_platter"
+    ],
+    "levels": [],
+    "dlc": "Chinese New Year (also Spring Festival, Moon Harvest)",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "orange_peach_grape_platter",
+    "game": "oc2",
+    "name": "Orange Peach Grape Platter",
+    "wiki": "https://overcooked.fandom.com/wiki/Fruit_Platter",
+    "ingredients": [
+      {
+        "name": "orange",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "peach",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "grapes",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "grape_peach_platter",
+      "orange_grape_platter",
+      "orange_peach_platter"
+    ],
+    "levels": [],
+    "dlc": "Chinese New Year (also Spring Festival, Moon Harvest)",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "orange_peach_platter",
+    "game": "oc2",
+    "name": "Orange Peach Platter",
+    "wiki": "https://overcooked.fandom.com/wiki/Fruit_Platter",
+    "ingredients": [
+      {
+        "name": "orange",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "peach",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "grape_peach_platter",
+      "orange_grape_platter",
+      "orange_peach_grape_platter"
+    ],
+    "levels": [],
+    "dlc": "Chinese New Year (also Spring Festival, Moon Harvest)",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "hot_chocolate",
+    "game": "oc2",
+    "name": "Hot Chocolate",
+    "wiki": "https://overcooked.fandom.com/wiki/Hot_Chocolate",
+    "ingredients": [
+      {
+        "name": "milk",
+        "steps": [
+          "boil"
+        ]
+      },
+      {
+        "name": "chocolate",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pour into a mug",
+    "variants": [
+      "hot_chocolate_cream",
+      "hot_chocolate_cream_marshmallow",
+      "hot_chocolate_marshmallow"
+    ],
+    "levels": [],
+    "dlc": "Kevin's Christmas Cracker (also Winter Wonderland)",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "hot_chocolate_cream",
+    "game": "oc2",
+    "name": "Hot Chocolate Cream",
+    "wiki": "https://overcooked.fandom.com/wiki/Hot_Chocolate",
+    "ingredients": [
+      {
+        "name": "milk",
+        "steps": [
+          "boil"
+        ]
+      },
+      {
+        "name": "chocolate",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "whipped cream",
+        "steps": []
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pour into a mug",
+    "variants": [
+      "hot_chocolate",
+      "hot_chocolate_cream_marshmallow",
+      "hot_chocolate_marshmallow"
+    ],
+    "levels": [],
+    "dlc": "Kevin's Christmas Cracker (also Winter Wonderland)",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "hot_chocolate_cream_marshmallow",
+    "game": "oc2",
+    "name": "Hot Chocolate Cream Marshmallow",
+    "wiki": "https://overcooked.fandom.com/wiki/Hot_Chocolate",
+    "ingredients": [
+      {
+        "name": "milk",
+        "steps": [
+          "boil"
+        ]
+      },
+      {
+        "name": "chocolate",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "whipped cream",
+        "steps": []
+      },
+      {
+        "name": "marshmallow",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pour into a mug",
+    "variants": [
+      "hot_chocolate",
+      "hot_chocolate_cream",
+      "hot_chocolate_marshmallow"
+    ],
+    "levels": [],
+    "dlc": "Kevin's Christmas Cracker (also Winter Wonderland)",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "hot_chocolate_marshmallow",
+    "game": "oc2",
+    "name": "Hot Chocolate Marshmallow",
+    "wiki": "https://overcooked.fandom.com/wiki/Hot_Chocolate",
+    "ingredients": [
+      {
+        "name": "milk",
+        "steps": [
+          "boil"
+        ]
+      },
+      {
+        "name": "chocolate",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "marshmallow",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pour into a mug",
+    "variants": [
+      "hot_chocolate",
+      "hot_chocolate_cream",
+      "hot_chocolate_cream_marshmallow"
+    ],
+    "levels": [],
+    "dlc": "Kevin's Christmas Cracker (also Winter Wonderland)",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "hotdog",
+    "game": "oc2",
+    "name": "Hot Dog",
+    "wiki": "https://overcooked.fandom.com/wiki/Hot_Dog_(Recipe)",
+    "ingredients": [
+      {
+        "name": "hot dog bun",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "sausage",
+        "steps": [
+          "boil"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "hotdog_ketchup",
+      "hotdog_ketchup_mustard",
+      "hotdog_mustard",
+      "hotdog_onion",
+      "hotdog_onion_ketchup",
+      "hotdog_onion_mustard"
+    ],
+    "levels": [],
+    "dlc": "Carnival of Chaos",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "hotdog_ketchup",
+    "game": "oc2",
+    "name": "Hot Dog with Ketchup",
+    "wiki": "https://overcooked.fandom.com/wiki/Hot_Dog_(Recipe)",
+    "ingredients": [
+      {
+        "name": "hot dog bun",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "sausage",
+        "steps": [
+          "boil"
+        ]
+      },
+      {
+        "name": "ketchup",
+        "steps": []
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "hotdog",
+      "hotdog_ketchup_mustard",
+      "hotdog_mustard",
+      "hotdog_onion",
+      "hotdog_onion_ketchup",
+      "hotdog_onion_mustard"
+    ],
+    "levels": [],
+    "dlc": "Carnival of Chaos",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "hotdog_ketchup_mustard",
+    "game": "oc2",
+    "name": "Hot Dog with Ketchup & Mustard",
+    "wiki": "https://overcooked.fandom.com/wiki/Hot_Dog_(Recipe)",
+    "ingredients": [
+      {
+        "name": "hot dog bun",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "sausage",
+        "steps": [
+          "boil"
+        ]
+      },
+      {
+        "name": "ketchup",
+        "steps": []
+      },
+      {
+        "name": "mustard",
+        "steps": []
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "hotdog",
+      "hotdog_ketchup",
+      "hotdog_mustard",
+      "hotdog_onion",
+      "hotdog_onion_ketchup",
+      "hotdog_onion_mustard"
+    ],
+    "levels": [],
+    "dlc": "Carnival of Chaos",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "hotdog_mustard",
+    "game": "oc2",
+    "name": "Hot Dog with Mustard",
+    "wiki": "https://overcooked.fandom.com/wiki/Hot_Dog_(Recipe)",
+    "ingredients": [
+      {
+        "name": "hot dog bun",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "sausage",
+        "steps": [
+          "boil"
+        ]
+      },
+      {
+        "name": "mustard",
+        "steps": []
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "hotdog",
+      "hotdog_ketchup",
+      "hotdog_ketchup_mustard",
+      "hotdog_onion",
+      "hotdog_onion_ketchup",
+      "hotdog_onion_mustard"
+    ],
+    "levels": [],
+    "dlc": "Carnival of Chaos",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "hotdog_onion",
+    "game": "oc2",
+    "name": "Hot Dog with Onion",
+    "wiki": "https://overcooked.fandom.com/wiki/Hot_Dog_(Recipe)",
+    "ingredients": [
+      {
+        "name": "hot dog bun",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "sausage",
+        "steps": [
+          "boil"
+        ]
+      },
+      {
+        "name": "onion",
+        "steps": [
+          "chop",
+          "fry"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner",
+      "panBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "hotdog",
+      "hotdog_ketchup",
+      "hotdog_ketchup_mustard",
+      "hotdog_mustard",
+      "hotdog_onion_ketchup",
+      "hotdog_onion_mustard"
+    ],
+    "levels": [],
+    "dlc": "Carnival of Chaos",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "hotdog_onion_ketchup",
+    "game": "oc2",
+    "name": "Hot Dog with Onion & Ketchup",
+    "wiki": "https://overcooked.fandom.com/wiki/Hot_Dog_(Recipe)",
+    "ingredients": [
+      {
+        "name": "hot dog bun",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "sausage",
+        "steps": [
+          "boil"
+        ]
+      },
+      {
+        "name": "onion",
+        "steps": [
+          "chop",
+          "fry"
+        ]
+      },
+      {
+        "name": "ketchup",
+        "steps": []
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner",
+      "panBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "hotdog",
+      "hotdog_ketchup",
+      "hotdog_ketchup_mustard",
+      "hotdog_mustard",
+      "hotdog_onion",
+      "hotdog_onion_mustard"
+    ],
+    "levels": [],
+    "dlc": "Carnival of Chaos",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "hotdog_onion_mustard",
+    "game": "oc2",
+    "name": "Hot Dog with Onion & Mustard",
+    "wiki": "https://overcooked.fandom.com/wiki/Hot_Dog_(Recipe)",
+    "ingredients": [
+      {
+        "name": "hot dog bun",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "sausage",
+        "steps": [
+          "boil"
+        ]
+      },
+      {
+        "name": "onion",
+        "steps": [
+          "chop",
+          "fry"
+        ]
+      },
+      {
+        "name": "mustard",
+        "steps": []
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner",
+      "panBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "hotdog",
+      "hotdog_ketchup",
+      "hotdog_ketchup_mustard",
+      "hotdog_mustard",
+      "hotdog_onion",
+      "hotdog_onion_ketchup"
+    ],
+    "levels": [],
+    "dlc": "Carnival of Chaos",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "beef_hot_pot",
+    "game": "oc2",
+    "name": "Beef Hot Pot",
+    "wiki": "https://overcooked.fandom.com/wiki/Hot_Pot",
+    "ingredients": [
+      {
+        "name": "noodles",
+        "steps": [
+          "boil"
+        ]
+      },
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "bok choy",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "wok"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "wok to bowl",
+    "variants": [
+      "beef_prawn_hot_pot",
+      "double_beef_hot_pot",
+      "double_prawn_hot_pot",
+      "prawn_hot_pot"
+    ],
+    "levels": [],
+    "dlc": "Chinese New Year",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "beef_prawn_hot_pot",
+    "game": "oc2",
+    "name": "Beef Prawn Hot Pot",
+    "wiki": "https://overcooked.fandom.com/wiki/Hot_Pot",
+    "ingredients": [
+      {
+        "name": "noodles",
+        "steps": [
+          "boil"
+        ]
+      },
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "prawn",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "bok choy",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "wok"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "wok to bowl",
+    "variants": [
+      "beef_hot_pot",
+      "double_beef_hot_pot",
+      "double_prawn_hot_pot",
+      "prawn_hot_pot"
+    ],
+    "levels": [],
+    "dlc": "Chinese New Year",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "double_beef_hot_pot",
+    "game": "oc2",
+    "name": "Double Beef Hot Pot",
+    "wiki": "https://overcooked.fandom.com/wiki/Hot_Pot",
+    "ingredients": [
+      {
+        "name": "noodles",
+        "steps": [
+          "boil"
+        ]
+      },
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "bok choy",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "wok"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "wok to bowl",
+    "variants": [
+      "beef_hot_pot",
+      "beef_prawn_hot_pot",
+      "double_prawn_hot_pot",
+      "prawn_hot_pot"
+    ],
+    "levels": [],
+    "dlc": "Chinese New Year",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "double_prawn_hot_pot",
+    "game": "oc2",
+    "name": "Double Prawn Hot Pot",
+    "wiki": "https://overcooked.fandom.com/wiki/Hot_Pot",
+    "ingredients": [
+      {
+        "name": "noodles",
+        "steps": [
+          "boil"
+        ]
+      },
+      {
+        "name": "prawn",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "prawn",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "bok choy",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "wok"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "wok to bowl",
+    "variants": [
+      "beef_hot_pot",
+      "beef_prawn_hot_pot",
+      "double_beef_hot_pot",
+      "prawn_hot_pot"
+    ],
+    "levels": [],
+    "dlc": "Chinese New Year",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "prawn_hot_pot",
+    "game": "oc2",
+    "name": "Prawn Hot Pot",
+    "wiki": "https://overcooked.fandom.com/wiki/Hot_Pot",
+    "ingredients": [
+      {
+        "name": "noodles",
+        "steps": [
+          "boil"
+        ]
+      },
+      {
+        "name": "prawn",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "bok choy",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "wok"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "wok to bowl",
+    "variants": [
+      "beef_hot_pot",
+      "beef_prawn_hot_pot",
+      "double_beef_hot_pot",
+      "double_prawn_hot_pot"
+    ],
+    "levels": [],
+    "dlc": "Chinese New Year",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "chocolate_cola_ice_cream_float",
+    "game": "oc2",
+    "name": "Chocolate Cola Ice Cream Float",
+    "wiki": "https://overcooked.fandom.com/wiki/Ice_Cream_Float",
+    "ingredients": [
+      {
+        "name": "ice",
+        "steps": [
+          "chop",
+          "blend"
+        ]
+      },
+      {
+        "name": "milk",
+        "steps": [
+          "blend"
+        ]
+      },
+      {
+        "name": "chocolate",
+        "steps": [
+          "chop",
+          "blend"
+        ]
+      },
+      {
+        "name": "cola",
+        "steps": []
+      }
+    ],
+    "stations": [
+      "board",
+      "blender"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pour into a glass with a drink from the drinks machine",
+    "variants": [
+      "chocolate_orange_ice_cream_float",
+      "vanilla_cola_ice_cream_float",
+      "vanilla_orange_ice_cream_float"
+    ],
+    "levels": [],
+    "dlc": "Sun's Out, Buns Out",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "chocolate_orange_ice_cream_float",
+    "game": "oc2",
+    "name": "Chocolate Orange Ice Cream Float",
+    "wiki": "https://overcooked.fandom.com/wiki/Ice_Cream_Float",
+    "ingredients": [
+      {
+        "name": "ice",
+        "steps": [
+          "chop",
+          "blend"
+        ]
+      },
+      {
+        "name": "milk",
+        "steps": [
+          "blend"
+        ]
+      },
+      {
+        "name": "chocolate",
+        "steps": [
+          "chop",
+          "blend"
+        ]
+      },
+      {
+        "name": "orange drink",
+        "steps": []
+      }
+    ],
+    "stations": [
+      "board",
+      "blender"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pour into a glass with a drink from the drinks machine",
+    "variants": [
+      "chocolate_cola_ice_cream_float",
+      "vanilla_cola_ice_cream_float",
+      "vanilla_orange_ice_cream_float"
+    ],
+    "levels": [],
+    "dlc": "Sun's Out, Buns Out",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "vanilla_cola_ice_cream_float",
+    "game": "oc2",
+    "name": "Vanilla Cola Ice Cream Float",
+    "wiki": "https://overcooked.fandom.com/wiki/Ice_Cream_Float",
+    "ingredients": [
+      {
+        "name": "ice",
+        "steps": [
+          "chop",
+          "blend"
+        ]
+      },
+      {
+        "name": "milk",
+        "steps": [
+          "blend"
+        ]
+      },
+      {
+        "name": "vanilla",
+        "steps": [
+          "chop",
+          "blend"
+        ]
+      },
+      {
+        "name": "cola",
+        "steps": []
+      }
+    ],
+    "stations": [
+      "board",
+      "blender"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pour into a glass with a drink from the drinks machine",
+    "variants": [
+      "chocolate_cola_ice_cream_float",
+      "chocolate_orange_ice_cream_float",
+      "vanilla_orange_ice_cream_float"
+    ],
+    "levels": [],
+    "dlc": "Sun's Out, Buns Out",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "vanilla_orange_ice_cream_float",
+    "game": "oc2",
+    "name": "Vanilla Orange Ice Cream Float",
+    "wiki": "https://overcooked.fandom.com/wiki/Ice_Cream_Float",
+    "ingredients": [
+      {
+        "name": "ice",
+        "steps": [
+          "chop",
+          "blend"
+        ]
+      },
+      {
+        "name": "milk",
+        "steps": [
+          "blend"
+        ]
+      },
+      {
+        "name": "vanilla",
+        "steps": [
+          "chop",
+          "blend"
+        ]
+      },
+      {
+        "name": "orange drink",
+        "steps": []
+      }
+    ],
+    "stations": [
+      "board",
+      "blender"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pour into a glass with a drink from the drinks machine",
+    "variants": [
+      "chocolate_cola_ice_cream_float",
+      "chocolate_orange_ice_cream_float",
+      "vanilla_cola_ice_cream_float"
+    ],
+    "levels": [],
+    "dlc": "Sun's Out, Buns Out",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "beef_mushroom_pineapple_kebab",
+    "game": "oc2",
+    "name": "Beef Mushroom Pineapple Kebab",
+    "wiki": "https://overcooked.fandom.com/wiki/Kebab",
+    "ingredients": [
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "barbecue"
+        ]
+      },
+      {
+        "name": "mushroom",
+        "steps": [
+          "chop",
+          "barbecue"
+        ]
+      },
+      {
+        "name": "pineapple",
+        "steps": [
+          "chop",
+          "barbecue"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "barbecue"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "skewer, barbecue, then plate",
+    "variants": [
+      "chicken_beef_tomato_kebab",
+      "chicken_tomato_kebab",
+      "mushroom_pineapple_tomato_kebab"
+    ],
+    "levels": [],
+    "dlc": "Surf 'n' Turf",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "chicken_beef_tomato_kebab",
+    "game": "oc2",
+    "name": "Chicken Beef Tomato Kebab",
+    "wiki": "https://overcooked.fandom.com/wiki/Kebab",
+    "ingredients": [
+      {
+        "name": "chicken",
+        "steps": [
+          "chop",
+          "barbecue"
+        ]
+      },
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "barbecue"
+        ]
+      },
+      {
+        "name": "tomato",
+        "steps": [
+          "chop",
+          "barbecue"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "barbecue"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "skewer, barbecue, then plate",
+    "variants": [
+      "beef_mushroom_pineapple_kebab",
+      "chicken_tomato_kebab",
+      "mushroom_pineapple_tomato_kebab"
+    ],
+    "levels": [],
+    "dlc": "Surf 'n' Turf",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "chicken_tomato_kebab",
+    "game": "oc2",
+    "name": "Chicken Tomato Kebab",
+    "wiki": "https://overcooked.fandom.com/wiki/Kebab",
+    "ingredients": [
+      {
+        "name": "chicken",
+        "steps": [
+          "chop",
+          "barbecue"
+        ]
+      },
+      {
+        "name": "tomato",
+        "steps": [
+          "chop",
+          "barbecue"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "barbecue"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "skewer, barbecue, then plate",
+    "variants": [
+      "beef_mushroom_pineapple_kebab",
+      "chicken_beef_tomato_kebab",
+      "mushroom_pineapple_tomato_kebab"
+    ],
+    "levels": [],
+    "dlc": "Surf 'n' Turf",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "mushroom_pineapple_tomato_kebab",
+    "game": "oc2",
+    "name": "Mushroom Pineapple Tomato Kebab",
+    "wiki": "https://overcooked.fandom.com/wiki/Kebab",
+    "ingredients": [
+      {
+        "name": "mushroom",
+        "steps": [
+          "chop",
+          "barbecue"
+        ]
+      },
+      {
+        "name": "pineapple",
+        "steps": [
+          "chop",
+          "barbecue"
+        ]
+      },
+      {
+        "name": "tomato",
+        "steps": [
+          "chop",
+          "barbecue"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "barbecue"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "skewer, barbecue, then plate",
+    "variants": [
+      "beef_mushroom_pineapple_kebab",
+      "chicken_beef_tomato_kebab",
+      "chicken_tomato_kebab"
+    ],
+    "levels": [],
+    "dlc": "Surf 'n' Turf",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "beef_deal_cheese_yellow",
+    "game": "oc2",
+    "name": "Beef Deal Cheese Yellow",
+    "wiki": "https://overcooked.fandom.com/wiki/Meal_Deal",
+    "ingredients": [
+      {
+        "name": "bun",
+        "steps": [
+          "fry"
+        ]
+      },
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "deep fry"
+        ]
+      },
+      {
+        "name": "cheese",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "yellow drink",
+        "steps": []
+      }
+    ],
+    "stations": [
+      "board",
+      "panBurner",
+      "fryer"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on a tray",
+    "variants": [
+      "beef_deal_onion",
+      "beef_deal_onion_cheese",
+      "beef_deal_onion_red",
+      "beef_deal_potato",
+      "beef_deal_potato_cheese",
+      "beef_deal_potato_green",
+      "beef_deal_red",
+      "chicken_deal_cheese",
+      "chicken_deal_cheese_green",
+      "chicken_deal_onion",
+      "chicken_deal_onion_red",
+      "chicken_deal_potato_cheese",
+      "chicken_deal_potato_onion",
+      "chicken_deal_potato_yellow",
+      "chicken_deal_yellow"
+    ],
+    "levels": [],
+    "dlc": "Carnival of Chaos",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "beef_deal_onion",
+    "game": "oc2",
+    "name": "Beef Deal Onion",
+    "wiki": "https://overcooked.fandom.com/wiki/Meal_Deal",
+    "ingredients": [
+      {
+        "name": "bun",
+        "steps": [
+          "fry"
+        ]
+      },
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "deep fry"
+        ]
+      },
+      {
+        "name": "onion",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "panBurner",
+      "fryer"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on a tray",
+    "variants": [
+      "beef_deal_cheese_yellow",
+      "beef_deal_onion_cheese",
+      "beef_deal_onion_red",
+      "beef_deal_potato",
+      "beef_deal_potato_cheese",
+      "beef_deal_potato_green",
+      "beef_deal_red",
+      "chicken_deal_cheese",
+      "chicken_deal_cheese_green",
+      "chicken_deal_onion",
+      "chicken_deal_onion_red",
+      "chicken_deal_potato_cheese",
+      "chicken_deal_potato_onion",
+      "chicken_deal_potato_yellow",
+      "chicken_deal_yellow"
+    ],
+    "levels": [],
+    "dlc": "Carnival of Chaos",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "beef_deal_onion_cheese",
+    "game": "oc2",
+    "name": "Beef Deal Onion Cheese",
+    "wiki": "https://overcooked.fandom.com/wiki/Meal_Deal",
+    "ingredients": [
+      {
+        "name": "bun",
+        "steps": [
+          "fry"
+        ]
+      },
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "deep fry"
+        ]
+      },
+      {
+        "name": "onion",
+        "steps": [
+          "chop",
+          "deep fry"
+        ]
+      },
+      {
+        "name": "cheese",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "panBurner",
+      "fryer"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on a tray",
+    "variants": [
+      "beef_deal_cheese_yellow",
+      "beef_deal_onion",
+      "beef_deal_onion_red",
+      "beef_deal_potato",
+      "beef_deal_potato_cheese",
+      "beef_deal_potato_green",
+      "beef_deal_red",
+      "chicken_deal_cheese",
+      "chicken_deal_cheese_green",
+      "chicken_deal_onion",
+      "chicken_deal_onion_red",
+      "chicken_deal_potato_cheese",
+      "chicken_deal_potato_onion",
+      "chicken_deal_potato_yellow",
+      "chicken_deal_yellow"
+    ],
+    "levels": [],
+    "dlc": "Carnival of Chaos",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "beef_deal_onion_red",
+    "game": "oc2",
+    "name": "Beef Deal Onion Red",
+    "wiki": "https://overcooked.fandom.com/wiki/Meal_Deal",
+    "ingredients": [
+      {
+        "name": "bun",
+        "steps": [
+          "fry"
+        ]
+      },
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "deep fry"
+        ]
+      },
+      {
+        "name": "onion",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "red drink",
+        "steps": []
+      }
+    ],
+    "stations": [
+      "board",
+      "panBurner",
+      "fryer"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on a tray",
+    "variants": [
+      "beef_deal_cheese_yellow",
+      "beef_deal_onion",
+      "beef_deal_onion_cheese",
+      "beef_deal_potato",
+      "beef_deal_potato_cheese",
+      "beef_deal_potato_green",
+      "beef_deal_red",
+      "chicken_deal_cheese",
+      "chicken_deal_cheese_green",
+      "chicken_deal_onion",
+      "chicken_deal_onion_red",
+      "chicken_deal_potato_cheese",
+      "chicken_deal_potato_onion",
+      "chicken_deal_potato_yellow",
+      "chicken_deal_yellow"
+    ],
+    "levels": [],
+    "dlc": "Carnival of Chaos",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "beef_deal_potato",
+    "game": "oc2",
+    "name": "Beef Deal Potato",
+    "wiki": "https://overcooked.fandom.com/wiki/Meal_Deal",
+    "ingredients": [
+      {
+        "name": "bun",
+        "steps": [
+          "fry"
+        ]
+      },
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "deep fry"
+        ]
+      },
+      {
+        "name": "potato",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "panBurner",
+      "fryer"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on a tray",
+    "variants": [
+      "beef_deal_cheese_yellow",
+      "beef_deal_onion",
+      "beef_deal_onion_cheese",
+      "beef_deal_onion_red",
+      "beef_deal_potato_cheese",
+      "beef_deal_potato_green",
+      "beef_deal_red",
+      "chicken_deal_cheese",
+      "chicken_deal_cheese_green",
+      "chicken_deal_onion",
+      "chicken_deal_onion_red",
+      "chicken_deal_potato_cheese",
+      "chicken_deal_potato_onion",
+      "chicken_deal_potato_yellow",
+      "chicken_deal_yellow"
+    ],
+    "levels": [],
+    "dlc": "Carnival of Chaos",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "beef_deal_potato_cheese",
+    "game": "oc2",
+    "name": "Beef Deal Potato Cheese",
+    "wiki": "https://overcooked.fandom.com/wiki/Meal_Deal",
+    "ingredients": [
+      {
+        "name": "bun",
+        "steps": [
+          "fry"
+        ]
+      },
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "deep fry"
+        ]
+      },
+      {
+        "name": "potato",
+        "steps": [
+          "chop",
+          "deep fry"
+        ]
+      },
+      {
+        "name": "cheese",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "panBurner",
+      "fryer"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on a tray",
+    "variants": [
+      "beef_deal_cheese_yellow",
+      "beef_deal_onion",
+      "beef_deal_onion_cheese",
+      "beef_deal_onion_red",
+      "beef_deal_potato",
+      "beef_deal_potato_green",
+      "beef_deal_red",
+      "chicken_deal_cheese",
+      "chicken_deal_cheese_green",
+      "chicken_deal_onion",
+      "chicken_deal_onion_red",
+      "chicken_deal_potato_cheese",
+      "chicken_deal_potato_onion",
+      "chicken_deal_potato_yellow",
+      "chicken_deal_yellow"
+    ],
+    "levels": [],
+    "dlc": "Carnival of Chaos",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "beef_deal_potato_green",
+    "game": "oc2",
+    "name": "Beef Deal Potato Green",
+    "wiki": "https://overcooked.fandom.com/wiki/Meal_Deal",
+    "ingredients": [
+      {
+        "name": "bun",
+        "steps": [
+          "fry"
+        ]
+      },
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "deep fry"
+        ]
+      },
+      {
+        "name": "potato",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "green drink",
+        "steps": []
+      }
+    ],
+    "stations": [
+      "board",
+      "panBurner",
+      "fryer"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on a tray",
+    "variants": [
+      "beef_deal_cheese_yellow",
+      "beef_deal_onion",
+      "beef_deal_onion_cheese",
+      "beef_deal_onion_red",
+      "beef_deal_potato",
+      "beef_deal_potato_cheese",
+      "beef_deal_red",
+      "chicken_deal_cheese",
+      "chicken_deal_cheese_green",
+      "chicken_deal_onion",
+      "chicken_deal_onion_red",
+      "chicken_deal_potato_cheese",
+      "chicken_deal_potato_onion",
+      "chicken_deal_potato_yellow",
+      "chicken_deal_yellow"
+    ],
+    "levels": [],
+    "dlc": "Carnival of Chaos",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "beef_deal_red",
+    "game": "oc2",
+    "name": "Beef Deal Red",
+    "wiki": "https://overcooked.fandom.com/wiki/Meal_Deal",
+    "ingredients": [
+      {
+        "name": "bun",
+        "steps": [
+          "fry"
+        ]
+      },
+      {
+        "name": "beef",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "red drink",
+        "steps": []
+      }
+    ],
+    "stations": [
+      "board",
+      "panBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on a tray",
+    "variants": [
+      "beef_deal_cheese_yellow",
+      "beef_deal_onion",
+      "beef_deal_onion_cheese",
+      "beef_deal_onion_red",
+      "beef_deal_potato",
+      "beef_deal_potato_cheese",
+      "beef_deal_potato_green",
+      "chicken_deal_cheese",
+      "chicken_deal_cheese_green",
+      "chicken_deal_onion",
+      "chicken_deal_onion_red",
+      "chicken_deal_potato_cheese",
+      "chicken_deal_potato_onion",
+      "chicken_deal_potato_yellow",
+      "chicken_deal_yellow"
+    ],
+    "levels": [],
+    "dlc": "Carnival of Chaos",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "chicken_deal_cheese",
+    "game": "oc2",
+    "name": "Chicken Deal Cheese",
+    "wiki": "https://overcooked.fandom.com/wiki/Meal_Deal",
+    "ingredients": [
+      {
+        "name": "bun",
+        "steps": [
+          "fry"
+        ]
+      },
+      {
+        "name": "chicken",
+        "steps": [
+          "chop",
+          "deep fry"
+        ]
+      },
+      {
+        "name": "cheese",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "panBurner",
+      "fryer"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on a tray",
+    "variants": [
+      "beef_deal_cheese_yellow",
+      "beef_deal_onion",
+      "beef_deal_onion_cheese",
+      "beef_deal_onion_red",
+      "beef_deal_potato",
+      "beef_deal_potato_cheese",
+      "beef_deal_potato_green",
+      "beef_deal_red",
+      "chicken_deal_cheese_green",
+      "chicken_deal_onion",
+      "chicken_deal_onion_red",
+      "chicken_deal_potato_cheese",
+      "chicken_deal_potato_onion",
+      "chicken_deal_potato_yellow",
+      "chicken_deal_yellow"
+    ],
+    "levels": [],
+    "dlc": "Carnival of Chaos",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "chicken_deal_cheese_green",
+    "game": "oc2",
+    "name": "Chicken Deal Cheese Green",
+    "wiki": "https://overcooked.fandom.com/wiki/Meal_Deal",
+    "ingredients": [
+      {
+        "name": "bun",
+        "steps": [
+          "fry"
+        ]
+      },
+      {
+        "name": "chicken",
+        "steps": [
+          "chop",
+          "deep fry"
+        ]
+      },
+      {
+        "name": "cheese",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "green drink",
+        "steps": []
+      }
+    ],
+    "stations": [
+      "board",
+      "panBurner",
+      "fryer"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on a tray",
+    "variants": [
+      "beef_deal_cheese_yellow",
+      "beef_deal_onion",
+      "beef_deal_onion_cheese",
+      "beef_deal_onion_red",
+      "beef_deal_potato",
+      "beef_deal_potato_cheese",
+      "beef_deal_potato_green",
+      "beef_deal_red",
+      "chicken_deal_cheese",
+      "chicken_deal_onion",
+      "chicken_deal_onion_red",
+      "chicken_deal_potato_cheese",
+      "chicken_deal_potato_onion",
+      "chicken_deal_potato_yellow",
+      "chicken_deal_yellow"
+    ],
+    "levels": [],
+    "dlc": "Carnival of Chaos",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "chicken_deal_onion",
+    "game": "oc2",
+    "name": "Chicken Deal Onion",
+    "wiki": "https://overcooked.fandom.com/wiki/Meal_Deal",
+    "ingredients": [
+      {
+        "name": "bun",
+        "steps": [
+          "fry"
+        ]
+      },
+      {
+        "name": "chicken",
+        "steps": [
+          "chop",
+          "deep fry"
+        ]
+      },
+      {
+        "name": "onion",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "panBurner",
+      "fryer"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on a tray",
+    "variants": [
+      "beef_deal_cheese_yellow",
+      "beef_deal_onion",
+      "beef_deal_onion_cheese",
+      "beef_deal_onion_red",
+      "beef_deal_potato",
+      "beef_deal_potato_cheese",
+      "beef_deal_potato_green",
+      "beef_deal_red",
+      "chicken_deal_cheese",
+      "chicken_deal_cheese_green",
+      "chicken_deal_onion_red",
+      "chicken_deal_potato_cheese",
+      "chicken_deal_potato_onion",
+      "chicken_deal_potato_yellow",
+      "chicken_deal_yellow"
+    ],
+    "levels": [],
+    "dlc": "Carnival of Chaos",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "chicken_deal_onion_red",
+    "game": "oc2",
+    "name": "Chicken Deal Onion Red",
+    "wiki": "https://overcooked.fandom.com/wiki/Meal_Deal",
+    "ingredients": [
+      {
+        "name": "bun",
+        "steps": [
+          "fry"
+        ]
+      },
+      {
+        "name": "chicken",
+        "steps": [
+          "chop",
+          "deep fry"
+        ]
+      },
+      {
+        "name": "onion",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "red drink",
+        "steps": []
+      }
+    ],
+    "stations": [
+      "board",
+      "panBurner",
+      "fryer"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on a tray",
+    "variants": [
+      "beef_deal_cheese_yellow",
+      "beef_deal_onion",
+      "beef_deal_onion_cheese",
+      "beef_deal_onion_red",
+      "beef_deal_potato",
+      "beef_deal_potato_cheese",
+      "beef_deal_potato_green",
+      "beef_deal_red",
+      "chicken_deal_cheese",
+      "chicken_deal_cheese_green",
+      "chicken_deal_onion",
+      "chicken_deal_potato_cheese",
+      "chicken_deal_potato_onion",
+      "chicken_deal_potato_yellow",
+      "chicken_deal_yellow"
+    ],
+    "levels": [],
+    "dlc": "Carnival of Chaos",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "chicken_deal_potato_cheese",
+    "game": "oc2",
+    "name": "Chicken Deal Potato Cheese",
+    "wiki": "https://overcooked.fandom.com/wiki/Meal_Deal",
+    "ingredients": [
+      {
+        "name": "bun",
+        "steps": [
+          "fry"
+        ]
+      },
+      {
+        "name": "chicken",
+        "steps": [
+          "chop",
+          "deep fry"
+        ]
+      },
+      {
+        "name": "potato",
+        "steps": [
+          "chop",
+          "deep fry"
+        ]
+      },
+      {
+        "name": "cheese",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "panBurner",
+      "fryer"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on a tray",
+    "variants": [
+      "beef_deal_cheese_yellow",
+      "beef_deal_onion",
+      "beef_deal_onion_cheese",
+      "beef_deal_onion_red",
+      "beef_deal_potato",
+      "beef_deal_potato_cheese",
+      "beef_deal_potato_green",
+      "beef_deal_red",
+      "chicken_deal_cheese",
+      "chicken_deal_cheese_green",
+      "chicken_deal_onion",
+      "chicken_deal_onion_red",
+      "chicken_deal_potato_onion",
+      "chicken_deal_potato_yellow",
+      "chicken_deal_yellow"
+    ],
+    "levels": [],
+    "dlc": "Carnival of Chaos",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "chicken_deal_potato_onion",
+    "game": "oc2",
+    "name": "Chicken Deal Potato Onion",
+    "wiki": "https://overcooked.fandom.com/wiki/Meal_Deal",
+    "ingredients": [
+      {
+        "name": "bun",
+        "steps": [
+          "fry"
+        ]
+      },
+      {
+        "name": "chicken",
+        "steps": [
+          "chop",
+          "deep fry"
+        ]
+      },
+      {
+        "name": "potato",
+        "steps": [
+          "chop",
+          "deep fry"
+        ]
+      },
+      {
+        "name": "onion",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "panBurner",
+      "fryer"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on a tray",
+    "variants": [
+      "beef_deal_cheese_yellow",
+      "beef_deal_onion",
+      "beef_deal_onion_cheese",
+      "beef_deal_onion_red",
+      "beef_deal_potato",
+      "beef_deal_potato_cheese",
+      "beef_deal_potato_green",
+      "beef_deal_red",
+      "chicken_deal_cheese",
+      "chicken_deal_cheese_green",
+      "chicken_deal_onion",
+      "chicken_deal_onion_red",
+      "chicken_deal_potato_cheese",
+      "chicken_deal_potato_yellow",
+      "chicken_deal_yellow"
+    ],
+    "levels": [],
+    "dlc": "Carnival of Chaos",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "chicken_deal_potato_yellow",
+    "game": "oc2",
+    "name": "Chicken Deal Potato Yellow",
+    "wiki": "https://overcooked.fandom.com/wiki/Meal_Deal",
+    "ingredients": [
+      {
+        "name": "bun",
+        "steps": [
+          "fry"
+        ]
+      },
+      {
+        "name": "chicken",
+        "steps": [
+          "chop",
+          "deep fry"
+        ]
+      },
+      {
+        "name": "potato",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "yellow drink",
+        "steps": []
+      }
+    ],
+    "stations": [
+      "board",
+      "panBurner",
+      "fryer"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on a tray",
+    "variants": [
+      "beef_deal_cheese_yellow",
+      "beef_deal_onion",
+      "beef_deal_onion_cheese",
+      "beef_deal_onion_red",
+      "beef_deal_potato",
+      "beef_deal_potato_cheese",
+      "beef_deal_potato_green",
+      "beef_deal_red",
+      "chicken_deal_cheese",
+      "chicken_deal_cheese_green",
+      "chicken_deal_onion",
+      "chicken_deal_onion_red",
+      "chicken_deal_potato_cheese",
+      "chicken_deal_potato_onion",
+      "chicken_deal_yellow"
+    ],
+    "levels": [],
+    "dlc": "Carnival of Chaos",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "chicken_deal_yellow",
+    "game": "oc2",
+    "name": "Chicken Deal Yellow",
+    "wiki": "https://overcooked.fandom.com/wiki/Meal_Deal",
+    "ingredients": [
+      {
+        "name": "bun",
+        "steps": [
+          "fry"
+        ]
+      },
+      {
+        "name": "chicken",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "yellow drink",
+        "steps": []
+      }
+    ],
+    "stations": [
+      "board",
+      "panBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on a tray",
+    "variants": [
+      "beef_deal_cheese_yellow",
+      "beef_deal_onion",
+      "beef_deal_onion_cheese",
+      "beef_deal_onion_red",
+      "beef_deal_potato",
+      "beef_deal_potato_cheese",
+      "beef_deal_potato_green",
+      "beef_deal_red",
+      "chicken_deal_cheese",
+      "chicken_deal_cheese_green",
+      "chicken_deal_onion",
+      "chicken_deal_onion_red",
+      "chicken_deal_potato_cheese",
+      "chicken_deal_potato_onion",
+      "chicken_deal_potato_yellow"
+    ],
+    "levels": [],
+    "dlc": "Carnival of Chaos",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "chocolate_mooncake",
+    "game": "oc2",
+    "name": "Chocolate Mooncake",
+    "wiki": "https://overcooked.fandom.com/wiki/Mooncake",
+    "ingredients": [
+      {
+        "name": "flour",
+        "steps": [
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "egg",
+        "steps": [
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "chocolate",
+        "steps": [
+          "chop",
+          "mix",
+          "bake"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "mixer",
+      "oven"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "oven to plate",
+    "variants": [
+      "chocolate_strawberry_mooncake",
+      "strawberry_mooncake",
+      "watermelon_mooncake"
+    ],
+    "levels": [],
+    "dlc": "Moon Harvest",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "chocolate_strawberry_mooncake",
+    "game": "oc2",
+    "name": "Chocolate Strawberry Mooncake",
+    "wiki": "https://overcooked.fandom.com/wiki/Mooncake",
+    "ingredients": [
+      {
+        "name": "flour",
+        "steps": [
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "egg",
+        "steps": [
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "chocolate",
+        "steps": [
+          "chop",
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "strawberry",
+        "steps": [
+          "chop",
+          "mix",
+          "bake"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "mixer",
+      "oven"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "oven to plate",
+    "variants": [
+      "chocolate_mooncake",
+      "strawberry_mooncake",
+      "watermelon_mooncake"
+    ],
+    "levels": [],
+    "dlc": "Moon Harvest",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "strawberry_mooncake",
+    "game": "oc2",
+    "name": "Strawberry Mooncake",
+    "wiki": "https://overcooked.fandom.com/wiki/Mooncake",
+    "ingredients": [
+      {
+        "name": "flour",
+        "steps": [
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "egg",
+        "steps": [
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "strawberry",
+        "steps": [
+          "chop",
+          "mix",
+          "bake"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "mixer",
+      "oven"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "oven to plate",
+    "variants": [
+      "chocolate_mooncake",
+      "chocolate_strawberry_mooncake",
+      "watermelon_mooncake"
+    ],
+    "levels": [],
+    "dlc": "Moon Harvest",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "watermelon_mooncake",
+    "game": "oc2",
+    "name": "Watermelon Mooncake",
+    "wiki": "https://overcooked.fandom.com/wiki/Mooncake",
+    "ingredients": [
+      {
+        "name": "flour",
+        "steps": [
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "egg",
+        "steps": [
+          "mix",
+          "bake"
+        ]
+      },
+      {
+        "name": "watermelon",
+        "steps": [
+          "chop",
+          "mix",
+          "bake"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "mixer",
+      "oven"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "oven to plate",
+    "variants": [
+      "chocolate_mooncake",
+      "chocolate_strawberry_mooncake",
+      "strawberry_mooncake"
+    ],
+    "levels": [],
+    "dlc": "Moon Harvest",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "blueberry_pancake",
+    "game": "oc2",
+    "name": "Blueberry Pancake",
+    "wiki": "https://overcooked.fandom.com/wiki/Pancake",
+    "ingredients": [
+      {
+        "name": "flour",
+        "steps": [
+          "mix",
+          "fry"
+        ]
+      },
+      {
+        "name": "egg",
+        "steps": [
+          "mix",
+          "fry"
+        ]
+      },
+      {
+        "name": "blueberry",
+        "steps": [
+          "chop",
+          "mix",
+          "fry"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "mixer",
+      "panBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pan to plate",
+    "variants": [
+      "chocolate_pancake",
+      "pancake",
+      "strawberry_pancake"
+    ],
+    "levels": [],
+    "dlc": "Campfire Cook Off",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "chocolate_pancake",
+    "game": "oc2",
+    "name": "Chocolate Pancake",
+    "wiki": "https://overcooked.fandom.com/wiki/Pancake",
+    "ingredients": [
+      {
+        "name": "flour",
+        "steps": [
+          "mix",
+          "fry"
+        ]
+      },
+      {
+        "name": "egg",
+        "steps": [
+          "mix",
+          "fry"
+        ]
+      },
+      {
+        "name": "chocolate",
+        "steps": [
+          "chop",
+          "mix",
+          "fry"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "mixer",
+      "panBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pan to plate",
+    "variants": [
+      "blueberry_pancake",
+      "pancake",
+      "strawberry_pancake"
+    ],
+    "levels": [
+      "oc2-5-4",
+      "oc2-6-2",
+      "oc2-6-3",
+      "oc2-6-6"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "pancake",
+    "game": "oc2",
+    "name": "Pancake",
+    "wiki": "https://overcooked.fandom.com/wiki/Pancake",
+    "ingredients": [
+      {
+        "name": "flour",
+        "steps": [
+          "mix",
+          "fry"
+        ]
+      },
+      {
+        "name": "egg",
+        "steps": [
+          "mix",
+          "fry"
+        ]
+      }
+    ],
+    "stations": [
+      "mixer",
+      "panBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pan to plate",
+    "variants": [
+      "blueberry_pancake",
+      "chocolate_pancake",
+      "strawberry_pancake"
+    ],
+    "levels": [
+      "oc2-5-4",
+      "oc2-6-2",
+      "oc2-6-3",
+      "oc2-6-6"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "strawberry_pancake",
+    "game": "oc2",
+    "name": "Strawberry Pancake",
+    "wiki": "https://overcooked.fandom.com/wiki/Pancake",
+    "ingredients": [
+      {
+        "name": "flour",
+        "steps": [
+          "mix",
+          "fry"
+        ]
+      },
+      {
+        "name": "egg",
+        "steps": [
+          "mix",
+          "fry"
+        ]
+      },
+      {
+        "name": "strawberry",
+        "steps": [
+          "chop",
+          "mix",
+          "fry"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "mixer",
+      "panBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pan to plate",
+    "variants": [
+      "blueberry_pancake",
+      "chocolate_pancake",
+      "pancake"
+    ],
+    "levels": [],
+    "dlc": "Surf 'n' Turf",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "beef_pasta",
+    "game": "oc2",
+    "name": "Beef Pasta",
+    "wiki": "https://overcooked.fandom.com/wiki/Pasta_(Recipe)",
+    "ingredients": [
+      {
+        "name": "pasta",
+        "steps": [
+          "boil"
+        ]
+      },
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "fry"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner",
+      "panBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pot and pan to plate",
+    "variants": [
+      "fish_prawn_pasta",
+      "mushroom_pasta",
+      "tomato_pasta"
+    ],
+    "levels": [
+      "oc2-2-2",
+      "oc2-2-3",
+      "oc2-5-5",
+      "oc2-5-6"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "fish_prawn_pasta",
+    "game": "oc2",
+    "name": "Fish & Prawn Pasta",
+    "wiki": "https://overcooked.fandom.com/wiki/Pasta_(Recipe)",
+    "ingredients": [
+      {
+        "name": "pasta",
+        "steps": [
+          "boil"
+        ]
+      },
+      {
+        "name": "fish",
+        "steps": [
+          "chop",
+          "fry"
+        ]
+      },
+      {
+        "name": "prawn",
+        "steps": [
+          "chop",
+          "fry"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner",
+      "panBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pot and pan to plate",
+    "variants": [
+      "beef_pasta",
+      "mushroom_pasta",
+      "tomato_pasta"
+    ],
+    "levels": [
+      "oc2-2-2",
+      "oc2-5-6",
+      "oc2-6-6"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "mushroom_pasta",
+    "game": "oc2",
+    "name": "Mushroom Pasta",
+    "wiki": "https://overcooked.fandom.com/wiki/Pasta_(Recipe)",
+    "ingredients": [
+      {
+        "name": "pasta",
+        "steps": [
+          "boil"
+        ]
+      },
+      {
+        "name": "mushroom",
+        "steps": [
+          "chop",
+          "fry"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner",
+      "panBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pot and pan to plate",
+    "variants": [
+      "beef_pasta",
+      "fish_prawn_pasta",
+      "tomato_pasta"
+    ],
+    "levels": [
+      "oc2-2-3",
+      "oc2-5-5",
+      "oc2-5-6"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "tomato_pasta",
+    "game": "oc2",
+    "name": "Tomato Pasta",
+    "wiki": "https://overcooked.fandom.com/wiki/Pasta_(Recipe)",
+    "ingredients": [
+      {
+        "name": "pasta",
+        "steps": [
+          "boil"
+        ]
+      },
+      {
+        "name": "tomato",
+        "steps": [
+          "chop",
+          "fry"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner",
+      "panBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pot and pan to plate",
+    "variants": [
+      "beef_pasta",
+      "fish_prawn_pasta",
+      "mushroom_pasta"
+    ],
+    "levels": [
+      "oc2-1-5",
+      "oc2-5-5",
+      "oc2-5-6",
+      "oc2-6-6"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "chicken_pizza",
+    "game": "oc2",
+    "name": "Chicken Pizza",
+    "wiki": "https://overcooked.fandom.com/wiki/Pizza",
+    "ingredients": [
+      {
+        "name": "dough",
+        "steps": [
+          "chop",
+          "bake"
+        ]
+      },
+      {
+        "name": "cheese",
+        "steps": [
+          "chop",
+          "bake"
+        ]
+      },
+      {
+        "name": "tomato",
+        "steps": [
+          "chop",
+          "bake"
+        ]
+      },
+      {
+        "name": "chicken",
+        "steps": [
+          "chop",
+          "bake"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "oven"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on the flattened dough, bake, then plate",
+    "variants": [
+      "mushroom_pizza",
+      "olive_pizza",
+      "pepperoni_pizza",
+      "pizza"
+    ],
+    "levels": [
+      "oc2-6-4"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "mushroom_pizza",
+    "game": "oc1",
+    "name": "Mushroom Pizza",
+    "wiki": "https://overcooked.fandom.com/wiki/Pizza",
+    "ingredients": [
+      {
+        "name": "dough",
+        "steps": [
+          "chop",
+          "bake"
+        ]
+      },
+      {
+        "name": "cheese",
+        "steps": [
+          "chop",
+          "bake"
+        ]
+      },
+      {
+        "name": "tomato",
+        "steps": [
+          "chop",
+          "bake"
+        ]
+      },
+      {
+        "name": "mushroom",
+        "steps": [
+          "chop",
+          "bake"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "oven"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on the flattened dough, bake, then plate",
+    "variants": [
+      "chicken_pizza",
+      "olive_pizza",
+      "pepperoni_pizza",
+      "pizza"
+    ],
+    "levels": [
+      "oc1-4-1",
+      "oc1-4-4",
+      "oc1-peckening"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "levels: the wiki names the recipe family per level but not which variant each level offers",
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "olive_pizza",
+    "game": "oc2",
+    "name": "Olive Pizza",
+    "wiki": "https://overcooked.fandom.com/wiki/Pizza",
+    "ingredients": [
+      {
+        "name": "dough",
+        "steps": [
+          "chop",
+          "bake"
+        ]
+      },
+      {
+        "name": "cheese",
+        "steps": [
+          "chop",
+          "bake"
+        ]
+      },
+      {
+        "name": "tomato",
+        "steps": [
+          "chop",
+          "bake"
+        ]
+      },
+      {
+        "name": "olive",
+        "steps": [
+          "chop",
+          "bake"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "oven"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on the flattened dough, bake, then plate",
+    "variants": [
+      "chicken_pizza",
+      "mushroom_pizza",
+      "pepperoni_pizza",
+      "pizza"
+    ],
+    "levels": [],
+    "dlc": "Campfire Cook Off",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "pepperoni_pizza",
+    "game": "both",
+    "name": "Pepperoni Pizza",
+    "wiki": "https://overcooked.fandom.com/wiki/Pizza",
+    "ingredients": [
+      {
+        "name": "dough",
+        "steps": [
+          "chop",
+          "bake"
+        ]
+      },
+      {
+        "name": "cheese",
+        "steps": [
+          "chop",
+          "bake"
+        ]
+      },
+      {
+        "name": "tomato",
+        "steps": [
+          "chop",
+          "bake"
+        ]
+      },
+      {
+        "name": "pepperoni",
+        "steps": [
+          "chop",
+          "bake"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "oven"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on the flattened dough, bake, then plate",
+    "variants": [
+      "chicken_pizza",
+      "mushroom_pizza",
+      "olive_pizza",
+      "pizza"
+    ],
+    "levels": [
+      "oc1-4-1",
+      "oc1-4-4",
+      "oc1-peckening",
+      "oc2-3-3",
+      "oc2-6-4",
+      "oc2-6-6"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "levels: the wiki names the recipe family per level but not which variant each level offers",
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "pizza",
+    "game": "both",
+    "name": "Pizza",
+    "wiki": "https://overcooked.fandom.com/wiki/Pizza",
+    "ingredients": [
+      {
+        "name": "dough",
+        "steps": [
+          "chop",
+          "bake"
+        ]
+      },
+      {
+        "name": "cheese",
+        "steps": [
+          "chop",
+          "bake"
+        ]
+      },
+      {
+        "name": "tomato",
+        "steps": [
+          "chop",
+          "bake"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "oven"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on the flattened dough, bake, then plate",
+    "variants": [
+      "chicken_pizza",
+      "mushroom_pizza",
+      "olive_pizza",
+      "pepperoni_pizza"
+    ],
+    "levels": [
+      "oc1-4-1",
+      "oc1-4-4",
+      "oc1-peckening",
+      "oc2-3-1",
+      "oc2-3-3",
+      "oc2-6-4",
+      "oc2-6-6"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "beef_broccoli_roast",
+    "game": "oc2",
+    "name": "Beef Broccoli Roast",
+    "wiki": "https://overcooked.fandom.com/wiki/Roast_Dinner",
+    "ingredients": [
+      {
+        "name": "beef joint",
+        "steps": [
+          "bake"
+        ]
+      },
+      {
+        "name": "potato",
+        "steps": [
+          "chop",
+          "bake"
+        ]
+      },
+      {
+        "name": "carrot",
+        "steps": [
+          "chop",
+          "bake"
+        ]
+      },
+      {
+        "name": "broccoli",
+        "steps": [
+          "chop",
+          "bake"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "oven"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble in a roasting tray, oven, then plate",
+    "variants": [
+      "beef_roast",
+      "chicken_broccoli_roast",
+      "chicken_roast"
+    ],
+    "levels": [],
+    "dlc": "Night of the Hangry Horde (also Winter Wonderland)",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "beef_roast",
+    "game": "oc2",
+    "name": "Beef Roast",
+    "wiki": "https://overcooked.fandom.com/wiki/Roast_Dinner",
+    "ingredients": [
+      {
+        "name": "beef joint",
+        "steps": [
+          "bake"
+        ]
+      },
+      {
+        "name": "potato",
+        "steps": [
+          "chop",
+          "bake"
+        ]
+      },
+      {
+        "name": "carrot",
+        "steps": [
+          "chop",
+          "bake"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "oven"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble in a roasting tray, oven, then plate",
+    "variants": [
+      "beef_broccoli_roast",
+      "chicken_broccoli_roast",
+      "chicken_roast"
+    ],
+    "levels": [],
+    "dlc": "Night of the Hangry Horde (also Winter Wonderland)",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "chicken_broccoli_roast",
+    "game": "oc2",
+    "name": "Chicken Broccoli Roast",
+    "wiki": "https://overcooked.fandom.com/wiki/Roast_Dinner",
+    "ingredients": [
+      {
+        "name": "chicken",
+        "steps": [
+          "bake"
+        ]
+      },
+      {
+        "name": "potato",
+        "steps": [
+          "chop",
+          "bake"
+        ]
+      },
+      {
+        "name": "carrot",
+        "steps": [
+          "chop",
+          "bake"
+        ]
+      },
+      {
+        "name": "broccoli",
+        "steps": [
+          "chop",
+          "bake"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "oven"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble in a roasting tray, oven, then plate",
+    "variants": [
+      "beef_broccoli_roast",
+      "beef_roast",
+      "chicken_roast"
+    ],
+    "levels": [],
+    "dlc": "Night of the Hangry Horde (also Winter Wonderland)",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "chicken_roast",
+    "game": "oc2",
+    "name": "Chicken Roast",
+    "wiki": "https://overcooked.fandom.com/wiki/Roast_Dinner",
+    "ingredients": [
+      {
+        "name": "chicken",
+        "steps": [
+          "bake"
+        ]
+      },
+      {
+        "name": "potato",
+        "steps": [
+          "chop",
+          "bake"
+        ]
+      },
+      {
+        "name": "carrot",
+        "steps": [
+          "chop",
+          "bake"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "oven"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble in a roasting tray, oven, then plate",
+    "variants": [
+      "beef_broccoli_roast",
+      "beef_roast",
+      "chicken_broccoli_roast"
+    ],
+    "levels": [],
+    "dlc": "Night of the Hangry Horde (also Winter Wonderland)",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "banana_smore",
+    "game": "oc2",
+    "name": "Banana Smore",
+    "wiki": "https://overcooked.fandom.com/wiki/S%27more",
+    "ingredients": [
+      {
+        "name": "crackers",
+        "steps": []
+      },
+      {
+        "name": "marshmallow",
+        "steps": [
+          "chop",
+          "grill"
+        ]
+      },
+      {
+        "name": "banana",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "campfire"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "banana_strawberry_smore",
+      "chocolate_smore",
+      "smore",
+      "strawberry_smore"
+    ],
+    "levels": [],
+    "dlc": "Campfire Cook Off",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "banana_strawberry_smore",
+    "game": "oc2",
+    "name": "Banana Strawberry Smore",
+    "wiki": "https://overcooked.fandom.com/wiki/S%27more",
+    "ingredients": [
+      {
+        "name": "crackers",
+        "steps": []
+      },
+      {
+        "name": "marshmallow",
+        "steps": [
+          "chop",
+          "grill"
+        ]
+      },
+      {
+        "name": "strawberry",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "banana",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "campfire"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "banana_smore",
+      "chocolate_smore",
+      "smore",
+      "strawberry_smore"
+    ],
+    "levels": [],
+    "dlc": "Campfire Cook Off",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "chocolate_smore",
+    "game": "oc2",
+    "name": "Chocolate Smore",
+    "wiki": "https://overcooked.fandom.com/wiki/S%27more",
+    "ingredients": [
+      {
+        "name": "crackers",
+        "steps": []
+      },
+      {
+        "name": "marshmallow",
+        "steps": [
+          "chop",
+          "grill"
+        ]
+      },
+      {
+        "name": "chocolate",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "campfire"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "banana_smore",
+      "banana_strawberry_smore",
+      "smore",
+      "strawberry_smore"
+    ],
+    "levels": [],
+    "dlc": "Campfire Cook Off",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "smore",
+    "game": "oc2",
+    "name": "Smore",
+    "wiki": "https://overcooked.fandom.com/wiki/S%27more",
+    "ingredients": [
+      {
+        "name": "crackers",
+        "steps": []
+      },
+      {
+        "name": "marshmallow",
+        "steps": [
+          "chop",
+          "grill"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "campfire"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "banana_smore",
+      "banana_strawberry_smore",
+      "chocolate_smore",
+      "strawberry_smore"
+    ],
+    "levels": [],
+    "dlc": "Campfire Cook Off",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "strawberry_smore",
+    "game": "oc2",
+    "name": "Strawberry Smore",
+    "wiki": "https://overcooked.fandom.com/wiki/S%27more",
+    "ingredients": [
+      {
+        "name": "crackers",
+        "steps": []
+      },
+      {
+        "name": "marshmallow",
+        "steps": [
+          "chop",
+          "grill"
+        ]
+      },
+      {
+        "name": "strawberry",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "campfire"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "banana_smore",
+      "banana_strawberry_smore",
+      "chocolate_smore",
+      "smore"
+    ],
+    "levels": [],
+    "dlc": "Campfire Cook Off",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "cucumber_tomato_salad",
+    "game": "oc2",
+    "name": "Cucumber & Tomato Salad",
+    "wiki": "https://overcooked.fandom.com/wiki/Salad",
+    "ingredients": [
+      {
+        "name": "lettuce",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "tomato",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "cucumber",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "lettuce_salad",
+      "tomato_salad"
+    ],
+    "levels": [
+      "oc2-tutorial",
+      "oc2-1-6",
+      "oc2-6-6"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "lettuce_salad",
+    "game": "both",
+    "name": "Lettuce Salad",
+    "wiki": "https://overcooked.fandom.com/wiki/Salad",
+    "ingredients": [
+      {
+        "name": "lettuce",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "cucumber_tomato_salad",
+      "tomato_salad"
+    ],
+    "levels": [
+      "oc1-intro",
+      "oc1-6-4",
+      "oc1-peckening",
+      "oc2-tutorial",
+      "oc2-1-6",
+      "oc2-4-2"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "tomato_salad",
+    "game": "both",
+    "name": "Tomato Salad",
+    "wiki": "https://overcooked.fandom.com/wiki/Salad",
+    "ingredients": [
+      {
+        "name": "lettuce",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "tomato",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "cucumber_tomato_salad",
+      "lettuce_salad"
+    ],
+    "levels": [
+      "oc1-intro",
+      "oc1-6-4",
+      "oc1-peckening",
+      "oc2-tutorial",
+      "oc2-1-6",
+      "oc2-4-2",
+      "oc2-6-6"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "levels: the wiki names the recipe family per level but not which variant each level offers",
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "fish_sashimi",
+    "game": "oc2",
+    "name": "Fish Sashimi",
+    "wiki": "https://overcooked.fandom.com/wiki/Sashimi",
+    "ingredients": [
+      {
+        "name": "fish",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "prawn_sashimi"
+    ],
+    "levels": [
+      "oc2-1-1",
+      "oc2-4-1",
+      "oc2-4-5",
+      "oc2-6-6"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "prawn_sashimi",
+    "game": "oc2",
+    "name": "Prawn Sashimi",
+    "wiki": "https://overcooked.fandom.com/wiki/Sashimi",
+    "ingredients": [
+      {
+        "name": "prawn",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "fish_sashimi"
+    ],
+    "levels": [
+      "oc2-1-1",
+      "oc2-1-3",
+      "oc2-4-1",
+      "oc2-6-6"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "banana_pineapple_smoothie",
+    "game": "oc2",
+    "name": "Banana Pineapple Smoothie",
+    "wiki": "https://overcooked.fandom.com/wiki/Smoothie",
+    "ingredients": [
+      {
+        "name": "banana",
+        "steps": [
+          "chop",
+          "blend"
+        ]
+      },
+      {
+        "name": "banana",
+        "steps": [
+          "chop",
+          "blend"
+        ]
+      },
+      {
+        "name": "pineapple",
+        "steps": [
+          "chop",
+          "blend"
+        ]
+      },
+      {
+        "name": "pineapple",
+        "steps": [
+          "chop",
+          "blend"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "blender"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "blender to cup",
+    "variants": [
+      "banana_smoothie",
+      "fruit_smoothie",
+      "strawberry_smoothie",
+      "watermelon_smoothie"
+    ],
+    "levels": [],
+    "dlc": "Surf 'n' Turf",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "banana_smoothie",
+    "game": "oc2",
+    "name": "Banana Smoothie",
+    "wiki": "https://overcooked.fandom.com/wiki/Smoothie",
+    "ingredients": [
+      {
+        "name": "banana",
+        "steps": [
+          "chop",
+          "blend"
+        ]
+      },
+      {
+        "name": "banana",
+        "steps": [
+          "chop",
+          "blend"
+        ]
+      },
+      {
+        "name": "banana",
+        "steps": [
+          "chop",
+          "blend"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "blender"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "blender to cup",
+    "variants": [
+      "banana_pineapple_smoothie",
+      "fruit_smoothie",
+      "strawberry_smoothie",
+      "watermelon_smoothie"
+    ],
+    "levels": [],
+    "dlc": "Surf 'n' Turf",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "fruit_smoothie",
+    "game": "oc2",
+    "name": "Fruit Smoothie",
+    "wiki": "https://overcooked.fandom.com/wiki/Smoothie",
+    "ingredients": [
+      {
+        "name": "banana",
+        "steps": [
+          "chop",
+          "blend"
+        ]
+      },
+      {
+        "name": "watermelon",
+        "steps": [
+          "chop",
+          "blend"
+        ]
+      },
+      {
+        "name": "pineapple",
+        "steps": [
+          "chop",
+          "blend"
+        ]
+      },
+      {
+        "name": "strawberry",
+        "steps": [
+          "chop",
+          "blend"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "blender"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "blender to cup",
+    "variants": [
+      "banana_pineapple_smoothie",
+      "banana_smoothie",
+      "strawberry_smoothie",
+      "watermelon_smoothie"
+    ],
+    "levels": [],
+    "dlc": "Surf 'n' Turf",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "strawberry_smoothie",
+    "game": "oc2",
+    "name": "Strawberry Smoothie",
+    "wiki": "https://overcooked.fandom.com/wiki/Smoothie",
+    "ingredients": [
+      {
+        "name": "strawberry",
+        "steps": [
+          "chop",
+          "blend"
+        ]
+      },
+      {
+        "name": "strawberry",
+        "steps": [
+          "chop",
+          "blend"
+        ]
+      },
+      {
+        "name": "strawberry",
+        "steps": [
+          "chop",
+          "blend"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "blender"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "blender to cup",
+    "variants": [
+      "banana_pineapple_smoothie",
+      "banana_smoothie",
+      "fruit_smoothie",
+      "watermelon_smoothie"
+    ],
+    "levels": [],
+    "dlc": "Surf 'n' Turf",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "watermelon_smoothie",
+    "game": "oc2",
+    "name": "Watermelon Smoothie",
+    "wiki": "https://overcooked.fandom.com/wiki/Smoothie",
+    "ingredients": [
+      {
+        "name": "watermelon",
+        "steps": [
+          "chop",
+          "blend"
+        ]
+      },
+      {
+        "name": "watermelon",
+        "steps": [
+          "chop",
+          "blend"
+        ]
+      },
+      {
+        "name": "watermelon",
+        "steps": [
+          "chop",
+          "blend"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "blender"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "blender to cup",
+    "variants": [
+      "banana_pineapple_smoothie",
+      "banana_smoothie",
+      "fruit_smoothie",
+      "strawberry_smoothie"
+    ],
+    "levels": [],
+    "dlc": "Surf 'n' Turf",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "mushroom_soup",
+    "game": "oc1",
+    "name": "Mushroom Soup",
+    "wiki": "https://overcooked.fandom.com/wiki/Soup",
+    "ingredients": [
+      {
+        "name": "mushroom",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "mushroom",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "mushroom",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pot to plate",
+    "variants": [
+      "onion_broccoli_cheese_soup",
+      "onion_potato_carrot_soup",
+      "onion_potato_leek_soup",
+      "onion_soup",
+      "tomato_soup"
+    ],
+    "levels": [
+      "oc1-1-3",
+      "oc1-1-5",
+      "oc1-2-2",
+      "oc1-3-2",
+      "oc1-3-3",
+      "oc1-4-2",
+      "oc1-5-5",
+      "oc1-5-6",
+      "oc1-6-1",
+      "oc1-6-2",
+      "oc1-6-3",
+      "oc1-6-4",
+      "oc1-peckening"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "onion_broccoli_cheese_soup",
+    "game": "oc2",
+    "name": "Onion, Broccoli & Cheese Soup",
+    "wiki": "https://overcooked.fandom.com/wiki/Soup",
+    "ingredients": [
+      {
+        "name": "onion",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "broccoli",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "cheese",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pot to plate",
+    "variants": [
+      "mushroom_soup",
+      "onion_potato_carrot_soup",
+      "onion_potato_leek_soup",
+      "onion_soup",
+      "tomato_soup"
+    ],
+    "levels": [],
+    "dlc": "Night of the Hangry Horde",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "onion_potato_carrot_soup",
+    "game": "oc2",
+    "name": "Onion, Potato & Carrot Soup",
+    "wiki": "https://overcooked.fandom.com/wiki/Soup",
+    "ingredients": [
+      {
+        "name": "onion",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "potato",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "carrot",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pot to plate",
+    "variants": [
+      "mushroom_soup",
+      "onion_broccoli_cheese_soup",
+      "onion_potato_leek_soup",
+      "onion_soup",
+      "tomato_soup"
+    ],
+    "levels": [],
+    "dlc": "Night of the Hangry Horde",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "onion_potato_leek_soup",
+    "game": "oc2",
+    "name": "Onion, Potato & Leek Soup",
+    "wiki": "https://overcooked.fandom.com/wiki/Soup",
+    "ingredients": [
+      {
+        "name": "onion",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "potato",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "leek",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pot to plate",
+    "variants": [
+      "mushroom_soup",
+      "onion_broccoli_cheese_soup",
+      "onion_potato_carrot_soup",
+      "onion_soup",
+      "tomato_soup"
+    ],
+    "levels": [],
+    "dlc": "Night of the Hangry Horde",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "onion_soup",
+    "game": "oc1",
+    "name": "Onion Soup",
+    "wiki": "https://overcooked.fandom.com/wiki/Soup",
+    "ingredients": [
+      {
+        "name": "onion",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "onion",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "onion",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pot to plate",
+    "variants": [
+      "mushroom_soup",
+      "onion_broccoli_cheese_soup",
+      "onion_potato_carrot_soup",
+      "onion_potato_leek_soup",
+      "tomato_soup"
+    ],
+    "levels": [
+      "oc1-1-1",
+      "oc1-1-2",
+      "oc1-1-3",
+      "oc1-1-5",
+      "oc1-2-2",
+      "oc1-3-2",
+      "oc1-3-3",
+      "oc1-4-2",
+      "oc1-5-5",
+      "oc1-5-6",
+      "oc1-6-1",
+      "oc1-6-2",
+      "oc1-6-3",
+      "oc1-6-4",
+      "oc1-peckening"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "tomato_soup",
+    "game": "oc1",
+    "name": "Tomato Soup",
+    "wiki": "https://overcooked.fandom.com/wiki/Soup",
+    "ingredients": [
+      {
+        "name": "tomato",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "tomato",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "tomato",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pot to plate",
+    "variants": [
+      "mushroom_soup",
+      "onion_broccoli_cheese_soup",
+      "onion_potato_carrot_soup",
+      "onion_potato_leek_soup",
+      "onion_soup"
+    ],
+    "levels": [
+      "oc1-1-2",
+      "oc1-1-3",
+      "oc1-1-5",
+      "oc1-2-2",
+      "oc1-3-2",
+      "oc1-3-3",
+      "oc1-4-2",
+      "oc1-5-5",
+      "oc1-5-6",
+      "oc1-6-1",
+      "oc1-6-2",
+      "oc1-6-3",
+      "oc1-6-4",
+      "oc1-peckening"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "steamed_beef",
+    "game": "oc2",
+    "name": "Steamed Beef",
+    "wiki": "https://overcooked.fandom.com/wiki/Steamed_Food",
+    "ingredients": [
+      {
+        "name": "flour",
+        "steps": [
+          "mix",
+          "steam"
+        ]
+      },
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "mix",
+          "steam"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "mixer",
+      "steamer"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "steamer to plate",
+    "variants": [
+      "steamed_carrot",
+      "steamed_fish",
+      "steamed_prawn"
+    ],
+    "levels": [
+      "oc2-k-1",
+      "oc2-k-2",
+      "oc2-k-3",
+      "oc2-k-4",
+      "oc2-k-5",
+      "oc2-k-6",
+      "oc2-k-7",
+      "oc2-k-8",
+      "oc2-6-6"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "steamed_carrot",
+    "game": "oc2",
+    "name": "Steamed Carrot",
+    "wiki": "https://overcooked.fandom.com/wiki/Steamed_Food",
+    "ingredients": [
+      {
+        "name": "flour",
+        "steps": [
+          "mix",
+          "steam"
+        ]
+      },
+      {
+        "name": "carrot",
+        "steps": [
+          "chop",
+          "mix",
+          "steam"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "mixer",
+      "steamer"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "steamer to plate",
+    "variants": [
+      "steamed_beef",
+      "steamed_fish",
+      "steamed_prawn"
+    ],
+    "levels": [
+      "oc2-k-2",
+      "oc2-k-3",
+      "oc2-k-4",
+      "oc2-k-5",
+      "oc2-k-6",
+      "oc2-k-7",
+      "oc2-k-8",
+      "oc2-6-6"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "steamed_fish",
+    "game": "oc2",
+    "name": "Steamed Fish",
+    "wiki": "https://overcooked.fandom.com/wiki/Steamed_Food",
+    "ingredients": [
+      {
+        "name": "fish",
+        "steps": [
+          "chop",
+          "steam"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "steamer"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "steamer to plate",
+    "variants": [
+      "steamed_beef",
+      "steamed_carrot",
+      "steamed_prawn"
+    ],
+    "levels": [
+      "oc2-k-1",
+      "oc2-k-2",
+      "oc2-k-3",
+      "oc2-k-4",
+      "oc2-k-5",
+      "oc2-k-6",
+      "oc2-k-7",
+      "oc2-k-8"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "steamed_prawn",
+    "game": "oc2",
+    "name": "Steamed Prawn",
+    "wiki": "https://overcooked.fandom.com/wiki/Steamed_Food",
+    "ingredients": [
+      {
+        "name": "flour",
+        "steps": [
+          "mix",
+          "steam"
+        ]
+      },
+      {
+        "name": "prawn",
+        "steps": [
+          "chop",
+          "mix",
+          "steam"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "mixer",
+      "steamer"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "steamer to plate",
+    "variants": [
+      "steamed_beef",
+      "steamed_carrot",
+      "steamed_fish"
+    ],
+    "levels": [
+      "oc2-k-2",
+      "oc2-k-3",
+      "oc2-k-4",
+      "oc2-k-5",
+      "oc2-k-6",
+      "oc2-k-7",
+      "oc2-k-8"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "stew_ayce_pc",
+    "game": "oc1",
+    "name": "Potato + Carrot Stew (All You Can Eat remake)",
+    "wiki": "https://overcooked.fandom.com/wiki/Stew",
+    "ingredients": [
+      {
+        "name": "potato",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "carrot",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pot to plate",
+    "variants": [
+      "stew_ayce_pcb",
+      "stew_ayce_pcob",
+      "stew_ayce_po",
+      "stew_ayce_pob",
+      "stew_ayce_poc",
+      "stew_bbb",
+      "stew_bocp",
+      "stew_bpo",
+      "stew_bpp",
+      "stew_cco",
+      "stew_ccp",
+      "stew_co",
+      "stew_cop",
+      "stew_cp",
+      "stew_oocp",
+      "stew_ppo"
+    ],
+    "levels": [],
+    "dlc": "Festive Seasoning",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "stew_ayce_pcb",
+    "game": "oc1",
+    "name": "Potato + Carrot + Beef Stew (All You Can Eat remake)",
+    "wiki": "https://overcooked.fandom.com/wiki/Stew",
+    "ingredients": [
+      {
+        "name": "potato",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "carrot",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pot to plate",
+    "variants": [
+      "stew_ayce_pc",
+      "stew_ayce_pcob",
+      "stew_ayce_po",
+      "stew_ayce_pob",
+      "stew_ayce_poc",
+      "stew_bbb",
+      "stew_bocp",
+      "stew_bpo",
+      "stew_bpp",
+      "stew_cco",
+      "stew_ccp",
+      "stew_co",
+      "stew_cop",
+      "stew_cp",
+      "stew_oocp",
+      "stew_ppo"
+    ],
+    "levels": [],
+    "dlc": "Festive Seasoning",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "stew_ayce_pcob",
+    "game": "oc1",
+    "name": "Potato + Carrot + Onion + Beef Stew (All You Can Eat remake)",
+    "wiki": "https://overcooked.fandom.com/wiki/Stew",
+    "ingredients": [
+      {
+        "name": "potato",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "carrot",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "onion",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pot to plate",
+    "variants": [
+      "stew_ayce_pc",
+      "stew_ayce_pcb",
+      "stew_ayce_po",
+      "stew_ayce_pob",
+      "stew_ayce_poc",
+      "stew_bbb",
+      "stew_bocp",
+      "stew_bpo",
+      "stew_bpp",
+      "stew_cco",
+      "stew_ccp",
+      "stew_co",
+      "stew_cop",
+      "stew_cp",
+      "stew_oocp",
+      "stew_ppo"
+    ],
+    "levels": [],
+    "dlc": "Festive Seasoning",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "stew_ayce_po",
+    "game": "oc1",
+    "name": "Potato + Onion Stew (All You Can Eat remake)",
+    "wiki": "https://overcooked.fandom.com/wiki/Stew",
+    "ingredients": [
+      {
+        "name": "potato",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "onion",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pot to plate",
+    "variants": [
+      "stew_ayce_pc",
+      "stew_ayce_pcb",
+      "stew_ayce_pcob",
+      "stew_ayce_pob",
+      "stew_ayce_poc",
+      "stew_bbb",
+      "stew_bocp",
+      "stew_bpo",
+      "stew_bpp",
+      "stew_cco",
+      "stew_ccp",
+      "stew_co",
+      "stew_cop",
+      "stew_cp",
+      "stew_oocp",
+      "stew_ppo"
+    ],
+    "levels": [],
+    "dlc": "Festive Seasoning",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "stew_ayce_pob",
+    "game": "oc1",
+    "name": "Potato + Onion + Beef Stew (All You Can Eat remake)",
+    "wiki": "https://overcooked.fandom.com/wiki/Stew",
+    "ingredients": [
+      {
+        "name": "potato",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "onion",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pot to plate",
+    "variants": [
+      "stew_ayce_pc",
+      "stew_ayce_pcb",
+      "stew_ayce_pcob",
+      "stew_ayce_po",
+      "stew_ayce_poc",
+      "stew_bbb",
+      "stew_bocp",
+      "stew_bpo",
+      "stew_bpp",
+      "stew_cco",
+      "stew_ccp",
+      "stew_co",
+      "stew_cop",
+      "stew_cp",
+      "stew_oocp",
+      "stew_ppo"
+    ],
+    "levels": [],
+    "dlc": "Festive Seasoning",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "stew_ayce_poc",
+    "game": "oc1",
+    "name": "Potato + Onion + Carrot Stew (All You Can Eat remake)",
+    "wiki": "https://overcooked.fandom.com/wiki/Stew",
+    "ingredients": [
+      {
+        "name": "potato",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "onion",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "carrot",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pot to plate",
+    "variants": [
+      "stew_ayce_pc",
+      "stew_ayce_pcb",
+      "stew_ayce_pcob",
+      "stew_ayce_po",
+      "stew_ayce_pob",
+      "stew_bbb",
+      "stew_bocp",
+      "stew_bpo",
+      "stew_bpp",
+      "stew_cco",
+      "stew_ccp",
+      "stew_co",
+      "stew_cop",
+      "stew_cp",
+      "stew_oocp",
+      "stew_ppo"
+    ],
+    "levels": [],
+    "dlc": "Festive Seasoning",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "stew_bbb",
+    "game": "oc1",
+    "name": "Beef + Beef + Beef Stew",
+    "wiki": "https://overcooked.fandom.com/wiki/Stew",
+    "ingredients": [
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pot to plate",
+    "variants": [
+      "stew_ayce_pc",
+      "stew_ayce_pcb",
+      "stew_ayce_pcob",
+      "stew_ayce_po",
+      "stew_ayce_pob",
+      "stew_ayce_poc",
+      "stew_bocp",
+      "stew_bpo",
+      "stew_bpp",
+      "stew_cco",
+      "stew_ccp",
+      "stew_co",
+      "stew_cop",
+      "stew_cp",
+      "stew_oocp",
+      "stew_ppo"
+    ],
+    "levels": [],
+    "dlc": "Festive Seasoning",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "stew_bocp",
+    "game": "oc1",
+    "name": "Beef + Onion + Carrot + Potato Stew",
+    "wiki": "https://overcooked.fandom.com/wiki/Stew",
+    "ingredients": [
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "onion",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "carrot",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "potato",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pot to plate",
+    "variants": [
+      "stew_ayce_pc",
+      "stew_ayce_pcb",
+      "stew_ayce_pcob",
+      "stew_ayce_po",
+      "stew_ayce_pob",
+      "stew_ayce_poc",
+      "stew_bbb",
+      "stew_bpo",
+      "stew_bpp",
+      "stew_cco",
+      "stew_ccp",
+      "stew_co",
+      "stew_cop",
+      "stew_cp",
+      "stew_oocp",
+      "stew_ppo"
+    ],
+    "levels": [],
+    "dlc": "Festive Seasoning",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "stew_bpo",
+    "game": "oc1",
+    "name": "Beef + Potato + Onion Stew",
+    "wiki": "https://overcooked.fandom.com/wiki/Stew",
+    "ingredients": [
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "potato",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "onion",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pot to plate",
+    "variants": [
+      "stew_ayce_pc",
+      "stew_ayce_pcb",
+      "stew_ayce_pcob",
+      "stew_ayce_po",
+      "stew_ayce_pob",
+      "stew_ayce_poc",
+      "stew_bbb",
+      "stew_bocp",
+      "stew_bpp",
+      "stew_cco",
+      "stew_ccp",
+      "stew_co",
+      "stew_cop",
+      "stew_cp",
+      "stew_oocp",
+      "stew_ppo"
+    ],
+    "levels": [],
+    "dlc": "Festive Seasoning",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "stew_bpp",
+    "game": "oc1",
+    "name": "Beef + Potato + Potato Stew",
+    "wiki": "https://overcooked.fandom.com/wiki/Stew",
+    "ingredients": [
+      {
+        "name": "beef",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "potato",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "potato",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pot to plate",
+    "variants": [
+      "stew_ayce_pc",
+      "stew_ayce_pcb",
+      "stew_ayce_pcob",
+      "stew_ayce_po",
+      "stew_ayce_pob",
+      "stew_ayce_poc",
+      "stew_bbb",
+      "stew_bocp",
+      "stew_bpo",
+      "stew_cco",
+      "stew_ccp",
+      "stew_co",
+      "stew_cop",
+      "stew_cp",
+      "stew_oocp",
+      "stew_ppo"
+    ],
+    "levels": [],
+    "dlc": "Festive Seasoning",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "stew_cco",
+    "game": "oc1",
+    "name": "Carrot + Carrot + Onion Stew",
+    "wiki": "https://overcooked.fandom.com/wiki/Stew",
+    "ingredients": [
+      {
+        "name": "carrot",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "carrot",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "onion",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pot to plate",
+    "variants": [
+      "stew_ayce_pc",
+      "stew_ayce_pcb",
+      "stew_ayce_pcob",
+      "stew_ayce_po",
+      "stew_ayce_pob",
+      "stew_ayce_poc",
+      "stew_bbb",
+      "stew_bocp",
+      "stew_bpo",
+      "stew_bpp",
+      "stew_ccp",
+      "stew_co",
+      "stew_cop",
+      "stew_cp",
+      "stew_oocp",
+      "stew_ppo"
+    ],
+    "levels": [],
+    "dlc": "Festive Seasoning",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "stew_ccp",
+    "game": "oc1",
+    "name": "Carrot + Carrot + Potato Stew",
+    "wiki": "https://overcooked.fandom.com/wiki/Stew",
+    "ingredients": [
+      {
+        "name": "carrot",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "carrot",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "potato",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pot to plate",
+    "variants": [
+      "stew_ayce_pc",
+      "stew_ayce_pcb",
+      "stew_ayce_pcob",
+      "stew_ayce_po",
+      "stew_ayce_pob",
+      "stew_ayce_poc",
+      "stew_bbb",
+      "stew_bocp",
+      "stew_bpo",
+      "stew_bpp",
+      "stew_cco",
+      "stew_co",
+      "stew_cop",
+      "stew_cp",
+      "stew_oocp",
+      "stew_ppo"
+    ],
+    "levels": [],
+    "dlc": "Festive Seasoning",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "stew_co",
+    "game": "oc1",
+    "name": "Carrot + Onion Stew",
+    "wiki": "https://overcooked.fandom.com/wiki/Stew",
+    "ingredients": [
+      {
+        "name": "carrot",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "onion",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pot to plate",
+    "variants": [
+      "stew_ayce_pc",
+      "stew_ayce_pcb",
+      "stew_ayce_pcob",
+      "stew_ayce_po",
+      "stew_ayce_pob",
+      "stew_ayce_poc",
+      "stew_bbb",
+      "stew_bocp",
+      "stew_bpo",
+      "stew_bpp",
+      "stew_cco",
+      "stew_ccp",
+      "stew_cop",
+      "stew_cp",
+      "stew_oocp",
+      "stew_ppo"
+    ],
+    "levels": [],
+    "dlc": "Festive Seasoning",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "stew_cop",
+    "game": "oc1",
+    "name": "Carrot + Onion + Potato Stew",
+    "wiki": "https://overcooked.fandom.com/wiki/Stew",
+    "ingredients": [
+      {
+        "name": "carrot",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "onion",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "potato",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pot to plate",
+    "variants": [
+      "stew_ayce_pc",
+      "stew_ayce_pcb",
+      "stew_ayce_pcob",
+      "stew_ayce_po",
+      "stew_ayce_pob",
+      "stew_ayce_poc",
+      "stew_bbb",
+      "stew_bocp",
+      "stew_bpo",
+      "stew_bpp",
+      "stew_cco",
+      "stew_ccp",
+      "stew_co",
+      "stew_cp",
+      "stew_oocp",
+      "stew_ppo"
+    ],
+    "levels": [],
+    "dlc": "Festive Seasoning",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "stew_cp",
+    "game": "oc1",
+    "name": "Carrot + Potato Stew",
+    "wiki": "https://overcooked.fandom.com/wiki/Stew",
+    "ingredients": [
+      {
+        "name": "carrot",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "potato",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pot to plate",
+    "variants": [
+      "stew_ayce_pc",
+      "stew_ayce_pcb",
+      "stew_ayce_pcob",
+      "stew_ayce_po",
+      "stew_ayce_pob",
+      "stew_ayce_poc",
+      "stew_bbb",
+      "stew_bocp",
+      "stew_bpo",
+      "stew_bpp",
+      "stew_cco",
+      "stew_ccp",
+      "stew_co",
+      "stew_cop",
+      "stew_oocp",
+      "stew_ppo"
+    ],
+    "levels": [],
+    "dlc": "Festive Seasoning",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "stew_oocp",
+    "game": "oc1",
+    "name": "Onion + Onion + Carrot + Potato Stew",
+    "wiki": "https://overcooked.fandom.com/wiki/Stew",
+    "ingredients": [
+      {
+        "name": "onion",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "onion",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "carrot",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "potato",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pot to plate",
+    "variants": [
+      "stew_ayce_pc",
+      "stew_ayce_pcb",
+      "stew_ayce_pcob",
+      "stew_ayce_po",
+      "stew_ayce_pob",
+      "stew_ayce_poc",
+      "stew_bbb",
+      "stew_bocp",
+      "stew_bpo",
+      "stew_bpp",
+      "stew_cco",
+      "stew_ccp",
+      "stew_co",
+      "stew_cop",
+      "stew_cp",
+      "stew_ppo"
+    ],
+    "levels": [],
+    "dlc": "Festive Seasoning",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "stew_ppo",
+    "game": "oc1",
+    "name": "Potato + Potato + Onion Stew",
+    "wiki": "https://overcooked.fandom.com/wiki/Stew",
+    "ingredients": [
+      {
+        "name": "potato",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "potato",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      },
+      {
+        "name": "onion",
+        "steps": [
+          "chop",
+          "boil"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "pot to plate",
+    "variants": [
+      "stew_ayce_pc",
+      "stew_ayce_pcb",
+      "stew_ayce_pcob",
+      "stew_ayce_po",
+      "stew_ayce_pob",
+      "stew_ayce_poc",
+      "stew_bbb",
+      "stew_bocp",
+      "stew_bpo",
+      "stew_bpp",
+      "stew_cco",
+      "stew_ccp",
+      "stew_co",
+      "stew_cop",
+      "stew_cp",
+      "stew_oocp"
+    ],
+    "levels": [],
+    "dlc": "Festive Seasoning",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "lettuce_corn_onion_salad",
+    "game": "oc2",
+    "name": "Lettuce Corn Onion Salad",
+    "wiki": "https://overcooked.fandom.com/wiki/Summer_Salad",
+    "ingredients": [
+      {
+        "name": "lettuce",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "corn",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "onion",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "lettuce_cucumber_onion_salad",
+      "lettuce_tomato_cucumber_onion_salad",
+      "lettuce_tomato_onion_salad",
+      "tomato_corn_onion_salad",
+      "tomato_cucumber_onion_salad"
+    ],
+    "levels": [],
+    "dlc": "Sun's Out, Buns Out",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "lettuce_cucumber_onion_salad",
+    "game": "oc2",
+    "name": "Lettuce Cucumber Onion Salad",
+    "wiki": "https://overcooked.fandom.com/wiki/Summer_Salad",
+    "ingredients": [
+      {
+        "name": "lettuce",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "cucumber",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "onion",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "lettuce_corn_onion_salad",
+      "lettuce_tomato_cucumber_onion_salad",
+      "lettuce_tomato_onion_salad",
+      "tomato_corn_onion_salad",
+      "tomato_cucumber_onion_salad"
+    ],
+    "levels": [],
+    "dlc": "Sun's Out, Buns Out",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "lettuce_tomato_cucumber_onion_salad",
+    "game": "oc2",
+    "name": "Lettuce Tomato Cucumber Onion Salad",
+    "wiki": "https://overcooked.fandom.com/wiki/Summer_Salad",
+    "ingredients": [
+      {
+        "name": "lettuce",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "tomato",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "cucumber",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "onion",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "lettuce_corn_onion_salad",
+      "lettuce_cucumber_onion_salad",
+      "lettuce_tomato_onion_salad",
+      "tomato_corn_onion_salad",
+      "tomato_cucumber_onion_salad"
+    ],
+    "levels": [],
+    "dlc": "Sun's Out, Buns Out",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "lettuce_tomato_onion_salad",
+    "game": "oc2",
+    "name": "Lettuce Tomato Onion Salad",
+    "wiki": "https://overcooked.fandom.com/wiki/Summer_Salad",
+    "ingredients": [
+      {
+        "name": "lettuce",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "tomato",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "onion",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "lettuce_corn_onion_salad",
+      "lettuce_cucumber_onion_salad",
+      "lettuce_tomato_cucumber_onion_salad",
+      "tomato_corn_onion_salad",
+      "tomato_cucumber_onion_salad"
+    ],
+    "levels": [],
+    "dlc": "Sun's Out, Buns Out",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "tomato_corn_onion_salad",
+    "game": "oc2",
+    "name": "Tomato Corn Onion Salad",
+    "wiki": "https://overcooked.fandom.com/wiki/Summer_Salad",
+    "ingredients": [
+      {
+        "name": "tomato",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "corn",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "onion",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "lettuce_corn_onion_salad",
+      "lettuce_cucumber_onion_salad",
+      "lettuce_tomato_cucumber_onion_salad",
+      "lettuce_tomato_onion_salad",
+      "tomato_cucumber_onion_salad"
+    ],
+    "levels": [],
+    "dlc": "Sun's Out, Buns Out",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "tomato_cucumber_onion_salad",
+    "game": "oc2",
+    "name": "Tomato Cucumber Onion Salad",
+    "wiki": "https://overcooked.fandom.com/wiki/Summer_Salad",
+    "ingredients": [
+      {
+        "name": "tomato",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "cucumber",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "onion",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "lettuce_corn_onion_salad",
+      "lettuce_cucumber_onion_salad",
+      "lettuce_tomato_cucumber_onion_salad",
+      "lettuce_tomato_onion_salad",
+      "tomato_corn_onion_salad"
+    ],
+    "levels": [],
+    "dlc": "Sun's Out, Buns Out",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "cucumber_sushi",
+    "game": "oc2",
+    "name": "Cucumber Sushi",
+    "wiki": "https://overcooked.fandom.com/wiki/Sushi",
+    "ingredients": [
+      {
+        "name": "nori",
+        "steps": []
+      },
+      {
+        "name": "rice",
+        "steps": [
+          "boil"
+        ]
+      },
+      {
+        "name": "cucumber",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "fish_cucumber_sushi",
+      "fish_sushi"
+    ],
+    "levels": [
+      "oc2-1-3",
+      "oc2-1-4",
+      "oc2-1-6",
+      "oc2-4-1",
+      "oc2-4-5",
+      "oc2-5-1",
+      "oc2-6-6"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "fish_cucumber_sushi",
+    "game": "oc2",
+    "name": "Fish & Cucumber Sushi",
+    "wiki": "https://overcooked.fandom.com/wiki/Sushi",
+    "ingredients": [
+      {
+        "name": "nori",
+        "steps": []
+      },
+      {
+        "name": "rice",
+        "steps": [
+          "boil"
+        ]
+      },
+      {
+        "name": "fish",
+        "steps": [
+          "chop"
+        ]
+      },
+      {
+        "name": "cucumber",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "cucumber_sushi",
+      "fish_sushi"
+    ],
+    "levels": [
+      "oc2-4-1",
+      "oc2-4-5",
+      "oc2-5-1"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "fish_sushi",
+    "game": "oc2",
+    "name": "Fish Sushi",
+    "wiki": "https://overcooked.fandom.com/wiki/Sushi",
+    "ingredients": [
+      {
+        "name": "nori",
+        "steps": []
+      },
+      {
+        "name": "rice",
+        "steps": [
+          "boil"
+        ]
+      },
+      {
+        "name": "fish",
+        "steps": [
+          "chop"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "potBurner"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "cucumber_sushi",
+      "fish_cucumber_sushi"
+    ],
+    "levels": [
+      "oc2-1-2",
+      "oc2-1-4",
+      "oc2-1-6",
+      "oc2-4-1",
+      "oc2-4-5",
+      "oc2-5-1",
+      "oc2-6-6"
+    ],
+    "dlc": null,
+    "dlcOnly": false,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "turkey_dinner",
+    "game": "oc1",
+    "name": "Turkey Dinner",
+    "wiki": "https://overcooked.fandom.com/wiki/Turkey_Dinner",
+    "ingredients": [
+      {
+        "name": "turkey",
+        "steps": [
+          "roast"
+        ]
+      }
+    ],
+    "stations": [
+      "flamethrower"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "turkey_dinner_all",
+      "turkey_dinner_carrot",
+      "turkey_dinner_potato",
+      "turkey_dinner_potatocarrot"
+    ],
+    "levels": [],
+    "dlc": "Festive Seasoning",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "turkey_dinner_all",
+    "game": "oc1",
+    "name": "Turkey Dinner with Potato & Carrot",
+    "wiki": "https://overcooked.fandom.com/wiki/Turkey_Dinner",
+    "ingredients": [
+      {
+        "name": "turkey",
+        "steps": [
+          "roast"
+        ]
+      },
+      {
+        "name": "potato",
+        "steps": [
+          "chop",
+          "roast"
+        ]
+      },
+      {
+        "name": "carrot",
+        "steps": [
+          "chop",
+          "roast"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "flamethrower"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "turkey_dinner",
+      "turkey_dinner_carrot",
+      "turkey_dinner_potato",
+      "turkey_dinner_potatocarrot"
+    ],
+    "levels": [],
+    "dlc": "Festive Seasoning",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "turkey_dinner_carrot",
+    "game": "oc1",
+    "name": "Turkey Dinner with Carrot",
+    "wiki": "https://overcooked.fandom.com/wiki/Turkey_Dinner",
+    "ingredients": [
+      {
+        "name": "turkey",
+        "steps": [
+          "roast"
+        ]
+      },
+      {
+        "name": "carrot",
+        "steps": [
+          "chop",
+          "roast"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "flamethrower"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "turkey_dinner",
+      "turkey_dinner_all",
+      "turkey_dinner_potato",
+      "turkey_dinner_potatocarrot"
+    ],
+    "levels": [],
+    "dlc": "Festive Seasoning",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "turkey_dinner_potato",
+    "game": "oc1",
+    "name": "Turkey Dinner with Potato",
+    "wiki": "https://overcooked.fandom.com/wiki/Turkey_Dinner",
+    "ingredients": [
+      {
+        "name": "turkey",
+        "steps": [
+          "roast"
+        ]
+      },
+      {
+        "name": "potato",
+        "steps": [
+          "chop",
+          "roast"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "flamethrower"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "turkey_dinner",
+      "turkey_dinner_all",
+      "turkey_dinner_carrot",
+      "turkey_dinner_potatocarrot"
+    ],
+    "levels": [],
+    "dlc": "Festive Seasoning",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  },
+  {
+    "id": "turkey_dinner_potatocarrot",
+    "game": "oc1",
+    "name": "Roast Potato & Carrot",
+    "wiki": "https://overcooked.fandom.com/wiki/Turkey_Dinner",
+    "ingredients": [
+      {
+        "name": "potato",
+        "steps": [
+          "chop",
+          "roast"
+        ]
+      },
+      {
+        "name": "carrot",
+        "steps": [
+          "chop",
+          "roast"
+        ]
+      }
+    ],
+    "stations": [
+      "board",
+      "flamethrower"
+    ],
+    "cookTimeSec": null,
+    "burnTimeSec": null,
+    "plating": "assemble on plate",
+    "variants": [
+      "turkey_dinner",
+      "turkey_dinner_all",
+      "turkey_dinner_carrot",
+      "turkey_dinner_potato"
+    ],
+    "levels": [],
+    "dlc": "Festive Seasoning",
+    "dlcOnly": true,
+    "estimates": [
+      "cookTimeSec and burnTimeSec: no wiki page gives a duration for any station except chopping (~3 s)"
+    ]
+  }
+]
