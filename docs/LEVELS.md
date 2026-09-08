@@ -123,9 +123,11 @@ Uncertainties, and how they were settled:
   corner (15,5) is open too. That is how the street reads in the screenshots.
 
 Pedestrians use two dynamics so arrivals can be staggered. The first walks people down the outer
-lanes (x 6 and x 8) every 4 s, starting at 1.5 s; the second walks people up the middle lane
-(x 7) on the same interval, starting at 3.5 s. At 2.5 tiles/s a walker needs roughly 2.4 s to
-cross, so the crossing is usually passable but not reliably so. Tuning knobs: `intervalSec`,
+lanes (x 6 and x 8) every 7 s, starting at 1.0 s; the second walks people up the middle lane
+(x 7) on the same interval, starting at 4.5 s. At 2.5 tiles/s a walker needs about 2 s to
+cross, so every 7 s cycle has two clear windows of about 1.5 s (3.0-4.5 s and 6.5-8.0 s), enough
+for a chef at 4.2 tiles/s to cross the three-tile road. The first cut (4 s intervals, starts at
+1.5 s and 3.5 s) left the crossing occupied at every moment. Tuning knobs: `intervalSec`,
 `speed`, `firstDelaySec`, and how many lanes each dynamic owns.
 
 Order tuning: initial 2, a new order every 26 s, at most 4, 90 s each. That is slower and more
@@ -263,11 +265,9 @@ two-character edit for whoever owns the grids.
   finished dish funnels through the single tile (9,1). Two chefs cannot pass each other in it,
   and one left standing there blocks the other completely. A second gap — opening (9,3) or
   (9,4) — would turn the level from a queue into a kitchen.
-- **1-2's crossing is never empty.** Lanes 6 and 8 are occupied from 1.5 s to 3.5 s of every 4 s
-  cycle and lane 7 from 3.5 s to 5.5 s, so the union covers the whole timeline. A single lane is
-  clear about half the time, which is what makes crossing possible at all, but there is no
-  moment when a chef can simply walk across. If the level plays as too hostile, raising
-  `intervalSec` on one of the two pedestrian dynamics is the dial.
+- **1-2's crossing used to be never empty.** With 4 s intervals the three lanes tiled the whole
+  timeline. Both dynamics now run on 7 s intervals (starts 1.0 s and 4.5 s), which opens two
+  1.5 s windows per cycle. If the level plays as too easy, shorten `intervalSec` again.
 - **1-3's open deck is nearly sealed off.** Row 7 runs the full width, but row 6 is solid at
   every column except 0, 10 and 11. A chef on the deck on the left-hand side has to walk to
   column 0 and up through row 0 to get back to the burners. That is fine — it is a real

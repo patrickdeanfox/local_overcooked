@@ -124,6 +124,17 @@ describe('levels', () => {
       }
     });
 
+    it(`${l.id} keeps every extinguisher within reach of a walkable tile`, () => {
+      const p = parseGrid(l);
+      p.items.forEach((item, i) => {
+        if (!item || item.kind !== 'extinguisher') return;
+        const t = p.tiles[i];
+        const reachable = ([[1, 0], [-1, 0], [0, 1], [0, -1]] as const)
+          .some(([dx, dy]) => { const n = tileAt(p, t.x + dx, t.y + dy); return !!n && isWalkable(n.type); });
+        expect(reachable, `extinguisher at (${t.x},${t.y}) has no walkable neighbour`).toBe(true);
+      });
+    });
+
     it(`${l.id} draws one plate per plates.count`, () => {
       const p = parseGrid(l);
       const plates = p.items.filter((i) => i && i.kind === 'plate').length;
