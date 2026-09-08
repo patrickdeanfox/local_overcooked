@@ -9,7 +9,7 @@ One JSON file per level under `src/levels/<game>/`. Type: `LevelDef` in `src/lev
 |---|---|---|
 | ` ` (space) | void | outside the kitchen, solid |
 | `.` | floor | walkable |
-| `~` | road | walkable; pedestrians use it (1-2 crosswalk) |
+| `~` | road | walkable; pedestrians use it (1-2 crosswalk). Mark the crossing lanes only — street the chefs share with nobody stays `.` |
 | `#` | counter | holds one item |
 | `O` `T` `M` | crate | onion / tomato / mushroom source |
 | `B` | board | chopping board |
@@ -40,6 +40,9 @@ One JSON file per level under `src/levels/<game>/`. Type: `LevelDef` in `src/lev
 
 ## Authoring method
 1. Download the wiki screenshot (see CLAUDE.md), convert to PNG, view it.
-2. Count tiles along the top counter row and the left column; perspective widens the bottom row, so anchor on counters, not pixels.
-3. Write the grid; run `npm test` (validation) and `npm run dev` to walk it with the keyboard.
-4. Copy timers and star thresholds from the level page infobox and star chart.
+2. Count tiles along the top counter row and the left column; perspective widens the bottom row, so anchor on counters, not pixels. Counter seams and single-tile stations (crate, burner, plate return) are the ruler; floor texture is not tile-aligned.
+3. For anything ambiguous, measure counter seams at two depths, solve for the vanishing point (tile width grows linearly with screen y), and convert station pixel centres into column indices.
+4. Write the grid; run `npm test` (validation, per-level assertions, reachability) and `npm run dev` to walk it with the keyboard.
+5. Copy timers and star thresholds from the level page infobox and star chart.
+
+Transcriptions of the shipped levels, with the wiki facts used and the judgement calls made, are in `docs/LEVELS.md`.
