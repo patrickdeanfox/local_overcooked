@@ -18,6 +18,7 @@ const FIRE = {
 } as const;
 const SMOKE = { size: 0.45, lift: 0.75, riseSpeed: 0.35, lifeSec: 1.1, everySec: 0.28, alpha: 0.55 } as const;
 const SPRAY = { size: 0.42, lifeSec: 0.26, speed: 2.6, lift: 0.45, everySec: 0.05, jitter: 0.18, alpha: 0.9 } as const;
+const STEAM = { size: 0.22, lift: 0.28, riseSpeed: 0.55, lifeSec: 0.9, everySec: 0.22, alpha: 0.35, color: 0xffffff, wobble: 0.12 } as const;
 const PUFF_GROWTH = 0.6; // puffs grow by this fraction over their life
 
 interface Puff { sprite: THREE.Sprite; age: number; velocity: THREE.Vector3; life: number; size: number; alpha: number; }
@@ -46,7 +47,9 @@ export class FxPool {
   private readonly sprayTexture: THREE.Texture;
   private readonly flames = new Map<string, Flame>();
   private readonly puffs: Puff[] = [];
+  private readonly steamSources: THREE.Vector3[] = [];
   private smokeClock = 0;
+  private steamClock = 0;
   private elapsed = 0;
 
   constructor(phaserScene: Phaser.Scene, private readonly scene: THREE.Scene) {
@@ -66,6 +69,12 @@ export class FxPool {
       this.scene.remove(flame.root);
       this.flames.delete(key);
     }
+  }
+
+  /** Pots that are cooking or done give off steam until the next call replaces the list. */
+  setSteamSources(positions: readonly THREE.Vector3[]): void {
+    this.steamSources.length = 0;
+    for (const position of positions) this.steamSources.push(position.clone());
   }
 
   spawnSpray(origin: THREE.Vector3, direction: THREE.Vector3): void {
@@ -91,6 +100,11 @@ export class FxPool {
     if (this.smokeClock <= 0 && this.flames.size > 0) {
       this.smokeClock = SMOKE.everySec;
       for (const flame of this.flames.values()) this.spawnSmoke(flame.root.position);
+    }
+    this.steamClock -= dtSec;
+    if (this.steamClock <= 0 && this.steamSources.length > 0) {
+      this.steamClock = STEAM.everySec;
+      for (const source of this.steamSources) this.spawnSteam(source);
     }
     for (let i = this.puffs.length - 1; i >= 0; i--) {
       const puff = this.puffs[i];
@@ -134,6 +148,19 @@ export class FxPool {
     const flame = { root, sprites, phases };
     this.flames.set(key, flame);
     return flame;
+  }
+
+  private spawnSteam(origin: THREE.Vector3): void {
+    const sprite = makeSprite(this.smokeTexture, STEAM.size, STEAM.alpha);
+    sprite.material.color.set(STEAM.color);
+    sprite.position.copy(origin);
+    sprite.position.y += STEAM.lift;
+    sprite.position.x += (Math.random() - 0.5) * STEAM.wobble;
+    this.scene.add(sprite);
+    this.puffs.push({
+      sprite, age: 0, life: STEAM.lifeSec, size: STEAM.size, alpha: STEAM.alpha,
+      velocity: new THREE.Vector3((Math.random() - 0.5) * STEAM.wobble, STEAM.riseSpeed, 0),
+    });
   }
 
   private spawnSmoke(origin: THREE.Vector3): void {

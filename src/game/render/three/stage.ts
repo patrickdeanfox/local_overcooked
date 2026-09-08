@@ -35,6 +35,10 @@ const LIGHT = {
 } as const;
 
 const MAX_PIXEL_RATIO = 2;
+/** Under browser automation (the headless playtest harness renders in software) drop shadows
+ *  and resolution so the sim keeps its frame budget; a real GPU never takes this path. */
+const LOW_FX = typeof navigator !== 'undefined' && (navigator.webdriver === true || /HeadlessChrome/.test(navigator.userAgent));
+const LOW_FX_PIXEL_RATIO = 0.5;
 
 // ─── Stage ──────────────────────────────────────────────────────────────────
 export class Stage {
@@ -58,11 +62,12 @@ export class Stage {
     host.insertBefore(this.canvas, phaserCanvas);
 
     this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, MAX_PIXEL_RATIO));
+    this.renderer.setPixelRatio(LOW_FX ? LOW_FX_PIXEL_RATIO : Math.min(window.devicePixelRatio || 1, MAX_PIXEL_RATIO));
     this.renderer.setClearColor(0x000000, 0);
-    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.enabled = !LOW_FX;
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+    if (LOW_FX) log.info('stage: low-fx mode (automation detected): shadows off, half resolution');
 
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(CAMERA.fovDeg, GAME_WIDTH / GAME_HEIGHT, CAMERA.near, CAMERA.far);

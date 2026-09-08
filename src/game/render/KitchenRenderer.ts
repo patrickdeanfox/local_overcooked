@@ -85,6 +85,7 @@ export class KitchenRenderer {
   private readonly highlights: THREE.Mesh[] = [];
   private readonly firePositions = new Map<string, THREE.Vector3>();
   private readonly choppingBoards = new Set<number>();
+  private readonly steamPositions: THREE.Vector3[] = [];
   private readonly sprayTimer: number[] = [];
   private readonly sliderOffsets = new Map<string, { x: number; y: number }>();
   private readonly screen = { x: 0, y: 0 };
@@ -125,6 +126,7 @@ export class KitchenRenderer {
     this.drawChefs(state, dtSec);
     this.drawPedestrians(state, dtSec);
     this.drawFires(state);
+    this.drawSteam(state);
     this.drawSpray(state, dtSec);
     this.fx.update(dtSec);
     this.stage.syncToPhaser();
@@ -331,6 +333,18 @@ export class KitchenRenderer {
       rig.dispose();
       this.pedestrians.delete(id);
     }
+  }
+
+  /** Steam rises from pots and pans that are cooking or done on a stove. */
+  private drawSteam(state: Readonly<SimState>): void {
+    this.steamPositions.length = 0;
+    for (let i = 0; i < state.tileItems.length; i++) {
+      const item = state.tileItems[i];
+      if (!item || item.kind !== 'pot' || state.tiles[i].type !== 'stove') continue;
+      if (item.state !== 'cooking' && item.state !== 'cooked') continue;
+      this.steamPositions.push(this.slotPosition(state, i, new THREE.Vector3()));
+    }
+    this.fx.setSteamSources(this.steamPositions);
   }
 
   private drawFires(state: Readonly<SimState>): void {
