@@ -6,6 +6,7 @@
   "index": 2,
   "theme": "treacle-town",
   "source": "https://overcooked.fandom.com/wiki/1-2_(Overcooked!)",
+  "unlockStars": 2,
   "timeLimitSec": 240,
   "timerStartsOnFirstServe": false,
   "recipes": ["onion_soup", "tomato_soup"],

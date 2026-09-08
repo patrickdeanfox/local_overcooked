@@ -1,0 +1,27 @@
+{
+  "id": "oc1-1-5",
+  "name": "1-5",
+  "game": "oc1",
+  "world": 1,
+  "index": 5,
+  "theme": "treacle-town",
+  "source": "https://overcooked.fandom.com/wiki/1-5_(Overcooked!)",
+  "unlockStars": 6,
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "recipes": ["onion_soup", "tomato_soup", "mushroom_soup"],
+  "orders": { "initial": 2, "intervalSec": 20, "max": 4, "timeSec": 85 },
+  "stars": { "1": [30, 70, 120], "2": [40, 90, 160] },
+  "plates": { "mode": "sink", "count": 3 },
+  "grid": [
+    "#MOT#RVVE#WD##",
+    "#............X",
+    "#.##########.#",
+    "#.##########.#",
+    "#.##########.#",
+    "#.#######ppp.#",
+    "#............#",
+    "#B#B####S#S#S#"
+  ],
+  "spawns": [{ "x": 5, "y": 1 }, { "x": 7, "y": 1 }]
+}

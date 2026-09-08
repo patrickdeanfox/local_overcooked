@@ -1,14 +1,19 @@
-# Overcooked 1 levels 1-1, 1-2, 1-3
+# Overcooked 1 world 1: levels 1-1 to 1-6
 
-Transcriptions of the first three Overcooked 1 kitchens into the grid format described in
+Transcriptions of the six Overcooked 1 world-1 kitchens into the grid format described in
 `docs/LEVEL_SCHEMA.md`. One JSON file per level under `src/levels/oc1/`.
 
 ## How these were read
 
 Screenshots: `docs/research/screens/oc1_1-*.png` (the OC1 shots on the wiki) plus the All You
-Can Eat remaster shots (`File:Overcooked11-1.png` and friends) as a second camera angle. Text
-facts come from the level pages' infobox, Overview and Star Chart sections, fetched through
-the MediaWiki API as described in `CLAUDE.md`.
+Can Eat remaster shots (`File:Overcooked11-1.png` and friends) as a second camera angle. The
+1-4 to 1-6 transcriptions use `docs/research/screens/oc1/1-4.jpg`, `1-4-ayce.jpg`, `1-5.jpg`
+and `1-6.jpg` from the same folder. Text facts come from the level pages' infobox, Overview
+and Star Chart sections, fetched through the MediaWiki API as described in `CLAUDE.md`, and
+the star numbers the level pages leave blank come from the
+[Level 1](https://overcooked.fandom.com/wiki/Level_1) summary and the
+[Overcooked! Levels](https://overcooked.fandom.com/wiki/Overcooked!_Levels) overview table,
+as catalogued in `docs/research/oc1-levels.md`.
 
 Counters are the only reliable ruler; the floor texture is not tile-aligned and will mislead
 you. Each camera is a fixed perspective, which means tile width grows linearly with screen y
@@ -194,10 +199,235 @@ and `2`; orders (initial 2, a new order every 20 s, at most 4, 85 s each — 16 
 before the playtest). Three recipes and no sink means order pressure and plate count are what
 decide whether the plate stack becomes the bottleneck.
 
+## 1-4 — Treacle Town burgers
+
+```
+##WD####FFFF#
+T....###....E
+A....###....#
+U...........V
+L....###....V
+#....###....R
+X....###....p
+##B#B###pppp#
+```
+
+13 x 8. The first burger kitchen and the first with frying pans.
+
+| Tile | Station |
+| --- | --- |
+| `W` (2,0) / `D` (3,0) | Sink basin and its draining board, side by side on the top wall |
+| `F` (8,0)-(11,0) | The four burners, each with a frying pan |
+| `T` (0,1), `A` (0,2), `U` (0,3), `L` (0,4) | Tomato, beef, bun and lettuce crates down the left wall |
+| `E` (12,1) | Counter with the fire extinguisher |
+| `V` (12,3), (12,4) | Serving hatch, two tiles tall |
+| `R` (12,5) | Plate return |
+| `p` (12,6) and (8,7)-(11,7) | The five clean plates — the most of any level in the series |
+| `X` (0,6) | Bin |
+| `B` (2,7), (4,7) | Chopping boards |
+| columns 5-7 | The dividing counter block, open only at row 3 |
+
+Wiki facts used: three burgers (Meat, Lettuce, Tomato-Lettuce); 4:00 with no prep time in
+OC1; plates yes, washed at a sink; "the kitchen is made of two sectors connected by a small
+1x3 corridor"; five plates, plate return, serving counter, four pans on burners and spare
+counters on one side, ingredient boxes, sink, bin and chopping stations on the other; and the
+strategy "place chopped beef on the counters in the middle of the level so that another chef
+can grab it and fry it", which is what the divider is for.
+
+Uncertainties, and how they were settled:
+
+- **The wiki says "left" twice.** The Overview puts the plates, plate return, serving counter
+  and pans "on the left side" and then the crates, sink, bin and boards "on the left side"
+  too. The AYCE screenshot settles it: cooking and serving are on the right, ingredients and
+  prep on the left. Same copy-paste slip as 1-6's Overview.
+- **Tile count.** Anchored on the AYCE shot (`1-4-ayce.jpg`), which is the sharper of the two.
+  The four bottom-row plates sit 65 px apart and the four pans 52 px apart; the room spans
+  843 px at the bottom row and 670 px at the top, a ratio of 0.795 that matches the same 13
+  columns at both depths. Eight rows come off the left wall, where the four crates, the
+  counter and the bin are drawn one tile each.
+- **The divider is three columns wide, and its middle column is a brick pillar**, not a
+  counter you can use. `(6,1)`, `(6,5)` and `(6,6)` therefore have no walkable neighbour.
+  `(6,2)` and `(6,4)` are reachable from inside the corridor, which is exactly how the
+  screenshot reads.
+- **Which row the corridor is on.** The upper block of the divider is three rows deep and the
+  lower block four, so the gap lands at row 3, slightly above centre. Measured: the upper
+  block covers screen y 250-405 and the lower 435-680.
+- **The extinguisher is at (12,1), not the corner.** Items sit raised on their counter, so
+  the extinguisher drawn at y=300 belongs to the tile centred at y=318, one row below the top
+  wall. That also makes it reachable, which the corner tile would not be — the bug
+  `tools/playtests/09-1-1-extinguisher-unreachable.txt` found in 1-1.
+- **Star thresholds.** The level page's OC1 columns are blank. The
+  [Level 1](https://overcooked.fandom.com/wiki/Level_1) summary gives one player 40 / 90 /
+  160, and the Overcooked! Levels overview gives two players a 3-star of 280. The 1- and
+  2-star values for two players are the one-player row scaled by 280/160 = 1.75 and rounded
+  to tens: 40 → 70, 90 → 157.5 → **160**, so `[70, 160, 280]`.
+
+Tuning knobs: `orders` (initial 2, a new order every 24 s, at most 4 at a time, 100 s each).
+These are a starting point, not measured — a burger is a longer dish than a soup (fetch,
+chop, fry, plate, and up to four components), so the drip is slower and the ticket life
+longer than the soup kitchens'. Four pans mean the level can absorb a faster drip than 1-1
+ever could; `intervalSec` is the first dial to turn.
+
+## 1-5 — the ring
+
+```
+#MOT#RVVE#WD##
+#............X
+#.##########.#
+#.##########.#
+#.##########.#
+#.#######ppp.#
+#............#
+#B#B####S#S#S#
+```
+
+14 x 8. One oval corridor, one tile wide, with every station on its rim.
+
+| Tile | Station |
+| --- | --- |
+| `M` (1,0), `O` (2,0), `T` (3,0) | Mushroom, onion and tomato crates, upper-left |
+| `R` (5,0) | Plate return |
+| `V` (6,0), (7,0) | Serving hatch, two tiles wide |
+| `E` (8,0) | Counter with the fire extinguisher |
+| `W` (10,0) / `D` (11,0) | Sink basin and draining board, upper-right |
+| `X` (13,1) | Bin, top of the right wall |
+| `p` (9,5), (10,5), (11,5) | The three clean plates, on the island's south edge |
+| `B` (1,7), (3,7) | The two chopping boards, lower-left |
+| `S` (8,7), (10,7), (12,7) | The three pots on burners, lower-right |
+| rows 2-5, columns 2-11 | The island — a solid counter block with the grill on top |
+
+Wiki facts used: all three soups; 4:00, no prep time; plates yes, sink washing; "this kitchen
+features an oval corridor in which all of the appliances lie", with ingredient boxes
+upper-left, two chopping stations lower-left, three pots and burners lower-right and a sink
+upper-right; the strategy that both chefs should run circles rather than turn back; star
+thresholds 30 / 70 / 120 for one player.
+
+Uncertainties, and how they were settled:
+
+- **The ring is exactly one tile wide, and the test asserts it.** Measured off `1-5.jpg`: the
+  checkered corridor between the crates and the island is 35 px deep where the row pitch is
+  47, and the same on the left, right and bottom runs. The island's south face carries ten
+  counter-front handles, one per tile, 60 px apart, which is where the 10-wide island and
+  therefore the 14-wide room come from.
+- **The corridor is wider in front of the serving counter, and that is not modelled.** The
+  infobox says "1 block wide pathway everywhere except near Serving Counter", and the
+  screenshot does show the top wall stepping back around the hatch. Flattening it keeps the
+  ring a true loop, which is what the level is about and what the test checks. A ring cannot
+  deadlock — two chefs who meet head-on can always go the other way round — so nothing is
+  lost but a passing place. To restore it, add a row and open the two tiles behind `V`.
+- **The plate return is inferred.** The infobox says plates yes, so a plate return exists,
+  but in the only screenshot both chefs are stood in front of the hatch and one of them
+  covers the tile at (5,0). Every other tile on the rim is accounted for, and the plate
+  return sits beside the serving counter in every other world-1 kitchen, so it goes there.
+  This is the single least certain tile in the three levels.
+- **The island's middle is dead counter.** Rows 3-4, columns 3-10 have no walkable
+  neighbour. That is the raised brick grill in the screenshot, not a mistake, and the
+  reachability test ignores plain counters for exactly this reason.
+- **Star thresholds.** One player 30 / 70 / 120 from the Level 1 summary; two players only
+  have a 3-star of 160 from the overview table. Scaling the one-player row by 160/120 = 1.333
+  and rounding to tens gives `[40, 90, 160]`.
+
+Tuning knobs: `orders` (initial 2, every 20 s, at most 4, 85 s each — the same as 1-3, which
+is the closest level in shape: three soups, three cookers, one long walk). The ring makes
+walking, not cooking, the bottleneck, so `intervalSec` matters more here than `max`.
+
+## 1-6 — the earthquake
+
+```
+##WD###pFpFp#
+A.....G.....#
+T.....G.....E
+L.....G.....V
+#.....G.....V
+#.....G.....R
+X.....G.....#
+##B#BF###F#U#
+```
+
+13 x 8. The only Overcooked 1 kitchen with an elevated half.
+
+| Tile | Station |
+| --- | --- |
+| `W` (2,0) / `D` (3,0) | Sink basin and draining board, top-left |
+| `p` (7,0), (9,0), (11,0) | The three clean plates, along the top wall of the high side |
+| `F` (8,0), (10,0) | Two of the three high-side pans |
+| `A` (0,1), `T` (0,2), `L` (0,3) | Beef, tomato and lettuce crates down the left wall |
+| `X` (0,6) | Bin |
+| `E` (12,2) | Counter with the fire extinguisher |
+| `V` (12,3), (12,4) | Serving hatch, two tiles tall |
+| `R` (12,5) | Plate return |
+| `B` (2,7), (4,7) | Chopping boards |
+| `F` (5,7) | The low side's single pan |
+| `F` (9,7) | The third high-side pan |
+| `U` (11,7) | Bun crate |
+| `G` (6,1)-(6,6) | The seam: gate group `1` |
+
+Wiki facts used: three burgers; 4:00, no prep time; plates yes, sink washing; "this kitchen
+has a constant earthquake that splits the right and left sides… the right side is elevated,
+meaning all chefs can drop down at any moment"; low side has tomato, lettuce and beef crates,
+chopping stations, the sink, a pan and the bin; high side has 3 plates, 3 pans, the serving
+counter, the bun crate and the plate return; and the strategy "when the floor lowers, chuck
+all of the food to the right".
+
+Uncertainties, and how they were settled:
+
+- **The earthquake is a gate, and the gate is symmetric. The original is not.** In the real
+  1-6 the right half rises and falls: when it is down you can walk both ways, when it is up
+  you can still *drop down* from the high side to the low side but not climb back, and
+  everything else is thrown across. This sim has no throwing and no one-way tiles, so the
+  seam is a column of `gate` tiles that is simply open or shut for both chefs alike. That
+  makes the high side easier to leave than it should be and the low side impossible to leave
+  when it should merely be expensive. It is the largest approximation in these three levels.
+- **Gate timing is a guess.** `periodSec` 10, `openSec` 4, starting open. Four seconds is
+  about two crossings at 4.2 tiles/s, and six seconds shut is long enough to hurt without
+  stranding a chef mid-burger. `periodSec`, `openSec` and `phase` are the dials.
+- **Where the seam runs.** The screenshot (`1-6.jpg`) catches the two halves level, so the
+  seam is invisible in it and had to be reasoned out from the station split. The 13 columns
+  resolve cleanly: the top wall carries plates at columns 7, 9 and 11 and pans at 8 and 10;
+  the bottom wall carries boards at 2 and 4, pans at 7 and 9 and the bun crate at 11. Put the
+  seam anywhere and the counts do not match the wiki: at 6/7 the high side gets four pans and
+  the low side none, at 7/8 the high side gets only two of its three plates. The seam is at
+  column 6 — which keeps all three plates, the bun crate and the serving side together — and
+  **the bottom-wall pan at column 7 was moved to column 5**, so the low side gets its one pan
+  and the high side its three. One pan, two columns; everything else is where the screenshot
+  puts it.
+- **The counters at (6,0) and (6,7)** sit at the top and bottom of the seam and can only be
+  reached through the gate. They are the natural hand-off ledges and are left as counters.
+- **Star thresholds.** The level page's OC1 columns are blank, but the Level 1 summary does
+  fill in one player: **40 / 60 / 90**. (The brief for this transcription assumed only the
+  3-star was known and proposed 30 / 60 / 90; the wiki's own 1-star is 40, so 40 is used.)
+  For two players only the 3-star of 200 exists. Scaling the one-player row by 200/90 = 2.22
+  would put a 2-player 1-star at 90, as demanding as the whole one-player three-star run, and
+  1-6's one-player row is unusually compressed to begin with. So two players get 30 % / 60 %
+  of the 3-star instead — the same rule 1-3 uses — giving `[60, 120, 200]`.
+
+Tuning knobs: the gate (`periodSec`, `openSec`, `phase`), and `orders` (initial 2, every
+24 s, at most 4, 100 s each — the same starting point as 1-4, since it is the same recipe
+set). If the gate proves punishing, lengthen `openSec` before touching the orders.
+
+## Unlock thresholds
+
+`unlockStars` is the total star count the campaign needs before a level opens. Numbers come
+from the wiki's [Stars to Unlock](https://overcooked.fandom.com/wiki/Stars_to_Unlock) table,
+which `docs/research/oc1-levels.md` prefers over the per-level infobox where the two
+disagree.
+
+| Level | `unlockStars` | Infobox says | Note |
+| --- | --- | --- | --- |
+| 1-1 | 0 | 1 Star | The star comes free from Intro Apocalypse, which this clone skips, so 1-1 is always open |
+| 1-2 | 2 | 2 Stars | |
+| 1-3 | 4 | 4 Stars | |
+| 1-4 | 5 | 4 Stars | The unlock table says 5; the infobox repeats 1-3's value |
+| 1-5 | 6 | 6 Stars | |
+| 1-6 | 8 | 8 Stars | |
+
 ## Order tuning after the playtest
 
-The order numbers above were guesses. They have now been measured against the levels as built,
-using the scripts in `tools/playtests/` to drive both chefs through the headless harness
+This section covers 1-1, 1-2 and 1-3 only. 1-4 to 1-6 have not been through the harness yet;
+their order settings are the starting points documented in each level's section above.
+
+The 1-1 to 1-3 order numbers were guesses. They have since been measured against the levels as
+built, using the scripts in `tools/playtests/` to drive both chefs through the headless harness
 (`node tools/playtest.mjs --file tools/playtests/<script>`). Every figure below came out of a
 recorded run, and the scripts are kept so the measurements can be repeated.
 
@@ -280,5 +510,13 @@ two-character edit for whoever owns the grids.
 
 ## Schema
 
-No schema changes were needed: every station in these three levels maps onto a `LEGEND`
-character and a `Dynamic` variant that already exist.
+No schema changes were needed for any of the six. Every station maps onto a `LEGEND`
+character and every obstacle onto a `Dynamic` variant that already exists: 1-4 needs `F`
+(burner with a pan) and the burger crates `A`, `U`, `L`; 1-5 needs nothing new at all; 1-6
+needs `G` plus the `gate` dynamic. `unlockStars` was already declared optional on `LevelDef`,
+so filling it in on 1-1 to 1-3 is additive.
+
+The order settings on 1-4, 1-5 and 1-6 are starting points rather than measurements. The
+`tools/playtests/` scripts that produced the 1-1 to 1-3 numbers have no equivalent here yet,
+because the sim does not cook burgers at the time these grids were written; `tests/levels.test.ts`
+pins the four numbers per level so that changing them stays deliberate.

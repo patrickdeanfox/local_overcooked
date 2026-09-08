@@ -6,6 +6,7 @@
   "index": 1,
   "theme": "treacle-town",
   "source": "https://overcooked.fandom.com/wiki/1-1_(Overcooked!)",
+  "unlockStars": 0,
   "timeLimitSec": 150,
   "timerStartsOnFirstServe": true,
   "recipes": ["onion_soup"],

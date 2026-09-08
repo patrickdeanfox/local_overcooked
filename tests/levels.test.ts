@@ -2,12 +2,16 @@ import { describe, expect, it } from 'vitest';
 import { LEVELS, LEVEL_ORDER } from '../src/levels';
 import { isWalkable, parseGrid, validateLevel } from '../src/levels/schema';
 import type { LevelDef, ParsedGrid } from '../src/levels/schema';
-import type { IngredientType, TileType } from '../src/sim/types';
+import { RECIPES } from '../src/sim/recipes';
+import type { IngredientType, TileType, Ware } from '../src/sim/types';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 /** Tile types a chef must be able to stand next to for the level to be playable. */
 const REQUIRED_ADJACENT: readonly TileType[] = ['crate', 'board', 'stove', 'serve', 'sink'];
+
+/** The four von Neumann neighbours, in the order the flood fills use them. */
+const NEIGHBOURS = [[1, 0], [-1, 0], [0, 1], [0, -1]] as const;
 
 function tileAt(p: ParsedGrid, x: number, y: number) {
   if (x < 0 || y < 0 || x >= p.width || y >= p.height) return null;
@@ -22,20 +26,26 @@ function countCrate(p: ParsedGrid, ingredient: IngredientType): number {
   return p.tiles.filter((t) => t.type === 'crate' && t.ingredient === ingredient).length;
 }
 
-/** Flood fill over walkable tiles (road counts as walkable, sliders stay solid at rest). */
-function reachableFrom(p: ParsedGrid, sx: number, sy: number): Set<number> {
+/**
+ * Flood fill over walkable tiles. 'road' counts as walkable and sliders stay solid at rest.
+ * 'gate' tiles (1-6's earthquake seam) are walkable while the gate is open, which is how
+ * `isWalkable` reports them, so the default fill is the gate-open kitchen. Pass
+ * `gatesClosed` to fill the kitchen at the moment the two halves are apart.
+ */
+function reachableFrom(p: ParsedGrid, sx: number, sy: number, gatesClosed = false): Set<number> {
+  const open = (t: { type: TileType }) => isWalkable(t.type) && !(gatesClosed && t.type === 'gate');
   const seen = new Set<number>();
   const start = tileAt(p, sx, sy);
-  if (!start || !isWalkable(start.type)) return seen;
+  if (!start || !open(start)) return seen;
   const queue: number[] = [sy * p.width + sx];
   seen.add(queue[0]);
   while (queue.length) {
     const i = queue.pop() as number;
     const x = i % p.width;
     const y = (i - x) / p.width;
-    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+    for (const [dx, dy] of NEIGHBOURS) {
       const n = tileAt(p, x + dx, y + dy);
-      if (!n || !isWalkable(n.type)) continue;
+      if (!n || !open(n)) continue;
       const ni = (y + dy) * p.width + (x + dx);
       if (seen.has(ni)) continue;
       seen.add(ni);
@@ -45,12 +55,29 @@ function reachableFrom(p: ParsedGrid, sx: number, sy: number): Set<number> {
   return seen;
 }
 
+/** How many of a tile's four neighbours a chef can stand on. */
+function walkableNeighbours(p: ParsedGrid, x: number, y: number): number {
+  return NEIGHBOURS.filter(([dx, dy]) => {
+    const n = tileAt(p, x + dx, y + dy);
+    return !!n && isWalkable(n.type);
+  }).length;
+}
+
+/** Stove tiles carrying the given cookware, as {x, y} pairs. */
+function stovesWith(p: ParsedGrid, ware: Ware): { x: number; y: number }[] {
+  return p.tiles.filter((t) => {
+    if (t.type !== 'stove') return false;
+    const item = p.items[t.y * p.width + t.x];
+    return item?.kind === 'pot' && (item.ware ?? 'pot') === ware;
+  }).map((t) => ({ x: t.x, y: t.y }));
+}
+
 /** Station tiles the flood fill never gets next to, as 'type (x,y)' strings. */
 function unreachableStations(p: ParsedGrid, reached: Set<number>): string[] {
   const bad: string[] = [];
   for (const t of p.tiles) {
     if (!REQUIRED_ADJACENT.includes(t.type)) continue;
-    const touched = ([[1, 0], [-1, 0], [0, 1], [0, -1]] as const).some(([dx, dy]) => {
+    const touched = NEIGHBOURS.some(([dx, dy]) => {
       const n = tileAt(p, t.x + dx, t.y + dy);
       return !!n && isWalkable(n.type) && reached.has((t.y + dy) * p.width + (t.x + dx));
     });
@@ -77,8 +104,19 @@ describe('levels', () => {
     expect(LEVEL_ORDER[0]).toBe('oc1-1-1');
   });
 
-  it('has the three Overcooked 1 world-1 levels', () => {
-    expect(LEVEL_ORDER.slice(0, 3)).toEqual(['oc1-1-1', 'oc1-1-2', 'oc1-1-3']);
+  it('has the six Overcooked 1 world-1 levels', () => {
+    expect(LEVEL_ORDER.slice(0, 6)).toEqual(['oc1-1-1', 'oc1-1-2', 'oc1-1-3', 'oc1-1-4', 'oc1-1-5', 'oc1-1-6']);
+  });
+
+  it('gates count as walkable so a closed gate is the sim\'s job, not the grid\'s', () => {
+    expect(isWalkable('gate')).toBe(true);
+  });
+
+  it('gates world 1 by a non-decreasing star total', () => {
+    const world1 = LEVEL_ORDER.filter((id) => id.startsWith('oc1-1-')).map((id) => LEVELS[id]);
+    const stars = world1.map((l) => l.unlockStars ?? 0);
+    expect(stars).toEqual([0, 2, 4, 5, 6, 8]);
+    for (let i = 1; i < stars.length; i++) expect(stars[i]).toBeGreaterThanOrEqual(stars[i - 1]);
   });
 
   for (const l of levels) {
@@ -144,8 +182,11 @@ describe('levels', () => {
     it(`${l.id} backs its recipes with crates`, () => {
       const p = parseGrid(l);
       for (const id of l.recipes) {
-        const ingredient = id.replace('_soup', '') as IngredientType;
-        expect(countCrate(p, ingredient), `${id} needs a ${ingredient} crate`).toBeGreaterThan(0);
+        const recipe = RECIPES[id];
+        expect(recipe, `unknown recipe ${id}`).toBeTruthy();
+        for (const ingredient of new Set(recipe.ingredients)) {
+          expect(countCrate(p, ingredient), `${id} needs a ${ingredient} crate`).toBeGreaterThan(0);
+        }
       }
     });
 
@@ -367,6 +408,235 @@ describe('oc1-1-3', () => {
   });
 });
 
+// ─── 1-4 Treacle Town burgers ───────────────────────────────────────────────
+// Two sectors joined by one 1x3 corridor. Columns 5-7 are the dividing counter block;
+// the corridor is the single row that is walkable across all three of them.
+
+describe('oc1-1-4', () => {
+  const l = level('oc1-1-4');
+  const p = parseGrid(l);
+  const DIVIDER_X = [5, 6, 7] as const;
+
+  it('is the three burgers, four minutes, no prep time', () => {
+    expect(new Set(l.recipes)).toEqual(new Set(['meat_burger', 'lettuce_burger', 'tomato_lettuce_burger']));
+    expect(l.timerStartsOnFirstServe).toBe(false);
+    expect(l.timeLimitSec).toBe(240);
+    expect(l.unlockStars).toBe(5);
+  });
+
+  it('has four pans on burners and no pots', () => {
+    expect(stovesWith(p, 'pan').length).toBe(4);
+    expect(stovesWith(p, 'pot').length).toBe(0);
+  });
+
+  it('starts five clean plates, the most of any level', () => {
+    expect(l.plates.mode).toBe('sink');
+    expect(l.plates.count).toBe(5);
+    expect(p.items.filter((i) => i && i.kind === 'plate').length).toBe(5);
+  });
+
+  it('has a crate for every burger ingredient', () => {
+    expect(countCrate(p, 'meat')).toBe(1);
+    expect(countCrate(p, 'bun')).toBe(1);
+    expect(countCrate(p, 'lettuce')).toBe(1);
+    expect(countCrate(p, 'tomato')).toBe(1);
+    expect(countType(p, 'crate')).toBe(4);
+  });
+
+  it('washes plates and has boards, a bin and a serving counter', () => {
+    expect(countType(p, 'sink')).toBe(1);
+    expect(countType(p, 'drying')).toBe(1);
+    expect(countType(p, 'plateReturn')).toBe(1);
+    expect(countType(p, 'board')).toBe(2);
+    expect(countType(p, 'trash')).toBe(1);
+    expect(countType(p, 'serve')).toBe(2);
+  });
+
+  it('joins the two sectors through exactly one 3-tile corridor', () => {
+    const openRows: number[] = [];
+    for (let y = 0; y < p.height; y++) {
+      const open = DIVIDER_X.filter((x) => isWalkable((tileAt(p, x, y) as { type: TileType }).type)).length;
+      expect(open === 0 || open === DIVIDER_X.length, `row ${y} is half open across the divider`).toBe(true);
+      if (open === DIVIDER_X.length) openRows.push(y);
+    }
+    expect(openRows.length, 'exactly one corridor row').toBe(1);
+  });
+
+  it('has no other way round the divider', () => {
+    // Seal the corridor row on a throwaway copy and the two sectors must fall apart.
+    const sealed = parseGrid(l);
+    const corridorY = sealed.tiles.find((t) => t.type === 'floor' && DIVIDER_X.includes(t.x as 5 | 6 | 7))?.y as number;
+    for (const x of DIVIDER_X) (tileAt(sealed, x, corridorY) as { type: TileType }).type = 'counter';
+    const left = reachableFrom(sealed, l.spawns[0].x, l.spawns[0].y);
+    expect(left.has(l.spawns[1].y * sealed.width + l.spawns[1].x)).toBe(false);
+  });
+
+  it('keeps the crates, sink, boards and bin left of the divider', () => {
+    for (const t of p.tiles.filter((x) => ['crate', 'sink', 'drying', 'board', 'trash'].includes(x.type))) {
+      expect(t.x, `${t.type} (${t.x},${t.y}) should be in the left sector`).toBeLessThan(DIVIDER_X[0]);
+    }
+    for (const t of p.tiles.filter((x) => ['stove', 'serve', 'plateReturn'].includes(x.type))) {
+      expect(t.x, `${t.type} (${t.x},${t.y}) should be in the right sector`).toBeGreaterThan(DIVIDER_X[2]);
+    }
+  });
+
+  it('has no dynamics', () => {
+    expect(l.dynamics ?? []).toEqual([]);
+  });
+});
+
+// ─── 1-5 the ring ───────────────────────────────────────────────────────────
+
+describe('oc1-1-5', () => {
+  const l = level('oc1-1-5');
+  const p = parseGrid(l);
+
+  it('is three soups, four minutes, no prep time', () => {
+    expect(new Set(l.recipes)).toEqual(new Set(['onion_soup', 'tomato_soup', 'mushroom_soup']));
+    expect(l.timerStartsOnFirstServe).toBe(false);
+    expect(l.timeLimitSec).toBe(240);
+    expect(l.unlockStars).toBe(6);
+  });
+
+  it('is a one-tile-wide corridor everywhere', () => {
+    const floor = p.tiles.filter((t) => isWalkable(t.type));
+    expect(floor.length).toBeGreaterThan(0);
+    for (const t of floor) {
+      expect(walkableNeighbours(p, t.x, t.y), `floor (${t.x},${t.y}) is wider than one tile`).toBeLessThanOrEqual(2);
+    }
+  });
+
+  it('closes the ring: every floor tile is on one loop', () => {
+    const floor = p.tiles.filter((t) => isWalkable(t.type));
+    // A closed loop has no ends: every tile has exactly two walkable neighbours...
+    for (const t of floor) expect(walkableNeighbours(p, t.x, t.y)).toBe(2);
+    // ...and one fill covers all of it.
+    const reached = reachableFrom(p, l.spawns[0].x, l.spawns[0].y);
+    expect(reached.size).toBe(floor.length);
+  });
+
+  it('has three pots on burners and no pans', () => {
+    expect(stovesWith(p, 'pot').length).toBe(3);
+    expect(stovesWith(p, 'pan').length).toBe(0);
+  });
+
+  it('puts the crates upper-left, the boards lower-left, the pots lower-right, the sink upper-right', () => {
+    const midX = (p.width - 1) / 2;
+    const midY = (p.height - 1) / 2;
+    for (const t of p.tiles.filter((x) => x.type === 'crate')) {
+      expect(t.x).toBeLessThan(midX);
+      expect(t.y).toBeLessThan(midY);
+    }
+    for (const t of p.tiles.filter((x) => x.type === 'board')) {
+      expect(t.x).toBeLessThan(midX);
+      expect(t.y).toBeGreaterThan(midY);
+    }
+    for (const t of p.tiles.filter((x) => x.type === 'stove')) {
+      expect(t.x).toBeGreaterThan(midX);
+      expect(t.y).toBeGreaterThan(midY);
+    }
+    for (const t of p.tiles.filter((x) => x.type === 'sink' || x.type === 'drying')) {
+      expect(t.x).toBeGreaterThan(midX);
+      expect(t.y).toBeLessThan(midY);
+    }
+  });
+
+  it('starts three clean plates and washes them at a sink', () => {
+    expect(l.plates.mode).toBe('sink');
+    expect(l.plates.count).toBe(3);
+    expect(countType(p, 'sink')).toBe(1);
+    expect(countType(p, 'drying')).toBe(1);
+    expect(countType(p, 'plateReturn')).toBe(1);
+  });
+
+  it('has no dynamics', () => {
+    expect(l.dynamics ?? []).toEqual([]);
+  });
+});
+
+// ─── 1-6 the earthquake ─────────────────────────────────────────────────────
+
+describe('oc1-1-6', () => {
+  const l = level('oc1-1-6');
+  const p = parseGrid(l);
+
+  it('is the three burgers, four minutes, no prep time', () => {
+    expect(new Set(l.recipes)).toEqual(new Set(['meat_burger', 'lettuce_burger', 'tomato_lettuce_burger']));
+    expect(l.timerStartsOnFirstServe).toBe(false);
+    expect(l.timeLimitSec).toBe(240);
+    expect(l.unlockStars).toBe(8);
+  });
+
+  it('has one gate dynamic backed by a single column of gate tiles', () => {
+    const gates = (l.dynamics ?? []).filter((d) => d.type === 'gate');
+    expect(gates.length).toBe(1);
+    const gate = gates[0];
+    if (gate.type !== 'gate') throw new Error('not a gate');
+    expect(gate.group).toBe('1');
+    expect(gate.openSec).toBeGreaterThan(0);
+    expect(gate.openSec).toBeLessThan(gate.periodSec);
+    const tiles = p.tiles.filter((t) => t.type === 'gate');
+    expect(tiles.length).toBeGreaterThan(0);
+    for (const t of tiles) expect(t.group).toBe(gate.group);
+    expect(new Set(tiles.map((t) => t.x)).size, 'the seam is one column').toBe(1);
+  });
+
+  it('splits the kitchen in two the moment the gate closes', () => {
+    const seamX = (p.tiles.find((t) => t.type === 'gate') as { x: number }).x;
+    const [left, right] = l.spawns;
+    expect(left.x).toBeLessThan(seamX);
+    expect(right.x).toBeGreaterThan(seamX);
+    // Gate open: one kitchen.
+    expect(reachableFrom(p, left.x, left.y).has(right.y * p.width + right.x)).toBe(true);
+    // Gate closed: two kitchens, and neither can touch the other side's stations.
+    const lowSide = reachableFrom(p, left.x, left.y, true);
+    expect(lowSide.has(right.y * p.width + right.x)).toBe(false);
+    for (const t of p.tiles) {
+      if (!REQUIRED_ADJACENT.includes(t.type) || t.x < seamX) continue;
+      const touched = NEIGHBOURS.some(([dx, dy]) => lowSide.has((t.y + dy) * p.width + (t.x + dx)));
+      expect(touched, `${t.type} (${t.x},${t.y}) is still reachable across the closed seam`).toBe(false);
+    }
+  });
+
+  it('has four pans, one on the low side and three on the high side', () => {
+    const seamX = (p.tiles.find((t) => t.type === 'gate') as { x: number }).x;
+    const pans = stovesWith(p, 'pan');
+    expect(pans.length).toBe(4);
+    expect(pans.filter((s) => s.x < seamX).length).toBe(1);
+    expect(pans.filter((s) => s.x > seamX).length).toBe(3);
+    expect(stovesWith(p, 'pot').length).toBe(0);
+  });
+
+  it('keeps the bun crate on the high side and the rest on the low side', () => {
+    const seamX = (p.tiles.find((t) => t.type === 'gate') as { x: number }).x;
+    const buns = p.tiles.filter((t) => t.type === 'crate' && t.ingredient === 'bun');
+    expect(buns.length).toBe(1);
+    expect(buns[0].x).toBeGreaterThan(seamX);
+    for (const ingredient of ['meat', 'tomato', 'lettuce'] as const) {
+      const crates = p.tiles.filter((t) => t.type === 'crate' && t.ingredient === ingredient);
+      expect(crates.length, `one ${ingredient} crate`).toBe(1);
+      expect(crates[0].x, `${ingredient} crate is on the low side`).toBeLessThan(seamX);
+    }
+    for (const t of p.tiles.filter((x) => ['sink', 'drying', 'board', 'trash'].includes(x.type))) {
+      expect(t.x, `${t.type} (${t.x},${t.y}) is on the low side`).toBeLessThan(seamX);
+    }
+    for (const t of p.tiles.filter((x) => x.type === 'serve' || x.type === 'plateReturn')) {
+      expect(t.x, `${t.type} (${t.x},${t.y}) is on the high side`).toBeGreaterThan(seamX);
+    }
+  });
+
+  it('starts three clean plates, all on the high side', () => {
+    const seamX = (p.tiles.find((t) => t.type === 'gate') as { x: number }).x;
+    expect(l.plates.mode).toBe('sink');
+    expect(l.plates.count).toBe(3);
+    const plates = p.items
+      .map((item, i) => ({ item, x: i % p.width }))
+      .filter((e) => e.item && e.item.kind === 'plate');
+    expect(plates.length).toBe(3);
+    for (const e of plates) expect(e.x).toBeGreaterThan(seamX);
+  });
+});
+
 // ─── Order tuning ───────────────────────────────────────────────────────────
 // The numbers the QA playtest settled on. The reasoning, the measured seconds per soup
 // they came from and the star arithmetic are in docs/LEVELS.md. They are asserted
@@ -377,6 +647,11 @@ describe('order tuning', () => {
     'oc1-1-1': { initial: 2, intervalSec: 18, max: 4, timeSec: 60 },
     'oc1-1-2': { initial: 2, intervalSec: 26, max: 4, timeSec: 90 },
     'oc1-1-3': { initial: 2, intervalSec: 20, max: 4, timeSec: 85 },
+    // 1-4 to 1-6 are starting points, not playtested numbers: burgers are a longer dish
+    // than soup, so the burger kitchens get a slower drip and a longer ticket life.
+    'oc1-1-4': { initial: 2, intervalSec: 24, max: 4, timeSec: 100 },
+    'oc1-1-5': { initial: 2, intervalSec: 20, max: 4, timeSec: 85 },
+    'oc1-1-6': { initial: 2, intervalSec: 24, max: 4, timeSec: 100 },
   };
 
   for (const [id, orders] of Object.entries(expected)) {

@@ -1,0 +1,27 @@
+{
+  "id": "oc1-1-4",
+  "name": "1-4",
+  "game": "oc1",
+  "world": 1,
+  "index": 4,
+  "theme": "treacle-town",
+  "source": "https://overcooked.fandom.com/wiki/1-4_(Overcooked!)",
+  "unlockStars": 5,
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "recipes": ["meat_burger", "lettuce_burger", "tomato_lettuce_burger"],
+  "orders": { "initial": 2, "intervalSec": 24, "max": 4, "timeSec": 100 },
+  "stars": { "1": [40, 90, 160], "2": [70, 160, 280] },
+  "plates": { "mode": "sink", "count": 5 },
+  "grid": [
+    "##WD####FFFF#",
+    "T....###....E",
+    "A....###....#",
+    "U...........V",
+    "L....###....V",
+    "#....###....R",
+    "X....###....p",
+    "##B#B###pppp#"
+  ],
+  "spawns": [{ "x": 2, "y": 2 }, { "x": 9, "y": 2 }]
+}
