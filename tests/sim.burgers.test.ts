@@ -371,6 +371,28 @@ describe('burger assembly', () => {
     expect(plate.dish).toBeNull();
   });
 
+  it('refuses a poured soup and a fried patty on a plate resting on the sink', () => {
+    const sim = new Sim(makeLevel(), { players: 1, seed: 1 });
+    const plate = cleanPlate();
+    mutable(sim).tileItems[3 * 13 + 11] = plate;
+    faceTile(sim, 0, 11, 3, 'right');
+
+    const cooked = pan(['meat'], 'cooked');
+    give(sim, 0, cooked);
+    expect(types(tap(sim))).not.toContain('plateAdd');
+    expect(plate.dish).toBeNull();
+    expect(cooked.contents).toEqual(['meat']);
+
+    const pot: PotItem = {
+      kind: 'pot', id: 8100, contents: ['onion', 'onion', 'onion'],
+      state: 'cooked', cookProgress: 1, burnProgress: 0,
+    };
+    give(sim, 0, pot);
+    expect(types(tap(sim))).not.toContain('potPour');
+    expect(plate.dish).toBeNull();
+    expect(pot.contents).toEqual(['onion', 'onion', 'onion']);
+  });
+
   it('never builds on a plate stack', () => {
     const sim = new Sim(makeLevel(), { players: 1, seed: 1 });
     const stack = cleanPlate();

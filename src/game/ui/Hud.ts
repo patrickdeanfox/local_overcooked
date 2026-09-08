@@ -23,7 +23,7 @@ const CARD = {
   iconScale: 1.1,
   nameY: 78,
   nameFontPx: 13,
-  nameWrapPx: 88,
+  nameWrapPx: 70,         // the card art's recess is x 9..83; a name centred on 48 fits in 70
   barY: 100,
   barWidth: 74,
   barHeight: 9,
