@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { MAX_PLAYERS, STORAGE_KEYS } from '../src/config';
 import { CHEF_SKINS } from '../src/art/models';
 import {
-  assistSummary, chefSummary, cycleChef, cyclePlayers, cyclePreset, cycleSeedMode, dailySeed, defaultSettings,
-  describeModifiers, isAssisted, loadSettings, normaliseSeed, PRESETS, PRESET_IDS, presetModifiers, presetName,
-  presetSummary, saveSettings, SEED_LIMIT, seedFor, SETTINGS_VERSION, settingsSummary, type Settings,
+  assistSummary, chefSummary, countsTowardUnlock, CUSTOM_FIELDS, customModifiers, customSummary, cycleChef,
+  cyclePlayers, cyclePreset, cycleSeedMode, dailySeed, DEFAULT_CUSTOM, defaultSettings, describeModifiers,
+  difficultySummary, formatCustomValue, isAssisted, loadSettings, normaliseSeed, PRESETS, PRESET_IDS, presetModifiers,
+  presetName, presetSummary, saveSettings, SEED_LIMIT, seedFor, SETTINGS_VERSION, settingsSummary, stepCustom,
+  type CustomDifficulty, type Settings,
 } from '../src/game/settings';
 import type { StorageLike } from '../src/game/storage';
 
@@ -31,8 +33,9 @@ function throwingStorage(): StorageLike {
 
 // ─── Presets ────────────────────────────────────────────────────────────────
 describe('difficulty presets', () => {
-  it('exposes the four presets easiest first', () => {
-    expect(PRESET_IDS).toEqual(['relaxed', 'normal', 'hard', 'chaos']);
+  it('exposes the four presets easiest first, then custom', () => {
+    expect(PRESET_IDS).toEqual(['relaxed', 'normal', 'hard', 'chaos', 'custom']);
+    expect(presetName('custom')).toBe('Custom');
   });
 
   it('maps each preset to its modifiers', () => {
@@ -57,12 +60,84 @@ describe('difficulty presets', () => {
 
   it('cycles presets, seed modes and players with wrap-around', () => {
     expect(cyclePreset('normal', 1)).toBe('hard');
-    expect(cyclePreset('chaos', 1)).toBe('relaxed');
-    expect(cyclePreset('relaxed', -1)).toBe('chaos');
+    expect(cyclePreset('chaos', 1)).toBe('custom');
+    expect(cyclePreset('custom', 1)).toBe('relaxed');
+    expect(cyclePreset('relaxed', -1)).toBe('custom');
     expect(cycleSeedMode('random', 1)).toBe('daily');
     expect(cycleSeedMode('random', -1)).toBe('fixed');
     expect(cyclePlayers(MAX_PLAYERS, 1)).toBe(1);
     expect(cyclePlayers(1, -1)).toBe(MAX_PLAYERS);
+  });
+});
+
+// ─── Custom difficulty ──────────────────────────────────────────────────────
+describe('custom difficulty', () => {
+  const changed: CustomDifficulty = { ...DEFAULT_CUSTOM, cookTimeScale: 1.5, initialOrdersDelta: 1 };
+
+  it('lists one row per number, all at the level default', () => {
+    expect(CUSTOM_FIELDS.map((f) => f.id).sort()).toEqual(Object.keys(DEFAULT_CUSTOM).sort());
+    expect(new Set(CUSTOM_FIELDS.map((f) => f.id)).size).toBe(CUSTOM_FIELDS.length);
+    expect(defaultSettings().custom).toEqual(DEFAULT_CUSTOM);
+    expect(customModifiers(DEFAULT_CUSTOM)).toEqual({});
+    expect(customSummary(DEFAULT_CUSTOM)).toBe('level defaults');
+  });
+
+  it('never counts toward unlocks, whatever the numbers', () => {
+    expect(countsTowardUnlock('custom')).toBe(false);
+    expect(countsTowardUnlock('normal')).toBe(true);
+    expect(countsTowardUnlock('relaxed')).toBe(false);
+  });
+
+  it('steps a row by its step, clamps to its range and never drifts', () => {
+    expect(stepCustom(DEFAULT_CUSTOM, 'cookTimeScale', 1).cookTimeScale).toBe(1.1);
+    let custom = DEFAULT_CUSTOM;
+    for (let i = 0; i < 3; i++) custom = stepCustom(custom, 'cookTimeScale', -1);
+    expect(custom.cookTimeScale).toBe(0.7);
+    expect(stepCustom({ ...DEFAULT_CUSTOM, chefSpeedScale: 2 }, 'chefSpeedScale', 1).chefSpeedScale).toBe(2);
+    expect(stepCustom({ ...DEFAULT_CUSTOM, timeLimitScale: 0.3 }, 'timeLimitScale', -1).timeLimitScale).toBe(0.3);
+    expect(stepCustom(DEFAULT_CUSTOM, 'initialOrdersDelta', -1).initialOrdersDelta).toBe(-1);
+    expect(stepCustom({ ...DEFAULT_CUSTOM, initialOrdersDelta: -3 }, 'initialOrdersDelta', -1).initialOrdersDelta).toBe(-3);
+    expect(stepCustom(DEFAULT_CUSTOM, 'washTimeScale', 0)).toEqual(DEFAULT_CUSTOM);
+  });
+
+  it('hands the sim only the rows that changed, plus the assists', () => {
+    expect(customModifiers(changed)).toEqual({ cookTimeScale: 1.5, initialOrdersDelta: 1 });
+    const settings: Settings = {
+      ...defaultSettings(), preset: 'custom', custom: changed,
+      assists: { instantCooking: false, ordersNeverExpire: true, noBurning: false },
+    };
+    expect(presetModifiers(settings)).toEqual({ cookTimeScale: 1.5, initialOrdersDelta: 1, ordersNeverExpire: true });
+    expect(presetModifiers({ ...settings, preset: 'hard' })).toEqual({ ...PRESETS.hard.modifiers, ordersNeverExpire: true });
+  });
+
+  it('describes the new modifiers and the title row', () => {
+    expect(describeModifiers({ initialOrdersDelta: 1, cookTimeScale: 1.5, burnTimeScale: 0.5, chopTimeScale: 2, washTimeScale: 0.5 }))
+      .toBe('start tickets +1 · cook x1.5 · burn x0.5 · chop x2 · wash x0.5');
+    expect(customSummary(changed)).toBe('2 numbers changed');
+    expect(customSummary({ ...DEFAULT_CUSTOM, chopTimeScale: 0.5 })).toBe('1 number changed');
+    expect(difficultySummary({ ...defaultSettings(), preset: 'custom', custom: changed })).toBe('2 numbers changed');
+    expect(difficultySummary({ ...defaultSettings(), preset: 'hard' })).toBe(presetSummary('hard'));
+    expect(formatCustomValue(CUSTOM_FIELDS[0], 1.5)).toBe('x1.5');
+    expect(formatCustomValue(CUSTOM_FIELDS[1], 1)).toBe('+1');
+    expect(formatCustomValue(CUSTOM_FIELDS[1], -2)).toBe('-2');
+    expect(formatCustomValue(CUSTOM_FIELDS[1], 0)).toBe('0');
+  });
+
+  it('reads stored numbers clamped to their range and everything else as the default', () => {
+    const storage = fakeStorage({
+      [STORAGE_KEYS.SETTINGS]: JSON.stringify({
+        version: SETTINGS_VERSION,
+        preset: 'custom',
+        custom: { cookTimeScale: 9, chefSpeedScale: 'fast', initialOrdersDelta: -1, burnTimeScale: 0.123 },
+      }),
+    });
+    const loaded = loadSettings(storage);
+    expect(loaded.preset).toBe('custom');
+    expect(loaded.custom).toEqual({ ...DEFAULT_CUSTOM, cookTimeScale: 3, initialOrdersDelta: -1, burnTimeScale: 0.3 });
+    expect(loadSettings(fakeStorage({ [STORAGE_KEYS.SETTINGS]: JSON.stringify({ version: SETTINGS_VERSION, custom: 'hard' }) })).custom)
+      .toEqual(DEFAULT_CUSTOM);
+    expect(loadSettings(fakeStorage({ [STORAGE_KEYS.SETTINGS]: JSON.stringify({ version: SETTINGS_VERSION }) })).custom)
+      .toEqual(DEFAULT_CUSTOM);
   });
 });
 
@@ -191,7 +266,8 @@ describe('settings persistence', () => {
   it('round-trips through storage', () => {
     const storage = fakeStorage();
     const settings: Settings = {
-      players: 1, preset: 'chaos', seedMode: 'fixed', fixedSeed: 99, freePlay: true,
+      players: 1, preset: 'chaos', custom: { ...DEFAULT_CUSTOM, washTimeScale: 0.5, maxOrdersDelta: 2 },
+      seedMode: 'fixed', fixedSeed: 99, freePlay: true,
       assists: { instantCooking: true, ordersNeverExpire: false, noBurning: true },
       audio: { music: false, sfx: true },
       chefs: [4, 2],

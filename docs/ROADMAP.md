@@ -2,9 +2,9 @@
 
 Where the game goes from the 2026-09-08 build. Ordered by value per effort, not by the order the ideas arrived. Each item says what exists today, what to build, and which files it touches, so a session can start on it without re-deriving the plan. Effort marks: **S** about half a day of agent work, **M** one to two days, **L** three days or a dedicated agent.
 
-Done so far: first playable, Overcooked 1 world 1 (1-1 to 1-6) with soups, burgers, fire, sinks, plate stacks, pedestrians, sliders and the earthquake gate; the full 3D kitchen (Three.js behind Phaser, CC0 Kenney and KayKit kits, level themes, steam, a chopping animation, street dressing with parked cars); level select with saved stars and unlocks; four difficulty presets and three seed modes; the Chefs page with 15 characters previewed in 3D; the Settings page with three assists and separate music and effects switches; the F8 play-note reporter; the headless playtest harness with 20 scripted scenarios; the https LAN server and desktop launcher; and a research catalog of all 74 Overcooked 1 and 2 levels (`docs/research/catalog/`).
+Done so far: first playable, Overcooked 1 world 1 (1-1 to 1-6) with soups, burgers, fire, sinks, plate stacks, pedestrians, sliders and the earthquake gate; the full 3D kitchen (Three.js behind Phaser, CC0 Kenney and KayKit kits, level themes, steam, a chopping animation, street dressing with parked cars); level select with saved stars and unlocks; four difficulty presets, a custom difficulty page that scales every timer and ticket number, and three seed modes; the Chefs page with 15 characters previewed in 3D; the Settings page with three assists and separate music and effects switches; the F8 play-note reporter; the headless playtest harness with 20 scripted scenarios; the https LAN server and desktop launcher; and a research catalog of all 74 Overcooked 1 and 2 levels (`docs/research/catalog/`).
 
-How the items relate: throwing and dashing (item 4) unblock 24 catalogued levels, so they come before the bulk of the level work (item 5). New kits (item 6) dress the levels as they land. Custom difficulty (item 2) and the controller wizard (item 3) are small and self-contained, so they can run in parallel with anything. Procedural kitchens (item 8) read the catalog and reuse the level validator, so they need nothing from items 4 to 7. `docs/WORKFLOW.md` says how to run several of these at once.
+How the items relate: throwing and dashing (item 4) unblock 24 catalogued levels, so they come before the bulk of the level work (item 5). New kits (item 6) dress the levels as they land. The controller wizard (item 3) is small and self-contained, so it can run in parallel with anything. Procedural kitchens (item 8) read the catalog and reuse the level validator, so they need nothing from items 4 to 7. `docs/WORKFLOW.md` says how to run several of these at once.
 
 ## 1. Tune world 1 by play — S, ongoing
 - Apply `docs/research/sim-constants-recommendations.md` to `src/sim/constants.ts`.
@@ -12,15 +12,10 @@ How the items relate: throwing and dashing (item 4) unblock 24 catalogued levels
 - Fix feel issues first: chef speed, interaction reach, chop and wash times.
 - Run `npm run notes` at the start of every session and act on the F8 notes.
 
-## 2. Custom difficulty: timers and everything else — S
-What exists: four presets in `src/game/settings.ts` (`relaxed`, `normal`, `hard`, `chaos`) that set the five `Modifiers` fields in `src/sim/types.ts` (`timeLimitScale`, `orderIntervalScale`, `orderTimeScale`, `maxOrdersDelta`, `chefSpeedScale`). The sim applies them once, in `effectiveSettings()` in `src/sim/index.ts`, without touching the level JSON. Only Normal and harder count toward unlocks. `orders.initial` and the cook, burn, chop and wash times have no modifier at all.
+## 2. Custom difficulty: timers and everything else — done 2026-09-08
+Shipped in PRs #41 and #42: a fifth preset, `custom`, whose modifiers come from `Settings.custom` (ten numbers, `CUSTOM_FIELDS` in `src/game/settings.ts`, each with a range and a step); five additive `Modifiers` fields (`cookTimeScale`, `burnTimeScale`, `chopTimeScale`, `washTimeScale`, `initialOrdersDelta`) applied in `effectiveSettings()`; a Custom difficulty page (`src/game/scenes/CustomDifficultyScene.ts`) opened from the Settings page, one row per number, the line under the list computed by a throwaway `Sim` on the first level; HUD and results say "Custom"; a custom run is saved but never counts toward unlocks. Tests in `tests/game.settings.test.ts`, `tests/game.progress.test.ts` and `tests/sim.kitchen.test.ts`; harness script `tools/playtests/20-custom-difficulty.txt`.
 
-Build:
-- A fifth preset, `custom`, whose modifiers come from a `custom` object saved in settings (`local-overcooked.settings.v1`; add an optional field, no version bump needed).
-- New optional `Modifiers` fields, all additive: `cookTimeScale`, `burnTimeScale`, `chopTimeScale`, `washTimeScale`, `initialOrdersDelta`. The sim applies them to `COOK_TIME`, `PAN_COOK_TIME`, `BURN_TIME`, `CHOP_TIME`, `WASH_TIME` and `orders.initial` in the same `effectiveSettings()` block.
-- A "Custom difficulty" group on the Settings page (`src/game/scenes/SettingsScene.ts`): one row per number, left/right steps it, the row's explanation line shows the resulting seconds for the current level so the number means something. Rows: level time, tickets at start, extra tickets on screen, seconds between tickets, ticket patience, cook time, burn time, chop time, wash time, chef speed.
-- HUD and results show "Custom" where they show the preset today. A custom run never counts toward unlocks (`countsTowardUnlock`), which keeps the star ladder honest without a per-field rule.
-- Tests: `tests/game.settings.test.ts` for the preset and persistence; `tests/sim.kitchen.test.ts` for each new scale reaching the sim.
+Left for later: station swaps within slots and fewer plates as modifiers (item 9), and a per-level reference in the preview line once the title remembers which level the cursor was on.
 
 ## 3. Controller setup that feels intentional — M
 What exists: seven `GameAction`s in `src/input/types.ts` (four directions, pick up, interact, pause). The Controllers page (`src/game/scenes/ControllerScene.ts`) shows live input per player, remaps any action per device, resets a player to defaults and lets an unassigned pad claim a player. Menu back is fixed on Backspace and B/Circle. Rough edges confirmed in code: no way to swap or release an assigned pad (`unassignPad()` exists in `src/input/index.ts` with no caller), the keyboard set is hard-wired to the player index, remapping collapses a dual default such as Shift+Ctrl to one key, the stick and d-pad toggles and the deadzone are not editable, and the page never lists the pads the browser sees.
@@ -121,9 +116,8 @@ Build in stages, each shippable:
 ## Known gaps in the current build
 - Order cadence, timeout and tip amounts are estimates; the wiki publishes none (`docs/research/sim-constants-recommendations.md`). Tune by play.
 - 1-3's 1-star and 2-star thresholds are derived, not published (`docs/LEVELS.md`).
-- `orders.initial` cannot be scaled by any preset (item 2 fixes it).
 - Remapping an action replaces its whole binding list, so the Shift+Ctrl default becomes one key (item 3).
-- No pad swap or release from the UI, no reset-progress entry, no custom difficulty (items 2, 3, 9).
+- No pad swap or release from the UI, no reset-progress entry (items 3, 9).
 - Gamepad paths are unit-tested against fake pads only; use the Controllers screen to verify yours.
 - 35 of the 74 catalog grids are low confidence and want a better screenshot before transcription.
 - One music loop for every level; the chef's baked `jump` clip is unused.

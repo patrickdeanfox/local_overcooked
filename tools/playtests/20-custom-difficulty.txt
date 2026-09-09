@@ -1,0 +1,164 @@
+# -- Custom difficulty: the page opens from Settings, the preset row switches Custom on, a row
+#    steps and its preview line follows, the title and HUD say Custom, the run is saved but its
+#    stars do not unlock, and everything survives a reload -------------------------------------
+#
+# Title rows, in cursor order: six levels, Players, Difficulty, Chefs, Settings, Controllers - so
+# Settings is index 9. The Settings page lists Seed, Seed number, Free play, the three assists,
+# Custom difficulty (index 6), Music, Sound effects, Back. The Custom difficulty page lists
+# Difficulty, then Level time, Tickets at start, Extra tickets on screen, Seconds between tickets,
+# Ticket patience, Cook time (index 6), Burn time, Chop time, Wash time, Chef speed, Reset, Back.
+until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
+wait 600
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval JSON.stringify(['title options', __ui.options()])
+
+# -- Settings page -> Custom difficulty page -------------------------------------------------------
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+eval JSON.stringify(['cursor on', __ui.index(), __ui.options()[3]])
+tap Enter
+wait 700
+eval JSON.stringify(['settings rows', __ui.menu('Settings')])
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+eval JSON.stringify(['settings cursor row', __ui.menu('Settings')[6], __ui.texts('Settings')])
+tap Enter
+wait 700
+eval JSON.stringify(['scenes', __ui.scenes()])
+eval JSON.stringify(['custom rows', __ui.menu('CustomDifficulty')])
+eval JSON.stringify(['custom texts', __ui.texts('CustomDifficulty')])
+shot 20-00-custom-page.png
+
+# -- Row 0 picks the preset: three rights from Normal reach Custom ---------------------------------
+tap ArrowRight
+wait 200
+tap ArrowRight
+wait 200
+tap ArrowRight
+wait 200
+eval JSON.stringify(['preset', JSON.parse(localStorage.getItem('local-overcooked.settings.v1')).preset, __ui.menu('CustomDifficulty')[0], __ui.texts('CustomDifficulty')])
+
+# -- Cook time x1.5: five rights, the preview says 13.5 s -----------------------------------------
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+eval JSON.stringify(['on cook row', __ui.menu('CustomDifficulty')[6], __ui.texts('CustomDifficulty')])
+tap ArrowRight
+wait 150
+tap ArrowRight
+wait 150
+tap ArrowRight
+wait 150
+tap ArrowRight
+wait 150
+tap ArrowRight
+wait 200
+eval JSON.stringify(['cook x1.5', __ui.menu('CustomDifficulty')[6], __ui.texts('CustomDifficulty'), JSON.parse(localStorage.getItem('local-overcooked.settings.v1')).custom.cookTimeScale])
+shot 20-01-cook-time.png
+
+# -- Level time x0.8: up to row 1, two lefts, the preview says 2:30 becomes 2:00 -------------------
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+tap ArrowLeft
+wait 150
+tap ArrowLeft
+wait 200
+eval JSON.stringify(['level time x0.8', __ui.menu('CustomDifficulty')[1], __ui.texts('CustomDifficulty'), JSON.parse(localStorage.getItem('local-overcooked.settings.v1')).custom.timeLimitScale])
+shot 20-02-level-time.png
+
+# -- Back to Settings, then the title: both say what changed ---------------------------------------
+tap Escape
+wait 700
+eval JSON.stringify(['scenes', __ui.scenes(), 'settings row', __ui.menu('Settings')[6]])
+tap Escape
+wait 700
+eval JSON.stringify(['title difficulty row', __ui.options()[1], __ui.settings().preset, __ui.settings().custom])
+shot 20-03-title-custom.png
+
+# -- Start 1-1: the sim uses the custom numbers and the HUD says Custom ----------------------------
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+eval JSON.stringify(['cursor on', __ui.index()])
+tap Enter
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.sim
+wait 500
+eval JSON.stringify(['level', __oc.level.id, 'modifiers', __oc.scene.modifiers, 'preset', __oc.scene.preset])
+eval JSON.stringify(['effective', __oc.sim.getEffectiveSettings()])
+shot 20-04-hud-custom.png
+
+# -- End the level: the results say Custom stars do not unlock, and the progress file agrees -------
+eval ((st) => (st.phase = 'running', st.timerRunning = true, st.timeLeft = 0.2))(__oc.sim.getState())
+until 8000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Results'))
+wait 600
+eval JSON.stringify(['results texts', __ui.texts('Results').filter((t) => /Custom|unlock|saved/.test(t))])
+eval JSON.stringify(['progress stored', localStorage.getItem('local-overcooked.progress.v1')])
+shot 20-05-results-custom.png
+
+# -- Reload: the custom numbers and the preset come back --------------------------------------------
+eval location.reload()
+wait 1500
+until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
+wait 600
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval JSON.stringify(['after reload', __ui.settings().preset, __ui.settings().custom, __ui.options()[1], __ui.stars()])
+logs
+errors

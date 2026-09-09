@@ -95,6 +95,16 @@ describe('star totals', () => {
     expect(totalStars(progress)).toBe(6);
     expect(unlockingStars(progress)).toBe(3);
   });
+
+  it('saves a custom run but leaves its stars out of the unlock total', () => {
+    const progress = played([
+      { levelId: 'oc1-1-1', score: 400, stars: 3, preset: 'custom' },
+      { levelId: 'oc1-1-2', score: 200, stars: 2, preset: 'normal' },
+    ]);
+    expect(levelProgress(progress, 'oc1-1-1')).toMatchObject({ bestScore: 400, stars: 3, plays: 1, starsByPreset: { custom: 3 } });
+    expect(totalStars(progress)).toBe(5);
+    expect(unlockingStars(progress)).toBe(2);
+  });
 });
 
 // ─── Unlocking ──────────────────────────────────────────────────────────────
