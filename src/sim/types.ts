@@ -33,7 +33,8 @@ export type TileType =
   | 'trash'       // solid; destroys ingredients/soup dropped on it (plates and pots return empty)
   | 'plateStack'  // solid; 'stack' plate mode: clean plates respawn here after a serve
   | 'slider'      // solid counter that moves with its slider group (tile.group), 1-3 ship counters
-  | 'gate';       // floor that is walkable only while its gate group (tile.group) is open, 1-6 earthquake seam
+  | 'gate'        // floor that is walkable only while its gate group (tile.group) is open, 1-6 earthquake seam
+  | 'gap';        // a hole: no wall, a thrown item flies over it, a chef that steps on it falls and respawns at its spawn
 
 export interface Tile {
   x: number;
@@ -99,7 +100,7 @@ export interface Order {
 }
 
 // ─── Actors ──────────────────────────────────────────────────────────────────
-export type ChefAction = 'idle' | 'walking' | 'chopping' | 'washing' | 'extinguishing';
+export type ChefAction = 'idle' | 'walking' | 'chopping' | 'washing' | 'extinguishing' | 'dashing' | 'falling';
 export interface Chef {
   index: number;          // 0 = player 1, 1 = player 2
   x: number;              // center, tile units
@@ -108,6 +109,23 @@ export interface Chef {
   holding: Item | null;
   action: ChefAction;
   actionProgress: number; // 0..1 for chopping/washing; 0 otherwise
+  dashCooldown?: number;  // seconds until the next dash; absent = ready
+  dashTimeLeft?: number;  // seconds of dash movement left; absent = not dashing
+  respawnIn?: number;     // seconds until a fallen chef is back at its spawn; absent = on the floor
+}
+/** A thrown item in the air: straight flight until it is caught, hits something or runs out of range. */
+export interface FlyingItem {
+  id: number;
+  item: Item;
+  x: number;              // centre, tile units
+  y: number;
+  vx: number;             // tiles per second
+  vy: number;
+  thrower: number;        // chef index; it can catch its own throw back only after THROW_OWN_CATCH_DISTANCE
+  rangeLeft: number;      // tiles still to fly before it drops
+  flown: number;          // tiles flown so far
+  floorX: number;         // the last floor tile it was over: where it drops when a wall stops it
+  floorY: number;
 }
 // on tile (x,y); health 1 → 0 when out. spreadTimer counts down to the next spread.
 export interface Fire { x: number; y: number; health: number; spreadTimer?: number; }
@@ -162,6 +180,7 @@ export interface SimState {
   tipStreak: number;           // consecutive successful serves (drives the tip bonus)
   gates?: GateGroup[];         // one per gate dynamic; absent on levels without gates
   seed?: number;               // the run's seed, for the results screen
+  flying?: FlyingItem[];       // thrown items in the air; absent until the first throw
 }
 
 // ─── Input ───────────────────────────────────────────────────────────────────
@@ -173,9 +192,12 @@ export interface PlayerInput {
   interactHeld: boolean;   // held this step: chopping and washing continue while held
   pausePressed?: boolean;  // rising edge: Start / Options / Escape (menus and pause)
   backPressed?: boolean;   // rising edge: B / Circle / Backspace (menu back)
+  throwPressed?: boolean;  // rising edge: throw the held ingredient the way the chef faces
+  dashPressed?: boolean;   // rising edge: dash the way the chef faces
 }
 export const NO_INPUT: Readonly<PlayerInput> = Object.freeze({
   moveX: 0, moveY: 0, pickupPressed: false, interactPressed: false, interactHeld: false, pausePressed: false, backPressed: false,
+  throwPressed: false, dashPressed: false,
 });
 
 // ─── Events ──────────────────────────────────────────────────────────────────
@@ -191,7 +213,10 @@ export type SimEventType =
   | 'orderNew' | 'orderExpired'
   | 'timerStart' | 'timerWarning' | 'levelEnd'
   | 'plateAdd'                     // an ingredient joined a plate (burger assembly)
-  | 'gateOpen' | 'gateClose';      // 1-6 earthquake seam
+  | 'gateOpen' | 'gateClose'       // 1-6 earthquake seam
+  | 'throw' | 'catch' | 'throwLand' // value = the flight id; throwLand also fires when the item is lost
+  | 'dash' | 'dashBump'            // dashBump: chef = the dasher, value = the chef it hit
+  | 'chefFell';                    // a chef stepped on a gap; it respawns after FALL_PENALTY_SEC
 export interface SimEvent {
   type: SimEventType;
   chef?: number;   // chef index that caused it, if any

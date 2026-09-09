@@ -5,19 +5,20 @@
 // Coordinates are tile units (see types.ts): x right, y down, chef x/y is the chef centre.
 // SimState is plain data; presentation reads it every frame and never mutates it.
 import type { LevelDef, OrderSettings } from '../levels/schema';
-import { parseGrid, SOLID_TILES } from '../levels/schema';
+import { isWalkable, parseGrid, SOLID_TILES } from '../levels/schema';
 import {
-  BURN_TIME, CHEF_HITBOX, CHEF_RADIUS, CHEF_SPEED, CHOP_TIME, COOK_TIME, EXTINGUISH_RATE,
+  BURN_TIME, CATCH_RADIUS, CHEF_HITBOX, CHEF_RADIUS, CHEF_SPEED, CHOP_TIME, COOK_TIME, DASH_BUMP_PUSH,
+  DASH_COOLDOWN, DASH_SPEED, DASH_THROW_BONUS, DASH_THROW_WINDOW, DASH_TIME, EXTINGUISH_RATE, FALL_PENALTY_SEC,
   FIRE_SPREAD_TIME, MAX_PUSH_ESCAPE, MOVE_DEADZONE, ORDER_FAIL_PENALTY, PAN_CAPACITY,
   PAN_COOK_TIME, PLATE_RETURN_DELAY, PLATE_STACK_RETURN_DELAY, POT_CAPACITY, REACH, SIM_DT,
-  SPRAY_LATERAL_TOLERANCE, SPRAY_RANGE, TICK_EVENT_HZ, TIMER_WARNING_AT, TIP_BASE, TIP_MAX,
-  WASH_TIME,
+  SPRAY_LATERAL_TOLERANCE, SPRAY_RANGE, THROW_OWN_CATCH_DISTANCE, THROW_RANGE, THROW_SPEED, TICK_EVENT_HZ,
+  TIMER_WARNING_AT, TIP_BASE, TIP_MAX, WASH_TIME,
 } from './constants';
 import { dishMatchesRecipe, isBurgerComponent, RECIPES, sortIngredients } from './recipes';
 import { mulberry32, type Rng } from './rng';
 import {
   CHOPPED_INGREDIENTS, FACING_VECTORS, FRIED_INGREDIENTS, NO_INPUT, SOUP_INGREDIENTS,
-  type Chef, type ChefAction, type DirtyPlateItem, type IngredientItem, type IngredientType,
+  type Chef, type ChefAction, type DirtyPlateItem, type FlyingItem, type IngredientItem, type IngredientType,
   type Item, type PlateItem, type PlayerInput, type PotItem, type SimEvent, type SimState,
   type Modifiers, type SliderGroup, type Tile, type Ware,
 } from './types';
@@ -82,6 +83,29 @@ function isStaticSolid(type: Tile['type']): boolean {
 /** Counters a chef may set an item down on. Sliders are counters that move. */
 function isPlaceableCounter(type: Tile['type']): boolean {
   return type === 'counter' || type === 'slider';
+}
+
+/** Ground a thrown item can come to rest on. Open gates count; the caller checks the gate. */
+function isLandingFloor(type: Tile['type']): boolean {
+  return type === 'floor' || type === 'road' || type === 'gate';
+}
+
+/** Ground a throw flies over without stopping: holes, and gates while closed. */
+function isFlyOver(type: Tile['type']): boolean {
+  return type === 'gap' || type === 'gate';
+}
+
+/** Only ingredients fly: never plates, cookware or the extinguisher (wiki, OC2 Throwing). */
+function isThrowable(item: Item | null): item is IngredientItem {
+  return item !== null && item.kind === 'ingredient';
+}
+
+function isFalling(chef: Chef): boolean {
+  return chef.respawnIn !== undefined;
+}
+
+function isDashing(chef: Chef): boolean {
+  return chef.dashTimeLeft !== undefined;
 }
 
 // ─── Cookware ───────────────────────────────────────────────────────────────
@@ -152,6 +176,7 @@ export class Sim {
   private nextItemId = 1;
   private nextOrderId = 1;
   private nextPedId = 1;
+  private nextFlightId = 1;
 
   private orderTimer = 0;
   private warned = false;
@@ -173,6 +198,9 @@ export class Sim {
   private prevActions: ChefAction[] = [];
   private prevProgress: number[] = [];
   private sprayTickAt: number[] = [];
+  // Which dash (a per-chef counter) last bumped which chef, so one dash bumps each chef once.
+  private dashCount: number[] = [];
+  private bumpedAt: number[][] = [];
   // Clean plates waiting on a sink with no adjacent drying tile, keyed by sink tile index.
   private sinkClean: Record<number, number> = {};
   // Reused [minX, minY, ...] buffer of 1x1 solid boxes, so collision allocates nothing.
@@ -201,6 +229,8 @@ export class Sim {
       this.prevActions.push('idle');
       this.prevProgress.push(0);
       this.sprayTickAt.push(Number.NEGATIVE_INFINITY);
+      this.dashCount.push(0);
+      this.bumpedAt.push([]);
     }
 
     this.state = {
@@ -347,19 +377,25 @@ export class Sim {
 
     for (let i = 0; i < st.chefs.length; i++) {
       const chef = st.chefs[i];
+      const inp = inputs[i] ?? NO_INPUT;
       this.prevActions[i] = chef.action;
       this.prevProgress[i] = chef.actionProgress;
-      this.moveChef(chef, inputs[i] ?? NO_INPUT, dt);
+      this.tickChefTimers(chef, i, dt);
+      this.startDash(chef, i, inp, events);
+      this.moveChef(chef, inp, dt);
+      if (isDashing(chef)) this.dashBump(chef, i, events);
     }
     this.separateChefs();
     this.pushChefsFromPedestrians();
     this.pushChefsFromSliders();
     this.pushChefsFromGates();
-    for (const chef of st.chefs) this.pushOutOfTiles(chef);
+    for (const chef of st.chefs) if (!isFalling(chef)) this.pushOutOfTiles(chef);
+    this.checkFalls(events);
 
     for (let i = 0; i < st.chefs.length; i++) {
       this.updateChefActions(st.chefs[i], i, inputs[i] ?? NO_INPUT, dt, events);
     }
+    this.updateFlying(dt, events);
 
     this.updateCooking(dt, events);
     this.updateFires(dt, events);
@@ -370,7 +406,53 @@ export class Sim {
   }
 
   // ─── Movement ─────────────────────────────────────────────────────────────
+  /** Dash cooldown and the fall penalty count down here; a fallen chef comes back at its spawn. */
+  private tickChefTimers(chef: Chef, idx: number, dt: number): void {
+    if (chef.dashCooldown !== undefined) {
+      chef.dashCooldown -= dt;
+      if (chef.dashCooldown <= 0) delete chef.dashCooldown;
+    }
+    if (chef.respawnIn !== undefined) {
+      chef.respawnIn -= dt;
+      if (chef.respawnIn <= 0) {
+        delete chef.respawnIn;
+        const spawn = this.level.spawns[idx] ?? { x: 0, y: 0 };
+        chef.x = spawn.x + 0.5;
+        chef.y = spawn.y + 0.5;
+        chef.facing = 'down';
+        chef.action = 'idle';
+        chef.actionProgress = 0;
+      }
+    }
+  }
+
+  /** A dash starts on the rising edge when the chef is on the floor and off cooldown. It wins
+   *  over a chop or wash in progress: the chef leaves the board. */
+  private startDash(chef: Chef, idx: number, inp: PlayerInput, events: SimEvent[]): void {
+    if (inp.dashPressed !== true || isFalling(chef) || isDashing(chef) || chef.dashCooldown !== undefined) return;
+    chef.dashTimeLeft = DASH_TIME;
+    chef.dashCooldown = DASH_COOLDOWN;
+    this.dashCount[idx] += 1;
+    events.push({ type: 'dash', chef: idx, x: Math.floor(chef.x), y: Math.floor(chef.y) });
+  }
+
   private moveChef(chef: Chef, inp: PlayerInput, dt: number): void {
+    if (isFalling(chef)) { // in the hole: pinned until the respawn
+      chef.action = 'falling';
+      chef.actionProgress = 0;
+      return;
+    }
+    if (chef.dashTimeLeft !== undefined) { // a dash ignores the stick and keeps its heading
+      chef.action = 'dashing';
+      chef.actionProgress = 0;
+      const v = FACING_VECTORS[chef.facing];
+      const dist = DASH_SPEED * Math.min(dt, chef.dashTimeLeft);
+      if (v.dx !== 0) chef.x = this.resolveX(chef, chef.x + v.dx * dist);
+      if (v.dy !== 0) chef.y = this.resolveY(chef, chef.y + v.dy * dist);
+      chef.dashTimeLeft -= dt;
+      if (chef.dashTimeLeft <= 0) delete chef.dashTimeLeft;
+      return;
+    }
     // Chopping and washing pin the chef until the action finishes or interact is released.
     const locked = (chef.action === 'chopping' || chef.action === 'washing') && inp.interactHeld;
     chef.action = 'idle';
@@ -546,6 +628,54 @@ export class Sim {
     chef.y = clamp(chef.y, HALF, Math.max(HALF, st.height - HALF));
   }
 
+  /** A dashing chef that runs into another shoves it along the dash and knocks its item
+   *  loose onto the floor (wiki Dash). Each dash bumps a given chef once. */
+  private dashBump(dasher: Chef, idx: number, events: SimEvent[]): void {
+    const st = this.state;
+    const minDist = CHEF_RADIUS * 2;
+    const v = FACING_VECTORS[dasher.facing];
+    for (let b = 0; b < st.chefs.length; b++) {
+      if (b === idx) continue;
+      const other = st.chefs[b];
+      if (isFalling(other)) continue;
+      if (Math.hypot(other.x - dasher.x, other.y - dasher.y) >= minDist) continue;
+      if (this.bumpedAt[idx][b] === this.dashCount[idx]) continue;
+      this.bumpedAt[idx][b] = this.dashCount[idx];
+      if (v.dx !== 0) other.x = this.resolveX(other, other.x + v.dx * DASH_BUMP_PUSH);
+      if (v.dy !== 0) other.y = this.resolveY(other, other.y + v.dy * DASH_BUMP_PUSH);
+      if (other.holding) this.dropLoose(other, events);
+      events.push({ type: 'dashBump', chef: idx, x: Math.floor(other.x), y: Math.floor(other.y), value: b });
+    }
+  }
+
+  /** What a bumped chef held lands on the floor under it, or the nearest free floor, or is lost. */
+  private dropLoose(chef: Chef, events: SimEvent[]): void {
+    const item = chef.holding;
+    if (!item) return;
+    chef.holding = null;
+    const tx = Math.floor(chef.x);
+    const ty = Math.floor(chef.y);
+    const landed = this.landOnFloor(item, tx, ty);
+    events.push({ type: 'drop', chef: chef.index, x: landed ? landed.x : tx, y: landed ? landed.y : ty });
+  }
+
+  /** A chef whose centre is over a gap falls in: what it held is gone, and it is out for
+   *  FALL_PENALTY_SEC before coming back at its spawn. */
+  private checkFalls(events: SimEvent[]): void {
+    const st = this.state;
+    for (const chef of st.chefs) {
+      if (isFalling(chef)) continue;
+      const tile = this.tileAt(Math.floor(chef.x), Math.floor(chef.y));
+      if (!tile || tile.type !== 'gap') continue;
+      chef.holding = null;
+      chef.respawnIn = FALL_PENALTY_SEC;
+      chef.action = 'falling';
+      chef.actionProgress = 0;
+      delete chef.dashTimeLeft;
+      events.push({ type: 'chefFell', chef: chef.index, x: tile.x, y: tile.y });
+    }
+  }
+
   private separateChefs(): void {
     const chefs = this.state.chefs;
     const minDist = CHEF_RADIUS * 2;
@@ -553,6 +683,7 @@ export class Sim {
       for (let b = a + 1; b < chefs.length; b++) {
         const ca = chefs[a];
         const cb = chefs[b];
+        if (isFalling(ca) || isFalling(cb)) continue; // a chef in the hole is not in the way
         let dx = cb.x - ca.x;
         let dy = cb.y - ca.y;
         let d = Math.hypot(dx, dy);
@@ -570,6 +701,7 @@ export class Sim {
   private pushChefsFromPedestrians(): void {
     const minDist = CHEF_RADIUS * 2;
     for (const chef of this.state.chefs) {
+      if (isFalling(chef)) continue;
       for (const p of this.state.pedestrians) {
         let dx = chef.x - p.x;
         let dy = chef.y - p.y;
@@ -611,6 +743,7 @@ export class Sim {
 
   private pushChefsFromSliders(): void {
     for (const chef of this.state.chefs) {
+      if (isFalling(chef)) continue;
       const fromX = chef.x;
       const fromY = chef.y;
       for (const s of this.sliderTiles) {
@@ -630,6 +763,7 @@ export class Sim {
   private pushChefsFromGates(): void {
     if (!this.state.gates) return;
     for (const chef of this.state.chefs) {
+      if (isFalling(chef)) continue;
       const fromX = chef.x;
       const fromY = chef.y;
       for (const g of this.gateTiles) {
@@ -692,10 +826,12 @@ export class Sim {
 
   // ─── Chef actions ─────────────────────────────────────────────────────────
   private updateChefActions(chef: Chef, idx: number, inp: PlayerInput, dt: number, events: SimEvent[]): void {
+    if (isFalling(chef)) return;
     // Spraying needs no target tile and leaves the chef free to walk.
     if (chef.holding && chef.holding.kind === 'extinguisher' && inp.interactHeld) {
       this.spray(chef, idx, dt, events);
     }
+    if (inp.throwPressed === true && isThrowable(chef.holding)) this.throwItem(chef, idx, events);
     const target = this.getTargetTile(idx);
     if (!target) return;
     if (this.fireAt(target.x, target.y)) return; // burning tiles refuse everything but spray
@@ -725,6 +861,165 @@ export class Sim {
       this.sprayTickAt[idx] = st.elapsed;
       events.push({ type: 'spray', chef: idx, x: chef.x, y: chef.y });
     }
+  }
+
+  // ─── Throwing ─────────────────────────────────────────────────────────────
+  /** The held ingredient leaves along the chef's facing. A throw inside DASH_THROW_WINDOW of
+   *  a dash flies DASH_THROW_BONUS times as far (wiki Dash). */
+  private throwItem(chef: Chef, idx: number, events: SimEvent[]): void {
+    const item = chef.holding;
+    if (!isThrowable(item)) return;
+    const v = FACING_VECTORS[chef.facing];
+    const afterDash = chef.dashCooldown !== undefined && chef.dashCooldown > DASH_COOLDOWN - DASH_THROW_WINDOW;
+    const flight: FlyingItem = {
+      id: this.nextFlightId++,
+      item,
+      x: chef.x + v.dx * HALF,
+      y: chef.y + v.dy * HALF,
+      vx: v.dx * THROW_SPEED,
+      vy: v.dy * THROW_SPEED,
+      thrower: idx,
+      rangeLeft: THROW_RANGE * (afterDash ? DASH_THROW_BONUS : 1),
+      flown: 0,
+      floorX: Math.floor(chef.x),
+      floorY: Math.floor(chef.y),
+    };
+    chef.holding = null;
+    (this.state.flying ??= []).push(flight);
+    events.push({ type: 'throw', chef: idx, x: flight.floorX, y: flight.floorY, value: flight.id });
+  }
+
+  /** Flies every thrown item: it is caught by a chef with free hands, stops at the first
+   *  station it reaches (into an accepting pot or pan, onto a free counter or board, into
+   *  the bin, or it drops in front of anything else), crosses holes and closed gates, and
+   *  falls where its range runs out. */
+  private updateFlying(dt: number, events: SimEvent[]): void {
+    const list = this.state.flying;
+    if (!list || list.length === 0) return;
+    for (let i = list.length - 1; i >= 0; i--) {
+      const f = list[i];
+      const step = Math.min(THROW_SPEED * dt, f.rangeLeft);
+      f.x += (f.vx / THROW_SPEED) * step;
+      f.y += (f.vy / THROW_SPEED) * step;
+      f.flown += step;
+      f.rangeLeft -= step;
+      if (this.resolveFlight(f, events) || this.catchFlight(f, events)) {
+        list.splice(i, 1);
+        continue;
+      }
+      if (f.rangeLeft <= 0) {
+        this.endFlight(f, Math.floor(f.x), Math.floor(f.y), events);
+        list.splice(i, 1);
+      }
+    }
+  }
+
+  /** The tile the item is over now. Returns true when the flight ended there. */
+  private resolveFlight(f: FlyingItem, events: SimEvent[]): boolean {
+    const st = this.state;
+    const tx = Math.floor(f.x);
+    const ty = Math.floor(f.y);
+    if (tx < 0 || ty < 0 || tx >= st.width || ty >= st.height) {
+      this.endFlight(f, f.floorX, f.floorY, events); // the grid edge is a wall
+      return true;
+    }
+    // A slider is a counter that moves: hit-test it where it is, but its item lives on its base tile.
+    for (const s of this.sliderTiles) {
+      const g = this.groupOffset(s.group);
+      const bx = s.x + (g ? g.offsetX : 0);
+      const by = s.y + (g ? g.offsetY : 0);
+      if (f.x >= bx && f.x < bx + 1 && f.y >= by && f.y < by + 1) {
+        this.landOnStation(f, s.y * st.width + s.x, events);
+        return true;
+      }
+    }
+    const index = ty * st.width + tx;
+    const tile = st.tiles[index];
+    if (tile.type === 'gate' && !this.gateOpen(tile.group ?? '')) return false; // closed: fly over
+    if (isFlyOver(tile.type) && tile.type !== 'gate') return false;             // a hole: fly over
+    if (isLandingFloor(tile.type)) {
+      f.floorX = tx;
+      f.floorY = ty;
+      return false;
+    }
+    this.landOnStation(f, index, events);
+    return true;
+  }
+
+  /** The item reached a station tile: into an accepting pot or pan, onto a free counter or
+   *  board, into the bin, otherwise it drops on the floor it came from. */
+  private landOnStation(f: FlyingItem, index: number, events: SimEvent[]): void {
+    const st = this.state;
+    const tile = st.tiles[index];
+    const resting = st.tileItems[index];
+    const item = f.item;
+    if (tile.type === 'trash') {
+      events.push({ type: 'throwLand', chef: f.thrower, x: tile.x, y: tile.y, value: f.id });
+      events.push({ type: 'trash', chef: f.thrower, x: tile.x, y: tile.y });
+      return;
+    }
+    if (item.kind === 'ingredient' && resting && resting.kind === 'pot' && !this.fireAt(tile.x, tile.y)
+        && resting.state !== 'burnt' && resting.contents.length < wareCapacity(resting) && wareAccepts(resting, item)) {
+      const before = resting.contents.length;
+      resting.contents.push(item.type);
+      if (before > 0 && resting.cookProgress > 0) resting.cookProgress *= before / resting.contents.length;
+      if (resting.state === 'cooked') { resting.state = 'cooking'; resting.burnProgress = 0; }
+      events.push({ type: 'throwLand', chef: f.thrower, x: tile.x, y: tile.y, value: f.id });
+      events.push({ type: 'potAdd', chef: f.thrower, x: tile.x, y: tile.y });
+      return;
+    }
+    if (!resting && (isPlaceableCounter(tile.type) || tile.type === 'board') && !this.fireAt(tile.x, tile.y)) {
+      st.tileItems[index] = item;
+      events.push({ type: 'throwLand', chef: f.thrower, x: tile.x, y: tile.y, value: f.id });
+      return;
+    }
+    this.endFlight(f, f.floorX, f.floorY, events); // a wall, or a station that will not take it
+  }
+
+  /** A chef with free hands within CATCH_RADIUS takes the item out of the air. The thrower
+   *  only gets it back once it has flown THROW_OWN_CATCH_DISTANCE. */
+  private catchFlight(f: FlyingItem, events: SimEvent[]): boolean {
+    for (const chef of this.state.chefs) {
+      if (chef.holding || isFalling(chef)) continue;
+      if (chef.index === f.thrower && f.flown < THROW_OWN_CATCH_DISTANCE) continue;
+      if (Math.hypot(chef.x - f.x, chef.y - f.y) >= CATCH_RADIUS) continue;
+      chef.holding = f.item;
+      events.push({ type: 'catch', chef: chef.index, x: Math.floor(f.x), y: Math.floor(f.y), value: f.id });
+      return true;
+    }
+    return false;
+  }
+
+  /** The flight is over at (tx, ty): the item lands on that floor tile or the nearest free
+   *  one, or is lost over a hole, a closed gate or a full floor. */
+  private endFlight(f: FlyingItem, tx: number, ty: number, events: SimEvent[]): void {
+    const tile = this.tileAt(tx, ty);
+    const overHole = !tile || !isLandingFloor(tile.type) || (tile.type === 'gate' && !this.gateOpen(tile.group ?? ''));
+    const landed = overHole ? null : this.landOnFloor(f.item, tx, ty);
+    events.push({ type: 'throwLand', chef: f.thrower, x: landed ? landed.x : tx, y: landed ? landed.y : ty, value: f.id });
+  }
+
+  /** Puts an item down on floor tile (tx, ty) if it is free, else on the first free floor
+   *  neighbour. Returns where it landed, or null when it is lost. */
+  private landOnFloor(item: Item, tx: number, ty: number): { x: number; y: number } | null {
+    const st = this.state;
+    const canRest = (x: number, y: number): boolean => {
+      const tile = this.tileAt(x, y);
+      if (!tile || !isLandingFloor(tile.type) || st.tileItems[y * st.width + x]) return false;
+      return tile.type !== 'gate' || this.gateOpen(tile.group ?? '');
+    };
+    if (canRest(tx, ty)) {
+      st.tileItems[ty * st.width + tx] = item;
+      return { x: tx, y: ty };
+    }
+    for (const n of NEIGHBOURS) {
+      const nx = tx + n.dx;
+      const ny = ty + n.dy;
+      if (!canRest(nx, ny)) continue;
+      st.tileItems[ny * st.width + nx] = item;
+      return { x: nx, y: ny };
+    }
+    return null;
   }
 
   /** Held interact with empty hands: chop on a board, wash at a sink. */
@@ -803,7 +1098,7 @@ export class Sim {
       const nx = tile.x + n.dx;
       const ny = tile.y + n.dy;
       if (nx < 0 || ny < 0 || nx >= st.width || ny >= st.height) continue;
-      if (!SOLID_TILES.has(st.tiles[ny * st.width + nx].type)) return true;
+      if (isWalkable(st.tiles[ny * st.width + nx].type)) return true;
     }
     return false;
   }

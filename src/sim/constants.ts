@@ -28,6 +28,21 @@ export const TIP_BASE = 2;              // tip added per consecutive on-time ser
 export const TIP_MAX = 8;
 export const TIMER_WARNING_AT = 30;     // seconds left when the warning event fires
 
+// ─── Throwing, dashing and falling (roadmap item 4) ─────────────────────────
+// The wiki gives one number here (the dash cooldown); the rest are estimates from
+// docs/research/oc2-roadmap-notes.md sections 3 and 4. Tune by play.
+export const THROW_SPEED = 9;              // tiles per second a thrown item flies; a full throw takes about 0.4 s
+export const THROW_RANGE = 3.5;            // tiles a throw travels before it drops
+export const CATCH_RADIUS = 0.55;          // tiles between a flying item and a chef centre for a catch
+export const THROW_OWN_CATCH_DISTANCE = 1; // tiles a throw must fly before its thrower can catch it back
+export const DASH_SPEED = 11;              // tiles per second while dashing
+export const DASH_TIME = 0.16;             // seconds a dash lasts, about 1.8 tiles
+export const DASH_COOLDOWN = 0.6;          // seconds between dashes (wiki Dash: "just above half a second")
+export const DASH_THROW_WINDOW = 0.3;      // seconds after a dash starts during which a throw flies further
+export const DASH_THROW_BONUS = 1.5;       // range multiplier for a throw inside that window
+export const DASH_BUMP_PUSH = 0.6;         // tiles a chef hit by a dash is shoved
+export const FALL_PENALTY_SEC = 5;         // seconds a fallen chef is out before it respawns (wiki 2-1, 3-1, 3-3, 3-4)
+
 // ─── Sim internals (added by the simulation agent) ──────────────────────────
 export const MOVE_DEADZONE = 0.2;         // stick magnitude below which the chef stands still
 export const TICK_EVENT_HZ = 4;           // max chopTick / washTick / spray events per second

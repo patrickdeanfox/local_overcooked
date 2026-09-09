@@ -148,6 +148,16 @@ function drawVoid(ctx: CanvasRenderingContext2D): void {
   });
 }
 
+/** A hole in the floor: the void's dark with a lit rim, so it reads as a drop, not a wall. */
+function drawGap(ctx: CanvasRenderingContext2D): void {
+  ctx.fillStyle = PALETTE.voidDark;
+  ctx.fillRect(0, 0, T, T);
+  withAlpha(ctx, 0.7, () => {
+    ctx.fillStyle = radial(ctx, TOP_CX, TOP_CX, T * 0.3, T * 0.75, [[0, 'rgba(0,0,0,0)'], [1, PALETTE.voidEdge]]);
+    ctx.fillRect(0, 0, T, T);
+  });
+}
+
 /** Earthquake seam, open: floor that a chef can cross, ringed by the groove the
  *  slab rises through and split by a crack that lines up across neighbours. */
 function drawGate(ctx: CanvasRenderingContext2D): void {
@@ -441,6 +451,7 @@ const TILE_DRAWERS: Record<Exclude<TileType, 'crate'>, TileDraw> = {
   plateStack: drawPlateStack,
   slider: drawSlider,
   gate: drawGate,
+  gap: drawGap,
 };
 
 export function generateTileTextures(scene: Phaser.Scene): void {
