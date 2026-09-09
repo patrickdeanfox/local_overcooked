@@ -1,0 +1,64 @@
+# -- The look (the diner pass): the title's sidebar of tickets over the living diorama with the
+#    level card, the cursor on a locked row and on an option row, the Tutorials, Settings and
+#    Results pages on the enamel backdrop, and the in-game HUD in the new faces ------------------
+#
+# Every page is reached by scene start so the row counts do not matter.
+until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
+wait 6000
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval JSON.stringify(['fonts', Array.from(document.fonts).map((f) => [f.family, f.status])])
+eval JSON.stringify(['title options', __ui.options(), 'status', __ui.status()])
+# 28-00: the title: wordmark, level tickets, option rows, the diorama of 1-1 with the card.
+shot 28-00-title.png
+tap ArrowDown
+wait 400
+# 28-01: the cursor on 1-2 (locked): the ticket slid, the card says locked, the diorama shows 1-2.
+shot 28-01-title-locked-row.png
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 400
+eval JSON.stringify(['on custom', __ui.index(), __ui.status()])
+# 28-02: the cursor on Short Order (the last level): the custom kitchen in the diorama.
+shot 28-02-title-custom-row.png
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 400
+eval JSON.stringify(['on option', __ui.index(), __ui.status()])
+# 28-03: the cursor on Players: the mustard pill, the tickets unlit.
+shot 28-03-title-option-row.png
+
+# -- Pages ------------------------------------------------------------------------------------
+eval (__ui.scene('Title').scene.start('Tutorials'), 'opened')
+wait 900
+shot 28-04-tutorials.png
+eval (__ui.scene('Tutorials').scene.start('Settings'), 'opened')
+wait 900
+shot 28-05-settings.png
+eval (__ui.scene('Settings').scene.start('Results', { levelId: 'oc1-1-1', players: 2, score: 140, stars: 3, servedCount: 6, failedCount: 1, thresholds: [40, 80, 120], seed: 7, preset: 'normal' }), 'opened')
+wait 1600
+shot 28-06-results.png
+
+# -- In game -------------------------------------------------------------------------------------
+eval (__ui.scene('Results').scene.start('Game', { levelId: 'oc1-1-4', seed: 7 }), 'started')
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.sim
+wait 1200
+shot 28-07-game-hud.png
+tap Escape
+wait 500
+# 28-08: the pause menu.
+shot 28-08-pause.png
+errors

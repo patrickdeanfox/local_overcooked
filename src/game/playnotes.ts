@@ -126,7 +126,7 @@ function takeScreenshot(): Promise<string | undefined> {
 
 // ─── DOM ────────────────────────────────────────────────────────────────────
 const STYLE = `
-#pn-button{position:fixed;right:12px;bottom:12px;z-index:50;font:13px system-ui,sans-serif;color:#f2e8dc;background:#3a2f28cc;border:1px solid #6b5a4c;border-radius:8px;padding:6px 10px;cursor:pointer;opacity:.75}
+#pn-button{position:fixed;left:68%;top:10px;transform:translateX(-50%);z-index:50;font:500 13px Fredoka,system-ui,sans-serif;color:#fff1d6;background:#16404acc;border:1px solid #2f7a86;border-radius:999px;padding:5px 12px;cursor:pointer;opacity:.7}
 #pn-button:hover{opacity:1}
 #pn-overlay{position:fixed;inset:0;z-index:60;background:#000a;display:flex;align-items:center;justify-content:center;font:14px system-ui,sans-serif;color:#f2e8dc}
 #pn-overlay[hidden]{display:none}

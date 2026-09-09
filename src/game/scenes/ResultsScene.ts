@@ -13,7 +13,8 @@ import { isUnlocked, levelCountsTowardUnlock, levelProgress, loadProgress, recor
 import { countsTowardUnlock, isAssisted, loadSettings, presetName } from '../settings';
 import { MenuList, type MenuItemSpec } from '../ui/MenuList';
 import { KeyboardNav, MenuInput, mergeNav } from '../ui/menuInput';
-import { COLOR, TEXT_COLOR, textStyle } from '../ui/theme';
+import { installBackdrop, roundedPanel } from '../ui/panel';
+import { COLOR, displayStyle, TEXT_COLOR, textStyle } from '../ui/theme';
 import type { GameSceneData, ResultsSceneData } from '../types';
 
 export type { ResultsSceneData } from '../types';
@@ -34,15 +35,29 @@ const RESULTS = {
   scoreIconGap: 34,
   countsY: 424,
   countsFontPx: 18,
-  newBestY: 456,
+  newBestY: 472,
   newBestFontPx: 22,
-  noteY: 484,
+  noteY: 502,
   noteFontPx: 14,
   menuY: 536,
   menuSpacing: 44,
   hintY: GAME_HEIGHT - 56,
   hintFontPx: 15,
   starCount: 3,
+  // The reveal: stars pop in one after another, the score counts up, the stamp lands last.
+  starPopDelayMs: 220,
+  starPopGapMs: 260,
+  starPopMs: 420,
+  starPopFrom: 0.2,
+  starOvershoot: 1.25,
+  countMs: 900,
+  countDelayMs: 300,
+  stampWidth: 168,
+  stampHeight: 40,
+  stampAngle: -6,
+  stampFontPx: 22,
+  stampPopFrom: 1.8,
+  stampPopMs: 320,
 } as const;
 
 const FALLBACK: ResultsSceneData = {
@@ -85,8 +100,9 @@ export class ResultsScene extends Phaser.Scene {
     const best = levelProgress(recorded.progress, result.levelId).bestScore;
 
     this.cameras.main.setBackgroundColor(COLOR.bg);
+    installBackdrop(this);
     this.add
-      .text(GAME_WIDTH / 2, RESULTS.headingY, `${levelName} complete`, textStyle(RESULTS.headingFontPx, TEXT_COLOR.accent))
+      .text(GAME_WIDTH / 2, RESULTS.headingY, `${levelName} complete`, displayStyle(RESULTS.headingFontPx, TEXT_COLOR.accent))
       .setOrigin(0.5);
     this.add
       .text(
@@ -100,11 +116,7 @@ export class ResultsScene extends Phaser.Scene {
 
     this.drawStars(result);
     this.drawScore(result, best);
-    if (recorded.newBest) {
-      this.add
-        .text(GAME_WIDTH / 2, RESULTS.newBestY, 'New best!', textStyle(RESULTS.newBestFontPx, TEXT_COLOR.accent))
-        .setOrigin(0.5);
-    }
+    if (recorded.newBest) this.drawStamp('New best!');
     if (assisted) {
       this.add
         .text(
@@ -184,15 +196,26 @@ export class ResultsScene extends Phaser.Scene {
   }
 
   // ─── Panels ───────────────────────────────────────────────────────────────
+  /** The three stars pop in one after another; an earned one overshoots, an empty one just settles. */
   private drawStars(result: ResultsSceneData): void {
     const totalWidth = (RESULTS.starCount - 1) * RESULTS.starGap;
     for (let i = 0; i < RESULTS.starCount; i++) {
       const x = GAME_WIDTH / 2 - totalWidth / 2 + i * RESULTS.starGap;
       const earned = i < result.stars;
-      this.add
+      const star = this.add
         .image(x, RESULTS.starsY, earned ? TEX.iconStar : TEX.iconStarEmpty)
         .setOrigin(0.5)
-        .setScale(RESULTS.starScale);
+        .setScale(RESULTS.starScale * RESULTS.starPopFrom)
+        .setAlpha(0);
+      this.tweens.add({
+        targets: star,
+        scale: RESULTS.starScale,
+        alpha: 1,
+        duration: RESULTS.starPopMs,
+        delay: RESULTS.starPopDelayMs + i * RESULTS.starPopGapMs,
+        ease: earned ? 'Back.easeOut' : 'Cubic.easeOut',
+        easeParams: earned ? [RESULTS.starOvershoot * 2] : undefined,
+      });
       this.add
         .text(
           x,
@@ -204,12 +227,24 @@ export class ResultsScene extends Phaser.Scene {
     }
   }
 
+  /** The score counts up from nothing; the coin keeps its place left of the growing number. */
   private drawScore(result: ResultsSceneData, best: number): void {
-    const scoreText = String(result.score);
     const text = this.add
-      .text(GAME_WIDTH / 2, RESULTS.scoreY, scoreText, textStyle(RESULTS.scoreFontPx))
+      .text(GAME_WIDTH / 2, RESULTS.scoreY, '0', displayStyle(RESULTS.scoreFontPx))
       .setOrigin(0.5);
-    this.add.image(text.x - text.displayWidth / 2 - RESULTS.scoreIconGap, RESULTS.scoreY, TEX.iconCoin).setOrigin(0.5);
+    const coin = this.add.image(text.x - text.displayWidth / 2 - RESULTS.scoreIconGap, RESULTS.scoreY, TEX.iconCoin).setOrigin(0.5);
+    const counter = { value: 0 };
+    this.tweens.add({
+      targets: counter,
+      value: result.score,
+      duration: RESULTS.countMs,
+      delay: RESULTS.countDelayMs,
+      ease: 'Cubic.easeOut',
+      onUpdate: () => {
+        text.setText(String(Math.round(counter.value)));
+        coin.setX(text.x - text.displayWidth / 2 - RESULTS.scoreIconGap);
+      },
+    });
     this.add
       .text(
         GAME_WIDTH / 2,
@@ -218,6 +253,23 @@ export class ResultsScene extends Phaser.Scene {
         textStyle(RESULTS.countsFontPx, TEXT_COLOR.dim),
       )
       .setOrigin(0.5);
+  }
+
+  /** A tilted mustard stamp that slams down after the stars. */
+  private drawStamp(caption: string): void {
+    const stamp = this.add.container(GAME_WIDTH / 2, RESULTS.newBestY).setAngle(RESULTS.stampAngle);
+    const pill = roundedPanel(this, RESULTS.stampWidth, RESULTS.stampHeight, { fill: COLOR.accent, radius: RESULTS.stampHeight / 2 });
+    const text = this.add.text(0, 0, caption, displayStyle(RESULTS.stampFontPx, TEXT_COLOR.ink)).setOrigin(0.5);
+    stamp.add([pill, text]);
+    stamp.setScale(RESULTS.stampPopFrom).setAlpha(0);
+    this.tweens.add({
+      targets: stamp,
+      scale: 1,
+      alpha: 1,
+      duration: RESULTS.stampPopMs,
+      delay: RESULTS.starPopDelayMs + RESULTS.starCount * RESULTS.starPopGapMs,
+      ease: 'Back.easeOut',
+    });
   }
 
   // ─── Navigation ───────────────────────────────────────────────────────────

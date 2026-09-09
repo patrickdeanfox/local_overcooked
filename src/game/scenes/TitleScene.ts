@@ -1,61 +1,109 @@
 // ─── Title scene ────────────────────────────────────────────────────────────
 // Level select over the saved progress, the two settings changed most (players, difficulty
-// preset), and the doors to the Tutorials, Chefs, Settings and Controllers pages. One cursor runs
-// through the level rows and then the option rows; left / right edits the row it is on.
+// preset), and the doors to the Tutorials, Chefs, Settings and Controllers pages. One cursor
+// runs through the level rows and then the option rows; left / right edits the row it is on.
 // Navigable with the keyboard and with any device the input manager reports.
+//
+// The screen is a sidebar of tickets over a living diorama: the selected kitchen is built on
+// the 3D stage with the players' own chefs standing at their spawns, framed to the right of
+// the sidebar, swaying slowly; a card in the corner carries its name and record.
 import Phaser from 'phaser';
 import { TEX } from '../../art/keys';
 import { GAME_HEIGHT, GAME_WIDTH, MAX_PLAYERS, SCENE } from '../../config';
 import { createInputManager, menuLabels } from '../../input';
 import type { FullInputManager, HintAction } from '../../input/types';
+import type { LevelDef } from '../../levels/schema';
 import { log } from '../../log';
+import { Sim } from '../../sim';
+import type { SimState } from '../../sim/types';
 import { getAudioBus, installAudioGestureResume, installMuteToggle } from '../audioBus';
 import { currentLevels, onLevelsHotReload } from '../levelHotReload';
-import { isUnlocked, levelProgress, loadProgress, totalStars, unlockingStars, type Progress } from '../progress';
+import { MAX_STARS, isUnlocked, levelProgress, loadProgress, totalStars, unlockingStars, type Progress } from '../progress';
+import { KitchenRenderer, type TilePos } from '../render/KitchenRenderer';
 import {
-  chefSummary, cyclePlayers, cyclePreset, DEFAULT_PRESET, difficultySummary, loadSettings, presetName,
+  chefSummary, cyclePlayers, cyclePreset, DEFAULT_PRESET, difficultySummary, loadSettings, presetModifiers, presetName,
   saveSettings, settingsSummary, type Settings,
 } from '../settings';
 import { LevelList, type LevelEntry } from '../ui/LevelList';
 import { MenuList, type MenuItemSpec } from '../ui/MenuList';
 import { KeyboardNav, MenuInput, mergeNav } from '../ui/menuInput';
-import { COLOR, TEXT_COLOR, textStyle } from '../ui/theme';
+import { installBackdrop, revealStagger, roundedPanel } from '../ui/panel';
+import { COLOR, displayStyle, TEXT_COLOR, textStyle } from '../ui/theme';
 import type { GameSceneData } from '../types';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 const TITLE = {
+  // The sidebar: wordmark, the level tickets, the option rows, the hint.
+  sidebarWidth: 620,
+  sidebarAlpha: 0.94,
+  sidebarEdgePx: 3,
+  columnX: 320,         // centre of the sidebar's lists
   headingX: 40,
-  headingY: 40,
-  headingFontPx: 36,
-  taglineY: 72,
-  taglineFontPx: 14,
+  headingY: 46,
+  headingFontPx: 42,
+  taglineY: 88,
+  taglineFontPx: 13,
+  taglineSpacing: 2,
+  levelsY: 140,
+  levelSpacing: 34,
+  levelAreaPx: 380,     // rows are squeezed together rather than run off the sidebar
+  levelWidth: 560,
+  levelGapPx: 66,       // from the last level row down to the settings block
+  optionsMaxY: 560,     // however few levels there are, the settings stay above the hint
+  statusGapPx: 30,      // the status line sits this far above the settings
+  statusFontPx: 14,
+  optionsSpacing: 36,
+  optionsWidth: 560,
+  optionsFontPx: 19,
+  hintY: GAME_HEIGHT - 28,
+  hintFontPx: 13,
+  // Over the diorama: the star header and the level card.
   starsX: GAME_WIDTH - 40,
   starsY: 44,
-  starsFontPx: 24,
+  starsFontPx: 26,
   starsIconGap: 10,
   starsNoteY: 72,
   starsNoteFontPx: 13,
-  levelsY: 136,
-  levelSpacing: 50,
-  levelAreaPx: 300,     // rows are squeezed together rather than run off the screen
-  levelGapPx: 96,       // from the last level row down to the settings block
-  optionsMaxY: 496,     // however few levels there are, the settings stay above the hints
-  statusGapPx: 44,      // the status line sits this far above the settings
-  statusFontPx: 15,
-  optionsSpacing: 40,
-  optionsWidth: 620,
-  optionsFontPx: 20,
-  hintY: GAME_HEIGHT - 74,
-  hintFontPx: 15,
-  promptY: GAME_HEIGHT - 34,
-  promptGap: 210,
+  cardX: 950,
+  cardY: 690,
+  cardWidth: 580,
+  cardHeight: 136,
+  cardAlpha: 0.93,
+  cardTextX: 686,       // left edge of the card's text
+  cardNameY: 660,
+  cardNameFontPx: 38,
+  cardNameMaxPx: 380,
+  cardThemeY: 696,
+  cardThemeFontPx: 13,
+  cardRecordY: 724,
+  cardRecordFontPx: 16,
+  cardStarsX: 1170,     // the middle star
+  cardStarsY: 664,
+  cardStarGap: 44,
+  cardStarScale: 1.15,
+  promptY: GAME_HEIGHT - 26,
+  promptX: 720,
+  promptGap: 180,
   promptLabelGap: 22,
-  promptFontPx: 14,
+  promptFontPx: 13,
+  revealDelayMs: 60,
 } as const;
 
-const HEADING = 'LOCAL OVERCOOKED';
-const TAGLINE = 'Two chefs, one kitchen, not enough time';
+/** The diorama: the selected kitchen framed to the right of the sidebar, seen from the front-right. */
+const DIORAMA = {
+  band: { left: 650, top: 60, right: 1250, bottom: 600 },
+  yawRad: -0.42,
+  pitchDeg: 50,
+  swayRad: 0.07,
+  swaySec: 9,
+  seed: 1,
+  maxFrameSec: 0.1,     // a stalled tab never fast-forwards the idle clips
+} as const;
+
+const HEADING = { first: 'LOCAL ', second: 'OVERCOOKED' } as const;
+const TAGLINE = 'TWO CHEFS  ·  ONE KITCHEN  ·  NOT ENOUGH TIME';
 const FIRST_RUN_HINT = 'First time? Controllers walks you through every button';
+const NEVER_PLAYED = 'Never played';
 
 /** Option rows, in the order the cursor walks through them. */
 const OPTION = { tutorials: 0, players: 1, difficulty: 2, chefs: 3, settings: 4, controllers: 5 } as const;
@@ -77,6 +125,16 @@ export class TitleScene extends Phaser.Scene {
   private readonly headerObjects: Phaser.GameObjects.GameObject[] = [];
   private readonly prompts: Phaser.GameObjects.GameObject[] = [];
   private readonly disposers: (() => void)[] = [];
+  // The diorama and its card.
+  private diorama: KitchenRenderer | null = null;
+  private dioramaState: Readonly<SimState> | null = null;
+  private dioramaId = '';
+  private dioramaTargets: (TilePos | null)[] = [];
+  private swayMs = 0;
+  private cardName!: Phaser.GameObjects.Text;
+  private cardTheme!: Phaser.GameObjects.Text;
+  private cardRecord!: Phaser.GameObjects.Text;
+  private readonly cardStars: Phaser.GameObjects.Image[] = [];
   private index = 0;
   private optionsY: number = TITLE.optionsMaxY;
   private statusMessage = '';
@@ -88,14 +146,24 @@ export class TitleScene extends Phaser.Scene {
     this.settings = loadSettings();
     this.progress = loadProgress();
 
-    this.cameras.main.setBackgroundColor(COLOR.bg);
-    this.add.text(TITLE.headingX, TITLE.headingY, HEADING, textStyle(TITLE.headingFontPx, TEXT_COLOR.accent)).setOrigin(0, 0.5);
-    this.add.text(TITLE.headingX, TITLE.taglineY, TAGLINE, textStyle(TITLE.taglineFontPx, TEXT_COLOR.dim)).setOrigin(0, 0.5);
+    // Transparent: the diorama draws on the 3D canvas behind this one; the sidebar covers its left.
+    this.cameras.main.setBackgroundColor('rgba(0,0,0,0)');
+    installBackdrop(this)?.setCrop(0, 0, TITLE.sidebarWidth, GAME_HEIGHT);
+    this.add.rectangle(0, 0, TITLE.sidebarWidth, GAME_HEIGHT, COLOR.bg, TITLE.sidebarAlpha).setOrigin(0, 0).setDepth(-11);
+    this.add.rectangle(TITLE.sidebarWidth, 0, TITLE.sidebarEdgePx, GAME_HEIGHT, COLOR.tomato).setOrigin(0, 0).setDepth(-9);
+
+    const first = this.add.text(TITLE.headingX, TITLE.headingY, HEADING.first, displayStyle(TITLE.headingFontPx)).setOrigin(0, 0.5);
+    const second = this.add
+      .text(TITLE.headingX + first.displayWidth, TITLE.headingY, HEADING.second, displayStyle(TITLE.headingFontPx, TEXT_COLOR.accent))
+      .setOrigin(0, 0.5);
+    const tagline = this.add
+      .text(TITLE.headingX, TITLE.taglineY, TAGLINE, textStyle(TITLE.taglineFontPx, TEXT_COLOR.dim, { letterSpacing: TITLE.taglineSpacing }))
+      .setOrigin(0, 0.5);
     this.statusText = this.add
-      .text(GAME_WIDTH / 2, TITLE.optionsMaxY, '', textStyle(TITLE.statusFontPx, TEXT_COLOR.dim))
+      .text(TITLE.columnX, TITLE.optionsMaxY, '', textStyle(TITLE.statusFontPx, TEXT_COLOR.dim))
       .setOrigin(0.5);
     this.hintText = this.add
-      .text(GAME_WIDTH / 2, TITLE.hintY, '', textStyle(TITLE.hintFontPx, TEXT_COLOR.dim, { align: 'center' }))
+      .text(TITLE.columnX, TITLE.hintY, '', textStyle(TITLE.hintFontPx, TEXT_COLOR.dim, { align: 'center' }))
       .setOrigin(0.5);
 
     this.inputMgr = createInputManager(this, MAX_PLAYERS);
@@ -104,6 +172,7 @@ export class TitleScene extends Phaser.Scene {
     this.disposers.push(installAudioGestureResume(this), installMuteToggle(this));
     getAudioBus().stopMusic();
 
+    this.buildCard();
     this.buildLevelList(); // lays out where the settings rows go, below the level rows
     this.buildOptions();
     this.index = Phaser.Math.Clamp(selectedIndex, 0, this.rowCount() - 1);
@@ -112,9 +181,16 @@ export class TitleScene extends Phaser.Scene {
     this.disposers.push(onLevelsHotReload(() => this.buildLevelList()));
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.cleanup, this);
     this.ready = true;
+
+    const reveal: (Phaser.GameObjects.Text | Phaser.GameObjects.Container)[] = [first, second, tagline];
+    if (this.levelList) reveal.push(this.levelList.container);
+    reveal.push(this.statusText);
+    if (this.menu) reveal.push(this.menu.container);
+    reveal.push(this.hintText);
+    revealStagger(this, reveal, TITLE.revealDelayMs);
   }
 
-  override update(): void {
+  override update(_time: number, deltaMs: number): void {
     if (!this.ready || !this.menu) return;
     const nav = mergeNav(this.menuInput.poll(this.inputMgr.poll()), this.keyboardNav.poll());
     if (nav.up || nav.down) this.moveCursor(nav.down ? 1 : -1);
@@ -127,6 +203,7 @@ export class TitleScene extends Phaser.Scene {
     }
     if (!this.ready) return;
     selectedIndex = this.index;
+    this.drawDiorama(deltaMs);
   }
 
   // ─── Level rows ───────────────────────────────────────────────────────────
@@ -154,7 +231,7 @@ export class TitleScene extends Phaser.Scene {
       };
     });
     const spacing = Math.min(TITLE.levelSpacing, TITLE.levelAreaPx / Math.max(1, entries.length));
-    this.levelList = new LevelList(this, GAME_WIDTH / 2, TITLE.levelsY, entries, { spacing });
+    this.levelList = new LevelList(this, TITLE.columnX, TITLE.levelsY, entries, { spacing, width: TITLE.levelWidth });
     // The settings follow the level rows, so a short list does not leave a hole.
     this.optionsY = Math.min(
       TITLE.levelsY + Math.max(0, entries.length - 1) * spacing + TITLE.levelGapPx,
@@ -163,9 +240,10 @@ export class TitleScene extends Phaser.Scene {
     this.statusText.setY(this.optionsY - TITLE.statusGapPx);
     // The settings rows move with the list rather than being rebuilt: a rebuild from
     // inside a row's own callback would destroy the list that is mid-handle().
-    this.menu?.container.setPosition(GAME_WIDTH / 2, this.optionsY);
+    this.menu?.container.setPosition(TITLE.columnX, this.optionsY);
     this.drawStarHeader();
     this.index = Phaser.Math.Clamp(this.index, 0, this.rowCount() - 1);
+    this.dioramaId = ''; // a hot reload rebuilds the diorama for the same id
     this.refreshCursor();
   }
 
@@ -176,7 +254,7 @@ export class TitleScene extends Phaser.Scene {
     const total = totalStars(this.progress);
     const counting = unlockingStars(this.progress);
     const text = this.add
-      .text(TITLE.starsX, TITLE.starsY, String(total), textStyle(TITLE.starsFontPx, TEXT_COLOR.accent))
+      .text(TITLE.starsX, TITLE.starsY, String(total), displayStyle(TITLE.starsFontPx, TEXT_COLOR.accent))
       .setOrigin(1, 0.5);
     const icon = this.add
       .image(TITLE.starsX - text.displayWidth - TITLE.starsIconGap, TITLE.starsY, TEX.iconStar)
@@ -210,6 +288,66 @@ export class TitleScene extends Phaser.Scene {
     this.scene.start(SCENE.GAME, { levelId: entry.id, players: this.settings.players } satisfies GameSceneData);
   }
 
+  // ─── Diorama and card ─────────────────────────────────────────────────────
+  /** The selected kitchen on the 3D stage, with the players' chefs at their spawns. */
+  private buildDiorama(levelId: string, level: LevelDef | undefined): void {
+    if (levelId === this.dioramaId) return;
+    this.diorama?.destroy();
+    this.diorama = null;
+    this.dioramaState = null;
+    this.dioramaId = levelId;
+    if (!level) return;
+    const sim = new Sim(level, { players: this.settings.players, seed: DIORAMA.seed, modifiers: presetModifiers(this.settings) });
+    const state = sim.getState();
+    this.diorama = new KitchenRenderer(this, state, level.theme, this.settings.chefs, { passThroughShelf: sim.getEffectiveSettings().passThroughShelf }, {
+      band: DIORAMA.band, yawRad: DIORAMA.yawRad, pitchDeg: DIORAMA.pitchDeg,
+    });
+    this.diorama.container.setDepth(-8);
+    this.dioramaState = state;
+    this.dioramaTargets = state.chefs.map(() => null);
+  }
+
+  private drawDiorama(deltaMs: number): void {
+    if (!this.diorama || !this.dioramaState) return;
+    const dt = Math.min(deltaMs / 1000, DIORAMA.maxFrameSec);
+    this.swayMs += deltaMs;
+    this.diorama.orbit(Math.sin((this.swayMs / 1000 / DIORAMA.swaySec) * Math.PI * 2) * DIORAMA.swayRad);
+    this.diorama.draw(this.dioramaState, this.dioramaTargets, dt);
+  }
+
+  private buildCard(): void {
+    roundedPanel(this, TITLE.cardWidth, TITLE.cardHeight, { fill: COLOR.panel, alpha: TITLE.cardAlpha, edge: COLOR.panelEdge })
+      .setPosition(TITLE.cardX, TITLE.cardY);
+    this.cardName = this.add.text(TITLE.cardTextX, TITLE.cardNameY, '', displayStyle(TITLE.cardNameFontPx, TEXT_COLOR.accent)).setOrigin(0, 0.5);
+    this.cardTheme = this.add.text(TITLE.cardTextX, TITLE.cardThemeY, '', textStyle(TITLE.cardThemeFontPx, TEXT_COLOR.dim)).setOrigin(0, 0.5);
+    this.cardRecord = this.add.text(TITLE.cardTextX, TITLE.cardRecordY, '', textStyle(TITLE.cardRecordFontPx)).setOrigin(0, 0.5);
+    for (let s = 0; s < MAX_STARS; s++) {
+      this.cardStars.push(
+        this.add.image(TITLE.cardStarsX + (s - 1) * TITLE.cardStarGap, TITLE.cardStarsY, TEX.iconStarEmpty).setScale(TITLE.cardStarScale),
+      );
+    }
+  }
+
+  /** The card and the diorama follow the level row under the cursor; option rows keep the last one. */
+  private refreshCard(): void {
+    const entry = this.onLevelRow() ? this.levelList?.entryAt(this.index) : null;
+    if (!entry) return;
+    const { levels } = currentLevels();
+    this.buildDiorama(entry.id, levels[entry.id]);
+    this.cardName.setText(entry.name).setScale(1);
+    if (this.cardName.width > TITLE.cardNameMaxPx) this.cardName.setScale(TITLE.cardNameMaxPx / this.cardName.width);
+    this.cardTheme.setText(entry.theme.toUpperCase());
+    const saved = levelProgress(this.progress, entry.id);
+    if (entry.locked) {
+      this.cardRecord.setText(`Locked · needs ${entry.unlockStars} stars from ${presetName(DEFAULT_PRESET)} or harder`).setColor(TEXT_COLOR.dim);
+    } else if (saved.plays === 0) {
+      this.cardRecord.setText(NEVER_PLAYED).setColor(TEXT_COLOR.dim);
+    } else {
+      this.cardRecord.setText(`Best ${saved.bestScore} · ${saved.plays} play${saved.plays === 1 ? '' : 's'}`).setColor(TEXT_COLOR.bright);
+    }
+    this.cardStars.forEach((star, s) => star.setTexture(s < entry.stars && !entry.locked ? TEX.iconStar : TEX.iconStarEmpty));
+  }
+
   // ─── Settings rows ────────────────────────────────────────────────────────
   private buildOptions(): void {
     this.menu?.destroy();
@@ -240,7 +378,7 @@ export class TitleScene extends Phaser.Scene {
     };
     items[OPTION.controllers] = { label: () => 'Controllers', onSelect: () => this.openPage(SCENE.CONTROLLER) };
 
-    this.menu = new MenuList(this, GAME_WIDTH / 2, this.optionsY, items, {
+    this.menu = new MenuList(this, TITLE.columnX, this.optionsY, items, {
       spacing: TITLE.optionsSpacing,
       width: TITLE.optionsWidth,
       fontSize: TITLE.optionsFontPx,
@@ -259,6 +397,8 @@ export class TitleScene extends Phaser.Scene {
   private changePlayers(delta: number): void {
     this.settings.players = cyclePlayers(this.settings.players, delta);
     this.applySettings();
+    this.dioramaId = ''; // the diorama stands as many chefs as will play
+    this.refreshCard();
   }
 
   private changePreset(delta: number): void {
@@ -279,7 +419,6 @@ export class TitleScene extends Phaser.Scene {
     this.refreshStatus();
   }
 
-  // ─── Seed typing ──────────────────────────────────────────────────────────
   // ─── Cursor ───────────────────────────────────────────────────────────────
   private moveCursor(delta: number): void {
     const count = this.rowCount();
@@ -298,6 +437,7 @@ export class TitleScene extends Phaser.Scene {
     }
     this.refreshStatus();
     this.refreshHint();
+    this.refreshCard();
   }
 
   private refreshStatus(): void {
@@ -315,7 +455,7 @@ export class TitleScene extends Phaser.Scene {
     }
     if (entry.locked) return `Locked · needs ${entry.unlockStars} stars from ${presetName(DEFAULT_PRESET)} or harder`;
     const saved = levelProgress(this.progress, entry.id);
-    if (saved.plays === 0) return 'Never played';
+    if (saved.plays === 0) return NEVER_PLAYED;
     return `Best ${saved.bestScore} · ${saved.stars} stars · ${saved.plays} play${saved.plays === 1 ? '' : 's'}`;
   }
 
@@ -335,7 +475,7 @@ export class TitleScene extends Phaser.Scene {
       const label = this.labelFor(action);
       const key = TEX.buttonPrompt(label);
       if (!this.textures.exists(key)) return;
-      const x = GAME_WIDTH / 2 + (i === 0 ? -TITLE.promptGap : TITLE.promptGap);
+      const x = TITLE.promptX + i * TITLE.promptGap;
       const icon = this.add.image(x, TITLE.promptY, key).setOrigin(0.5);
       const text = this.add
         .text(x + TITLE.promptLabelGap, TITLE.promptY, caption, textStyle(TITLE.promptFontPx, TEXT_COLOR.dim))
@@ -355,6 +495,11 @@ export class TitleScene extends Phaser.Scene {
     this.prompts.length = 0;
     for (const object of this.headerObjects) object.destroy();
     this.headerObjects.length = 0;
+    this.diorama?.destroy();
+    this.diorama = null;
+    this.dioramaState = null;
+    this.dioramaId = '';
+    this.cardStars.length = 0;
     this.levelList?.destroy();
     this.levelList = null;
     this.menu?.destroy();

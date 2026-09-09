@@ -17,7 +17,7 @@ import { ChefRig } from './three/chefs';
 import { FxPool } from './three/fx';
 import { buildItemView, itemSignature } from './three/items';
 import { modelInstance } from './three/loader';
-import { acquireStage, type Stage } from './three/stage';
+import { acquireStage, type Framing, type Stage } from './three/stage';
 import { DEFAULT_TILE_FLAGS, TileSet, themeSceneHeight, type TileFlags } from './three/tiles';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -120,13 +120,15 @@ export class KitchenRenderer {
   private elapsed = 0;
 
   /** `skins` is the apron (CHEF_SKINS index) each chef wears, by chef index; missing entries fall
-   *  back to the default order. `flags` are the run's mechanics the static kitchen depends on. */
+   *  back to the default order. `flags` are the run's mechanics the static kitchen depends on.
+   *  `framing` frames the kitchen somewhere other than the HUD band (a menu diorama). */
   constructor(
     private readonly scene: Phaser.Scene,
     state: Readonly<SimState>,
     private readonly theme?: string,
     private readonly skins: readonly number[] = [],
     private readonly flags: Readonly<TileFlags> = DEFAULT_TILE_FLAGS,
+    private readonly framing: Readonly<Framing> = {},
   ) {
     this.stage = acquireStage(scene.game.canvas);
     this.stage.resetScene();
@@ -143,7 +145,11 @@ export class KitchenRenderer {
   /** Grid size the kitchen was built for, in tiles. */
   get gridSize(): { width: number; height: number } { return { width: this.gridW, height: this.gridH }; }
 
-  /** Screen position of a tile's top-left floor corner. */
+  /** Turns the camera about the kitchen by `yawOffsetRad` from where the fit left it; draw() renders it. */
+  orbit(yawOffsetRad: number): void {
+    this.stage.orbit(yawOffsetRad);
+  }
+
   /** Screen position of a tile coordinate, `lift` world units above the floor. */
   tileToScreen(tx: number, ty: number, lift = 0): TilePos {
     return this.stage.project(tx, lift, ty, { x: 0, y: 0 });
@@ -217,7 +223,7 @@ export class KitchenRenderer {
     this.gridW = state.width;
     this.gridH = state.height;
     this.tiles = new TileSet(this.scene, this.stage.scene, state, this.theme, this.flags);
-    this.stage.fitToGrid(state.width, state.height, themeSceneHeight(this.theme));
+    this.stage.fitToGrid(state.width, state.height, themeSceneHeight(this.theme), this.framing);
   }
 
   private readSliderOffsets(state: Readonly<SimState>): void {

@@ -11,7 +11,8 @@ import type { SimEvent, SimState } from '../../sim/types';
 import { getAudioBus } from '../audioBus';
 import { fillLabels, TutorialRunner, type TutorialPhase } from '../tutorial';
 import type { MenuNav } from './menuInput';
-import { COLOR, TEXT_COLOR, textStyle } from './theme';
+import { roundedPanel } from './panel';
+import { COLOR, displayStyle, TEXT_COLOR, textStyle } from './theme';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 const PANEL = {
@@ -89,10 +90,7 @@ export class TutorialOverlay {
     this.panel = this.buildPanel(scene);
 
     this.banner = scene.add.container(GAME_WIDTH / 2, BANNER.y).setDepth(BANNER.depth).setVisible(false);
-    const box = scene.add
-      .rectangle(0, 0, BANNER.width, BANNER.height, COLOR.panel, BANNER.alpha)
-      .setOrigin(0.5)
-      .setStrokeStyle(BANNER.edgePx, COLOR.panelEdge);
+    const box = roundedPanel(scene, BANNER.width, BANNER.height, { fill: COLOR.panel, alpha: BANNER.alpha, edge: COLOR.panelEdge, edgePx: BANNER.edgePx });
     this.kicker = scene.add.text(BANNER.kickerX, BANNER.kickerY, '', textStyle(BANNER.kickerFontPx, TEXT_COLOR.dim)).setOrigin(0, 0.5);
     this.text = scene.add
       .text(BANNER.textX, BANNER.textY, '', textStyle(BANNER.textFontPx, TEXT_COLOR.bright, { wordWrap: { width: BANNER.textWrapPx } }))
@@ -180,14 +178,12 @@ export class TutorialOverlay {
     const cy = GAME_HEIGHT / 2;
     const root = scene.add.container(0, 0).setDepth(PANEL.depth);
     const dim = scene.add.rectangle(cx, cy, GAME_WIDTH, GAME_HEIGHT, COLOR.bg, PANEL.dimAlpha).setOrigin(0.5);
-    const box = scene.add
-      .rectangle(cx, cy, PANEL.width, PANEL.height, COLOR.panel, PANEL.alpha)
-      .setOrigin(0.5)
-      .setStrokeStyle(PANEL.edgePx, COLOR.panelEdge);
+    const box = roundedPanel(scene, PANEL.width, PANEL.height, { fill: COLOR.panel, alpha: PANEL.alpha, edge: COLOR.panelEdge, edgePx: PANEL.edgePx })
+      .setPosition(cx, cy);
     const kicker = scene.add
       .text(cx, cy + PANEL.kickerY, this.opts.kicker.toUpperCase(), textStyle(PANEL.kickerFontPx, TEXT_COLOR.dim))
       .setOrigin(0.5);
-    const title = scene.add.text(cx, cy + PANEL.titleY, this.def.title, textStyle(PANEL.titleFontPx, TEXT_COLOR.accent)).setOrigin(0.5);
+    const title = scene.add.text(cx, cy + PANEL.titleY, this.def.title, displayStyle(PANEL.titleFontPx, TEXT_COLOR.accent)).setOrigin(0.5);
     root.add([dim, box, kicker, title]);
     let y = cy + PANEL.linesY;
     for (const line of this.def.intro) {

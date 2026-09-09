@@ -16,6 +16,7 @@ import { fillLabels } from '../tutorial';
 import { LevelList, type LevelEntry } from '../ui/LevelList';
 import { MenuList } from '../ui/MenuList';
 import { KeyboardNav, MenuInput, mergeNav } from '../ui/menuInput';
+import { installBackdrop, pageHeading, revealStagger } from '../ui/panel';
 import { COLOR, TEXT_COLOR, textStyle } from '../ui/theme';
 import type { GameSceneData } from '../types';
 
@@ -28,6 +29,7 @@ const PAGE = {
   taglineFontPx: 14,
   listY: 136,
   listSpacing: 50,
+  listWidth: 760,
   backGapPx: 74,       // from the last tutorial row down to the Back row
   backWidth: 380,
   backFontPx: 22,
@@ -76,8 +78,8 @@ export class TutorialsScene extends Phaser.Scene {
     this.levels = order.map((id) => levels[id]).filter((l): l is LevelDef => l !== undefined && l.game === 'tutorial');
 
     this.cameras.main.setBackgroundColor(COLOR.bg);
-    this.add.text(PAGE.headingX, PAGE.headingY, HEADING, textStyle(PAGE.headingFontPx, TEXT_COLOR.accent)).setOrigin(0, 0.5);
-    this.add.text(PAGE.headingX, PAGE.taglineY, TAGLINE, textStyle(PAGE.taglineFontPx, TEXT_COLOR.dim)).setOrigin(0, 0.5);
+    installBackdrop(this);
+    pageHeading(this, HEADING, TAGLINE);
 
     this.inputMgr = createInputManager(this, MAX_PLAYERS);
     this.menuInput = new MenuInput();
@@ -97,7 +99,7 @@ export class TutorialsScene extends Phaser.Scene {
         unlockStars: 0,
       };
     });
-    if (entries.length > 0) this.list = new LevelList(this, GAME_WIDTH / 2, PAGE.listY, entries, { spacing: PAGE.listSpacing });
+    if (entries.length > 0) this.list = new LevelList(this, GAME_WIDTH / 2, PAGE.listY, entries, { spacing: PAGE.listSpacing, width: PAGE.listWidth });
     else this.add.text(GAME_WIDTH / 2, PAGE.listY, NO_TUTORIALS, textStyle(PAGE.rulesFontPx, TEXT_COLOR.dim)).setOrigin(0.5);
 
     const backY = PAGE.listY + Math.max(0, entries.length - 1) * PAGE.listSpacing + PAGE.backGapPx;
@@ -121,6 +123,10 @@ export class TutorialsScene extends Phaser.Scene {
     this.refreshCursor();
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.cleanup, this);
     this.ready = true;
+    const reveal: (Phaser.GameObjects.Container | Phaser.GameObjects.Text)[] = [];
+    if (this.list) reveal.push(this.list.container);
+    reveal.push(this.back.container, this.rules, this.record);
+    revealStagger(this, reveal);
   }
 
   override update(): void {

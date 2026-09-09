@@ -10,7 +10,7 @@ import {
   clearEdgeLatch, createEdgeLatch, createInputManager, createPlayerInput, latchEdges, menuLabels,
   writeStepInput, type EdgeLatch,
 } from '../../input';
-import type { InputManager } from '../../input/types';
+import type { HintAction, InputManager } from '../../input/types';
 import type { LevelDef } from '../../levels/schema';
 import { log } from '../../log';
 import { Sim, SIM_DT } from '../../sim';
@@ -26,7 +26,7 @@ import { PauseMenu } from '../ui/PauseMenu';
 import { TutorialOverlay } from '../ui/TutorialOverlay';
 import { DEFAULT_PRESET, isAssisted, loadSettings, presetModifiers, presetName, seedFor, type PresetId } from '../settings';
 import { createEventRing, isPlayNotesOpen, setPlayNotesContext } from '../playnotes';
-import { COLOR, TEXT_COLOR, textStyle } from '../ui/theme';
+import { COLOR, displayStyle, TEXT_COLOR, textStyle } from '../ui/theme';
 import type { GameSceneData, ResultsSceneData } from '../types';
 
 export type { GameSceneData } from '../types';
@@ -124,12 +124,14 @@ export class GameScene extends Phaser.Scene {
     this.disposers.push(installAudioGestureResume(this), installMuteToggle(this));
     this.audio.startMusic();
 
-    const labels = menuLabels((action) => this.inputMgr.labelFor(0, action));
+    const labelFor = (action: HintAction): string => this.inputMgr.labelFor(0, action);
+    const labels = menuLabels(labelFor);
     this.pauseMenu = new PauseMenu(this, {
       onResume: () => this.pauseMenu.close(),
       onRestart: () => this.restartLevel(),
       onQuit: () => this.quitToTitle(),
       hint: `${labels.choose} choose · ${labels.select} confirm · ${labels.change} toggles`,
+      controls: `${labelFor('pickup')} pick up / drop · ${labelFor('interact')} chop, wash, spray · ${labelFor('throw')} throw · ${labelFor('dash')} dash`,
     });
     this.debugOverlay = new DebugOverlay(this, this.kitchen);
     this.buildTutorial(level); // after the input manager: the text carries the player's button names
@@ -346,7 +348,7 @@ export class GameScene extends Phaser.Scene {
     const cx = GAME_WIDTH / 2;
     const cy = GAME_HEIGHT / 2;
     const dim = this.add.rectangle(cx, cy, GAME_WIDTH, GAME_HEIGHT, COLOR.bg, END_FLASH.dimAlpha).setOrigin(0.5);
-    const title = this.add.text(cx, cy, "Time's up!", textStyle(END_FLASH.titleFontPx, TEXT_COLOR.accent)).setOrigin(0.5);
+    const title = this.add.text(cx, cy, "Time's up!", displayStyle(END_FLASH.titleFontPx, TEXT_COLOR.accent)).setOrigin(0.5);
     const subtitle = this.add
       .text(cx, cy + END_FLASH.subtitleOffsetY, 'Counting up your tips…', textStyle(END_FLASH.subtitleFontPx, TEXT_COLOR.dim))
       .setOrigin(0.5);

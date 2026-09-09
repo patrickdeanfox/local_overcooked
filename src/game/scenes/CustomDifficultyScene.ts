@@ -18,6 +18,7 @@ import {
 } from '../settings';
 import { MenuList, type MenuItemSpec } from '../ui/MenuList';
 import { KeyboardNav, MenuInput, mergeNav } from '../ui/menuInput';
+import { installBackdrop, pageHeading } from '../ui/panel';
 import { COLOR, TEXT_COLOR, textStyle } from '../ui/theme';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -116,7 +117,8 @@ export class CustomDifficultyScene extends Phaser.Scene {
     this.baseline = this.level ? new Sim(this.level, { players: PREVIEW_PLAYERS, seed: PREVIEW_SEED }).getEffectiveSettings() : null;
 
     this.cameras.main.setBackgroundColor(COLOR.bg);
-    this.add.text(GAME_WIDTH / 2, LAYOUT.headingY, HEADING, textStyle(LAYOUT.headingFontPx, TEXT_COLOR.accent)).setOrigin(0.5);
+    installBackdrop(this);
+    pageHeading(this, HEADING);
 
     this.inputMgr = createInputManager(this, MAX_PLAYERS);
     this.add.text(GAME_WIDTH / 2, LAYOUT.hintY, hintLine(this.inputMgr), textStyle(LAYOUT.hintFontPx, TEXT_COLOR.dim)).setOrigin(0.5);
