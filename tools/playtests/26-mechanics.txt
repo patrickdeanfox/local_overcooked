@@ -1,0 +1,175 @@
+# -- Mechanics spec (docs/MECHANICS.md): the five switches on the Settings page, then every
+#    view in one QA kitchen: the tray lifted, loaded, set down, an onion on the pass-through
+#    shelf taken from the other side, two plates in hand and no dash with them, the crate
+#    running dry with its chalk mark and the rewritten ticket, the delivery unloaded, two
+#    chefs on one board with the x2 badge -----------------------------------------------------
+#
+# The Settings page is opened by scene start rather than by cursor count, so the length of the
+# level list does not matter. On the page the rows are Seed, Seed number, Free play, the three
+# assists (3..5), then the five mechanics (6..10: Pass-through shelf, Chop assist, Two-plate
+# carry, The 86 system, The tray), Custom difficulty, Music, Sound effects, Back.
+#
+# The QA kitchen is 13x8 and rebuilt in place through the hot-reload path, like script 23. Tile
+# index = y * 13 + x. Onion crate (1,0), tomato crate (3,0), delivery door (6,0), stove (9,0),
+# shelf column (5,2)..(5,4), tray rack with the tray (5,5), plate return (0,4), serve (0,5) and
+# (0,6), sink (12,2), drying rack (12,3), trash (12,6), boards (3,7) and (5,7). Crates hold two
+# items (eightySix.crateSize 2), so the second onion taken empties the crate.
+until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
+wait 600
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval JSON.stringify(['mechanics before', __ui.settings().mechanics])
+
+# -- Settings page: the five rows sit after the assists, each toggles on with Right -------------
+eval (__ui.scene('Title').scene.start('Settings'), 'opened')
+wait 700
+eval JSON.stringify(['page rows', __ui.menu('Settings')])
+shot 26-00-settings-page.png
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowRight
+wait 200
+tap ArrowDown
+wait 150
+tap ArrowRight
+wait 200
+tap ArrowDown
+wait 150
+tap ArrowRight
+wait 200
+tap ArrowDown
+wait 150
+tap ArrowRight
+wait 200
+tap ArrowDown
+wait 150
+tap ArrowRight
+wait 200
+eval JSON.stringify(['page rows after', __ui.menu('Settings').slice(6, 11)])
+eval JSON.stringify(['stored mechanics', JSON.parse(localStorage.getItem('local-overcooked.settings.v1')).mechanics])
+# 26-01: the Settings page with all five mechanics rows reading "on" and the description line under the list.
+shot 26-01-settings-mechanics-on.png
+tap Escape
+wait 700
+eval JSON.stringify(['title settings row', __ui.options()[3]])
+
+# -- Start a level with the switches on, then swap in the QA kitchen ---------------------------
+eval (__ui.scene('Title').scene.start('Game', { levelId: 'oc1-1-1', seed: 7 }), 'started')
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.sim
+wait 600
+eval JSON.stringify(['run modifiers', __oc.scene.modifiers, 'effective', ((e) => [e.twoPlateCarry, e.chopAssist, e.tray, e.passThroughShelf, e.eightySix])(__oc.sim.getEffectiveSettings())])
+eval (__oc.scene.onLevelsChanged({ order: ['oc1-1-1'], levels: { 'oc1-1-1': { id: 'oc1-1-1', name: 'QA mechanics', game: 'custom', world: 9, index: 2, theme: 'default', timeLimitSec: 300, timerStartsOnFirstServe: false, recipes: ['onion_soup', 'tomato_soup'], orders: { initial: 2, intervalSec: 1000, max: 4, timeSec: 200 }, stars: { 1: [10, 40, 60], 2: [10, 40, 60] }, plates: { mode: 'sink', count: 2 }, grid: ['#O#T##d##S#E#', '#...........#', '#....h......W', '#....h......D', 'R....h......#', 'V....t......#', 'V...........X', '###B#B###pp##'], spawns: [{ x: 3, y: 3 }, { x: 9, y: 3 }], eightySix: { crateSize: 2, restockDelaySec: 30 } } } }), 'rebuilt')
+wait 900
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval JSON.stringify(['level', __oc.level.name, 'shelves', __oc.sim.getState().tiles.filter((t) => t.type === 'shelf').length, 'tray on rack', __qa.tile(5, 5).item && __qa.tile(5, 5).item.kind, 'onion crate stock', __qa.tile(1, 0).tile.stock, 'orders', __qa.orders()])
+# 26-02: the QA kitchen: the hatch column with three order-window pieces, the tray on its rack at (5,5),
+#        the door at the top, and a green fill bar over each crate.
+shot 26-02-qa-kitchen.png
+
+# -- The tray: Shift on the rack starts the lift, the bar shows the wind-up, the tray is in hand --
+eval ((c) => (c.x = 4.5, c.y = 5.5, c.facing = 'right', c.holding = null, 'placed'))(__oc.sim.getState().chefs[0])
+wait 100
+eval JSON.stringify(['target', __oc.sim.getTargetTile(0)])
+tap ShiftLeft
+wait 220
+eval JSON.stringify(['mid windup', __oc.sim.getState().chefs[0].action, __oc.sim.getState().chefs[0].windupLeft])
+# 26-03: the lifting bar (blue) over the rack while the chef winds up.
+shot 26-03-tray-lifting-bar.png
+wait 600
+eval JSON.stringify(['after lift', __qa.held(0) && __qa.held(0).kind, 'rack now', __qa.tile(5, 5).item, 'events', __qa.count('trayLift')])
+
+# -- Load two onions: the second one empties the crate, so the 86 fires as the tray fills ----------
+eval ((c) => (c.x = 1.5, c.y = 1.5, c.facing = 'up', 'placed'))(__oc.sim.getState().chefs[0])
+wait 100
+tap Space
+wait 200
+tap Space
+wait 400
+eval JSON.stringify(['tray load', __qa.held(0).items.map((i) => i.type), 'onion crate', __qa.tile(1, 0).tile.stock, 'crateEmpty', __qa.count('crateEmpty'), 'rewritten', __qa.count('orderRewritten'), 'orders', __oc.sim.getState().orders.map((o) => [o.recipeId, o.originalRecipeId || null]), 'restocks', __oc.sim.getState().restocks])
+# 26-04: two onions on the held tray, the chalk "86" over the onion crate with an empty (red) bar,
+#        the onion soup cards flashing amber with tomato icons sliding in and an "86" tag top-right.
+shot 26-04-tray-loaded-crate-86.png
+wait 1800
+# 26-05: the same cards after the flash: tomato soup, still tagged "86".
+shot 26-05-cards-after-flash.png
+
+# -- Set the tray down on the counter at (2,0), then take an onion off it --------------------------
+eval ((c) => (c.x = 2.5, c.y = 1.5, c.facing = 'up', 'placed'))(__oc.sim.getState().chefs[0])
+wait 100
+tap ShiftLeft
+wait 800
+eval JSON.stringify(['tray on counter', __qa.tile(2, 0).item && __qa.tile(2, 0).item.kind, 'load', __qa.tile(2, 0).item && __qa.tile(2, 0).item.items.length, 'hands', __qa.held(0), 'traySet', __qa.count('traySet')])
+# 26-06: the tray resting on the top counter with its two onions.
+shot 26-06-tray-on-counter.png
+tap Space
+wait 200
+eval JSON.stringify(['took top item', __qa.held(0) && __qa.held(0).type, 'left on tray', __qa.tile(2, 0).item.items.length])
+
+# -- Pass-through shelf: onion onto the hatch from the left, taken from the right -----------------
+eval ((c) => (c.x = 4.5, c.y = 2.5, c.facing = 'right', 'placed'))(__oc.sim.getState().chefs[0])
+wait 100
+tap Space
+wait 250
+eval JSON.stringify(['on shelf', __qa.tile(5, 2).item && __qa.tile(5, 2).item.type, 'hands', __qa.held(0)])
+# 26-07: the onion sitting in the hatch at (5,2), chef 0 on its left.
+shot 26-07-onion-on-shelf.png
+eval ((c) => (c.x = 6.5, c.y = 2.5, c.facing = 'left', c.holding = null, 'placed'))(__oc.sim.getState().chefs[1])
+wait 100
+tap Enter
+wait 250
+eval JSON.stringify(['chef 1 took it', __qa.held(1) && __qa.held(1).type, 'shelf now', __qa.tile(5, 2).item])
+
+# -- Two-plate carry: two plates off the drying rack, then Q refuses to dash ---------------------
+eval ((st) => (st.tileItems[3 * 13 + 12] = { kind: 'plate', id: 9101, dish: null, count: 2 }, 'stacked'))(__oc.sim.getState())
+eval ((c) => (c.x = 11.5, c.y = 3.5, c.facing = 'right', c.holding = null, 'placed'))(__oc.sim.getState().chefs[0])
+wait 100
+tap Space
+wait 200
+tap Space
+wait 250
+eval JSON.stringify(['held plates', __qa.held(0) && __qa.held(0).count, 'rack', __qa.tile(12, 3).item])
+# 26-08: two plates stacked in chef 0's hands by the drying rack.
+shot 26-08-two-plates-in-hand.png
+tap KeyQ
+wait 80
+eval JSON.stringify(['dash refused', __oc.sim.getState().chefs[0].action !== 'dashing', __oc.sim.getState().chefs[0].dashTimeLeft === undefined])
+
+# -- Delivery: the restock is pulled forward, the crate appears at the door, unloading fills the crate
+eval ((st) => (st.restocks.forEach((r) => { r.arrivesIn = 0.05 }), st.restocks.length))(__oc.sim.getState())
+wait 400
+eval JSON.stringify(['restock due', __oc.sim.getState().restocks, 'restockDue', __qa.count('restockDue'), 'crate view', __oc.scene.kitchen.deliveryView && __oc.scene.kitchen.deliveryView.visible])
+# 26-09: the cardboard delivery crate in front of the door at (6,0).
+shot 26-09-delivery-waiting.png
+eval ((c) => (c.x = 6.5, c.y = 1.5, c.facing = 'up', c.holding = null, 'placed'))(__oc.sim.getState().chefs[0])
+wait 100
+hold ShiftLeft 1500
+eval JSON.stringify(['unloading', __oc.sim.getState().chefs[0].action, __oc.sim.getState().restocks && __oc.sim.getState().restocks[0] && __oc.sim.getState().restocks[0].unloaded])
+# 26-10: the green unloading bar over the door, part way, chef 0 facing it.
+shot 26-10-unloading-bar.png
+hold ShiftLeft 3200
+wait 300
+eval JSON.stringify(['restocked', __qa.count('restocked'), 'onion crate', __qa.tile(1, 0).tile.stock, 'restocks left', (__oc.sim.getState().restocks || []).length])
+# 26-11: the crate gone from the door, the onion crate's bar full again, no chalk mark.
+shot 26-11-restocked.png
+
+# -- Chop assist: both chefs on board (3,7), the second one marked x2 ---------------------------
+eval ((st) => (st.tileItems[7 * 13 + 3] = { kind: 'ingredient', id: 9201, type: 'onion', chopped: false, chopProgress: 0 }, 'onion on board'))(__oc.sim.getState())
+eval ((a, b) => (a.x = 3.15, a.y = 6.5, a.facing = 'down', a.holding = null, b.x = 3.85, b.y = 6.5, b.facing = 'down', b.holding = null, 'placed'))(__oc.sim.getState().chefs[0], __oc.sim.getState().chefs[1])
+wait 100
+eval JSON.stringify(['targets', __oc.sim.getTargetTile(0), __oc.sim.getTargetTile(1)])
+hold ShiftLeft,ShiftRight 700
+eval JSON.stringify(['actions', __oc.sim.getState().chefs.map((c) => [c.action, c.assisting === true, +c.actionProgress.toFixed(2)]), 'board progress', +__qa.tile(3, 7).item.chopProgress.toFixed(2)])
+# 26-12: both chefs at the board, one chop bar, the "x2" badge beside it (taken mid-hold, so run
+#        the hold long enough for the harness to catch the frame, the eval above reads the state).
+hold ShiftLeft,ShiftRight 400
+shot 26-12-chop-assist-x2.png
+errors

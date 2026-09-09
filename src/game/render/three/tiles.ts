@@ -45,6 +45,10 @@ export function themeSceneHeight(theme: string | undefined): number {
 }
 const GATE = { height: 0.22, warnEmissive: 0.6 } as const;
 const CRATE = { scale: 0.8, mushrooms: 3, mushroomRing: 0.17, mushroomTilt: 0.25 } as const;
+// Mechanics spec (docs/MECHANICS.md): wall pieces from the kit span two tiles, so the shelf and the
+// door are squeezed to one; the delivery crate waits a little in front of the door.
+const FOOTPRINT = { tile: 1, eps: 1e-3 } as const;
+const DELIVERY = { crateForward: 0.18 } as const;
 const BOARD = { knifeOffset: new THREE.Vector3(0.36, 0, 0.1), knifeYaw: 0.35 } as const;
 const DRYING = { rackOffset: new THREE.Vector3(0, 0, -0.28), itemOffset: new THREE.Vector3(0, 0, 0.12) } as const;
 const CRATE_ROLE: Readonly<Record<IngredientType, ModelRole | null>> = {
@@ -58,7 +62,12 @@ const GROUND_TEXTURE: Readonly<Partial<Record<TileType, string>>> = {
   counter: TEX.tile('floor'), crate: TEX.tile('floor'), board: TEX.tile('floor'), stove: TEX.tile('floor'),
   sink: TEX.tile('floor'), drying: TEX.tile('floor'), plateReturn: TEX.tile('floor'), serve: TEX.tile('floor'),
   trash: TEX.tile('floor'), plateStack: TEX.tile('floor'),
+  shelf: TEX.tile('floor'), trayRack: TEX.tile('floor'), delivery: TEX.tile('floor'),
 };
+
+/** Run flags the static kitchen depends on: a shelf is a hatch while its mechanic is on and a wall while off. */
+export interface TileFlags { passThroughShelf: boolean; }
+export const DEFAULT_TILE_FLAGS: Readonly<TileFlags> = Object.freeze({ passThroughShelf: false });
 
 export interface TileView {
   root: THREE.Group;              // the station (empty for ground-only tiles); moves with sliders
@@ -86,6 +95,14 @@ function topOf(object: THREE.Object3D): number {
   return new THREE.Box3().setFromObject(object).max.y;
 }
 
+/** Squeezes a model whose footprint is wider or deeper than a tile down to one tile on that axis. */
+function oneTileWide(model: THREE.Group, role: ModelRole): THREE.Group {
+  const size = modelSize(role);
+  if (size.x > FOOTPRINT.tile + FOOTPRINT.eps) model.scale.x = FOOTPRINT.tile / size.x;
+  if (size.z > FOOTPRINT.tile + FOOTPRINT.eps) model.scale.z = FOOTPRINT.tile / size.z;
+  return model;
+}
+
 const WALKABLE: ReadonlySet<TileType> = new Set<TileType>(['floor', 'road', 'gate']);
 /** Neighbour directions in preference order: face the camera when there is a choice. */
 const FRONT_CHOICES: readonly { dx: number; dy: number; yaw: number }[] = [
@@ -94,6 +111,33 @@ const FRONT_CHOICES: readonly { dx: number; dy: number; yaw: number }[] = [
   { dx: -1, dy: 0, yaw: -Math.PI / 2 },  // left (-x)
   { dx: 0, dy: -1, yaw: Math.PI },       // up (-z)
 ];
+
+function walkableAt(state: Readonly<SimState>, x: number, y: number): boolean {
+  if (x < 0 || y < 0 || x >= state.width || y >= state.height) return false;
+  const tile = state.tiles[y * state.width + x];
+  return tile !== undefined && WALKABLE.has(tile.type);
+}
+
+/** A void tile inside the kitchen: off the outer ring and next to somewhere a chef can stand. Hatch Row
+ *  uses these as the wall segments between its shelves, so they are drawn as wall, not as a hole. */
+function isInteriorVoid(state: Readonly<SimState>, tile: Tile): boolean {
+  if (tile.type !== 'void') return false;
+  if (tile.x === 0 || tile.y === 0 || tile.x === state.width - 1 || tile.y === state.height - 1) return false;
+  return FRONT_CHOICES.some((choice) => walkableAt(state, tile.x + choice.dx, tile.y + choice.dy));
+}
+
+/** Yaw for a piece of wall (a shelf, an interior void): its length runs along the wall, so its faces
+ *  look at the two open sides. Walkable left and right means a wall running up the screen; walkable
+ *  above and below means one running across. Anything else falls back to facing a walkable neighbour. */
+function wallAxisYaw(state: Readonly<SimState>, tile: Tile): number {
+  const left = walkableAt(state, tile.x - 1, tile.y);
+  const right = walkableAt(state, tile.x + 1, tile.y);
+  const up = walkableAt(state, tile.x, tile.y - 1);
+  const down = walkableAt(state, tile.x, tile.y + 1);
+  if ((left || right) && !(up || down)) return Math.PI / 2;
+  if ((up || down) && !(left || right)) return 0;
+  return frontYaw(state, tile);
+}
 
 /** Yaw that turns a station's front (its +z side) towards an adjacent walkable tile. */
 function frontYaw(state: Readonly<SimState>, tile: Tile): number {
@@ -216,6 +260,7 @@ function streetDressing(state: Readonly<SimState>): THREE.Group {
 
 const SOLID_FOR_WALL: ReadonlySet<TileType> = new Set<TileType>([
   'counter', 'crate', 'board', 'stove', 'sink', 'drying', 'plateReturn', 'serve', 'trash', 'plateStack',
+  'shelf', 'trayRack', 'delivery',
 ]);
 
 /** Wall pieces behind the top row, only where the tiles they cover are stations (never over a road or a gap). */
@@ -251,9 +296,31 @@ function gateSlab(): GateView {
 
 interface Station { root: THREE.Group; surfaceY: number; itemOffset: THREE.Vector3; solid: boolean; knife?: THREE.Group; }
 
-function buildStation(tile: Tile): Station {
+/** A block of the kit's wall filling the whole tile, so a divider reads as a wall from any angle
+ *  (the kit's wall is a thin slab, a line when seen along it). Full height for interior void and a
+ *  closed shelf; counter height for an open shelf, whose top is where items rest. */
+function wallBlock(height?: number): Station {
+  const root = modelInstance('wall');
+  const size = modelSize('wall');
+  root.scale.set(FOOTPRINT.tile / size.x, height !== undefined ? height / size.y : 1, FOOTPRINT.tile / size.z);
+  return { root, surfaceY: height ?? topOf(root), itemOffset: new THREE.Vector3(), solid: true };
+}
+
+function buildStation(tile: Tile, flags: Readonly<TileFlags>): Station {
   const offset = new THREE.Vector3();
   switch (tile.type) {
+    case 'shelf':
+      // Open: a dip in the wall down to counter height, items on its top. Off: the full wall, as an interior void.
+      return flags.passThroughShelf ? wallBlock(modelSize('counter').y) : wallBlock();
+    case 'trayRack': {
+      const root = oneTileWide(modelInstance('trayRack'), 'trayRack');
+      return { root, surfaceY: topOf(root), itemOffset: offset, solid: true };
+    }
+    case 'delivery': {
+      // The door itself holds nothing; the waiting crate sits on the floor just in front of it.
+      const root = oneTileWide(modelInstance('delivery'), 'delivery');
+      return { root, surfaceY: 0, itemOffset: new THREE.Vector3(0, 0, DELIVERY.crateForward), solid: true };
+    }
     case 'counter': case 'plateStack': case 'plateReturn':
       return { root: modelInstance('counter'), surfaceY: modelSize('counter').y, itemOffset: offset, solid: true };
     case 'slider':
@@ -289,7 +356,10 @@ export class TileSet {
   private readonly root = new THREE.Group();
   private readonly textures = new Map<string, THREE.Texture>();
 
-  constructor(phaserScene: Phaser.Scene, scene: THREE.Scene, state: Readonly<SimState>, theme?: string) {
+  constructor(
+    phaserScene: Phaser.Scene, scene: THREE.Scene, state: Readonly<SimState>, theme?: string,
+    flags: Readonly<TileFlags> = DEFAULT_TILE_FLAGS,
+  ) {
     const dressing = THEMES[theme ?? 'default'] ?? THEMES.default;
     const groundGeometry = new THREE.PlaneGeometry(1, 1);
     this.root.add(backdrop(state.width, state.height, dressing.backdropColor));
@@ -298,7 +368,12 @@ export class TileSet {
     state.tiles.forEach((tile, index) => {
       const cx = tile.x + 0.5;
       const cz = tile.y + 0.5;
-      const textureKey = GROUND_TEXTURE[tile.type];
+      // Void inside the kitchen is a wall between rooms (Hatch Row's divider), drawn as a wall block on
+      // floor; a closed shelf is wall to the floor, so its ground shows the wall footing.
+      const interior = isInteriorVoid(state, tile);
+      const textureKey = interior ? TEX.tile('floor')
+        : tile.type === 'shelf' && !flags.passThroughShelf ? TEX.shelfClosed
+        : GROUND_TEXTURE[tile.type];
       if (textureKey) {
         const flat = dressing.floorColor !== null && tile.type !== 'road' && tile.type !== 'gate';
         const material = flat
@@ -310,10 +385,12 @@ export class TileSet {
         ground.receiveShadow = true;
         this.root.add(ground);
       }
-      const station = buildStation(tile);
+      const station = interior ? wallBlock() : buildStation(tile, flags);
       station.root.position.set(cx, 0, cz);
       if (station.solid) {
-        const yaw = frontYaw(state, tile);
+        // Wall pieces run along their wall; every other station faces a walkable neighbour.
+        const alongWall = interior || tile.type === 'shelf';
+        const yaw = alongWall ? wallAxisYaw(state, tile) : frontYaw(state, tile);
         station.root.rotation.y = yaw;
         station.itemOffset.applyAxisAngle(UP, yaw);
       }

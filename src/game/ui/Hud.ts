@@ -3,11 +3,13 @@
 // top-right. Screen space: it is not affected by the kitchen container's scale.
 //
 // Cards are diffed against SimState.orders every frame: ids that appear slide in, ids
-// that vanish either flash red and drop (expired) or pop and fade (served).
+// that vanish either flash red and drop (expired) or pop and fade (served). A card whose
+// recipe changes under it (the 86 system rewrote the ticket) flashes and slides its new
+// dish and ingredient icons in, and wears a small "86" tag from then on.
 import Phaser from 'phaser';
 import { TEX } from '../../art/keys';
 import { GAME_HEIGHT, GAME_WIDTH } from '../../config';
-import { TIMER_WARNING_AT } from '../../sim/constants';
+import { ORDER_REWRITE_FLASH_SEC, TIMER_WARNING_AT } from '../../sim/constants';
 import { recipeDishType, RECIPES } from '../../sim/recipes';
 import type { IngredientType, Order, SimEvent, SimState } from '../../sim/types';
 import { COLOR, TEXT_COLOR, textStyle } from './theme';
@@ -42,6 +44,14 @@ const CARD = {
   servedRisePx: 44,
   servedRiseMs: 320,
   expireGraceSec: 0.75,   // a card gone with less time than this counts as expired
+  // 86 system: a rewritten ticket flashes for ORDER_REWRITE_FLASH_SEC and slides its new icons in.
+  rewriteFlashMs: 160,
+  rewriteFlashMinAlpha: 0.35,
+  rewriteSwapMs: 260,
+  rewriteSwapDropPx: 10,
+  tagX: 86,               // the "86" tag, top-right corner of the card art
+  tagY: 4,
+  tagFontPx: 11,
 } as const;
 
 const SCORE = {
@@ -108,8 +118,11 @@ interface OrderCard {
   id: number;
   recipeId: string;
   root: Phaser.GameObjects.Container;
+  background: Phaser.GameObjects.Image;
   icon: Phaser.GameObjects.Image;
   ingredients: Phaser.GameObjects.Image[]; // CARD.ingredientMax icons in a row, hidden when unused
+  name: Phaser.GameObjects.Text;
+  tag: Phaser.GameObjects.Text;            // "86": the ticket was rewritten by a shortage
   barFill: Phaser.GameObjects.Rectangle;
   slot: number;
   leaving: boolean;
@@ -127,6 +140,7 @@ export class Hud {
   private readonly timerIcon: Phaser.GameObjects.Image;
   private readonly prepText: Phaser.GameObjects.Text;
   private readonly expiredIds = new Set<number>();
+  private readonly rewrittenIds = new Set<number>(); // orderRewritten events waiting for their card's next sync
   private blinkMs = 0;
   private pulseMs = 0;
 
@@ -182,6 +196,7 @@ export class Hud {
     for (const event of events) {
       if (event.type === 'serve' && typeof event.value === 'number') this.scorePopup(event.value);
       if (event.type === 'orderExpired' && typeof event.value === 'number') this.expiredIds.add(event.value);
+      if (event.type === 'orderRewritten' && typeof event.value === 'number') this.rewrittenIds.add(event.value);
     }
   }
 
@@ -254,11 +269,15 @@ export class Hud {
     const barFill = scene.add
       .rectangle((CARD.width - CARD.barWidth) / 2, CARD.barY, CARD.barWidth, CARD.barHeight, COLOR.barGood)
       .setOrigin(0, 0.5);
-    root.add([background, icon, ...ingredients, name, barTrack, barFill]);
+    const tag = scene.add
+      .text(CARD.tagX, CARD.tagY, '86', textStyle(CARD.tagFontPx, TEXT_COLOR.danger, { fontStyle: 'bold' }))
+      .setOrigin(1, 0)
+      .setVisible(order.originalRecipeId !== undefined);
+    root.add([background, icon, ...ingredients, name, barTrack, barFill, tag]);
     this.root.add(root);
 
     const card: OrderCard = {
-      id: order.id, recipeId: order.recipeId, root, icon, ingredients, barFill,
+      id: order.id, recipeId: order.recipeId, root, background, icon, ingredients, name, tag, barFill,
       slot, leaving: false, lastTimeLeft: order.timeLeft,
     };
     this.drawIngredients(card);
@@ -286,12 +305,54 @@ export class Hud {
     const fraction = Phaser.Math.Clamp(order.timeLeft / total, 0, 1);
     card.barFill.setDisplaySize(Math.max(0, CARD.barWidth * fraction), CARD.barHeight);
     card.barFill.setFillStyle(fraction <= CARD.dangerFraction ? COLOR.barDanger : COLOR.barGood);
-    if (card.recipeId !== order.recipeId) {
+    // The recipe is re-read every frame: the 86 system rewrites a ticket in place.
+    const rewritten = this.rewrittenIds.delete(order.id);
+    if (card.recipeId !== order.recipeId || rewritten) {
       card.recipeId = order.recipeId;
       card.icon.setTexture(recipeIconKey(order.recipeId));
+      card.name.setText(recipeName(order.recipeId));
       this.drawIngredients(card);
+      if (rewritten) this.animateRewrite(card);
     }
+    card.tag.setVisible(order.originalRecipeId !== undefined);
     card.lastTimeLeft = order.timeLeft;
+  }
+
+  /** A rewritten ticket: the card art flashes amber for ORDER_REWRITE_FLASH_SEC while the new dish
+   *  and ingredient icons drop into place from just above, so the change reads as a swap, not a cut. */
+  private animateRewrite(card: OrderCard): void {
+    const flashes = Math.max(1, Math.round((ORDER_REWRITE_FLASH_SEC * 1000) / (CARD.rewriteFlashMs * 2)));
+    card.background.setTint(COLOR.barWarn);
+    this.track(
+      this.scene.tweens.add({
+        targets: card.background,
+        alpha: { from: 1, to: CARD.rewriteFlashMinAlpha },
+        duration: CARD.rewriteFlashMs,
+        yoyo: true,
+        repeat: flashes - 1,
+        onComplete: () => {
+          if (card.background.active) card.background.clearTint().setAlpha(1);
+        },
+      }),
+    );
+    this.track(
+      this.scene.tweens.add({
+        targets: card.icon,
+        y: { from: CARD.iconY - CARD.rewriteSwapDropPx, to: CARD.iconY },
+        alpha: { from: 0, to: 1 },
+        duration: CARD.rewriteSwapMs,
+        ease: 'Quad.easeOut',
+      }),
+    );
+    this.track(
+      this.scene.tweens.add({
+        targets: card.ingredients.filter((sprite) => sprite.visible),
+        y: { from: CARD.ingredientsY - CARD.rewriteSwapDropPx, to: CARD.ingredientsY },
+        alpha: { from: 0, to: 1 },
+        duration: CARD.rewriteSwapMs,
+        ease: 'Quad.easeOut',
+      }),
+    );
   }
 
   /** The recipe's ingredients as a centred row of small icons under the dish, one icon per item. */

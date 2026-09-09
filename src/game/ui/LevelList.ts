@@ -16,7 +16,8 @@ const ROW = {
   highlightRadius: 8,
   nameX: -352,
   nameFontPx: 22,
-  themeX: -262,
+  nameMaxPx: 150,   // a name wider than this (the custom kitchens' titles) is scaled down to fit before the theme column
+  themeX: -190,
   themeFontPx: 14,
   starX: 92,
   starGapPx: 30,
@@ -98,6 +99,7 @@ export class LevelList {
     const name = scene.add
       .text(ROW.nameX, 0, entry.name, textStyle(ROW.nameFontPx))
       .setOrigin(0, 0.5);
+    if (name.width > ROW.nameMaxPx) name.setScale(ROW.nameMaxPx / name.width);
     const theme = scene.add
       .text(ROW.themeX, 0, entry.theme, textStyle(ROW.themeFontPx, TEXT_COLOR.dim))
       .setOrigin(0, 0.5);
