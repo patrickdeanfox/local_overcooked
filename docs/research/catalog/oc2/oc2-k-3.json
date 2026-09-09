@@ -1,0 +1,236 @@
+{
+  "id": "oc2-k-3",
+  "game": "oc2",
+  "world": null,
+  "index": 3,
+  "name": "Kevin 3",
+  "theme": "Kevin Level",
+  "wiki": "https://overcooked.fandom.com/wiki/Kevin_3",
+  "screenshots": [
+    "oc2/kevin-3.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": null,
+  "unlock": "Accessible from 2-4; solo challenge score 600, team challenge score 1000",
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "steamed_fish",
+    "steamed_beef",
+    "steamed_carrot",
+    "steamed_prawn"
+  ],
+  "orderVariants": 4,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 20,
+    "max": 5,
+    "timeSec": 90
+  },
+  "stars": {
+    "1": [
+      200,
+      240,
+      340,
+      690
+    ],
+    "2": [
+      240,
+      300,
+      400,
+      800
+    ],
+    "3": [
+      380,
+      480,
+      640,
+      900
+    ],
+    "4": [
+      380,
+      480,
+      640,
+      1060
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 3
+  },
+  "grid": {
+    "cols": 16,
+    "rows": 10,
+    "confidence": "low",
+    "ascii": [
+      "#########X&ØZZZW",
+      "#VR######.......",
+      "E.......#.......",
+      "p.......=.......",
+      "A.......=#p###p#",
+      "!.......=.......",
+      "J.......#....BB#",
+      "#.......#......#",
+      "#.......#......#",
+      "##K##K##########"
+    ]
+  },
+  "legendExtensions": {
+    "Z": "steamer (burner carrying a bamboo steamer)",
+    "K": "mixer",
+    "&": "flour ingredient box",
+    "J": "fish ingredient box",
+    "Ø": "prawn ingredient box",
+    "!": "carrot ingredient box",
+    "=": "elevator car (the only link between the three height levels)"
+  },
+  "stations": {
+    "board": 2,
+    "potBurner": 0,
+    "panBurner": 0,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 2,
+    "steamer": 3,
+    "sink": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plate": 3,
+    "counter": 44,
+    "crates": {
+      "flour": 1,
+      "prawn": 1,
+      "beef": 1,
+      "carrot": 1,
+      "fish": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 4,
+      "y": 5
+    },
+    {
+      "x": 12,
+      "y": 2
+    },
+    {
+      "x": 3,
+      "y": 7
+    },
+    {
+      "x": 12,
+      "y": 6
+    }
+  ],
+  "zones": [
+    {
+      "name": "lower level",
+      "stations": [
+        "mixer x2",
+        "serve",
+        "plate return",
+        "extinguisher",
+        "beef box",
+        "carrot box",
+        "fish box",
+        "plate"
+      ],
+      "links": [
+        {
+          "to": "top high level",
+          "via": "elevator"
+        },
+        {
+          "to": "right high level",
+          "via": "elevator"
+        }
+      ]
+    },
+    {
+      "name": "top high level",
+      "stations": [
+        "steamer x3",
+        "sink",
+        "bin",
+        "flour box",
+        "prawn box"
+      ],
+      "links": [
+        {
+          "to": "right high level",
+          "via": "shared countertop (place, do not walk)"
+        },
+        {
+          "to": "lower level",
+          "via": "elevator, or throw down"
+        }
+      ]
+    },
+    {
+      "name": "right high level",
+      "stations": [
+        "board x2"
+      ],
+      "links": [
+        {
+          "to": "top high level",
+          "via": "shared countertop"
+        },
+        {
+          "to": "lower level",
+          "via": "elevator"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "elevator",
+      "detail": "one car shuttles between the lower level and the two high levels; it is the only walkable link",
+      "periodSec": null
+    }
+  ],
+  "hazards": [],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": true,
+    "movingPlatforms": true,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 96,
+    "counterTiles": 64,
+    "stationTiles": 20,
+    "longestWalkTiles": 13,
+    "chokepointWidth": 1,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "steamer station",
+    "mixer station",
+    "Steamed Food recipe family",
+    "flour / fish / prawn / carrot ingredients",
+    "throwing",
+    "height levels",
+    "an elevator (a one-tile timed platform)"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "spawns",
+    "grid.cols",
+    "grid.rows",
+    "grid.ascii",
+    "dynamics[0].periodSec",
+    "zones"
+  ]
+}

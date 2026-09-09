@@ -1,0 +1,191 @@
+{
+  "id": "oc2-k-4",
+  "game": "oc2",
+  "world": null,
+  "index": 4,
+  "name": "Kevin 4",
+  "theme": "Kevin Level",
+  "wiki": "https://overcooked.fandom.com/wiki/Kevin_4",
+  "screenshots": [
+    "oc2/kevin-4.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": null,
+  "unlock": "Accessible from 3-1; solo challenge score 600, team challenge score 1100",
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "steamed_fish",
+    "steamed_beef",
+    "steamed_carrot",
+    "steamed_prawn"
+  ],
+  "orderVariants": 4,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 20,
+    "max": 5,
+    "timeSec": 90
+  },
+  "stars": {
+    "1": [
+      220,
+      280,
+      380,
+      800
+    ],
+    "2": [
+      340,
+      420,
+      580,
+      960
+    ],
+    "3": [
+      400,
+      500,
+      680,
+      1250
+    ],
+    "4": [
+      400,
+      500,
+      680,
+      1600
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 4
+  },
+  "grid": {
+    "cols": 15,
+    "rows": 11,
+    "confidence": "low",
+    "ascii": [
+      "###RBBBV#######",
+      ".............E.",
+      ".K#.........#K.",
+      ".#....._.....#.",
+      ".Z....._.....Z.",
+      ".#....._.....#.",
+      ".Z....._.....Z.",
+      ".#....._.....#.",
+      ".X...........W.",
+      "...............",
+      "###Jp&p!pØpA###"
+    ]
+  },
+  "legendExtensions": {
+    "Z": "steamer (burner carrying a bamboo steamer)",
+    "K": "mixer",
+    "&": "flour ingredient box",
+    "J": "fish ingredient box",
+    "Ø": "prawn ingredient box",
+    "!": "carrot ingredient box",
+    "_": "the central fireplace — solid, and it throws fire onto the surrounding floor"
+  },
+  "stations": {
+    "board": 3,
+    "potBurner": 0,
+    "panBurner": 0,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 2,
+    "steamer": 4,
+    "sink": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plate": 4,
+    "counter": 24,
+    "crates": {
+      "fish": 1,
+      "flour": 1,
+      "carrot": 1,
+      "prawn": 1,
+      "beef": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 4,
+      "y": 5
+    },
+    {
+      "x": 10,
+      "y": 5
+    },
+    {
+      "x": 4,
+      "y": 9
+    },
+    {
+      "x": 10,
+      "y": 9
+    }
+  ],
+  "zones": [
+    {
+      "name": "ring around the fireplace",
+      "stations": [
+        "everything"
+      ],
+      "links": [
+        {
+          "to": "itself",
+          "via": "walk either side of the fireplace"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "fire-source",
+      "detail": "the central fireplace throws fire onto floor tiles all around the kitchen; burning floor blocks the ring until it is put out",
+      "periodSec": null
+    }
+  ],
+  "hazards": [
+    "floor fire from the central fireplace"
+  ],
+  "features": {
+    "splitKitchen": false,
+    "throwRequired": false,
+    "movingPlatforms": false,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 113,
+    "counterTiles": 52,
+    "stationTiles": 28,
+    "longestWalkTiles": 12,
+    "chokepointWidth": 2,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "steamer station",
+    "mixer station",
+    "Steamed Food recipe family",
+    "flour / fish / prawn / carrot ingredients",
+    "throwing",
+    "a fire source that ignites floor tiles (the clone only has fires on stations)"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "spawns",
+    "grid.cols",
+    "grid.rows",
+    "grid.ascii",
+    "dynamics[0].periodSec",
+    "the exact step pattern of the left and right arms"
+  ]
+}

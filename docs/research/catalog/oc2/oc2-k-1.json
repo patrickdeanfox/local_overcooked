@@ -1,0 +1,196 @@
+{
+  "id": "oc2-k-1",
+  "game": "oc2",
+  "world": null,
+  "index": 1,
+  "name": "Kevin 1",
+  "theme": "Kevin Level",
+  "wiki": "https://overcooked.fandom.com/wiki/Kevin_1",
+  "screenshots": [
+    "oc2/kevin-1.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": true,
+  "unlockStars": null,
+  "unlock": "Accessible from 1-3; solo challenge tip combo 2x (team challenge TBA on the wiki)",
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "steamed_fish",
+    "steamed_beef"
+  ],
+  "orderVariants": 2,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 20,
+    "max": 5,
+    "timeSec": 90
+  },
+  "stars": {
+    "1": [
+      300,
+      380,
+      520,
+      920
+    ],
+    "2": [
+      480,
+      600,
+      820,
+      1460
+    ],
+    "3": [
+      540,
+      660,
+      900,
+      1650
+    ],
+    "4": [
+      540,
+      660,
+      900,
+      1920
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 4
+  },
+  "grid": {
+    "cols": 17,
+    "rows": 10,
+    "confidence": "low",
+    "ascii": [
+      "###W########RV###",
+      "........X........",
+      ".#K#K#..p..#Z#Z#.",
+      ".....#..p..#.....",
+      "........#........",
+      "........#........",
+      ".....#..p..#.....",
+      ".#B#B#..p..#B#B#.",
+      "........#........",
+      "####A#######J&###"
+    ]
+  },
+  "legendExtensions": {
+    "Z": "steamer (burner carrying a bamboo steamer)",
+    "K": "mixer",
+    "&": "flour ingredient box",
+    "J": "fish ingredient box"
+  },
+  "stations": {
+    "board": 4,
+    "potBurner": 0,
+    "panBurner": 0,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 2,
+    "steamer": 2,
+    "sink": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 0,
+    "plate": 4,
+    "counter": 47,
+    "crates": {
+      "beef": 1,
+      "fish": 1,
+      "flour": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 3,
+      "y": 4
+    },
+    {
+      "x": 13,
+      "y": 4
+    },
+    {
+      "x": 4,
+      "y": 5
+    },
+    {
+      "x": 12,
+      "y": 5
+    }
+  ],
+  "zones": [
+    {
+      "name": "left side (mixers)",
+      "stations": [
+        "mixer x2",
+        "board x2",
+        "sink",
+        "beef box",
+        "plates"
+      ],
+      "links": [
+        {
+          "to": "right side (steamers)",
+          "via": "place on the centre counter column, or throw"
+        }
+      ]
+    },
+    {
+      "name": "right side (steamers)",
+      "stations": [
+        "steamer x2",
+        "board x2",
+        "plate return",
+        "serve",
+        "flour box",
+        "fish box",
+        "plates"
+      ],
+      "links": [
+        {
+          "to": "left side (mixers)",
+          "via": "place on the centre counter column, or throw"
+        }
+      ]
+    }
+  ],
+  "dynamics": [],
+  "hazards": [],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": true,
+    "movingPlatforms": false,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 104,
+    "counterTiles": 66,
+    "stationTiles": 19,
+    "longestWalkTiles": 13,
+    "chokepointWidth": 2,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "steamer station",
+    "mixer station",
+    "Steamed Food recipe family",
+    "flour / fish / prawn / carrot ingredients",
+    "throwing",
+    "nothing beyond the core five — Kevin 1 has no dynamic element at all, which makes it the cheapest of the eight to rebuild"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "spawns",
+    "grid.cols",
+    "grid.rows",
+    "grid.ascii",
+    "zones"
+  ]
+}

@@ -1,0 +1,232 @@
+{
+  "id": "oc2-k-8",
+  "game": "oc2",
+  "world": null,
+  "index": 8,
+  "name": "Kevin 8",
+  "theme": "Kevin Level",
+  "wiki": "https://overcooked.fandom.com/wiki/Kevin_8",
+  "screenshots": [
+    "oc2/kevin-8.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": null,
+  "unlock": "Accessible from 6-4; solo challenge tip combo 5x, team challenge tip combo 7x",
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "steamed_fish",
+    "steamed_beef",
+    "steamed_carrot",
+    "steamed_prawn"
+  ],
+  "orderVariants": 4,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 20,
+    "max": 5,
+    "timeSec": 90
+  },
+  "stars": {
+    "1": [
+      180,
+      220,
+      300,
+      700
+    ],
+    "2": [
+      180,
+      240,
+      320,
+      800
+    ],
+    "3": [
+      240,
+      300,
+      420,
+      1040
+    ],
+    "4": [
+      240,
+      300,
+      420,
+      1040
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 4
+  },
+  "grid": {
+    "cols": 15,
+    "rows": 12,
+    "confidence": "low",
+    "ascii": [
+      "EW#A#Ø#&#!#J#VR",
+      "...v.v.v.v.v...",
+      "...v.v.v.v.v...",
+      "...>>>>v<<<<...",
+      ".......v.......",
+      "..X<<<<?>>>>X..",
+      ".......v.......",
+      ".......v.......",
+      ".......v.......",
+      ".......v.......",
+      ".......v.......",
+      "ZpZpB##X#BpKpK#"
+    ]
+  },
+  "legendExtensions": {
+    "Z": "steamer (burner carrying a bamboo steamer)",
+    "K": "mixer",
+    "&": "flour ingredient box",
+    "J": "fish ingredient box",
+    "Ø": "prawn ingredient box",
+    "!": "carrot ingredient box",
+    ">": "conveyor pushing right",
+    "<": "conveyor pushing left",
+    "v": "conveyor pushing down",
+    "?": "the rotating conveyor section that chooses which of the three bins the belt empties into",
+    "A/Ø/&/!/J on row 0": "ingredient dispensers, not ingredient boxes — they drop items onto the belt on their own"
+  },
+  "stations": {
+    "board": 2,
+    "potBurner": 0,
+    "panBurner": 0,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 2,
+    "steamer": 2,
+    "sink": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 3,
+    "extinguisher": 1,
+    "plate": 4,
+    "counter": 10,
+    "crates": {
+      "beef": 1,
+      "prawn": 1,
+      "flour": 1,
+      "carrot": 1,
+      "fish": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 3,
+      "y": 8
+    },
+    {
+      "x": 11,
+      "y": 8
+    },
+    {
+      "x": 2,
+      "y": 6
+    },
+    {
+      "x": 12,
+      "y": 6
+    }
+  ],
+  "zones": [
+    {
+      "name": "left side (steamers)",
+      "stations": [
+        "steamer x2",
+        "plate x2",
+        "board",
+        "sink",
+        "extinguisher"
+      ],
+      "links": [
+        {
+          "to": "right side (mixers)",
+          "via": "hand across the belt with the receiver downstream of the giver, or throw"
+        }
+      ]
+    },
+    {
+      "name": "right side (mixers)",
+      "stations": [
+        "mixer x2",
+        "plate x2",
+        "board",
+        "serve",
+        "plate return"
+      ],
+      "links": [
+        {
+          "to": "left side (steamers)",
+          "via": "hand across the belt with the receiver downstream of the giver, or throw"
+        }
+      ]
+    },
+    {
+      "name": "belt",
+      "stations": [
+        "5 ingredient dispensers",
+        "3 bins"
+      ],
+      "links": [
+        {
+          "to": "both sides",
+          "via": "step on and be carried"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "conveyors",
+      "detail": "a fast tile-type belt fed by five dispensers (beef, prawn, flour, carrot, fish, left to right) merges 5 lanes into 1, then a rotating section splits it three ways into three bins",
+      "periodSec": null
+    }
+  ],
+  "hazards": [
+    "anything dropped on the belt ends in a bin"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": true,
+    "movingPlatforms": false,
+    "conveyors": true,
+    "portals": false,
+    "floorTiles": 147,
+    "counterTiles": 33,
+    "stationTiles": 23,
+    "longestWalkTiles": 10,
+    "chokepointWidth": 1,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "steamer station",
+    "mixer station",
+    "Steamed Food recipe family",
+    "flour / fish / prawn / carrot ingredients",
+    "throwing",
+    "fast walkable conveyor floor",
+    "ingredient dispensers that feed a belt",
+    "a rotating belt splitter"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "spawns",
+    "grid.cols",
+    "grid.rows",
+    "grid.ascii",
+    "lane count and merge geometry",
+    "belt speed",
+    "rotating splitter period"
+  ]
+}

@@ -246,3 +246,84 @@ in the 60–80 band that its 3★ threshold implies. It is still an estimate; la
 5. Whether the pizza assembly is a plate-like carrier item or a distinct item kind.
 6. Whether a pot/pan/steamer/basket can be poured into a plate directly or must be carried to it (the
    Frying Basket page says baskets cannot pour into other cookware, implying the others can).
+
+---
+
+## 6. Appendix — recipes this file was missing (added 2026-09-08)
+
+§2 covers the eleven base-campaign families and is complete for them. Sweeping
+[Category:Recipes](https://overcooked.fandom.com/wiki/Category:Recipes) and the 152
+[Category:Recipe Tables](https://overcooked.fandom.com/wiki/Category:Recipe_Tables) templates turned
+up sixteen more Overcooked! 2 families, all DLC or free-update only, plus a base-game variant and a
+rule this file did not state. Every variant named below is in `docs/research/catalog/recipes.json`
+with its full per-ingredient step chain.
+
+### 6.1 The timer rule for a new recipe
+
+The [Recipe](https://overcooked.fandom.com/wiki/Recipe) page states it plainly: **when a level
+introduces a recipe for the first time, the instructions are shown at the start and the clock does
+not start until the first order is served.** That is the same rule as OC1 1-1's prep time, and it
+applies to every "first level" in the table in §2 — 1-1 (Sashimi), 1-2 (Sushi), 1-5 (Pasta), 2-1
+(Fast Food), 2-4 (Burrito), 2-6 (Burger), 3-1 (Pizza), 5-4 (Pancake), 6-1 (Cake) and Kevin 1
+(Steamed Food).
+
+### 6.2 Base-game variants worth recording
+
+- **Prawn Sushi.** The [Sushi](https://overcooked.fandom.com/wiki/Sushi) gallery has a
+  `Sushiprawnboxed.png` captioned "Prawn Sushi in a Box", but the page's own ingredient list is nori,
+  rice, fish and/or cucumber, and there is no `Template:PrawnSushi`. Treat prawn sushi as
+  unconfirmed until someone checks the game.
+- **Pizza toppings.** The [Pizza](https://overcooked.fandom.com/wiki/Pizza) page's optional list is
+  sausage, chicken and mushroom, but the tables give pepperoni (not sausage) for OC1/OC2 and add
+  olive for the Campfire Cook Off DLC. Follow the tables.
+
+### 6.3 DLC and free-update recipe families
+
+Each family's rows are in the catalog JSON; here is the shape of each one and what station it needs.
+"New station" means the clone would need something it does not have and that no base-campaign level
+uses either.
+
+| Family | DLC / update | Ingredients | Chain | New station |
+|---|---|---|---|---|
+| [Soup](https://overcooked.fandom.com/wiki/Soup) | Night of the Hangry Horde | onion + broccoli + cheese / onion + potato + carrot / onion + potato + leek | all → chop → boil in pot | none (OC1's pot) |
+| [Roast Dinner](https://overcooked.fandom.com/wiki/Roast_Dinner) | Night of the Hangry Horde, Winter Wonderland | beef joint or chicken + potato + carrot (+ broccoli) | vegetables → chop; all into a roasting tray → oven | roasting tray; optional Furnace that cooks faster when fed coal |
+| [Fruit Pie](https://overcooked.fandom.com/wiki/Fruit_Pie) | Night of the Hangry Horde | flour + egg + apple / blackberry / cherry (or apple + blackberry) | fruit → chop; all → mix → bake | Guillotine (an alternative chopper, capacity 2) |
+| [Kebab](https://overcooked.fandom.com/wiki/Kebab) | Surf 'n' Turf | 2–3 of beef, chicken, mushroom, pineapple, tomato | all → chop → barbecue | barbecue, skewer |
+| [Smoothie](https://overcooked.fandom.com/wiki/Smoothie) | Surf 'n' Turf | 3–4 of strawberry, banana, watermelon, pineapple | all → chop → blend | blender, cup (served in a cup, not on a plate) |
+| [Cooked Breakfast](https://overcooked.fandom.com/wiki/Cooked_Breakfast) | Campfire Cook Off | bacon / sausage (chopped) + beans / egg (raw) | meat → chop; all → fry | a four-slot pan |
+| [S'more](https://overcooked.fandom.com/wiki/S%27more) | Campfire Cook Off | crackers + marshmallow (+ banana / chocolate / strawberry) | marshmallow → chop → grill; extras → chop; assemble | campfire |
+| [Donut](https://overcooked.fandom.com/wiki/Donut) | Carnival of Chaos | flour + egg + chocolate / honey / raspberry | flavour → chop; all → mix → deep fry | none (mixer + fryer) |
+| [Hot Dog](https://overcooked.fandom.com/wiki/Hot_Dog_(Recipe)) | Carnival of Chaos | hot dog bun + sausage (+ onion, ketchup, mustard) | bun → chop; sausage → boil; onion → chop → fry; sauces from the machine | condiment machine |
+| [Meal Deal](https://overcooked.fandom.com/wiki/Meal_Deal) | Carnival of Chaos | bun + beef or chicken (+ cheese, potato, onion, a drink) | patty → chop → fry; sides → chop → deep fry; drink from the machine | tray, drinks machine |
+| [Hot Chocolate](https://overcooked.fandom.com/wiki/Hot_Chocolate) | Kevin's Christmas Cracker, Winter Wonderland | milk + chocolate (+ whipped cream, marshmallow) | chocolate → chop; milk + chocolate → boil; toppings added after | mug |
+| [Christmas Dessert](https://overcooked.fandom.com/wiki/Christmas_Dessert) | Kevin's Christmas Cracker, Winter Wonderland | flour + egg + dried fruit (+ orange) | fruit → chop; all → mix → bake | none |
+| [Hot Pot](https://overcooked.fandom.com/wiki/Hot_Pot) | Chinese New Year | noodles + bok choy (+ beef, prawn, up to two proteins) | proteins and bok choy → chop; all → boil | wok |
+| [Fruit Platter](https://overcooked.fandom.com/wiki/Fruit_Platter) | Chinese New Year, Spring Festival, Moon Harvest | 2–3 of orange, peach, grapes | all → chop → plate | none |
+| [Ice Cream Float](https://overcooked.fandom.com/wiki/Ice_Cream_Float) | Sun's Out, Buns Out | ice + milk + chocolate or vanilla + cola or orange | ice and flavour → chop; ice + milk + flavour → blend; pour into a glass with the drink | blender, drinks machine, glass |
+| [Summer Salad](https://overcooked.fandom.com/wiki/Summer_Salad) | Sun's Out, Buns Out | onion + 2–3 of corn, cucumber, lettuce, tomato | all → chop → plate | none |
+| [Mooncake](https://overcooked.fandom.com/wiki/Mooncake) | Moon Harvest | flour + egg + chocolate / strawberry / watermelon | flavour → chop; all → mix → bake | none |
+| [Pancake](https://overcooked.fandom.com/wiki/Pancake) (extra variants) | Campfire Cook Off (blueberry), Surf 'n' Turf (strawberry) | flour + egg + blueberry or strawberry | fruit → chop; all → mix → fry | none |
+| [Pizza](https://overcooked.fandom.com/wiki/Pizza) (extra variant) | Campfire Cook Off (olive) | dough + cheese + tomato + olive | all → chop, assemble, → bake | none |
+| [Burger](https://overcooked.fandom.com/wiki/Burger) (extra variant) | Surf 'n' Turf (double pineapple) | bun + beef ×2 + pineapple | beef → chop → fry ×2; pineapple → chop; assemble | none |
+
+Four stations in that table are cheap for this clone (a wok and a four-slot pan are re-skinned
+cookware; a roasting tray is a plate that goes in an oven; a mug, glass and cup are plates with a
+different sprite). Four are genuinely new mechanics: the **campfire** and **barbecue** (grill slots
+with their own burn timers), the **blender** and **drinks/condiment machines** (a dispenser that
+fills a carried vessel), the **Guillotine** (a chopper with a stated capacity of 2), and the
+**Furnace** (an oven whose speed depends on being fed coal).
+
+### 6.4 What the wiki still does not say
+
+Everything in §5 stands. Two more, found while building the catalog:
+
+7. **No station has a stated cook or burn duration**, in either game, for any recipe. Chopping's
+   ~3 s is still the only number.
+8. **Which base-campaign level offers which variant** is only recorded for OC2; the OC1 level
+   pages name the recipe family but not the variant, so the OC1 rows in
+   `catalog/recipes.json` carry a `levels` estimate.
+
+DLC level pages, by contrast, *do* carry full Star Charts and Overview sections — the same
+shape as the base campaign — so a DLC catalog shard would have as much to work with as this
+one did. Checked against
+[1-1 (Surf 'n' Turf)](https://overcooked.fandom.com/wiki/1-1_(Overcooked!_2_Surf_%27n%27_Turf)).

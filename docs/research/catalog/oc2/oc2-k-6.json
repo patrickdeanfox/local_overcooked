@@ -1,0 +1,254 @@
+{
+  "id": "oc2-k-6",
+  "game": "oc2",
+  "world": null,
+  "index": 6,
+  "name": "Kevin 6",
+  "theme": "Kevin Level",
+  "wiki": "https://overcooked.fandom.com/wiki/Kevin_6",
+  "screenshots": [
+    "oc2/kevin-6.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": null,
+  "unlock": "Accessible from 4-5; solo challenge score 400, team challenge score 500",
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "steamed_fish",
+    "steamed_beef",
+    "steamed_carrot",
+    "steamed_prawn"
+  ],
+  "orderVariants": 4,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 20,
+    "max": 5,
+    "timeSec": 90
+  },
+  "stars": {
+    "1": [
+      220,
+      280,
+      380,
+      650
+    ],
+    "2": [
+      280,
+      360,
+      480,
+      900
+    ],
+    "3": [
+      380,
+      480,
+      640,
+      1000
+    ],
+    "4": [
+      380,
+      480,
+      640,
+      1000
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 2
+  },
+  "grid": {
+    "cols": 13,
+    "rows": 13,
+    "confidence": "low",
+    "ascii": [
+      ".............",
+      ".>>>>>>>>>>v.",
+      ".^ZZ##.EBBBv.",
+      ".^W.......pv.",
+      ".^p........v.",
+      ".^.........v.",
+      "V^>>>>.<<<<v.",
+      ".^.....KK##v.",
+      ".^........Rv.",
+      ".^........Xv.",
+      ".^AJØ&.!###v.",
+      ".<<<<<<<<<<<.",
+      "............."
+    ]
+  },
+  "legendExtensions": {
+    "Z": "steamer (burner carrying a bamboo steamer)",
+    "K": "mixer",
+    "&": "flour ingredient box",
+    "J": "fish ingredient box",
+    "Ø": "prawn ingredient box",
+    "!": "carrot ingredient box",
+    ">": "conveyor pushing right",
+    "<": "conveyor pushing left",
+    "^": "conveyor pushing up",
+    "v": "conveyor pushing down"
+  },
+  "stations": {
+    "board": 3,
+    "potBurner": 0,
+    "panBurner": 0,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 2,
+    "steamer": 2,
+    "sink": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plate": 2,
+    "counter": 7,
+    "crates": {
+      "beef": 1,
+      "fish": 1,
+      "prawn": 1,
+      "flour": 1,
+      "carrot": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 4,
+      "y": 4
+    },
+    {
+      "x": 8,
+      "y": 4
+    },
+    {
+      "x": 4,
+      "y": 8
+    },
+    {
+      "x": 8,
+      "y": 8
+    }
+  ],
+  "zones": [
+    {
+      "name": "top-left quadrant",
+      "stations": [
+        "steamer x2",
+        "sink",
+        "plate"
+      ],
+      "links": [
+        {
+          "to": "conveyor ring",
+          "via": "one gap facing the centre, on the left"
+        }
+      ]
+    },
+    {
+      "name": "top-right quadrant",
+      "stations": [
+        "board x3",
+        "plate",
+        "extinguisher"
+      ],
+      "links": [
+        {
+          "to": "conveyor ring",
+          "via": "one gap centred at the top, facing the outer ring"
+        }
+      ]
+    },
+    {
+      "name": "bottom-left quadrant",
+      "stations": [
+        "beef box",
+        "fish box",
+        "prawn box",
+        "flour box"
+      ],
+      "links": [
+        {
+          "to": "conveyor ring",
+          "via": "one gap facing the centre, on the right"
+        }
+      ]
+    },
+    {
+      "name": "bottom-right quadrant",
+      "stations": [
+        "mixer x2",
+        "plate return",
+        "bin",
+        "carrot box"
+      ],
+      "links": [
+        {
+          "to": "conveyor ring",
+          "via": "one gap facing right"
+        }
+      ]
+    },
+    {
+      "name": "conveyor ring",
+      "stations": [
+        "serve (far left)"
+      ],
+      "links": [
+        {
+          "to": "every quadrant",
+          "via": "ride the belts clockwise or inward"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "conveyors",
+      "detail": "belts ring the four quadrants and cross between them, pushing chefs clockwise or towards the centre; working anywhere on a belt is close to impossible",
+      "periodSec": null
+    }
+  ],
+  "hazards": [
+    "belts carry chefs and dropped items away"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": true,
+    "movingPlatforms": false,
+    "conveyors": true,
+    "portals": false,
+    "floorTiles": 143,
+    "counterTiles": 26,
+    "stationTiles": 19,
+    "longestWalkTiles": 9,
+    "chokepointWidth": 1,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "steamer station",
+    "mixer station",
+    "Steamed Food recipe family",
+    "flour / fish / prawn / carrot ingredients",
+    "throwing",
+    "walkable conveyor floor that moves chefs and items"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "spawns",
+    "grid.cols",
+    "grid.rows",
+    "grid.ascii",
+    "every belt direction",
+    "quadrant gap positions"
+  ]
+}
