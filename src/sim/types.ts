@@ -126,6 +126,12 @@ export interface Modifiers {
   orderTimeScale?: number;     // 0.8 = orders expire sooner
   maxOrdersDelta?: number;     // +1 = one more concurrent ticket
   chefSpeedScale?: number;     // 1.15 = faster chefs
+  // Custom difficulty (roadmap item 2). Scales multiply the constants in constants.ts.
+  cookTimeScale?: number;      // 1.5 = pots and pans take half as long again to cook
+  burnTimeScale?: number;      // 0.5 = cooked food burns in half the time
+  chopTimeScale?: number;      // 0.5 = chopping takes half as long
+  washTimeScale?: number;      // 2 = washing a plate takes twice as long
+  initialOrdersDelta?: number; // +1 = one more ticket on screen at level start
   // Assists, all off by default. A run with any of them on is not saved and earns no stars.
   instantCooking?: boolean;    // pots and pans are ready the moment they start cooking
   ordersNeverExpire?: boolean; // tickets keep their full timer: no expiry, no fail penalty

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { Sim } from '../src/sim';
 import {
   BURN_TIME, CHEF_RADIUS, CHEF_SPEED, CHOP_TIME, COOK_TIME, FIRE_SPREAD_TIME, ORDER_FAIL_PENALTY,
-  PLATE_RETURN_DELAY, PLATE_STACK_RETURN_DELAY, SIM_DT, TIP_BASE, WASH_TIME,
+  PAN_COOK_TIME, PLATE_RETURN_DELAY, PLATE_STACK_RETURN_DELAY, SIM_DT, TIP_BASE, WASH_TIME,
 } from '../src/sim/constants';
 import { RECIPES } from '../src/sim/recipes';
 import {
@@ -741,7 +741,79 @@ describe('modifiers and seed', () => {
     expect(eff.timeLimitSec).toBe(BASE.timeLimitSec);
     expect(eff.orders).toEqual(BASE.orders);
     expect(eff.chefSpeed).toBe(CHEF_SPEED);
+    expect(eff.cookTime).toBe(COOK_TIME);
+    expect(eff.panCookTime).toBe(PAN_COOK_TIME);
+    expect(eff.burnTime).toBe(BURN_TIME);
+    expect(eff.chopTime).toBe(CHOP_TIME);
+    expect(eff.washTime).toBe(WASH_TIME);
     expect(sim.getState().timeLeft).toBe(BASE.timeLimitSec);
+  });
+
+  it('scales cook time for pots and pans alike', () => {
+    const sim = new Sim(makeLevel(), { players: 1, seed: 3, modifiers: { cookTimeScale: 2 } });
+    expect(sim.getEffectiveSettings().cookTime).toBe(COOK_TIME * 2);
+    expect(sim.getEffectiveSettings().panCookTime).toBe(PAN_COOK_TIME * 2);
+    const pot = potOnStove(sim);
+    pot.contents.push('onion', 'onion', 'onion');
+    expect(types(stepFor(sim, COOK_TIME + 0.5))).not.toContain('cookDone');
+    expect(pot.state).toBe('cooking');
+    expect(types(stepFor(sim, COOK_TIME))).toContain('cookDone');
+    expect(pot.state).toBe('cooked');
+  });
+
+  it('scales burn time', () => {
+    const sim = new Sim(makeLevel(), { players: 1, seed: 3, modifiers: { burnTimeScale: 0.5 } });
+    expect(sim.getEffectiveSettings().burnTime).toBe(BURN_TIME / 2);
+    const pot = potOnStove(sim);
+    pot.contents.push('onion', 'onion', 'onion');
+    stepFor(sim, COOK_TIME + 0.1);
+    expect(pot.state).toBe('cooked');
+    expect(types(stepFor(sim, BURN_TIME / 4))).not.toContain('burnt');
+    expect(types(stepFor(sim, BURN_TIME / 4 + 0.1))).toContain('burnt');
+    expect(pot.state).toBe('burnt');
+  });
+
+  it('scales chop time', () => {
+    const sim = new Sim(makeLevel(), { players: 1, seed: 1, modifiers: { chopTimeScale: 0.5 } });
+    expect(sim.getEffectiveSettings().chopTime).toBe(CHOP_TIME / 2);
+    place(sim, 0, 2.5, 1.5, 'left');
+    sim.step([inp({ pickupPressed: true })]);
+    place(sim, 0, 10.5, 1.5, 'right');
+    sim.step([inp({ pickupPressed: true })]);
+    const events = stepFor(sim, CHOP_TIME / 2 + 0.1, inp({ interactHeld: true }));
+    expect(types(events)).toContain('chopTick');
+    expect(types(events)).toContain('chopDone');
+    expect(sim.itemAt(11, 1)).toMatchObject({ kind: 'ingredient', chopped: true });
+  });
+
+  it('scales wash time', () => {
+    const sim = new Sim(makeLevel(), { players: 1, seed: 1, modifiers: { washTimeScale: 2 } });
+    expect(sim.getEffectiveSettings().washTime).toBe(WASH_TIME * 2);
+    mutable(sim).chefs[0].holding = { kind: 'dirtyPlate', id: 9100, count: 1 };
+    place(sim, 0, 10.5, 3.5, 'right');
+    sim.step([inp({ pickupPressed: true })]);
+    expect(sim.itemAt(11, 3)).toMatchObject({ kind: 'dirtyPlate', count: 1 });
+    expect(types(stepFor(sim, WASH_TIME + 0.1, inp({ interactHeld: true })))).not.toContain('washDone');
+    expect(types(stepFor(sim, WASH_TIME, inp({ interactHeld: true })))).toContain('washDone');
+    expect(sim.itemAt(11, 4)).toMatchObject({ kind: 'plate', dish: null, count: 1 });
+  });
+
+  it('shifts the starting ticket count, never below zero or above the cap', () => {
+    const level = makeLevel({ orders: { initial: 1, intervalSec: 1000, max: 3, timeSec: 120 } });
+    const more = new Sim(level, { players: 1, seed: 3, modifiers: { initialOrdersDelta: 1 } });
+    expect(more.getEffectiveSettings().orders.initial).toBe(2);
+    expect(more.getState().orders.length).toBe(2);
+
+    const capped = new Sim(level, { players: 1, seed: 3, modifiers: { initialOrdersDelta: 5 } });
+    expect(capped.getEffectiveSettings().orders.initial).toBe(3);
+    expect(capped.getState().orders.length).toBe(3);
+
+    const none = new Sim(level, { players: 1, seed: 3, modifiers: { initialOrdersDelta: -4 } });
+    expect(none.getEffectiveSettings().orders.initial).toBe(0);
+    expect(none.getState().orders.length).toBe(0);
+
+    const raised = new Sim(level, { players: 1, seed: 3, modifiers: { initialOrdersDelta: 2, maxOrdersDelta: 1 } });
+    expect(raised.getEffectiveSettings().orders).toMatchObject({ initial: 3, max: 4 });
   });
 
   it('scales the time limit', () => {
@@ -793,7 +865,10 @@ describe('modifiers and seed', () => {
     const level = makeLevel();
     new Sim(level, {
       players: 1, seed: 3,
-      modifiers: { timeLimitScale: 0.5, orderIntervalScale: 0.5, orderTimeScale: 0.5, maxOrdersDelta: 3, chefSpeedScale: 2 },
+      modifiers: {
+        timeLimitScale: 0.5, orderIntervalScale: 0.5, orderTimeScale: 0.5, maxOrdersDelta: 3, chefSpeedScale: 2,
+        cookTimeScale: 2, burnTimeScale: 2, chopTimeScale: 2, washTimeScale: 2, initialOrdersDelta: 2,
+      },
     });
     expect(level.timeLimitSec).toBe(BASE.timeLimitSec);
     expect(level.orders).toEqual(BASE.orders);
