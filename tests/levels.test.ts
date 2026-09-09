@@ -72,6 +72,14 @@ function stovesWith(p: ParsedGrid, ware: Ware): { x: number; y: number }[] {
   }).map((t) => ({ x: t.x, y: t.y }));
 }
 
+/** True when the flood fill stands next to at least one tile of the type. */
+function reachesType(p: ParsedGrid, reached: Set<number>, type: TileType): boolean {
+  return p.tiles.some((t) => t.type === type && NEIGHBOURS.some(([dx, dy]) => {
+    const n = tileAt(p, t.x + dx, t.y + dy);
+    return !!n && isWalkable(n.type) && reached.has((t.y + dy) * p.width + (t.x + dx));
+  }));
+}
+
 /** Station tiles the flood fill never gets next to, as 'type (x,y)' strings. */
 function unreachableStations(p: ParsedGrid, reached: Set<number>): string[] {
   const bad: string[] = [];
@@ -154,12 +162,18 @@ describe('levels', () => {
       expect(keys.size).toBe(2);
     });
 
-    it(`${l.id} reaches every station from both spawns`, () => {
+    it(`${l.id} reaches every station from the spawns together, and a serve and a crate from each`, () => {
+      // A split kitchen (3-2) shares the work over a counter, so each chef needs a serve and the
+      // crates, and the two reaches together must cover every station.
       const p = parseGrid(l);
+      const union = new Set<number>();
       for (const s of l.spawns) {
         const reached = reachableFrom(p, s.x, s.y);
-        expect(unreachableStations(p, reached), `from spawn (${s.x},${s.y})`).toEqual([]);
+        for (const i of reached) union.add(i);
+        expect(reachesType(p, reached, 'serve'), `no serve from spawn (${s.x},${s.y})`).toBe(true);
+        expect(reachesType(p, reached, 'crate'), `no crate from spawn (${s.x},${s.y})`).toBe(true);
       }
+      expect(unreachableStations(p, union)).toEqual([]);
     });
 
     it(`${l.id} keeps every extinguisher within reach of a walkable tile`, () => {
@@ -642,6 +656,49 @@ describe('oc1-1-6', () => {
 // they came from and the star arithmetic are in docs/LEVELS.md. They are asserted
 // exactly so that changing them stays a deliberate act.
 
+// ─── 3-2 Savoury Seas, the split deck ───────────────────────────────────────
+
+describe('oc1-3-2', () => {
+  const l = level('oc1-3-2');
+  const p = parseGrid(l);
+
+  it('is the three soups on a deck with clean plates and no sink', () => {
+    expect(l.recipes).toEqual(['onion_soup', 'tomato_soup', 'mushroom_soup']);
+    expect(l.plates).toEqual({ mode: 'stack', count: 3 });
+    expect(countType(p, 'sink')).toBe(0);
+    expect(countType(p, 'plateStack')).toBe(1);
+    expect(tileAt(p, 5, 0)?.type).toBe('plateStack');
+    expect(p.items[5]).toBeNull(); // the plate return starts empty; the three plates sit on the south counter
+    expect(countType(p, 'serve')).toBe(2);
+    expect(stovesWith(p, 'pot').length).toBe(4);
+    expect(l.unlockStars).toBe(23);
+  });
+
+  it('splits the deck in two halves joined only over the divider counter', () => {
+    const port = reachableFrom(p, 4, 5);
+    const starboard = reachableFrom(p, 11, 5);
+    for (const i of port) expect(starboard.has(i)).toBe(false);
+    expect(reachesType(p, port, 'board')).toBe(true);
+    expect(reachesType(p, starboard, 'board')).toBe(false);
+    for (const crate of p.tiles.filter((t) => t.type === 'crate')) {
+      expect(crate.x).toBe(7);
+      expect(port.has(crate.y * p.width + 6)).toBe(true);
+      expect(starboard.has(crate.y * p.width + 8)).toBe(true);
+    }
+    expect(reachesType(p, port, 'serve')).toBe(true);
+    expect(reachesType(p, starboard, 'serve')).toBe(true);
+    expect(reachesType(p, port, 'plateStack')).toBe(true);
+    expect(reachesType(p, starboard, 'plateStack')).toBe(false);
+  });
+
+  it('keeps the two cargo grates as solid holes, not fall hazards', () => {
+    for (const [x, y] of [[3, 1], [4, 1], [3, 2], [4, 2], [9, 4], [10, 4], [9, 5], [10, 5]]) {
+      expect(tileAt(p, x, y)?.type, `(${x},${y})`).toBe('void');
+    }
+    expect(countType(p, 'gap')).toBe(0);
+  });
+});
+
 describe('order tuning', () => {
   const expected: Record<string, { initial: number; intervalSec: number; max: number; timeSec: number }> = {
     'oc1-1-1': { initial: 2, intervalSec: 18, max: 4, timeSec: 60 },
@@ -654,6 +711,8 @@ describe('order tuning', () => {
     'oc1-1-4': { initial: 2, intervalSec: 20, max: 4, timeSec: 100 },
     'oc1-1-5': { initial: 2, intervalSec: 20, max: 4, timeSec: 85 },
     'oc1-1-6': { initial: 2, intervalSec: 24, max: 4, timeSec: 100 },
+    // 3-2 is the 1-3 deck again with the same soups; the catalog's estimate, untested.
+    'oc1-3-2': { initial: 2, intervalSec: 22, max: 4, timeSec: 95 },
   };
 
   for (const [id, orders] of Object.entries(expected)) {

@@ -1,0 +1,29 @@
+{
+  "id": "oc1-3-2",
+  "name": "3-2",
+  "game": "oc1",
+  "world": 3,
+  "index": 2,
+  "theme": "savoury-seas",
+  "source": "https://overcooked.fandom.com/wiki/3-2_(Overcooked!)",
+  "unlockStars": 23,
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "recipes": ["onion_soup", "tomato_soup", "mushroom_soup"],
+  "orders": { "initial": 2, "intervalSec": 22, "max": 4, "timeSec": 95 },
+  "stars": { "1": [30, 60, 100], "2": [50, 100, 160] },
+  "plates": { "mode": "stack", "count": 3 },
+  "grid": [
+    "#EV#####XV####",
+    "S..  ..M....S.",
+    "X..  ..O....S.",
+    "S.####.T......",
+    ".......#.  ...",
+    ".......#.  ...",
+    ".......#......",
+    "pppB#B##......",
+    ".......#......"
+  ],
+  "spawns": [{ "x": 4, "y": 5 }, { "x": 11, "y": 5 }],
+  "stations": [{ "x": 5, "y": 0, "type": "plateStack" }]
+}

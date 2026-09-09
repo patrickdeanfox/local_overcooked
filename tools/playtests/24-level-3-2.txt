@@ -1,0 +1,53 @@
+# -- 3-2, the split deck: the level lists after world 1, is locked at 23 stars, opens under free
+#    play, builds with two serving hatches and a plate stack that starts empty, and the port chef
+#    can hand an onion over the divider to the starboard chef ------------------------------------
+#
+# Title rows, in cursor order: seven levels (3-2 is index 6), Players, Difficulty, Chefs, Settings,
+# Controllers. Free play is switched on through the stored settings before the title loads.
+eval localStorage.setItem('local-overcooked.settings.v1', JSON.stringify({ version: 1, players: 2, preset: 'normal', seedMode: 'fixed', fixedSeed: 3, freePlay: true }))
+eval location.reload()
+wait 1500
+until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
+wait 600
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval JSON.stringify(['levels', __ui.levels().map((l) => [l.name, l.locked, l.needs])])
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+eval JSON.stringify(['cursor on', __ui.index(), 'status', __ui.status()])
+tap Enter
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.level.id === 'oc1-3-2'
+wait 800
+eval JSON.stringify(['level', __oc.level.id, 'serve tiles', __oc.sim.getState().tiles.filter((t) => t.type === 'serve').map((t) => [t.x, t.y]), 'plate stack', __oc.sim.getState().tiles.filter((t) => t.type === 'plateStack').map((t) => [t.x, t.y]), 'stack item', __oc.sim.itemAt(5, 0), 'plates', __oc.sim.getState().tileItems.filter((i) => i && i.kind === 'plate').length, 'void', __oc.sim.getState().tiles.filter((t) => t.type === 'void').length])
+shot 24-00-deck.png
+
+# -- Hand-off over the divider: the port chef puts an onion on (7,4), the starboard chef takes it --
+eval ((a, b) => (a.x = 6.5, a.y = 4.5, a.facing = 'right', a.holding = { kind: 'ingredient', id: 9001, type: 'onion', chopped: true, chopProgress: 1 }, b.x = 8.5, b.y = 4.5, b.facing = 'left', 'placed'))(__oc.sim.getState().chefs[0], __oc.sim.getState().chefs[1])
+wait 100
+tap Space
+wait 200
+eval JSON.stringify(['on the divider', __oc.sim.itemAt(7, 4), 'port hands', __oc.sim.getState().chefs[0].holding])
+tap Enter
+wait 200
+eval JSON.stringify(['starboard hands', __oc.sim.getState().chefs[1].holding, 'divider', __oc.sim.itemAt(7, 4)])
+shot 24-01-handoff.png
+
+# -- A serve on the starboard hatch brings a clean plate back to the port stack ----------------------
+eval ((b) => (b.x = 9.5, b.y = 1.5, b.facing = 'up', b.holding = { kind: 'plate', id: 9500, count: 1, dish: { type: 'soup', ingredients: ['onion', 'onion', 'onion'] } }, 'plated'))(__oc.sim.getState().chefs[1])
+wait 100
+tap Enter
+wait 300
+eval JSON.stringify(['served', __oc.sim.getState().servedCount, 'score', __oc.sim.getState().score, 'pending returns', __oc.sim.getState().pendingPlateReturns.length])
+until 10000 __oc.sim.itemAt(5, 0) !== null
+eval JSON.stringify(['plate back on the stack', __oc.sim.itemAt(5, 0)])
+shot 24-02-plate-returned.png
+errors
