@@ -1,16 +1,16 @@
 // ─── Settings scene ─────────────────────────────────────────────────────────
-// The settings page: seed, free play, the assists and the audio switches, one row each with
-// a line of explanation under the list. Opened from the title's Settings row; Esc, B or Back
-// return. Every edit saves at once. Players, difficulty and the chefs stay on the title and
-// the Chefs page, where they change most often.
+// The settings page: seed, free play, the assists, the door to the Custom difficulty page and
+// the audio switches, one row each with a line of explanation under the list. Opened from the
+// title's Settings row; Esc, B or Back return. Every edit saves at once. Players, difficulty
+// and the chefs stay on the title and the Chefs page, where they change most often.
 import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH, MAX_PLAYERS, SCENE } from '../../config';
 import { createInputManager } from '../../input';
 import type { InputManager } from '../../input/types';
 import { getAudioBus, installAudioGestureResume, installMuteToggle } from '../audioBus';
 import {
-  ASSIST_IDS, ASSIST_NAMES, cycleSeedMode, dailySeed, loadSettings, saveSettings, SEED_LIMIT,
-  type AssistId, type Settings,
+  ASSIST_IDS, ASSIST_NAMES, CUSTOM_PRESET, customSummary, cycleSeedMode, dailySeed, loadSettings, saveSettings,
+  SEED_LIMIT, type AssistId, type Settings,
 } from '../settings';
 import { MenuList, type MenuItemSpec } from '../ui/MenuList';
 import { KeyboardNav, MenuInput, mergeNav } from '../ui/menuInput';
@@ -34,9 +34,9 @@ const HEADING = 'SETTINGS';
 const HINT = 'up / down choose · left / right change · Esc or B back · M mutes everything';
 const ASSIST_NOTE = 'A run with any assist on is not saved and earns no stars';
 
-type RowId = 'seedMode' | 'seedValue' | 'freePlay' | AssistId | 'music' | 'sfx' | 'back';
+type RowId = 'seedMode' | 'seedValue' | 'freePlay' | AssistId | 'customDifficulty' | 'music' | 'sfx' | 'back';
 /** The rows, top to bottom. */
-const ROWS: readonly RowId[] = ['seedMode', 'seedValue', 'freePlay', ...ASSIST_IDS, 'music', 'sfx', 'back'];
+const ROWS: readonly RowId[] = ['seedMode', 'seedValue', 'freePlay', ...ASSIST_IDS, 'customDifficulty', 'music', 'sfx', 'back'];
 
 const DESCRIPTIONS: Readonly<Record<RowId, string>> = Object.freeze({
   seedMode: 'Random deals new tickets every run, daily gives everyone the same run today, fixed replays a number',
@@ -45,6 +45,7 @@ const DESCRIPTIONS: Readonly<Record<RowId, string>> = Object.freeze({
   instantCooking: `Pots and pans are ready the moment they start cooking. ${ASSIST_NOTE}`,
   ordersNeverExpire: `Tickets keep their full timer, no expiry, no fail penalty. ${ASSIST_NOTE}`,
   noBurning: `Cooked food never burns, so stoves never catch fire. ${ASSIST_NOTE}`,
+  customDifficulty: 'Set every timer and ticket number yourself; played when the difficulty is Custom',
   music: 'The background loop. Sound effects keep playing',
   sfx: 'Kitchen and menu sounds. The music keeps playing',
   back: '',
@@ -149,6 +150,12 @@ export class SettingsScene extends Phaser.Scene {
             getAudioBus().setSfxEnabled(this.settings.audio.sfx);
           },
         );
+      case 'customDifficulty':
+        return {
+          label: () => `Custom difficulty: ${customSummary(this.settings.custom)}`
+            + `${this.settings.preset === CUSTOM_PRESET ? ' · in use' : ''}`,
+          onSelect: () => this.openCustomDifficulty(),
+        };
       case 'back':
         return { label: () => 'Back', onSelect: () => this.back() };
       default:
@@ -226,6 +233,11 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   // ─── Leaving ──────────────────────────────────────────────────────────────
+  private openCustomDifficulty(): void {
+    this.ready = false;
+    this.scene.start(SCENE.CUSTOM_DIFFICULTY);
+  }
+
   private back(): void {
     getAudioBus().play('uiBack');
     this.ready = false;

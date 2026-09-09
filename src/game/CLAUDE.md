@@ -7,14 +7,14 @@ Owner: the presentation agent. Files: `src/game/**` except `scenes/ControllerSce
 ## Files
 Top level
 - `types.ts` — scene payloads `GameSceneData` and `ResultsSceneData`.
-- `settings.ts` — presets, assists, seed modes, audio switches, chef picks; `loadSettings` / `saveSettings` with an injectable storage. Pure, no Phaser.
+- `settings.ts` — presets, the custom difficulty numbers (`CUSTOM_FIELDS`, `stepCustom`, `customModifiers`), assists, seed modes, audio switches, chef picks; `loadSettings` / `saveSettings` with an injectable storage. Pure, no Phaser.
 - `progress.ts` — best score, stars and plays per level, stars kept per preset; `recordRun`, `isUnlocked`, `unlockingStars`. Pure.
 - `storage.ts` — guarded `localStorage` and value coercion; a private window, a full quota or a hand-edited value must never take the game down.
 - `audioBus.ts` — the one `AudioBus` for the whole page, mute persistence, gesture resume, the M key.
 - `levelHotReload.ts` — the only browser module allowed to import `src/levels`; `currentLevels()`, `defaultLevelId()`, `onLevelsHotReload()`.
 - `playnotes.ts` — F8 reporter: overlay, screenshot with the 3D canvas composited in, context provider, `POST /api/playnotes`, offline queue.
 
-`scenes/` — `BootScene` (textures, then all models, then Title), `TitleScene` (level list plus players, difficulty, Chefs, Settings, Controllers rows), `SettingsScene`, `ChefsScene` (live 3D preview on the shared stage), `GameScene` (the loop), `ResultsScene` (the only writer of progress).
+`scenes/` — `BootScene` (textures, then all models, then Title), `TitleScene` (level list plus players, difficulty, Chefs, Settings, Controllers rows), `SettingsScene`, `CustomDifficultyScene` (one row per sim number; the preview line under the list is computed by a throwaway `Sim` on the first level, so it cannot disagree with the game), `ChefsScene` (live 3D preview on the shared stage), `GameScene` (the loop), `ResultsScene` (the only writer of progress).
 
 `ui/` — `theme.ts`, `Hud.ts` (order cards, score, timer, prep hint), `MenuList.ts`, `LevelList.ts`, `menuInput.ts` (`MenuInput` from `PlayerInput`, `KeyboardNav` from raw keys, merged into rising edges), `PauseMenu.ts` (an overlay, not a scene: the sim simply stops stepping), `DebugOverlay.ts` (F3 or backtick).
 
@@ -39,7 +39,7 @@ Poll input once → if the F8 form is open, render the current state and return 
 - Low-fx mode (half pixel ratio, no shadows) switches on under `navigator.webdriver` or a HeadlessChrome user agent so the playtest harness keeps its frame budget.
 
 ## Persistence
-`local-overcooked.settings.v1` (players, preset, seed mode and number, free play, assists, audio, chefs; a version mismatch resets to defaults) and `local-overcooked.progress.v1` (per level: best score, stars, plays, stars by preset; unlocks count Normal and harder only). Mute is a separate raw `'1'`/`'0'` key. Progress is written in exactly one place, `ResultsScene`, before its menu is built and never for an assisted run. Both load functions take an injectable storage; the tests rely on it.
+`local-overcooked.settings.v1` (players, preset, custom difficulty numbers, seed mode and number, free play, assists, audio, chefs; a version mismatch resets to defaults) and `local-overcooked.progress.v1` (per level: best score, stars, plays, stars by preset; unlocks count Normal and harder only). Mute is a separate raw `'1'`/`'0'` key. Progress is written in exactly one place, `ResultsScene`, before its menu is built and never for an assisted run. Both load functions take an injectable storage; the tests rely on it.
 
 ## How to add
 - **A scene**: `scenes/X.ts` extending `Phaser.Scene` with the standard skeleton (`createInputManager`, `MenuInput` plus `KeyboardNav`, `installAudioGestureResume` and `installMuteToggle` pushed into `disposers`, `events.once(SHUTDOWN, cleanup)`, a `ready` flag cleared before every `scene.start`); a `SCENE` key in `src/config.ts` and the class in `src/main.ts` (integrator); a payload in `types.ts`; a row that opens it.
@@ -47,10 +47,11 @@ Poll input once → if the F8 form is open, render the current state and return 
 - **A model on a tile or item**: the role belongs to `src/art/models.json`; here add the `buildStation` case (plus `GROUND_TEXTURE`, `SOLID_FOR_WALL`) in `three/tiles.ts`, or the `INGREDIENT_ROLE` / `BURGER_LAYER_ROLE` entry or a `buildItemView` branch in `three/items.ts`, and make `itemSignature` change whenever the look changes.
 - **A theme**: a `THEMES` entry; report its height in `themeSceneHeight` if it adds tall scenery. Roadmap item 6 moves themes to data.
 - **An effect**: sound is `sfxForEvent` (audio arm); a HUD flourish is `Hud.handleEvents`; a 3D effect is a `drawX` in `KitchenRenderer` derived from state plus a spawner on `FxPool` with a `TEX` sprite.
-- **A settings row**: `RowId`, the `ROWS` order and `DESCRIPTIONS` in `SettingsScene.ts`, a case in `item(id)`, every mutation through `applySettings()`; a persisted field also needs `Settings`, `DEFAULT_SETTINGS`, coercion in `loadSettings` and `settingsSummary`.
+- **A settings row**: `RowId`, the `ROWS` order and `DESCRIPTIONS` in `SettingsScene.ts`, a case in `item(id)`, every mutation through `applySettings()`; a persisted field also needs `Settings`, `DEFAULT_SETTINGS`, coercion in `loadSettings` and `settingsSummary`. The playtest scripts reach Settings rows by cursor count, so add rows after the assists, not before.
+- **A custom difficulty number**: a `Modifiers` field (sim arm) first; then a `CustomDifficulty` key, a `CUSTOM_FIELDS` row with its range and step, a `DEFAULT_CUSTOM` entry, a `describeModifiers` line, and a `preview` case in `CustomDifficultyScene.ts`.
 
 ## Tests and checks
-`tests/game.settings.test.ts`, `tests/game.progress.test.ts` (fake and throwing storages), `tests/playnotes.test.ts` (`buildNote`, queue helpers: keep them importable in Node), `tests/art.test.ts` for the `TEX` contract. There are no unit tests for scenes, the renderer or the HUD: `npm run typecheck` plus the headless harness are the checks. Every feature has a script in `tools/playtests/` (`07` covers the scene flow, `15` to `19` cover menus, settings, assists and chefs); add one for anything new and read the screenshots.
+`tests/game.settings.test.ts`, `tests/game.progress.test.ts` (fake and throwing storages), `tests/playnotes.test.ts` (`buildNote`, queue helpers: keep them importable in Node), `tests/art.test.ts` for the `TEX` contract. There are no unit tests for scenes, the renderer or the HUD: `npm run typecheck` plus the headless harness are the checks. Every feature has a script in `tools/playtests/` (`07` covers the scene flow, `15` to `19` cover menus, settings, assists and chefs, `20` the custom difficulty page); add one for anything new and read the screenshots.
 
 ## Gotchas
 - A menu choice can start another scene mid-update; check `ready` after every handler.
@@ -61,4 +62,4 @@ Poll input once → if the F8 form is open, render the current state and return 
 - Dead surface (no `noUnusedLocals`): `TILE` import in `DebugOverlay`, `CHEF_COLORS` in `ui/theme.ts`, `Stage.dispose`, `loader.modelsReady`, `loader.modelScaleFactor`, `KitchenRenderer.scaleValue`.
 
 ## Roadmap work that lands here
-Custom difficulty rows (`docs/ROADMAP.md` item 2), glyph labels in every hint (item 3), flying items and the dash pose (item 4), theme dressing as data (item 6), the character maker and custom skins (item 7), the Random kitchen row (item 8), best times and leaderboards (item 9).
+Glyph labels in every hint (`docs/ROADMAP.md` item 3), flying items and the dash pose (item 4), theme dressing as data (item 6), the character maker and custom skins (item 7), the Random kitchen row (item 8), best times and leaderboards (item 9).

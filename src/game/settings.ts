@@ -1,19 +1,21 @@
 // ─── Game settings ──────────────────────────────────────────────────────────
-// Player count, difficulty preset, seed mode, free play, assists, audio switches and the
-// chefs' aprons, saved under STORAGE_KEYS.SETTINGS. Pure module: no Phaser, no scene state.
-// The title, the Settings page and the Chefs page edit it; GameScene reads it to build the
-// Sim and the kitchen.
+// Player count, difficulty preset, the custom difficulty numbers, seed mode, free play,
+// assists, audio switches and the chefs' aprons, saved under STORAGE_KEYS.SETTINGS. Pure
+// module: no Phaser, no scene state. The title, the Settings, Custom difficulty and Chefs
+// pages edit it; GameScene reads it to build the Sim and the kitchen.
 import { CHEF_SKINS, DEFAULT_CHEF_SKINS } from '../art/models';
 import { MAX_PLAYERS, STORAGE_KEYS } from '../config';
 import type { Modifiers } from '../sim/types';
-import { asBoolean, asCount, asRecord, browserStorage, readStored, writeStored, type StorageLike } from './storage';
+import { asBoolean, asCount, asNumber, asRecord, browserStorage, readStored, writeStored, type StorageLike } from './storage';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 export const SETTINGS_VERSION = 1;
 
-export type PresetId = 'relaxed' | 'normal' | 'hard' | 'chaos';
-/** Easiest first. The order is the unlock ranking as well as the cycle order. */
-export const PRESET_IDS: readonly PresetId[] = ['relaxed', 'normal', 'hard', 'chaos'];
+export type PresetId = 'relaxed' | 'normal' | 'hard' | 'chaos' | 'custom';
+/** Easiest first, then custom. The order is the unlock ranking as well as the cycle order. */
+export const PRESET_IDS: readonly PresetId[] = ['relaxed', 'normal', 'hard', 'chaos', 'custom'];
+/** The preset whose modifiers come from Settings.custom instead of PRESETS. */
+export const CUSTOM_PRESET: PresetId = 'custom';
 /** The preset a level's star thresholds were tuned for. */
 export const DEFAULT_PRESET: PresetId = 'normal';
 
@@ -34,7 +36,53 @@ export const PRESETS: Readonly<Record<PresetId, Preset>> = Object.freeze({
   normal: { id: 'normal', name: 'Normal', modifiers: {} },
   hard: { id: 'hard', name: 'Hard', modifiers: { orderIntervalScale: 0.8, orderTimeScale: 0.85, maxOrdersDelta: 1 } },
   chaos: { id: 'chaos', name: 'Chaos', modifiers: { orderIntervalScale: 0.65, orderTimeScale: 0.75, maxOrdersDelta: 2, chefSpeedScale: 1.1 } },
+  custom: { id: 'custom', name: 'Custom', modifiers: {} }, // placeholder: customModifiers() supplies the real ones
 });
+
+// ─── Custom difficulty ──────────────────────────────────────────────────────
+// Every number the sim scales, editable one by one on the Custom difficulty page. Scales
+// multiply the level's or the sim's number (1 = unchanged); deltas add tickets (0 = unchanged).
+// A custom run is saved like any other but never counts toward unlocks.
+export interface CustomDifficulty {
+  timeLimitScale: number;
+  initialOrdersDelta: number;
+  maxOrdersDelta: number;
+  orderIntervalScale: number;
+  orderTimeScale: number;
+  cookTimeScale: number;
+  burnTimeScale: number;
+  chopTimeScale: number;
+  washTimeScale: number;
+  chefSpeedScale: number;
+}
+export type CustomFieldId = keyof CustomDifficulty;
+
+export interface CustomFieldSpec {
+  id: CustomFieldId;
+  name: string;          // row label
+  kind: 'scale' | 'delta';
+  min: number;
+  max: number;
+  step: number;          // one left / right press
+}
+/** The rows of the Custom difficulty page, top to bottom. */
+export const CUSTOM_FIELDS: readonly CustomFieldSpec[] = Object.freeze([
+  { id: 'timeLimitScale', name: 'Level time', kind: 'scale', min: 0.3, max: 3, step: 0.1 },
+  { id: 'initialOrdersDelta', name: 'Tickets at start', kind: 'delta', min: -3, max: 4, step: 1 },
+  { id: 'maxOrdersDelta', name: 'Extra tickets on screen', kind: 'delta', min: -3, max: 5, step: 1 },
+  { id: 'orderIntervalScale', name: 'Seconds between tickets', kind: 'scale', min: 0.3, max: 3, step: 0.1 },
+  { id: 'orderTimeScale', name: 'Ticket patience', kind: 'scale', min: 0.3, max: 3, step: 0.1 },
+  { id: 'cookTimeScale', name: 'Cook time', kind: 'scale', min: 0.3, max: 3, step: 0.1 },
+  { id: 'burnTimeScale', name: 'Burn time', kind: 'scale', min: 0.3, max: 3, step: 0.1 },
+  { id: 'chopTimeScale', name: 'Chop time', kind: 'scale', min: 0.3, max: 3, step: 0.1 },
+  { id: 'washTimeScale', name: 'Wash time', kind: 'scale', min: 0.3, max: 3, step: 0.1 },
+  { id: 'chefSpeedScale', name: 'Chef speed', kind: 'scale', min: 0.5, max: 2, step: 0.1 },
+]);
+export const DEFAULT_CUSTOM: Readonly<CustomDifficulty> = Object.freeze({
+  timeLimitScale: 1, initialOrdersDelta: 0, maxOrdersDelta: 0, orderIntervalScale: 1, orderTimeScale: 1,
+  cookTimeScale: 1, burnTimeScale: 1, chopTimeScale: 1, washTimeScale: 1, chefSpeedScale: 1,
+});
+const CUSTOM_DECIMALS = 100; // values are kept to two decimals so stepping never drifts
 
 // ─── Assists ────────────────────────────────────────────────────────────────
 // Toggles that make a kitchen forgiving. Any assist on means the run is not saved and
@@ -65,6 +113,7 @@ export const DEFAULT_AUDIO: Readonly<AudioSettings> = Object.freeze({ music: tru
 export interface Settings {
   players: number;      // 1..MAX_PLAYERS
   preset: PresetId;
+  custom: CustomDifficulty; // the numbers behind the 'custom' preset
   seedMode: SeedMode;
   fixedSeed: number;    // used when seedMode is 'fixed'
   freePlay: boolean;    // ignores unlock thresholds
@@ -76,6 +125,7 @@ export interface Settings {
 export const DEFAULT_SETTINGS: Readonly<Settings> = Object.freeze({
   players: MAX_PLAYERS,
   preset: DEFAULT_PRESET,
+  custom: DEFAULT_CUSTOM,
   seedMode: 'random' as SeedMode,
   fixedSeed: 1,
   freePlay: false,
@@ -86,11 +136,27 @@ export const DEFAULT_SETTINGS: Readonly<Settings> = Object.freeze({
 
 // ─── Pure helpers ───────────────────────────────────────────────────────────
 export function defaultSettings(): Settings {
-  return { ...DEFAULT_SETTINGS, assists: { ...NO_ASSISTS }, audio: { ...DEFAULT_AUDIO }, chefs: [...DEFAULT_CHEF_SKINS] };
+  return {
+    ...DEFAULT_SETTINGS,
+    custom: { ...DEFAULT_CUSTOM },
+    assists: { ...NO_ASSISTS },
+    audio: { ...DEFAULT_AUDIO },
+    chefs: [...DEFAULT_CHEF_SKINS],
+  };
 }
 
 function asPreset(value: unknown): PresetId {
   return PRESET_IDS.includes(value as PresetId) ? (value as PresetId) : DEFAULT_SETTINGS.preset;
+}
+
+/** Each number clamped to its row's range; anything else is that row's default. */
+function asCustom(value: unknown): CustomDifficulty {
+  const stored = asRecord(value);
+  const out: CustomDifficulty = { ...DEFAULT_CUSTOM };
+  for (const field of CUSTOM_FIELDS) {
+    out[field.id] = clampCustom(field, asNumber(stored?.[field.id], DEFAULT_CUSTOM[field.id]));
+  }
+  return out;
 }
 
 function asSeedMode(value: unknown): SeedMode {
@@ -139,7 +205,48 @@ export function presetName(preset: PresetId): string {
 
 /** The Sim modifiers for the chosen preset, plus whichever assists are switched on. */
 export function presetModifiers(settings: Readonly<Settings>): Modifiers {
-  return { ...presetOf(settings).modifiers, ...assistModifiers(settings.assists) };
+  const base = settings.preset === CUSTOM_PRESET ? customModifiers(settings.custom) : presetOf(settings).modifiers;
+  return { ...base, ...assistModifiers(settings.assists) };
+}
+
+// ─── Custom difficulty helpers ──────────────────────────────────────────────
+function clampCustom(field: CustomFieldSpec, value: number): number {
+  const clamped = Math.min(field.max, Math.max(field.min, value));
+  return Math.round(clamped * CUSTOM_DECIMALS) / CUSTOM_DECIMALS;
+}
+
+/** One left / right press on a row: the value moves by the row's step and stays in range. */
+export function stepCustom(custom: Readonly<CustomDifficulty>, id: CustomFieldId, delta: number): CustomDifficulty {
+  const field = CUSTOM_FIELDS.find((f) => f.id === id);
+  if (!field) return { ...custom };
+  return { ...custom, [id]: clampCustom(field, custom[id] + delta * field.step) };
+}
+
+/** Only the numbers that differ from the level defaults, so an untouched row adds nothing. */
+export function customModifiers(custom: Readonly<CustomDifficulty>): Modifiers {
+  const mods: Modifiers = {};
+  for (const field of CUSTOM_FIELDS) {
+    if (custom[field.id] !== DEFAULT_CUSTOM[field.id]) mods[field.id] = custom[field.id];
+  }
+  return mods;
+}
+
+/** How a row shows its value: 'x1.5' for a scale, '+1' for a delta. */
+export function formatCustomValue(field: CustomFieldSpec, value: number): string {
+  if (field.kind === 'delta') return value > 0 ? `+${value}` : `${value}`;
+  return `x${value}`;
+}
+
+/** 'level defaults', or how many rows were changed. */
+export function customSummary(custom: Readonly<CustomDifficulty>): string {
+  const changed = CUSTOM_FIELDS.filter((field) => custom[field.id] !== DEFAULT_CUSTOM[field.id]).length;
+  if (changed === 0) return 'level defaults';
+  return `${changed} number${changed === 1 ? '' : 's'} changed`;
+}
+
+/** The title's difficulty row: what the chosen preset changes, or the custom summary. */
+export function difficultySummary(settings: Readonly<Settings>): string {
+  return settings.preset === CUSTOM_PRESET ? customSummary(settings.custom) : presetSummary(settings.preset);
 }
 
 /** Only the assists that are on, so untouched settings add nothing to a preset. */
@@ -193,8 +300,10 @@ export function cycleChef(chefs: readonly number[], player: number, delta: numbe
   return out;
 }
 
-/** Stars earned on this preset count toward unlocks: 'normal' and anything harder. */
+/** Stars earned on this preset count toward unlocks: 'normal' and anything harder. A custom
+ *  run never counts, whatever its numbers, which keeps the star ladder honest. */
 export function countsTowardUnlock(preset: PresetId): boolean {
+  if (preset === CUSTOM_PRESET) return false;
   const rank = PRESET_IDS.indexOf(preset);
   return rank >= PRESET_IDS.indexOf(DEFAULT_PRESET);
 }
@@ -207,6 +316,11 @@ export function describeModifiers(modifiers: Readonly<Modifiers>): string {
   if (modifiers.orderTimeScale !== undefined) parts.push(`patience x${modifiers.orderTimeScale}`);
   if (modifiers.maxOrdersDelta !== undefined) parts.push(`tickets ${modifiers.maxOrdersDelta >= 0 ? '+' : ''}${modifiers.maxOrdersDelta}`);
   if (modifiers.chefSpeedScale !== undefined) parts.push(`chefs x${modifiers.chefSpeedScale}`);
+  if (modifiers.initialOrdersDelta !== undefined) parts.push(`start tickets ${modifiers.initialOrdersDelta >= 0 ? '+' : ''}${modifiers.initialOrdersDelta}`);
+  if (modifiers.cookTimeScale !== undefined) parts.push(`cook x${modifiers.cookTimeScale}`);
+  if (modifiers.burnTimeScale !== undefined) parts.push(`burn x${modifiers.burnTimeScale}`);
+  if (modifiers.chopTimeScale !== undefined) parts.push(`chop x${modifiers.chopTimeScale}`);
+  if (modifiers.washTimeScale !== undefined) parts.push(`wash x${modifiers.washTimeScale}`);
   if (modifiers.instantCooking) parts.push('instant cooking');
   if (modifiers.ordersNeverExpire) parts.push('orders never expire');
   if (modifiers.noBurning) parts.push('no burning');
@@ -253,6 +367,7 @@ export function loadSettings(storage: StorageLike | null = browserStorage()): Se
   return {
     players: Math.min(Math.max(players, 1), MAX_PLAYERS),
     preset: asPreset(stored.preset),
+    custom: asCustom(stored.custom),
     seedMode: asSeedMode(stored.seedMode),
     fixedSeed: normaliseSeed(asCount(stored.fixedSeed, DEFAULT_SETTINGS.fixedSeed)),
     freePlay: asBoolean(stored.freePlay, DEFAULT_SETTINGS.freePlay),

@@ -13,7 +13,7 @@ import { getAudioBus, installAudioGestureResume, installMuteToggle } from '../au
 import { currentLevels, onLevelsHotReload } from '../levelHotReload';
 import { isUnlocked, levelProgress, loadProgress, totalStars, unlockingStars, type Progress } from '../progress';
 import {
-  chefSummary, cyclePlayers, cyclePreset, DEFAULT_PRESET, loadSettings, presetName, presetSummary,
+  chefSummary, cyclePlayers, cyclePreset, DEFAULT_PRESET, difficultySummary, loadSettings, presetName,
   saveSettings, settingsSummary, type Settings,
 } from '../settings';
 import { LevelList, type LevelEntry } from '../ui/LevelList';
@@ -217,7 +217,7 @@ export class TitleScene extends Phaser.Scene {
       onRight: () => this.changePlayers(1),
     };
     items[OPTION.difficulty] = {
-      label: () => `Difficulty: ${presetName(this.settings.preset)} · ${presetSummary(this.settings.preset)}`,
+      label: () => `Difficulty: ${presetName(this.settings.preset)} · ${difficultySummary(this.settings)}`,
       onSelect: () => this.changePreset(1),
       onLeft: () => this.changePreset(-1),
       onRight: () => this.changePreset(1),
