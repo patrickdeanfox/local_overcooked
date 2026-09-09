@@ -20,7 +20,7 @@ Owner: the simulation agent. Files: `src/sim/**` and `tests/sim*.test.ts`. Branc
 - `new Sim(level, { players, seed, modifiers? })`. Players are clamped to `1..level.spawns.length`. The constructor already draws from the RNG (initial orders) and renumbers every item parsed from the grid from 1, because `parseGrid` uses a module-global id counter.
 - `step(inputs, dt = SIM_DT): SimEvent[]` — fresh event array each call; returns `[]` once `phase === 'ended'`. A missing input falls back to `NO_INPUT`.
 - `getState(): Readonly<SimState>` — **the live object, not a copy.** Presentation reads it every frame and never mutates it. Tests take determinism snapshots with `JSON.stringify(sim.getState())`, which is why `SimState` holds no Map, Set, NaN, class instance or function.
-- `getEffectiveSettings()`, `getTargetTile(chef)`, `tileAt`, `itemAt`, `fireAt`, `gateOpen(group)`, `sliderOffset(group)`.
+- `getEffectiveSettings()` (the level's numbers after `Modifiers`: time limit, orders, chef speed, cook, pan, burn, chop and wash times, the assists), `getTargetTile(chef)`, `tileAt`, `itemAt`, `fireAt`, `gateOpen(group)`, `sliderOffset(group)`.
 
 ## Fixed-step contract
 `SIM_DT = 1/60`. The caller (`GameScene.runSim`) runs an accumulator loop capped at 30 steps per frame and 0.25 s per frame, and delivers `pickupPressed` / `interactPressed` rising edges on the first sub-step only; edges from frames too short to run a step are latched by the input arm, never dropped. Budget asserted by test: under 0.2 ms per step averaged over 5000 steps.
@@ -35,7 +35,7 @@ Rules the tests pin down: a stove on fire stops cooking and its burn clock; fire
 - **An item kind**: interface plus `Item` union member; a `case` in the `handlePickup` switch on `held.kind` and in the bare-hands branch; a factory next to `newIngredient` so ids come from `nextItemId`. Outside: `makeItem` in the schema, `src/game/render/three/items.ts`, `DebugOverlay`, the stack badge in `KitchenRenderer`.
 - **A recipe**: `RECIPES` entry with ingredients sorted, a `score`, `dish: 'burger'` for anything not a soup. A new ingredient also joins `IngredientType`, `INGREDIENT_TYPES` and the right prep list (`SOUP_`, `CHOPPED_`, `FRIED_INGREDIENTS`), which drive `wareAccepts` and `readyForPlate`. `validateLevel` rejects a level whose recipes lack a crate, board, pot or pan.
 - **A dynamic**: schema union member and validation first (`src/levels/schema.ts`); then a private spec type, a branch in `indexLevel`, an `updateX` called from `step`, a `SimState` field if presentation must see it, and collision handling mirrored on `pushChefsFromSliders` / `escapeBox` if it is solid.
-- **A modifier**: optional field on `Modifiers`, a line in `effectiveSettings()`, one read site. The presets and assists that set it live in `src/game/settings.ts` (presentation arm) — coordinate in the PR.
+- **A modifier**: optional field on `Modifiers`, a line in `effectiveSettings()`, one read site through `this.settings` (never the bare constant: `CHOP_TIME`, `WASH_TIME`, `COOK_TIME`, `PAN_COOK_TIME` and `BURN_TIME` are read only inside `effectiveSettings()`). The presets and assists that set it live in `src/game/settings.ts` (presentation arm) — coordinate in the PR.
 - **A sim event**: `SimEventType` member, push it with `{ type, chef, x, y, value }`; continuous events go through the `TICK_EVENT_HZ` limiter. The audio arm maps every event type in `sfxForEvent`, so tell them.
 
 ## Tests (`tests/sim*.test.ts`, `npm test`)

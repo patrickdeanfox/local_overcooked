@@ -48,6 +48,11 @@ export interface EffectiveSettings {
   timeLimitSec: number;
   orders: OrderSettings;
   chefSpeed: number;
+  cookTime: number;     // seconds for a full pot, COOK_TIME scaled
+  panCookTime: number;  // seconds for a patty, PAN_COOK_TIME scaled
+  burnTime: number;     // seconds from cooked to burnt, BURN_TIME scaled
+  chopTime: number;     // seconds per ingredient, CHOP_TIME scaled
+  washTime: number;     // seconds per plate, WASH_TIME scaled
   instantCooking: boolean;
   ordersNeverExpire: boolean;
   noBurning: boolean;
@@ -88,8 +93,8 @@ function wareCapacity(pot: PotItem): number {
   return wareOf(pot) === 'pan' ? PAN_CAPACITY : POT_CAPACITY;
 }
 
-function wareCookTime(pot: PotItem): number {
-  return wareOf(pot) === 'pan' ? PAN_COOK_TIME : COOK_TIME;
+function wareCookTime(pot: PotItem, settings: EffectiveSettings): number {
+  return wareOf(pot) === 'pan' ? settings.panCookTime : settings.cookTime;
 }
 
 /** A pot boils soup ingredients, a pan fries the chopped ones that come out cooked. Both
@@ -114,15 +119,21 @@ function readyForPlate(item: IngredientItem): boolean {
  *  never touched: the same level object drives every difficulty. */
 function effectiveSettings(level: LevelDef, mods: Modifiers | undefined): EffectiveSettings {
   const orders = level.orders;
+  const max = Math.max(1, orders.max + (mods?.maxOrdersDelta ?? 0));
   return {
     timeLimitSec: level.timeLimitSec * (mods?.timeLimitScale ?? 1),
     orders: {
-      initial: orders.initial,
+      initial: Math.min(max, Math.max(0, orders.initial + (mods?.initialOrdersDelta ?? 0))),
       intervalSec: orders.intervalSec * (mods?.orderIntervalScale ?? 1),
-      max: Math.max(1, orders.max + (mods?.maxOrdersDelta ?? 0)),
+      max,
       timeSec: orders.timeSec * (mods?.orderTimeScale ?? 1),
     },
     chefSpeed: CHEF_SPEED * (mods?.chefSpeedScale ?? 1),
+    cookTime: COOK_TIME * (mods?.cookTimeScale ?? 1),
+    panCookTime: PAN_COOK_TIME * (mods?.cookTimeScale ?? 1),
+    burnTime: BURN_TIME * (mods?.burnTimeScale ?? 1),
+    chopTime: CHOP_TIME * (mods?.chopTimeScale ?? 1),
+    washTime: WASH_TIME * (mods?.washTimeScale ?? 1),
     instantCooking: mods?.instantCooking === true,
     ordersNeverExpire: mods?.ordersNeverExpire === true,
     noBurning: mods?.noBurning === true,
@@ -727,12 +738,13 @@ export class Sim {
     // one just holds it.
     if (tile.type === 'board' && item && item.kind === 'ingredient' && !item.chopped
         && CHOPPED_INGREDIENTS.includes(item.type)) {
+      const chopTime = this.settings.chopTime;
       const before = item.chopProgress;
-      const after = Math.min(1, before + dt / CHOP_TIME);
+      const after = Math.min(1, before + dt / chopTime);
       item.chopProgress = after; // progress lives on the item, so it survives letting go
       chef.action = 'chopping';
       chef.actionProgress = after;
-      if (Math.floor(after * CHOP_TIME * TICK_EVENT_HZ) > Math.floor(before * CHOP_TIME * TICK_EVENT_HZ)) {
+      if (Math.floor(after * chopTime * TICK_EVENT_HZ) > Math.floor(before * chopTime * TICK_EVENT_HZ)) {
         events.push({ type: 'chopTick', chef: idx, x: tx, y: ty });
       }
       if (after >= 1) {
@@ -745,11 +757,12 @@ export class Sim {
     }
 
     if (tile.type === 'sink' && item && item.kind === 'dirtyPlate' && item.count > 0) {
+      const washTime = this.settings.washTime;
       const before = this.prevActions[idx] === 'washing' ? this.prevProgress[idx] : 0;
-      const after = before + dt / WASH_TIME;
+      const after = before + dt / washTime;
       chef.action = 'washing';
       chef.actionProgress = Math.min(after, 1);
-      if (Math.floor(Math.min(after, 1) * WASH_TIME * TICK_EVENT_HZ) > Math.floor(before * WASH_TIME * TICK_EVENT_HZ)) {
+      if (Math.floor(Math.min(after, 1) * washTime * TICK_EVENT_HZ) > Math.floor(before * washTime * TICK_EVENT_HZ)) {
         events.push({ type: 'washTick', chef: idx, x: tx, y: ty });
       }
       if (after >= 1) {
@@ -1063,7 +1076,7 @@ export class Sim {
           item.state = 'cooking';
           events.push({ type: 'cookStart', x: tile.x, y: tile.y });
         }
-        item.cookProgress += this.settings.instantCooking ? 1 : dt / wareCookTime(item);
+        item.cookProgress += this.settings.instantCooking ? 1 : dt / wareCookTime(item, this.settings);
         if (item.cookProgress >= 1) {
           item.cookProgress = 1;
           item.state = 'cooked';
@@ -1073,7 +1086,7 @@ export class Sim {
       }
 
       if (this.settings.noBurning) continue; // assist: cooked food waits on the stove for good
-      item.burnProgress += dt / BURN_TIME;
+      item.burnProgress += dt / this.settings.burnTime;
       if (item.burnProgress >= 1) {
         item.burnProgress = 1;
         item.state = 'burnt';
