@@ -21,6 +21,7 @@ export const COLOR = {
 /** CSS colours, for Text styles. */
 export const TEXT_COLOR = {
   bright: '#f6ead8',
+  dark: '#3a2a1c',   // on light surfaces such as the cream order card
   dim: '#b6a48c',
   accent: '#ffcc4d',
   danger: '#ff6a5a',

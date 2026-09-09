@@ -243,7 +243,7 @@ export class Hud {
       );
     }
     const name = scene.add
-      .text(CARD.width / 2, CARD.nameY, recipeName(order.recipeId), textStyle(CARD.nameFontPx, TEXT_COLOR.bright, {
+      .text(CARD.width / 2, CARD.nameY, recipeName(order.recipeId), textStyle(CARD.nameFontPx, TEXT_COLOR.dark, {
         align: 'center',
         wordWrap: { width: CARD.nameWrapPx },
       }))
