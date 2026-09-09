@@ -48,8 +48,11 @@ const CRATE = { scale: 0.8, mushrooms: 3, mushroomRing: 0.17, mushroomTilt: 0.25
 const BOARD = { knifeOffset: new THREE.Vector3(0.36, 0, 0.1), knifeYaw: 0.35 } as const;
 const DRYING = { rackOffset: new THREE.Vector3(0, 0, -0.28), itemOffset: new THREE.Vector3(0, 0, 0.12) } as const;
 const CRATE_ROLE: Readonly<Record<IngredientType, ModelRole | null>> = {
-  tomato: 'crateTomatoes', onion: 'crateOnions', lettuce: 'crateLettuce', bun: 'crateBuns', meat: 'crateSteak', mushroom: null,
+  tomato: 'crateTomatoes', onion: 'crateOnions', lettuce: 'crateLettuce', bun: 'crateBuns', meat: 'crateSteak',
+  mushroom: null, fish: null, prawn: null,
 };
+/** For ingredients with no crate model: the raw item, a few of them standing in a plain crate. */
+const CRATE_FILLER: Readonly<Partial<Record<IngredientType, ModelRole>>> = { mushroom: 'mushroom', fish: 'fish', prawn: 'prawn' };
 const GROUND_TEXTURE: Readonly<Partial<Record<TileType, string>>> = {
   floor: TEX.tile('floor'), road: TEX.tile('road'), gate: TEX.tile('gate'), slider: TEX.tile('floor'),
   counter: TEX.tile('floor'), crate: TEX.tile('floor'), board: TEX.tile('floor'), stove: TEX.tile('floor'),
@@ -127,16 +130,17 @@ function crateTile(ingredient: IngredientType): { root: THREE.Group; surfaceY: n
   crate.scale.setScalar(CRATE.scale);
   place(crate, 0, counterTop, 0);
   root.add(crate);
-  if (role === null) {
-    // No mushroom crate in the kit: a plain crate with a few mushrooms standing in it.
+  const filler = role === null ? CRATE_FILLER[ingredient] : undefined;
+  if (filler !== undefined) {
+    // No crate model for this ingredient in the kit: a plain crate with a few of the raw item standing in it.
     const crateTop = counterTop + modelSize('crate').y * CRATE.scale;
     for (let i = 0; i < CRATE.mushrooms; i++) {
       const angle = (i / CRATE.mushrooms) * Math.PI * 2;
-      const mushroom = modelInstance('mushroom');
-      mushroom.scale.setScalar(CRATE.scale);
-      mushroom.rotation.set(Math.cos(angle) * CRATE.mushroomTilt, angle, Math.sin(angle) * CRATE.mushroomTilt);
-      place(mushroom, Math.cos(angle) * CRATE.mushroomRing, crateTop - 0.06, Math.sin(angle) * CRATE.mushroomRing);
-      root.add(mushroom);
+      const piece = modelInstance(filler);
+      piece.scale.setScalar(CRATE.scale);
+      piece.rotation.set(Math.cos(angle) * CRATE.mushroomTilt, angle, Math.sin(angle) * CRATE.mushroomTilt);
+      place(piece, Math.cos(angle) * CRATE.mushroomRing, crateTop - 0.06, Math.sin(angle) * CRATE.mushroomRing);
+      root.add(piece);
     }
   }
   return { root, surfaceY: topOf(root) };

@@ -14,7 +14,7 @@ import {
   SPRAY_LATERAL_TOLERANCE, SPRAY_RANGE, THROW_OWN_CATCH_DISTANCE, THROW_RANGE, THROW_SPEED, TICK_EVENT_HZ,
   TIMER_WARNING_AT, TIP_BASE, TIP_MAX, WASH_TIME,
 } from './constants';
-import { dishMatchesRecipe, isBurgerComponent, RECIPES, sortIngredients } from './recipes';
+import { dishMatchesRecipe, isBurgerComponent, isPlatedComponent, RECIPES, sortIngredients } from './recipes';
 import { mulberry32, type Rng } from './rng';
 import {
   CHOPPED_INGREDIENTS, FACING_VECTORS, FRIED_INGREDIENTS, NO_INPUT, SOUP_INGREDIENTS,
@@ -25,7 +25,7 @@ import {
 
 export * from './constants';
 export * from './types';
-export { dishMatchesRecipe, isBurgerComponent, RECIPES, recipeDishType, recipeForDish, sortIngredients } from './recipes';
+export { dishMatchesRecipe, isBurgerComponent, isPlatedComponent, RECIPES, recipeDishType, recipeForDish, sortIngredients } from './recipes';
 export { mulberry32 } from './rng';
 export type { Rng } from './rng';
 
@@ -129,9 +129,10 @@ function wareAccepts(pot: PotItem, item: IngredientItem): boolean {
   return list.includes(item.type);
 }
 
-/** True when the ingredient has had all the prep its burger part needs: buns raw, toppings
- *  chopped, meat cooked (so it can only come out of a pan). */
+/** True when the ingredient has had all the prep its plate needs: sashimi fish and prawn
+ *  chopped; burger buns raw, toppings chopped, meat cooked (so it can only come out of a pan). */
 function readyForPlate(item: IngredientItem): boolean {
+  if (isPlatedComponent(item.type)) return item.chopped;
   if (!isBurgerComponent(item.type)) return false;
   if (FRIED_INGREDIENTS.includes(item.type)) return item.cooked === true;
   if (CHOPPED_INGREDIENTS.includes(item.type)) return item.chopped;
@@ -1277,16 +1278,23 @@ export class Sim {
     events.push({ type: 'potPour', chef: idx, x: tx, y: ty });
   }
 
-  /** Adds one burger component to a plate, at most one of each. Soup plates and plate stacks
+  /** Adds one component to a plate: a burger part (at most one of each) onto an empty or burger
+   *  plate, a plated ingredient onto an empty or plated plate. Soup plates and plate stacks
    *  refuse everything. Returns false when nothing changed. */
   private addToPlate(plate: PlateItem, type: IngredientType): boolean {
-    if ((plate.count ?? 1) !== 1 || !isBurgerComponent(type)) return false;
+    if ((plate.count ?? 1) !== 1) return false;
+    const plated = isPlatedComponent(type);
+    if (!plated && !isBurgerComponent(type)) return false;
     const dish = plate.dish;
     if (!dish) {
-      plate.dish = { type: 'burger', ingredients: [type] };
+      plate.dish = { type: plated ? 'plated' : 'burger', ingredients: [type] };
       return true;
     }
-    if (dish.type !== 'burger' || dish.ingredients.includes(type)) return false;
+    if (plated) {
+      if (dish.type !== 'plated') return false;
+    } else if (dish.type !== 'burger' || dish.ingredients.includes(type)) {
+      return false;
+    }
     dish.ingredients.push(type);
     dish.ingredients.sort(); // Dish.ingredients stays alphabetical, so recipe matching is a walk
     return true;

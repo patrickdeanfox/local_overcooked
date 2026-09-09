@@ -87,13 +87,16 @@ function recipeName(recipeId: string): string {
   return RECIPES[recipeId]?.name ?? recipeId;
 }
 
-/** Soups are drawn with the icon of their first ingredient; burgers with the burger icon. */
+/** Soups are drawn with the soup icon of their first ingredient; burgers with the burger icon;
+ *  plated dishes with their first ingredient's own icon. */
 function recipeIconKey(recipeId: string): string {
   const recipe = RECIPES[recipeId];
   if (!recipe) return TEX.iconPlate;
-  if (recipeDishType(recipe) === 'burger') return TEX.iconBurger;
+  const kind = recipeDishType(recipe);
+  if (kind === 'burger') return TEX.iconBurger;
   const first: IngredientType | undefined = recipe.ingredients[0];
-  return first ? TEX.iconSoup(first) : TEX.iconPlate;
+  if (!first) return TEX.iconPlate;
+  return kind === 'plated' ? TEX.icon(first) : TEX.iconSoup(first);
 }
 
 /** Everything the dish takes, one entry per item: three onions for an onion soup, bun, lettuce, meat, tomato for a salad burger. */
