@@ -16,7 +16,8 @@ One JSON file per level under `src/levels/<game>/`. Type: `LevelDef` in `src/lev
 | `B` | board | chopping board |
 | `S` | stove | burner, starts with an empty pot |
 | `F` | stove | burner, starts with an empty frying pan (fries one chopped meat) |
-| `G` | gate | floor that is walkable only while gate group `1` is open (1-6 earthquake); needs a `gate` dynamic |
+| `G` | gate | floor that is walkable only while gate group `1` is open (1-6 earthquake); needs a `gate` dynamic. A closed gate stops chefs but a thrown item flies over it |
+| `_` | gap | a hole: no wall, a thrown item flies over it, a chef that steps on it falls, loses what it held and respawns at its spawn after `FALL_PENALTY_SEC` (5 s). Not walkable for spawns or reachability |
 | `W` | sink | wash dirty plates |
 | `D` | drying | clean plates come out here, must touch the sink |
 | `R` | plateReturn | dirty plates arrive here after a serve (`plates.mode: sink`) |

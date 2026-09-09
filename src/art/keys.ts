@@ -8,7 +8,7 @@ import {
 } from '../sim/types';
 
 export const TILE_TYPES: readonly TileType[] = [
-  'void', 'floor', 'road', 'counter', 'crate', 'board', 'stove', 'sink', 'drying', 'plateReturn', 'serve', 'trash', 'plateStack', 'slider', 'gate',
+  'void', 'floor', 'road', 'counter', 'crate', 'board', 'stove', 'sink', 'drying', 'plateReturn', 'serve', 'trash', 'plateStack', 'slider', 'gate', 'gap',
 ];
 export const FACINGS: readonly Facing[] = ['up', 'down', 'left', 'right'];
 export const CHEF_COUNT = 2;

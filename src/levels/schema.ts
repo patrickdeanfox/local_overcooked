@@ -103,13 +103,16 @@ export const LEGEND: Readonly<Record<string, LegendEntry>> = Object.freeze({
   '3': { type: 'slider', group: '3' },
   '4': { type: 'slider', group: '4' },
   'G': { type: 'gate', group: '1' },
+  '_': { type: 'gap' },
 });
 
-/** Tiles a chef can never enter. 'gate' is walkable while open, so it is not listed; the sim closes it. */
+/** Tiles a chef body cannot enter. 'gate' is walkable while open, so it is not listed; the sim closes it.
+ *  'gap' is not listed either: it has no wall, a chef walks straight in and falls. */
 export const SOLID_TILES: ReadonlySet<TileType> = new Set<TileType>([
   'void', 'counter', 'crate', 'board', 'stove', 'sink', 'drying', 'plateReturn', 'serve', 'trash', 'plateStack', 'slider',
 ]);
-export function isWalkable(type: TileType): boolean { return !SOLID_TILES.has(type); }
+/** Tiles a chef can stand on: not solid, and not a hole. Spawns and paths need this. */
+export function isWalkable(type: TileType): boolean { return !SOLID_TILES.has(type) && type !== 'gap'; }
 
 export interface ParsedGrid { width: number; height: number; tiles: Tile[]; items: (Item | null)[]; }
 
@@ -175,7 +178,7 @@ export function validateLevel(level: LevelDef): string[] {
   for (const s of level.spawns ?? []) {
     const t = parsed.tiles[s.y * parsed.width + s.x];
     if (!t) errors.push(`spawn (${s.x},${s.y}) is off the grid`);
-    else if (!isWalkable(t.type)) errors.push(`spawn (${s.x},${s.y}) is on a solid tile`);
+    else if (!isWalkable(t.type)) errors.push(`spawn (${s.x},${s.y}) is not on a walkable tile`);
   }
   const count = (type: TileType) => parsed.tiles.filter((t) => t.type === type).length;
   const crates = new Set(parsed.tiles.filter((t) => t.type === 'crate').map((t) => t.ingredient));
