@@ -124,6 +124,8 @@ Build, in two layers:
 
 Caveat: a reskin does not change that the layouts are Overcooked's. If distance from the original is the goal, the levels matter more than the nouns.
 
+Alternative on file: **Fernhollow** (`docs/FERNHOLLOW.md`, filed 2026-09-09), two foxes running a tea-and-preserves cottage. Its noun map reskins as cleanly as Potion Shop, but the rest is a redesign: orders that never expire and pay by patience, a bitter batch instead of fire, a two-item tail carry, dens, named regulars, a garden phase, seasons, and eight designed places instead of the Overcooked catalog (so it drops item 5 rather than reskinning it). Section 8 of that file lists what is a reskin, what already exists as an assist, and what would be new sim work. Potion Shop is the theme this item plans for; Fernhollow is the one to weigh if the goal becomes a different game rather than a different coat.
+
 ## Known gaps in the current build
 - Order cadence, timeout and tip amounts are estimates; the wiki publishes none (`docs/research/sim-constants-recommendations.md`). Tune by play.
 - 1-3's 1-star and 2-star thresholds are derived, not published (`docs/LEVELS.md`).
