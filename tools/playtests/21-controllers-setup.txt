@@ -6,7 +6,7 @@
 # Controllers is index 10. The page has no MenuList, so its rows are top-level Text objects, so
 # __ui.texts('Controller') lists every label on the page. Column rows, top to bottom: Device,
 # Set up controls, Move up, Move down, Move left, Move right, Pick up / drop, Chop / wash / spray,
-# Pause, Left stick, D-pad, Stick deadzone, Reset to defaults.
+# Pause, Throw, Dash, Left stick, D-pad, Stick deadzone, Reset to defaults.
 until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
 wait 600
 eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
@@ -61,7 +61,7 @@ wait 400
 eval JSON.stringify(['after clear', __ui.texts('Controller').filter((t) => /cleared|^—$/.test(t))])
 eval JSON.stringify(['stored pickup', JSON.parse(localStorage.getItem('local-overcooked.bindings.v1')).keyboards[0].keys.pickup])
 
-# -- The wizard (row 1): seven presses, each replacing the action's key ------------------------
+# -- The wizard (row 1): nine presses, each replacing the action's key -------------------------
 tap ArrowUp
 wait 150
 tap ArrowUp
@@ -91,6 +91,10 @@ tap KeyO
 wait 250
 tap Escape
 wait 400
+tap KeyN
+wait 250
+tap KeyB
+wait 400
 eval JSON.stringify(['wizard done', __ui.texts('Controller').filter((t) => /is set up|Kept/.test(t))])
 eval JSON.stringify(['stored keys', JSON.parse(localStorage.getItem('local-overcooked.bindings.v1')).keyboards[0].keys])
 shot 21-04-wizard-done.png
@@ -112,7 +116,7 @@ tap ArrowUp
 wait 150
 tap Enter
 wait 700
-eval JSON.stringify(['page after reload', __ui.texts('Controller').filter((t) => /^(I|K|J|L|U|O|Space|Enter)$|Keyboard set/.test(t))])
+eval JSON.stringify(['page after reload', __ui.texts('Controller').filter((t) => /^(I|K|J|L|U|O|N|B|Space|Enter)$|Keyboard set/.test(t))])
 
 # -- Reset row (last): everything back to WASD ------------------------------------------------
 tap ArrowUp

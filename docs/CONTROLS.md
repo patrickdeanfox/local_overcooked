@@ -50,6 +50,8 @@ and player 2 on set 2; the Device row swaps them.
 | Move | `W` `A` `S` `D` | arrow keys |
 | Pick up / put down | `Space` | `Enter` |
 | Chop / wash / spray (hold) | `Left Shift` or `Left Ctrl` | `Right Shift` or `Right Ctrl` |
+| Throw the held ingredient | `E` | `/` |
+| Dash | `Q` | `.` |
 | Pause | `Esc` | `Esc` |
 | Menu back | `Backspace` | `Backspace` |
 
@@ -64,8 +66,14 @@ Sony's vendor id `054c`.
 | Move | left stick or d-pad | left stick or d-pad | axes 0/1, buttons 12–15 |
 | Pick up / put down | A | Cross | 0 |
 | Chop / wash / spray (hold) | X | Square | 2 |
+| Throw the held ingredient | Y | Triangle | 3 |
+| Dash | B | Circle | 1 |
 | Pause | Start | Options | 9 |
 | Menu back | B | Circle | 1 |
+
+B / Circle does double duty on purpose: menus read it as back and the kitchen reads it as
+dash, and no screen listens for both. The throw and dash defaults are the clone's own; the
+original game's layout was not recorded in the research notes.
 
 The left stick uses a radial deadzone of 0.25 and is renormalised afterwards, so the
 usable travel covers a full 0..1 and a diagonal never exceeds full speed. The d-pad
@@ -80,14 +88,14 @@ so a bad binding can never strand you on a screen.
 ## Remapping
 
 Everything happens on the controller screen (the **Controllers** entry on the title menu).
-Each player's column lists, top to bottom: Device, Set up controls, the seven actions,
+Each player's column lists, top to bottom: Device, Set up controls, the nine actions,
 Left stick, D-pad, Stick deadzone, Reset to defaults.
 
 - **Move the highlight** with up/down on any device. Left/right switches between the
   player 1 and player 2 columns on the action rows, and changes the value on the Device,
   Left stick, D-pad and Stick deadzone rows.
 - **Set up controls** walks through every action for the highlighted player: "Player 1,
-  press the key for Pick up / drop", then the next, seven in all. Each press replaces that
+  press the key for Pick up / drop", then the next, nine in all. Each press replaces that
   action's binding on the device you pressed; `Esc` keeps the current binding and moves
   on. The title's Controllers row and the page itself point at it on a first run, when
   nothing has been saved yet.
@@ -110,7 +118,9 @@ holds, a fallback pad map per player, and one map per pad id; version 1 payloads
 migrated on load, each player's old keyboard becoming their set). The saved payload is
 validated on load: an older version, a missing action, a value of the wrong type, or two
 players on one keyboard set sends the whole payload to the bin and the defaults load
-instead. Pad assignments last for the session only and are never saved.
+instead. The exception is an action added after the map was saved (throw and dash): a map
+without them keeps everything else and gets their defaults. Pad assignments last for the
+session only and are never saved.
 
 To wipe the saved bindings by hand, run this in the browser console and reload:
 

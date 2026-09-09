@@ -72,6 +72,8 @@ Development with hot reload (also reachable on the LAN): `npm run dev`. Editing 
 | Move | W A S D | Arrows | Left stick / d-pad | Left stick / d-pad |
 | Pick up / put down | Space | Enter | A | Cross |
 | Chop / wash / spray (hold) | Left Shift or Ctrl | Right Shift or Ctrl | X | Square |
+| Throw the held ingredient | E | / | Y | Triangle |
+| Dash | Q | . | B | Circle |
 | Pause / back | Esc | Esc | Start / B | Options / Circle |
 
 Each player holds one keyboard set (WASD or the arrows), so the game works with no pads at all. Pads are assigned in the order they connect; the **Controllers** entry on the title screen shows live input for each player, lets you pick each player's device (a keyboard set or a pad by name), walks you through every button with **Set up controls**, adds or clears keys and buttons per action, and sets the stick, d-pad and deadzone per pad. Bindings persist in the browser, pads by their id. Details and quirks: `docs/CONTROLS.md`.
