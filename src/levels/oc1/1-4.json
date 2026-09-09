@@ -23,5 +23,7 @@
     "X....###....p",
     "##B#B###pppp#"
   ],
-  "spawns": [{ "x": 2, "y": 2 }, { "x": 9, "y": 2 }]
+  "spawns": [{ "x": 2, "y": 2 }, { "x": 9, "y": 2 }],
+  "stations": [{ "x": 0, "y": 5, "type": "delivery" }],
+  "eightySix": { "crateSize": 6, "restockDelaySec": 30 }
 }

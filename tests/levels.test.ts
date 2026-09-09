@@ -7,8 +7,10 @@ import type { IngredientType, TileType, Ware } from '../src/sim/types';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-/** Tile types a chef must be able to stand next to for the level to be playable. */
-const REQUIRED_ADJACENT: readonly TileType[] = ['crate', 'board', 'stove', 'serve', 'sink'];
+/** Tile types a chef must be able to stand next to for the level to be playable. The delivery
+ *  door and the tray rack (docs/MECHANICS.md) join the list: a door nobody can reach never
+ *  restocks, a rack nobody can reach never gives up its tray. */
+const REQUIRED_ADJACENT: readonly TileType[] = ['crate', 'board', 'stove', 'serve', 'sink', 'delivery', 'trayRack'];
 
 /** The four von Neumann neighbours, in the order the flood fills use them. */
 const NEIGHBOURS = [[1, 0], [-1, 0], [0, 1], [0, -1]] as const;
@@ -116,6 +118,19 @@ describe('levels', () => {
     expect(LEVEL_ORDER.slice(0, 6)).toEqual(['oc1-1-1', 'oc1-1-2', 'oc1-1-3', 'oc1-1-4', 'oc1-1-5', 'oc1-1-6']);
   });
 
+  it('lists the games in campaign order: Overcooked 1, Overcooked 2, then the custom kitchens last', () => {
+    const games = LEVEL_ORDER.map((id) => LEVELS[id].game);
+    const firstOc2 = games.indexOf('oc2');
+    const firstCustom = games.indexOf('custom');
+    expect(firstOc2).toBeGreaterThan(0);
+    expect(firstCustom).toBeGreaterThan(firstOc2);
+    for (let i = 0; i < games.length; i++) {
+      if (i < firstOc2) expect(games[i]).toBe('oc1');
+      else if (i < firstCustom) expect(games[i]).toBe('oc2');
+      else expect(games[i]).toBe('custom');
+    }
+  });
+
   it('gates count as walkable so a closed gate is the sim\'s job, not the grid\'s', () => {
     expect(isWalkable('gate')).toBe(true);
   });
@@ -144,9 +159,15 @@ describe('levels', () => {
 
     it(`${l.id} names itself consistently`, () => {
       expect(l.id).toBe(`${l.game}-${l.world}-${l.index}`);
-      expect(l.name).toBe(`${l.world}-${l.index}`);
       expect(l.theme.length).toBeGreaterThan(0);
-      expect(l.source).toMatch(/^https:\/\/overcooked\.fandom\.com\//);
+      if (l.game === 'custom') {
+        // The clone's own kitchens carry a title, not a world-index, and have no wiki page.
+        expect(l.name.length).toBeGreaterThan(0);
+        expect(l.source).toBeUndefined();
+      } else {
+        expect(l.name).toBe(`${l.world}-${l.index}`);
+        expect(l.source).toMatch(/^https:\/\/overcooked\.fandom\.com\//);
+      }
     });
 
     it(`${l.id} has two spawns on distinct walkable tiles`, () => {
@@ -209,6 +230,32 @@ describe('levels', () => {
         const [a, b, c] = l.stars[players];
         expect(a).toBeLessThan(b);
         expect(b).toBeLessThan(c);
+      }
+    });
+
+    // Mechanics tiles (docs/MECHANICS.md): what makes each one usable.
+    it(`${l.id} gives every delivery door a walkable neighbour`, () => {
+      const p = parseGrid(l);
+      for (const t of p.tiles.filter((x) => x.type === 'delivery')) {
+        expect(walkableNeighbours(p, t.x, t.y), `delivery (${t.x},${t.y}) has no walkable neighbour`).toBeGreaterThan(0);
+      }
+    });
+
+    it(`${l.id} starts a tray on every tray rack`, () => {
+      const p = parseGrid(l);
+      for (const t of p.tiles.filter((x) => x.type === 'trayRack')) {
+        expect(p.items[t.y * p.width + t.x]?.kind, `rack (${t.x},${t.y}) has no tray`).toBe('tray');
+      }
+      const trays = p.items.filter((i) => i && i.kind === 'tray').length;
+      expect(trays).toBe(countType(p, 'trayRack'));
+    });
+
+    it(`${l.id} makes every shelf pass through: walkable tiles on two opposite sides`, () => {
+      const p = parseGrid(l);
+      for (const t of p.tiles.filter((x) => x.type === 'shelf')) {
+        const open = (dx: number, dy: number) => { const n = tileAt(p, t.x + dx, t.y + dy); return !!n && isWalkable(n.type); };
+        const across = (open(1, 0) && open(-1, 0)) || (open(0, 1) && open(0, -1));
+        expect(across, `shelf (${t.x},${t.y}) is not open on two opposite sides`).toBe(true);
       }
     });
   }
@@ -497,6 +544,15 @@ describe('oc1-1-4', () => {
   it('has no dynamics', () => {
     expect(l.dynamics ?? []).toEqual([]);
   });
+
+  it('takes deliveries at a door on the left wall under the crates, with six-item crates', () => {
+    expect(tileAt(p, 0, 5)?.type).toBe('delivery');
+    expect(countType(p, 'delivery')).toBe(1);
+    expect(l.eightySix).toEqual({ crateSize: 6, restockDelaySec: 30 });
+    // Bun and meat are in every burger, so the 86 system exempts them by itself; only lettuce and
+    // tomato ever run out, and each shortage has a substitute recipe on the level.
+    for (const id of l.recipes) expect(RECIPES[id].ingredients).toEqual(expect.arrayContaining(['bun', 'meat']));
+  });
 });
 
 // ─── 1-5 the ring ───────────────────────────────────────────────────────────
@@ -565,6 +621,24 @@ describe('oc1-1-5', () => {
 
   it('has no dynamics', () => {
     expect(l.dynamics ?? []).toEqual([]);
+  });
+
+  it('keeps the tray rack on the island\'s right face, halfway round from the crates', () => {
+    const racks = p.tiles.filter((t) => t.type === 'trayRack');
+    expect(racks.map((t) => [t.x, t.y])).toEqual([[11, 3]]);
+    expect(p.items[3 * p.width + 11]?.kind).toBe('tray');
+    // Not next to any crate: the spec's rule for a rack that is a decision rather than a default.
+    for (const c of p.tiles.filter((t) => t.type === 'crate')) {
+      expect(Math.abs(c.x - 11) + Math.abs(c.y - 3)).toBeGreaterThan(1);
+    }
+    // Still one closed ring: the rack replaced a counter, not a floor tile.
+    for (const t of p.tiles.filter((x) => isWalkable(x.type))) expect(walkableNeighbours(p, t.x, t.y)).toBe(2);
+  });
+
+  it('takes deliveries beside the crates, with six-item crates', () => {
+    expect(tileAt(p, 4, 0)?.type).toBe('delivery');
+    expect(countType(p, 'delivery')).toBe(1);
+    expect(l.eightySix).toEqual({ crateSize: 6, restockDelaySec: 30 });
   });
 });
 
@@ -729,7 +803,131 @@ describe('oc2-1-1', () => {
   });
 
   it('sorts after every Overcooked 1 level', () => {
-    expect(LEVEL_ORDER.indexOf('oc2-1-1')).toBe(LEVEL_ORDER.length - 1);
+    const at = LEVEL_ORDER.indexOf('oc2-1-1');
+    for (const id of LEVEL_ORDER.filter((x) => LEVELS[x].game === 'oc1')) expect(LEVEL_ORDER.indexOf(id)).toBeLessThan(at);
+  });
+
+  it('takes deliveries at a door on the left wall, with six-item crates', () => {
+    expect(tileAt(p, 0, 5)?.type).toBe('delivery');
+    expect(countType(p, 'delivery')).toBe(1);
+    expect(l.eightySix).toEqual({ crateSize: 6, restockDelaySec: 25 });
+  });
+});
+
+// ─── The mechanics kitchens (docs/MECHANICS.md) ─────────────────────────────
+// Three custom levels, one per layout-dependent mechanic. Each must also play with every
+// mechanic off: a shelf becomes a wall, the rack a counter, the crates never run out.
+
+describe('custom-1-1 Hatch Row', () => {
+  const l = level('custom-1-1');
+  const p = parseGrid(l);
+  const WALL_X = 7;
+
+  it('is three soups with prep on the left and cooking on the right', () => {
+    expect(l.name).toBe('Hatch Row');
+    expect(new Set(l.recipes)).toEqual(new Set(['onion_soup', 'tomato_soup', 'mushroom_soup']));
+    expect(l.plates).toEqual({ mode: 'sink', count: 3 });
+    for (const t of p.tiles.filter((x) => ['crate', 'board', 'trash'].includes(x.type))) expect(t.x).toBeLessThan(WALL_X);
+    for (const t of p.tiles.filter((x) => ['stove', 'serve', 'sink', 'drying', 'plateReturn'].includes(x.type))) expect(t.x).toBeGreaterThan(WALL_X);
+    expect(l.spawns[0].x).toBeLessThan(WALL_X);
+    expect(l.spawns[1].x).toBeGreaterThan(WALL_X);
+    expect(l.eightySix).toBeUndefined();
+  });
+
+  it('divides the rooms with a wall of three hatches and one floor gap at the bottom end', () => {
+    const column = Array.from({ length: p.height }, (_, y) => tileAt(p, WALL_X, y)?.type);
+    expect(column.filter((t) => t === 'shelf').length).toBe(3);
+    expect(column.filter((t) => t === 'floor').length).toBe(1);
+    expect(column[p.height - 2]).toBe('floor');
+    for (let y = 1; y < p.height - 1; y++) expect(['shelf', 'void', 'floor']).toContain(column[y]);
+    expect(p.tiles.filter((t) => t.type === 'shelf').map((t) => [t.x, t.y])).toEqual([[7, 2], [7, 3], [7, 4]]);
+  });
+
+  it('keeps the long way round when the hatches are walls', () => {
+    // Every mechanic off turns the shelves solid; the gap must still join the rooms.
+    const sealed = parseGrid(l);
+    for (const t of sealed.tiles) if (t.type === 'shelf') t.type = 'void';
+    const left = reachableFrom(sealed, l.spawns[0].x, l.spawns[0].y);
+    expect(left.has(l.spawns[1].y * sealed.width + l.spawns[1].x)).toBe(true);
+    expect(unreachableStations(sealed, left)).toEqual([]);
+    // ...and the walk from a board to the nearest stove is long enough for the hatch to matter.
+    const board = p.tiles.find((t) => t.type === 'board') as { x: number; y: number };
+    const stove = p.tiles.find((t) => t.type === 'stove') as { x: number; y: number };
+    expect(Math.abs(board.x - stove.x) + Math.abs(board.y - stove.y)).toBeGreaterThanOrEqual(10);
+  });
+});
+
+describe('custom-1-2 Long Haul', () => {
+  const l = level('custom-1-2');
+  const p = parseGrid(l);
+
+  it('is the three burgers in a two-tile corridor the full 16 tiles wide', () => {
+    expect(l.name).toBe('Long Haul');
+    expect(new Set(l.recipes)).toEqual(new Set(['meat_burger', 'lettuce_burger', 'tomato_lettuce_burger']));
+    expect(p.width).toBe(16);
+    const floorRows = new Set(p.tiles.filter((t) => isWalkable(t.type)).map((t) => t.y));
+    expect(floorRows.size).toBe(2);
+    for (const y of floorRows) expect(p.tiles.filter((t) => t.y === y && isWalkable(t.type)).length).toBe(14);
+  });
+
+  it('puts the crates and the door at the left end and the pans and the serve at the right', () => {
+    for (const t of p.tiles.filter((x) => x.type === 'crate' || x.type === 'delivery')) expect(t.x).toBeLessThanOrEqual(5);
+    expect(tileAt(p, 1, 0)?.type).toBe('delivery');
+    expect(stovesWith(p, 'pan').length).toBe(2);
+    for (const s of stovesWith(p, 'pan')) expect(s.x).toBeGreaterThanOrEqual(12);
+    for (const t of p.tiles.filter((x) => x.type === 'serve' || x.type === 'plateReturn')) expect(t.x).toBe(15);
+    const crateX = Math.max(...p.tiles.filter((t) => t.type === 'crate').map((t) => t.x));
+    const panX = Math.min(...stovesWith(p, 'pan').map((s) => s.x));
+    expect(panX - crateX).toBeGreaterThanOrEqual(7);
+  });
+
+  it('hangs the tray rack in the middle of the run, away from every crate', () => {
+    const racks = p.tiles.filter((t) => t.type === 'trayRack');
+    expect(racks.map((t) => [t.x, t.y])).toEqual([[8, 3]]);
+    expect(p.items[3 * p.width + 8]?.kind).toBe('tray');
+    for (const c of p.tiles.filter((t) => t.type === 'crate')) expect(Math.abs(c.x - 8) + Math.abs(c.y - 3)).toBeGreaterThan(2);
+    expect(Math.abs(8 - (p.width - 1) / 2)).toBeLessThanOrEqual(1);
+  });
+
+  it('runs small crates with a quick restock', () => {
+    expect(l.eightySix).toEqual({ crateSize: 5, restockDelaySec: 25 });
+    expect(l.plates).toEqual({ mode: 'sink', count: 3 });
+  });
+});
+
+describe('custom-1-3 Short Order', () => {
+  const l = level('custom-1-3');
+  const p = parseGrid(l);
+
+  it('is three soups and fish sashimi in a compact room', () => {
+    expect(l.name).toBe('Short Order');
+    expect(new Set(l.recipes)).toEqual(new Set(['onion_soup', 'tomato_soup', 'mushroom_soup', 'fish_sashimi']));
+    expect(p.width).toBeLessThanOrEqual(12);
+    expect(countCrate(p, 'fish')).toBe(1);
+    expect(stovesWith(p, 'pot').length).toBe(2);
+    expect(l.plates).toEqual({ mode: 'sink', count: 3 });
+  });
+
+  it('scripts an onion shortage at 40 s and a fish shortage at 90 s, delivered through one door', () => {
+    expect(l.eightySix).toEqual({
+      crateSize: 4,
+      restockDelaySec: 35,
+      scripted: [{ atSec: 40, ingredient: 'onion' }, { atSec: 90, ingredient: 'fish' }],
+    });
+    expect(tileAt(p, 6, 0)?.type).toBe('delivery');
+    expect(countType(p, 'delivery')).toBe(1);
+    // Every scripted shortage has a substitute: no ingredient is in every recipe.
+    for (const s of l.eightySix?.scripted ?? []) {
+      expect(l.recipes.some((id) => !RECIPES[id].ingredients.includes(s.ingredient))).toBe(true);
+    }
+  });
+
+  it('puts the drying rack across the room from the serve and the boards side by side', () => {
+    const drying = p.tiles.find((t) => t.type === 'drying') as { x: number; y: number };
+    const serve = p.tiles.filter((t) => t.type === 'serve');
+    for (const v of serve) expect(Math.abs(v.x - drying.x)).toBeGreaterThanOrEqual(10);
+    const boards = p.tiles.filter((t) => t.type === 'board').map((t) => [t.x, t.y]);
+    expect(boards).toEqual([[3, 7], [4, 7]]);
   });
 });
 
@@ -749,6 +947,10 @@ describe('order tuning', () => {
     'oc1-3-2': { initial: 2, intervalSec: 22, max: 4, timeSec: 95 },
     // Overcooked 2's first level: one chop per dish, so a quick drip; the catalog's estimate, untested.
     'oc2-1-1': { initial: 2, intervalSec: 18, max: 4, timeSec: 60 },
+    // The mechanics kitchens (docs/MECHANICS.md): estimates from the nearest shipped level, untested.
+    'custom-1-1': { initial: 2, intervalSec: 22, max: 4, timeSec: 90 },   // soups with a long walk, like 1-5
+    'custom-1-2': { initial: 2, intervalSec: 24, max: 4, timeSec: 110 },  // burgers down a corridor, like 1-6's drip
+    'custom-1-3': { initial: 2, intervalSec: 18, max: 4, timeSec: 80 },   // one-chop sashimi keeps the drip quick
   };
 
   for (const [id, orders] of Object.entries(expected)) {

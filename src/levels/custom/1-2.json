@@ -1,0 +1,22 @@
+{
+  "id": "custom-1-2",
+  "name": "Long Haul",
+  "game": "custom",
+  "world": 1,
+  "index": 2,
+  "theme": "treacle-town",
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "recipes": ["meat_burger", "lettuce_burger", "tomato_lettuce_burger"],
+  "orders": { "initial": 2, "intervalSec": 24, "max": 4, "timeSec": 110 },
+  "stars": { "1": [40, 90, 160], "2": [70, 160, 280] },
+  "plates": { "mode": "sink", "count": 3 },
+  "grid": [
+    "#dAULT######FFE#",
+    "#..............V",
+    "#..............R",
+    "#X#BB###t#pppWD#"
+  ],
+  "spawns": [{ "x": 6, "y": 1 }, { "x": 9, "y": 2 }],
+  "eightySix": { "crateSize": 5, "restockDelaySec": 25 }
+}
