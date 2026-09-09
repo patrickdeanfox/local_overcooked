@@ -1,7 +1,7 @@
 // ─── Title scene ────────────────────────────────────────────────────────────
-// Level select over the saved progress, plus the run settings (players, difficulty
-// preset, seed, free play), the assists page and the controller screen. One cursor runs
-// through the level rows and then the settings rows; left / right edits the row it is on.
+// Level select over the saved progress, the two settings changed most (players, difficulty
+// preset), and the doors to the Chefs, Settings and Controllers pages. One cursor runs
+// through the level rows and then the option rows; left / right edits the row it is on.
 // Navigable with the keyboard and with any device the input manager reports.
 import Phaser from 'phaser';
 import { TEX } from '../../art/keys';
@@ -13,8 +13,8 @@ import { getAudioBus, installAudioGestureResume, installMuteToggle } from '../au
 import { currentLevels, onLevelsHotReload } from '../levelHotReload';
 import { isUnlocked, levelProgress, loadProgress, totalStars, unlockingStars, type Progress } from '../progress';
 import {
-  assistSummary, cyclePlayers, cyclePreset, cycleSeedMode, dailySeed, DEFAULT_PRESET, loadSettings,
-  presetName, presetSummary, saveSettings, SEED_LIMIT, type Settings,
+  chefSummary, cyclePlayers, cyclePreset, DEFAULT_PRESET, loadSettings, presetName, presetSummary,
+  saveSettings, settingsSummary, type Settings,
 } from '../settings';
 import { LevelList, type LevelEntry } from '../ui/LevelList';
 import { MenuList, type MenuItemSpec } from '../ui/MenuList';
@@ -39,10 +39,10 @@ const TITLE = {
   levelSpacing: 50,
   levelAreaPx: 300,     // rows are squeezed together rather than run off the screen
   levelGapPx: 96,       // from the last level row down to the settings block
-  optionsMaxY: 460,     // however few levels there are, the settings stay above the hints
+  optionsMaxY: 496,     // however few levels there are, the settings stay above the hints
   statusGapPx: 44,      // the status line sits this far above the settings
   statusFontPx: 15,
-  optionsSpacing: 38,
+  optionsSpacing: 40,
   optionsWidth: 620,
   optionsFontPx: 20,
   hintY: GAME_HEIGHT - 74,
@@ -56,8 +56,8 @@ const TITLE = {
 const HEADING = 'LOCAL OVERCOOKED';
 const TAGLINE = 'Two chefs, one kitchen, not enough time';
 
-/** Settings rows, in the order the cursor walks through them. */
-const OPTION = { players: 0, difficulty: 1, seedMode: 2, seedValue: 3, freePlay: 4, assists: 5, controllers: 6 } as const;
+/** Option rows, in the order the cursor walks through them. */
+const OPTION = { players: 0, difficulty: 1, chefs: 2, settings: 3, controllers: 4 } as const;
 
 // Remembered between visits to the title within a session.
 let selectedIndex = 0;
@@ -107,7 +107,6 @@ export class TitleScene extends Phaser.Scene {
     this.index = Phaser.Math.Clamp(selectedIndex, 0, this.rowCount() - 1);
     this.refreshCursor();
     this.buildPrompts();
-    this.installSeedTyping();
     this.disposers.push(onLevelsHotReload(() => this.buildLevelList()));
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.cleanup, this);
     this.ready = true;
@@ -223,45 +222,21 @@ export class TitleScene extends Phaser.Scene {
       onLeft: () => this.changePreset(-1),
       onRight: () => this.changePreset(1),
     };
-    items[OPTION.seedMode] = {
-      label: () => `Seed: ${this.seedModeLabel()}`,
-      onSelect: () => this.changeSeedMode(1),
-      onLeft: () => this.changeSeedMode(-1),
-      onRight: () => this.changeSeedMode(1),
+    items[OPTION.chefs] = {
+      label: () => `Chefs: ${chefSummary(this.settings.chefs)}`,
+      onSelect: () => this.openPage(SCENE.CHEFS),
     };
-    items[OPTION.seedValue] = {
-      label: () => `Seed number: ${this.settings.fixedSeed}${this.index === this.seedRow() ? '  (type digits)' : ''}`,
-      onSelect: () => this.changeFixedSeed(0),
-      onLeft: () => this.changeFixedSeed(-1),
-      onRight: () => this.changeFixedSeed(1),
+    items[OPTION.settings] = {
+      label: () => `Settings: ${settingsSummary(this.settings)}`,
+      onSelect: () => this.openPage(SCENE.SETTINGS),
     };
-    items[OPTION.freePlay] = {
-      label: () => `Free play: ${this.settings.freePlay ? 'on · every level unlocked' : 'off'}`,
-      onSelect: () => this.toggleFreePlay(),
-      onLeft: () => this.toggleFreePlay(),
-      onRight: () => this.toggleFreePlay(),
-    };
-    items[OPTION.assists] = {
-      label: () => `Assists: ${assistSummary(this.settings.assists)}`,
-      onSelect: () => this.openAssists(),
-    };
-    items[OPTION.controllers] = { label: () => 'Controllers', onSelect: () => this.openControllers() };
+    items[OPTION.controllers] = { label: () => 'Controllers', onSelect: () => this.openPage(SCENE.CONTROLLER) };
 
     this.menu = new MenuList(this, GAME_WIDTH / 2, this.optionsY, items, {
       spacing: TITLE.optionsSpacing,
       width: TITLE.optionsWidth,
       fontSize: TITLE.optionsFontPx,
     });
-  }
-
-  private seedRow(): number { return this.levelCount() + OPTION.seedValue; }
-
-  private seedModeLabel(): string {
-    switch (this.settings.seedMode) {
-      case 'random': return 'random · a new kitchen every run';
-      case 'daily': return `daily · ${dailySeed(new Date())}`;
-      case 'fixed': return `fixed · ${this.settings.fixedSeed}`;
-    }
   }
 
   private changePlayers(delta: number): void {
@@ -274,32 +249,10 @@ export class TitleScene extends Phaser.Scene {
     this.applySettings();
   }
 
-  private changeSeedMode(delta: number): void {
-    this.settings.seedMode = cycleSeedMode(this.settings.seedMode, delta);
-    this.applySettings();
-  }
-
-  /** Nudging or typing the number pins the seed, which is the only mode that uses it. */
-  private changeFixedSeed(delta: number): void {
-    this.settings.fixedSeed = (this.settings.fixedSeed + delta + SEED_LIMIT) % SEED_LIMIT;
-    this.settings.seedMode = 'fixed';
-    this.applySettings();
-  }
-
-  private toggleFreePlay(): void {
-    this.settings.freePlay = !this.settings.freePlay;
-    this.applySettings();
-    this.buildLevelList(); // locks change with it
-  }
-
-  private openAssists(): void {
+  /** The Chefs, Settings and Controllers pages; each returns to a fresh title, which re-reads the settings. */
+  private openPage(key: string): void {
     this.ready = false;
-    this.scene.start(SCENE.ASSISTS);
-  }
-
-  private openControllers(): void {
-    this.ready = false;
-    this.scene.start(SCENE.CONTROLLER);
+    this.scene.start(key);
   }
 
   /** Every settings edit goes through here: saved, then reflected in the labels. */
@@ -310,27 +263,6 @@ export class TitleScene extends Phaser.Scene {
   }
 
   // ─── Seed typing ──────────────────────────────────────────────────────────
-  /** While the seed row is selected, digits type the number and Backspace deletes. */
-  private installSeedTyping(): void {
-    const keyboard = this.input.keyboard;
-    if (!keyboard) return;
-    const onKey = (event: KeyboardEvent): void => {
-      if (!this.ready || this.index !== this.seedRow()) return;
-      if (event.key >= '0' && event.key <= '9') {
-        const next = this.settings.fixedSeed * 10 + Number(event.key);
-        this.settings.fixedSeed = next >= SEED_LIMIT ? Number(event.key) : next;
-      } else if (event.key === 'Backspace') {
-        this.settings.fixedSeed = Math.floor(this.settings.fixedSeed / 10);
-      } else {
-        return;
-      }
-      this.settings.seedMode = 'fixed';
-      this.applySettings();
-    };
-    keyboard.on(Phaser.Input.Keyboard.Events.ANY_KEY_DOWN, onKey);
-    this.disposers.push(() => { keyboard.off(Phaser.Input.Keyboard.Events.ANY_KEY_DOWN, onKey); });
-  }
-
   // ─── Cursor ───────────────────────────────────────────────────────────────
   private moveCursor(delta: number): void {
     const count = this.rowCount();

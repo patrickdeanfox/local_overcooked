@@ -46,5 +46,10 @@
   "pot": { "src": "KayKit_Restaurant_Bits_1.0_FREE/Assets/gltf/pot_A.gltf", "url": "models/kaykit/pot_A.gltf", "scale": 0.5 },
   "pan": { "src": "KayKit_Restaurant_Bits_1.0_FREE/Assets/gltf/pan_A.gltf", "url": "models/kaykit/pan_A.gltf", "scale": 0.5 },
   "plate": { "src": "KayKit_Restaurant_Bits_1.0_FREE/Assets/gltf/plate.gltf", "url": "models/kaykit/plate.gltf", "scale": 0.5 },
-  "plateDirty": { "src": "KayKit_Restaurant_Bits_1.0_FREE/Assets/gltf/plate_dirty.gltf", "url": "models/kaykit/plate_dirty.gltf", "scale": 0.5 }
+  "plateDirty": { "src": "KayKit_Restaurant_Bits_1.0_FREE/Assets/gltf/plate_dirty.gltf", "url": "models/kaykit/plate_dirty.gltf", "scale": 0.5 },
+  "charOozi": { "src": "kenney_platformer-kit/Models/GLB format/character-oozi.glb", "url": "models/kenney-platformer/character-oozi.glb", "height": 1.05 },
+  "charOobi": { "src": "kenney_platformer-kit/Models/GLB format/character-oobi.glb", "url": "models/kenney-platformer/character-oobi.glb", "height": 1.05 },
+  "charOodi": { "src": "kenney_platformer-kit/Models/GLB format/character-oodi.glb", "url": "models/kenney-platformer/character-oodi.glb", "height": 1.05 },
+  "charOoli": { "src": "kenney_platformer-kit/Models/GLB format/character-ooli.glb", "url": "models/kenney-platformer/character-ooli.glb", "height": 1.05 },
+  "charOopi": { "src": "kenney_platformer-kit/Models/GLB format/character-oopi.glb", "url": "models/kenney-platformer/character-oopi.glb", "height": 1.05 }
 }

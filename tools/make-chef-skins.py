@@ -6,7 +6,7 @@ jacket was, dark trousers and black shoes, and loses the skull emblem.
 
 Run:  python3 tools/make-chef-skins.py
 Reads  assets/kenney_animated-characters-protagonists/Skins/skaterMaleA.png
-Writes public/models/chef/skin_chef0.png, skin_chef1.png (and copies the pedestrian skins).
+Writes public/models/chef/skin_chef0.png … skin_chef5.png and copies the four stock skins.
 """
 import colorsys
 import os
@@ -19,12 +19,19 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 KIT = os.path.join(ROOT, 'assets', 'kenney_animated-characters-protagonists', 'Skins')
 OUT = os.path.join(ROOT, 'public', 'models', 'chef')
 SOURCE = 'skaterMaleA.png'
-PEDESTRIAN_SKINS = ['criminalMaleA.png', 'skaterFemaleA.png', 'cyborgFemaleA.png']
+# Every stock skin is copied as well: the Chefs page offers them as characters, and three of
+# them dress the pedestrians.
+STOCK_SKINS = ['skaterMaleA.png', 'skaterFemaleA.png', 'criminalMaleA.png', 'cyborgFemaleA.png']
 
-# Apron colours match CHEF_COLORS in src/game/ui/theme.ts (player 1 blue, player 2 red).
+# Apron colours match CHEF_SKINS in src/art/models.ts, in the same order (the Chefs page
+# lets each player pick one; players 1 and 2 default to blue and red).
 CHEFS = [
-    ('skin_chef0.png', (0.58, 0.80, 0.95)),   # hue, saturation, value of the apron
-    ('skin_chef1.png', (0.00, 0.80, 0.92)),
+    ('skin_chef0.png', (0.58, 0.80, 0.95)),   # hue, saturation, value of the apron: blue
+    ('skin_chef1.png', (0.00, 0.80, 0.92)),   # red
+    ('skin_chef2.png', (0.36, 0.72, 0.78)),   # green
+    ('skin_chef3.png', (0.14, 0.88, 0.98)),   # yellow
+    ('skin_chef4.png', (0.76, 0.58, 0.86)),   # purple
+    ('skin_chef5.png', (0.07, 0.85, 0.98)),   # orange
 ]
 
 # Garment regions of the 1024x1024 skin (left, top, right, bottom) and the hue window (0..1)
@@ -96,7 +103,7 @@ def main() -> None:
     for name, hsv in CHEFS:
         paint(source, hsv).save(os.path.join(OUT, name))
         print('wrote', name)
-    for name in PEDESTRIAN_SKINS:
+    for name in STOCK_SKINS:
         shutil.copyfile(os.path.join(KIT, name), os.path.join(OUT, name))
         print('copied', name)
 

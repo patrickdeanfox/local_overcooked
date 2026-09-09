@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { MAX_PLAYERS, STORAGE_KEYS } from '../src/config';
+import { CHEF_SKINS } from '../src/art/models';
 import {
-  assistSummary, cyclePlayers, cyclePreset, cycleSeedMode, dailySeed, defaultSettings, describeModifiers,
-  isAssisted, loadSettings, normaliseSeed, PRESETS, PRESET_IDS, presetModifiers, presetName, presetSummary,
-  saveSettings, SEED_LIMIT, seedFor, SETTINGS_VERSION, type Settings,
+  assistSummary, chefSummary, cycleChef, cyclePlayers, cyclePreset, cycleSeedMode, dailySeed, defaultSettings,
+  describeModifiers, isAssisted, loadSettings, normaliseSeed, PRESETS, PRESET_IDS, presetModifiers, presetName,
+  presetSummary, saveSettings, SEED_LIMIT, seedFor, SETTINGS_VERSION, settingsSummary, type Settings,
 } from '../src/game/settings';
 import type { StorageLike } from '../src/game/storage';
 
@@ -101,6 +102,46 @@ describe('assists', () => {
   });
 });
 
+// ─── Chefs and audio ────────────────────────────────────────────────────────
+describe('chefs and audio', () => {
+  it('default to blue and red aprons with everything audible', () => {
+    expect(defaultSettings().chefs).toEqual([0, 1]);
+    expect(defaultSettings().audio).toEqual({ music: true, sfx: true });
+    expect(chefSummary(defaultSettings().chefs)).toBe('Blue apron · Red apron');
+    expect(CHEF_SKINS.length).toBe(15);
+  });
+
+  it('cycle a player past the aprons the other player wears, wrapping around', () => {
+    expect(cycleChef([0, 1], 0, 1)).toEqual([2, 1]);           // red is taken, so blue -> green
+    expect(cycleChef([0, 1], 1, -1)).toEqual([0, CHEF_SKINS.length - 1]); // blue is taken, so red -> last
+    expect(cycleChef([CHEF_SKINS.length - 1, 1], 0, 1)).toEqual([0, 1]);
+    expect(cycleChef([0, 1], 0, 0)).toEqual([0, 1]);
+  });
+
+  it('summarise what the settings page changed', () => {
+    expect(settingsSummary(defaultSettings())).toBe('defaults');
+    const changed: Settings = {
+      ...defaultSettings(),
+      seedMode: 'fixed', fixedSeed: 77, freePlay: true,
+      assists: { instantCooking: true, ordersNeverExpire: true, noBurning: false },
+      audio: { music: false, sfx: true },
+    };
+    expect(settingsSummary(changed)).toBe('seed 77 · free play · 2 assists · music off');
+    expect(settingsSummary({ ...defaultSettings(), seedMode: 'daily', audio: { music: true, sfx: false } })).toBe('daily seed · sound off');
+  });
+
+  it('read unknown apron ids and malformed audio as the defaults', () => {
+    const storage = fakeStorage({
+      [STORAGE_KEYS.SETTINGS]: JSON.stringify({ version: SETTINGS_VERSION, chefs: [99, 3, 5], audio: 'loud' }),
+    });
+    const loaded = loadSettings(storage);
+    expect(loaded.chefs).toEqual([0, 3]);
+    expect(loaded.audio).toEqual({ music: true, sfx: true });
+    expect(loadSettings(fakeStorage({ [STORAGE_KEYS.SETTINGS]: JSON.stringify({ version: SETTINGS_VERSION, chefs: 'none' }) })).chefs)
+      .toEqual([0, 1]);
+  });
+});
+
 // ─── Seeds ──────────────────────────────────────────────────────────────────
 describe('seedFor', () => {
   it('returns the pinned seed in fixed mode', () => {
@@ -152,6 +193,8 @@ describe('settings persistence', () => {
     const settings: Settings = {
       players: 1, preset: 'chaos', seedMode: 'fixed', fixedSeed: 99, freePlay: true,
       assists: { instantCooking: true, ordersNeverExpire: false, noBurning: true },
+      audio: { music: false, sfx: true },
+      chefs: [4, 2],
     };
     expect(saveSettings(settings, storage)).toBe(true);
     expect(loadSettings(storage)).toEqual(settings);

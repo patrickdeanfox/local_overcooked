@@ -1,7 +1,9 @@
 // ─── Game settings ──────────────────────────────────────────────────────────
-// Player count, difficulty preset, seed mode, free play and assists, saved under
-// STORAGE_KEYS.SETTINGS. Pure module: no Phaser, no scene state. The title screen and
-// the assists page edit it, GameScene reads it to build the Sim.
+// Player count, difficulty preset, seed mode, free play, assists, audio switches and the
+// chefs' aprons, saved under STORAGE_KEYS.SETTINGS. Pure module: no Phaser, no scene state.
+// The title, the Settings page and the Chefs page edit it; GameScene reads it to build the
+// Sim and the kitchen.
+import { CHEF_SKINS, DEFAULT_CHEF_SKINS } from '../art/models';
 import { MAX_PLAYERS, STORAGE_KEYS } from '../config';
 import type { Modifiers } from '../sim/types';
 import { asBoolean, asCount, asRecord, browserStorage, readStored, writeStored, type StorageLike } from './storage';
@@ -52,6 +54,14 @@ export const ASSIST_NAMES: Readonly<Record<AssistId, string>> = Object.freeze({
 });
 export const NO_ASSISTS: Readonly<Assists> = Object.freeze({ instantCooking: false, ordersNeverExpire: false, noBurning: false });
 
+// ─── Audio ──────────────────────────────────────────────────────────────────
+// Music and sound effects switch off on their own; the M key's master mute sits above both.
+export interface AudioSettings {
+  music: boolean;
+  sfx: boolean;
+}
+export const DEFAULT_AUDIO: Readonly<AudioSettings> = Object.freeze({ music: true, sfx: true });
+
 export interface Settings {
   players: number;      // 1..MAX_PLAYERS
   preset: PresetId;
@@ -59,6 +69,8 @@ export interface Settings {
   fixedSeed: number;    // used when seedMode is 'fixed'
   freePlay: boolean;    // ignores unlock thresholds
   assists: Assists;
+  audio: AudioSettings;
+  chefs: number[];      // character (CHEF_SKINS index) per player, index = player
 }
 
 export const DEFAULT_SETTINGS: Readonly<Settings> = Object.freeze({
@@ -68,11 +80,13 @@ export const DEFAULT_SETTINGS: Readonly<Settings> = Object.freeze({
   fixedSeed: 1,
   freePlay: false,
   assists: NO_ASSISTS,
+  audio: DEFAULT_AUDIO,
+  chefs: [...DEFAULT_CHEF_SKINS],
 });
 
 // ─── Pure helpers ───────────────────────────────────────────────────────────
 export function defaultSettings(): Settings {
-  return { ...DEFAULT_SETTINGS, assists: { ...NO_ASSISTS } };
+  return { ...DEFAULT_SETTINGS, assists: { ...NO_ASSISTS }, audio: { ...DEFAULT_AUDIO }, chefs: [...DEFAULT_CHEF_SKINS] };
 }
 
 function asPreset(value: unknown): PresetId {
@@ -90,6 +104,23 @@ function asAssists(value: unknown): Assists {
     ordersNeverExpire: asBoolean(stored?.ordersNeverExpire, NO_ASSISTS.ordersNeverExpire),
     noBurning: asBoolean(stored?.noBurning, NO_ASSISTS.noBurning),
   };
+}
+
+function asAudio(value: unknown): AudioSettings {
+  const stored = asRecord(value);
+  return {
+    music: asBoolean(stored?.music, DEFAULT_AUDIO.music),
+    sfx: asBoolean(stored?.sfx, DEFAULT_AUDIO.sfx),
+  };
+}
+
+/** One apron per player; anything that is not a known skin id falls back to that player's default. */
+function asChefs(value: unknown): number[] {
+  const stored: unknown[] = Array.isArray(value) ? value : [];
+  return DEFAULT_CHEF_SKINS.map((fallback, player) => {
+    const skin = stored[player];
+    return typeof skin === 'number' && Number.isInteger(skin) && skin >= 0 && skin < CHEF_SKINS.length ? skin : fallback;
+  });
 }
 
 /** Wraps any number into the 32-bit unsigned seed range. */
@@ -125,10 +156,41 @@ export function isAssisted(modifiers: Readonly<Modifiers> | undefined): boolean 
   return modifiers?.instantCooking === true || modifiers?.ordersNeverExpire === true || modifiers?.noBurning === true;
 }
 
-/** The title row's summary: 'off', or the assists that are on. */
+/** 'off', or the assists that are on. */
 export function assistSummary(assists: Readonly<Assists>): string {
   const on = ASSIST_IDS.filter((id) => assists[id]).map((id) => ASSIST_NAMES[id].toLowerCase());
   return on.length > 0 ? on.join(' · ') : 'off';
+}
+
+/** The title's Settings row: whatever is not at its default, or 'defaults'. */
+export function settingsSummary(settings: Readonly<Settings>): string {
+  const parts: string[] = [];
+  if (settings.seedMode === 'daily') parts.push('daily seed');
+  if (settings.seedMode === 'fixed') parts.push(`seed ${settings.fixedSeed}`);
+  if (settings.freePlay) parts.push('free play');
+  const assists = ASSIST_IDS.filter((id) => settings.assists[id]).length;
+  if (assists > 0) parts.push(`${assists} assist${assists === 1 ? '' : 's'}`);
+  if (!settings.audio.music) parts.push('music off');
+  if (!settings.audio.sfx) parts.push('sound off');
+  return parts.length > 0 ? parts.join(' · ') : 'defaults';
+}
+
+/** The title's Chefs row: each player's character name. */
+export function chefSummary(chefs: readonly number[]): string {
+  return chefs.map((skin) => (CHEF_SKINS[skin] ?? CHEF_SKINS[0]).name).join(' · ');
+}
+
+/** The next character for one player, skipping the ones the other players are. */
+export function cycleChef(chefs: readonly number[], player: number, delta: number): number[] {
+  const taken = new Set(chefs.filter((_, i) => i !== player));
+  let next = chefs[player] ?? DEFAULT_CHEF_SKINS[player] ?? 0;
+  for (let i = 0; i < CHEF_SKINS.length; i++) {
+    next = (next + delta + CHEF_SKINS.length) % CHEF_SKINS.length;
+    if (!taken.has(next)) break;
+  }
+  const out = [...chefs];
+  out[player] = next;
+  return out;
 }
 
 /** Stars earned on this preset count toward unlocks: 'normal' and anything harder. */
@@ -195,6 +257,8 @@ export function loadSettings(storage: StorageLike | null = browserStorage()): Se
     fixedSeed: normaliseSeed(asCount(stored.fixedSeed, DEFAULT_SETTINGS.fixedSeed)),
     freePlay: asBoolean(stored.freePlay, DEFAULT_SETTINGS.freePlay),
     assists: asAssists(stored.assists),
+    audio: asAudio(stored.audio),
+    chefs: asChefs(stored.chefs),
   };
 }
 

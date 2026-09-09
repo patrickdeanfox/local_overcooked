@@ -12,7 +12,8 @@ export const SCENE = {
   BOOT: 'Boot',
   TITLE: 'Title',
   CONTROLLER: 'Controller',
-  ASSISTS: 'Assists',
+  SETTINGS: 'Settings',
+  CHEFS: 'Chefs',
   GAME: 'Game',
   RESULTS: 'Results',
 } as const;
@@ -21,5 +22,5 @@ export const STORAGE_KEYS = {
   BINDINGS: 'local-overcooked.bindings.v1',
   MUTED: 'local-overcooked.muted.v1',
   PROGRESS: 'local-overcooked.progress.v1',  // best score and stars per level id
-  SETTINGS: 'local-overcooked.settings.v1',  // players, difficulty preset, seed mode, free play, assists
+  SETTINGS: 'local-overcooked.settings.v1',  // players, difficulty preset, seed mode, free play, assists, audio, chefs
 } as const;

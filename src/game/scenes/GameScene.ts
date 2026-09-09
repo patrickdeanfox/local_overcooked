@@ -83,6 +83,7 @@ export class GameScene extends Phaser.Scene {
   private seed = 0;
   private modifiers: Modifiers = {};
   private preset: PresetId = DEFAULT_PRESET;
+  private chefSkins: readonly number[] = [];
   private readonly recentEvents = createEventRing();
   private accumulator = 0;
   private ending = false;
@@ -101,6 +102,7 @@ export class GameScene extends Phaser.Scene {
     this.seed = data.seed ?? seedFor(settings);
     this.modifiers = data.modifiers ?? presetModifiers(settings);
     this.preset = data.preset ?? settings.preset;
+    this.chefSkins = settings.chefs;
     const level = snapshot.levels[this.levelId];
     if (!level) {
       log.error('unknown level', this.levelId, '- returning to the title');
@@ -189,7 +191,7 @@ export class GameScene extends Phaser.Scene {
     this.sim = new Sim(level, { players: this.players, seed: this.seed, modifiers: this.modifiers });
     // Dev-only hook for the headless playtest harness (tools/playtest.mjs): read sim state via window.__oc.
     if (import.meta.env.DEV) (globalThis as unknown as { __oc?: unknown }).__oc = { sim: this.sim, level, scene: this };
-    this.kitchen = new KitchenRenderer(this, this.sim.getState(), level.theme);
+    this.kitchen = new KitchenRenderer(this, this.sim.getState(), level.theme, this.chefSkins);
     const meta = `seed ${this.seed} · ${presetName(this.preset)}${isAssisted(this.modifiers) ? ' · assists on' : ''}`;
     this.hud = new Hud(this, level.name, meta);
     this.accumulator = 0;

@@ -7,6 +7,7 @@ import { createAudioBus } from '../audio';
 import type { AudioBus } from '../audio/types';
 import { STORAGE_KEYS } from '../config';
 import { log } from '../log';
+import { loadSettings, saveSettings } from './settings';
 
 const MUTED_ON = '1';
 const MUTED_OFF = '0';
@@ -37,8 +38,27 @@ export function getAudioBus(): AudioBus {
   if (!bus) {
     bus = createAudioBus();
     bus.setMuted(loadMuted());
+    const audio = loadSettings().audio;
+    bus.setMusicEnabled(audio.music);
+    bus.setSfxEnabled(audio.sfx);
   }
   return bus;
+}
+
+/** Switches the music on or off and remembers it in the settings. */
+export function setMusicEnabled(enabled: boolean): void {
+  getAudioBus().setMusicEnabled(enabled);
+  const settings = loadSettings();
+  saveSettings({ ...settings, audio: { ...settings.audio, music: enabled } });
+  log.info('music:', enabled ? 'on' : 'off');
+}
+
+/** Switches the sound effects on or off and remembers it in the settings. */
+export function setSfxEnabled(enabled: boolean): void {
+  getAudioBus().setSfxEnabled(enabled);
+  const settings = loadSettings();
+  saveSettings({ ...settings, audio: { ...settings.audio, sfx: enabled } });
+  log.info('sound effects:', enabled ? 'on' : 'off');
 }
 
 export function setMuted(muted: boolean): void {

@@ -59,6 +59,8 @@ export function createAudioBus(): AudioBus {
   let music: MusicPlayer | null = null;
   let musicWanted = false;
   let muted = loadMuted();
+  let musicEnabled = true;
+  let sfxEnabled = true;
   const lastPlayedAt: Partial<Record<SfxName, number>> = {};
 
   /** Build the AudioContext on first use; null where Web Audio is unavailable. */
@@ -83,12 +85,12 @@ export function createAudioBus(): AudioBus {
     }
   }
 
-  /** Music runs only while wanted, unmuted and audible, so a muted game costs nothing. */
+  /** Music runs only while wanted, switched on, unmuted and audible, so a muted game costs nothing. */
   function syncMusic(): void {
     const sc = synth;
     if (!sc) return;
     if (!music) music = createMusicPlayer(sc.ctx, sc.dest);
-    if (musicWanted && !muted && sc.ctx.state === 'running') {
+    if (musicWanted && musicEnabled && !muted && sc.ctx.state === 'running') {
       if (!music.isPlaying()) music.start();
     } else if (music.isPlaying()) {
       music.stop();
@@ -106,7 +108,7 @@ export function createAudioBus(): AudioBus {
     },
 
     play: (name: SfxName): void => {
-      if (muted) return;
+      if (muted || !sfxEnabled) return;
       const sc = ensure();
       if (!sc) return;
       // Nothing is audible before the first gesture, and scheduling into a
@@ -141,6 +143,19 @@ export function createAudioBus(): AudioBus {
     },
 
     isMuted: (): boolean => muted,
+
+    setMusicEnabled: (enabled: boolean): void => {
+      musicEnabled = enabled;
+      syncMusic();
+    },
+
+    isMusicEnabled: (): boolean => musicEnabled,
+
+    setSfxEnabled: (enabled: boolean): void => {
+      sfxEnabled = enabled;
+    },
+
+    isSfxEnabled: (): boolean => sfxEnabled,
   };
 }
 

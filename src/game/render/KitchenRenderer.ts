@@ -8,9 +8,9 @@
 // World space: one tile is one unit, x runs right, z runs down the screen (tile y), y is up.
 import Phaser from 'phaser';
 import * as THREE from 'three';
-import { CHEF_SKIN_URLS, PEDESTRIAN_SKIN_URLS } from '../../art/models';
+import { CHEF_SKINS, PEDESTRIAN_SKIN_URLS, type ChefSkin } from '../../art/models';
 import { FACING_VECTORS, type Chef, type GateGroup, type Item, type SimState, type Tile } from '../../sim/types';
-import { CHEF_COLORS, COLOR } from '../ui/theme';
+import { COLOR } from '../ui/theme';
 import { ChefRig } from './three/chefs';
 import { FxPool } from './three/fx';
 import { buildItemView, itemSignature } from './three/items';
@@ -93,7 +93,14 @@ export class KitchenRenderer {
   private gridH = 0;
   private elapsed = 0;
 
-  constructor(private readonly scene: Phaser.Scene, state: Readonly<SimState>, private readonly theme?: string) {
+  /** `skins` is the apron (CHEF_SKINS index) each chef wears, by chef index; missing entries fall
+   *  back to the default order. */
+  constructor(
+    private readonly scene: Phaser.Scene,
+    state: Readonly<SimState>,
+    private readonly theme?: string,
+    private readonly skins: readonly number[] = [],
+  ) {
     this.stage = acquireStage(scene.game.canvas);
     this.stage.resetScene();
     this.container = scene.add.container(0, 0);
@@ -454,8 +461,12 @@ export class KitchenRenderer {
   }
 
   // ─── Pools ────────────────────────────────────────────────────────────────
+  private skinFor(chefIndex: number): ChefSkin {
+    return CHEF_SKINS[this.skins[chefIndex] ?? chefIndex] ?? CHEF_SKINS[chefIndex % CHEF_SKINS.length];
+  }
+
   private makeHighlight(slot: number, chefIndex: number): THREE.Mesh {
-    const color = CHEF_COLORS[chefIndex] ?? CHEF_COLORS[0];
+    const color = this.skinFor(chefIndex).color;
     const ring = new THREE.Mesh(
       new THREE.RingGeometry(HIGHLIGHT.inner, HIGHLIGHT.outer, HIGHLIGHT.segments),
       new THREE.MeshBasicMaterial({ color, transparent: true, opacity: HIGHLIGHT.alpha, depthWrite: false, side: THREE.DoubleSide }),
@@ -468,14 +479,14 @@ export class KitchenRenderer {
   }
 
   private makeChef(index: number): ChefRig {
-    const rig = new ChefRig(CHEF_SKIN_URLS[index % CHEF_SKIN_URLS.length], true);
+    const rig = new ChefRig(this.skinFor(index), true);
     this.stage.scene.add(rig.group);
     this.chefs.set(index, rig);
     return rig;
   }
 
   private makePedestrian(id: number): ChefRig {
-    const rig = new ChefRig(PEDESTRIAN_SKIN_URLS[Math.abs(id) % PEDESTRIAN_SKIN_URLS.length], false);
+    const rig = new ChefRig({ model: 'chef', url: PEDESTRIAN_SKIN_URLS[Math.abs(id) % PEDESTRIAN_SKIN_URLS.length] }, false);
     this.stage.scene.add(rig.group);
     this.pedestrians.set(id, rig);
     return rig;
