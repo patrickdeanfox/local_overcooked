@@ -1,0 +1,50 @@
+{
+  "id": "oc1-4-3", "game": "oc1", "world": 4, "index": 3, "name": "4-3", "theme": "Munch Mansion",
+  "wiki": "https://overcooked.fandom.com/wiki/4-3_(Overcooked!)", "screenshots": ["oc1/4-3.jpg"],
+  "timeLimitSec": 240, "timerStartsOnFirstServe": false, "unlockStars": 38, "players": [1, 2, 3, 4],
+  "recipes": ["meat_burger", "lettuce_burger", "tomato_lettuce_burger"], "orderVariants": 3,
+  "orders": {"initial": 2, "intervalSec": 20, "max": 4, "timeSec": 60},
+  "stars": {"1": [null, null, 90], "2": [null, null, 120], "3": null, "4": null},
+  "starsProvenance": "oc1",
+  "plates": {"mode": "sink", "count": 3},
+  "grid": {
+    "cols": 18, "rows": 11, "confidence": "med",
+    "ascii": [
+      "####WD###ERVV##X##",
+      "#........#.......#",
+      "B........#.......F",
+      "#........#.......#",
+      "###.######ppp#.###",
+      "U........#.......#",
+      "T........#.......#",
+      "A................F",
+      "L........#.......#",
+      "#........#.......#",
+      "##################"
+    ]
+  },
+  "legendExtensions": {},
+  "stations": {
+    "board": 1, "potBurner": 0, "panBurner": 2, "fryer": 0, "oven": 0, "mixer": 0, "steamer": 0,
+    "sink": 1, "serve": 1, "plateReturn": 1, "trash": 1, "extinguisher": 1, "plate": 3, "counter": 58,
+    "crates": {"bun": 1, "tomato": 1, "meat": 1, "lettuce": 1}
+  },
+  "spawns": [{"x": 4, "y": 6}, {"x": 13, "y": 6}],
+  "zones": [
+    {"name": "upper-left quadrant", "stations": ["board", "sink"], "links": [{"to": "lower-left quadrant", "via": "walk"}]},
+    {"name": "lower-left quadrant", "stations": ["crates"], "links": [{"to": "upper-left quadrant", "via": "walk"}, {"to": "lower-right quadrant", "via": "walk"}]},
+    {"name": "upper-right quadrant", "stations": ["panBurner", "serve", "plateReturn", "trash", "extinguisher"], "links": [{"to": "lower-right quadrant", "via": "walk"}]},
+    {"name": "lower-right quadrant", "stations": ["panBurner"], "links": [{"to": "upper-right quadrant", "via": "walk"}, {"to": "lower-left quadrant", "via": "walk"}]}
+  ],
+  "dynamics": [
+    {"type": "moving-stations", "detail": "the two pan burners, the beef crate and the single chopping board relocate between quadrants, sealing some passages and opening others; the wiki gallery names five distinct configurations", "periodSec": null}
+  ],
+  "hazards": [],
+  "features": {
+    "splitKitchen": true, "throwRequired": false, "movingPlatforms": false, "conveyors": false,
+    "portals": false, "floorTiles": 123, "counterTiles": 75, "stationTiles": 17,
+    "longestWalkTiles": 23, "chokepointWidth": 1, "recipeSteps": 4
+  },
+  "missingMechanics": ["stations that relocate to new tiles mid-level", "passages that open and close as furniture moves"],
+  "estimates": ["orders.initial", "orders.intervalSec", "orders.max", "orders.timeSec", "spawns", "dynamics[0].periodSec", "grid"]
+}

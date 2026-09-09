@@ -1,0 +1,57 @@
+{
+  "id": "oc1-peckening", "game": "oc1", "world": 6, "index": 5, "name": "The Peckening", "theme": "Treacle Town (Apocalypse)",
+  "wiki": "https://overcooked.fandom.com/wiki/The_Peckening", "screenshots": ["oc1/peckening.jpg"],
+  "timeLimitSec": 1020, "timerStartsOnFirstServe": false, "unlockStars": 0, "players": [1, 2, 3, 4],
+  "recipes": ["tomato_soup", "onion_soup", "mushroom_soup", "meat_burger", "lettuce_burger", "tomato_lettuce_burger", "pizza", "pepperoni_pizza", "mushroom_pizza", "fish_and_chips", "salad", "tomato_salad"],
+  "orderVariants": 17,
+  "orders": {"initial": null, "intervalSec": null, "max": null, "timeSec": null,
+    "scripted": true,
+    "phases": [
+      {"phase": 1, "orders": ["tomato_soup", "onion_soup", "mushroom_soup", "onion_soup", "tomato_soup"], "note": "AYCE runs tomato/onion/tomato/onion/tomato; OC1 swaps the second tomato for mushroom, and drops the last two orders in single player"},
+      {"phase": 2, "orders": ["meat_burger", "tomato_lettuce_burger", "lettuce_burger", "meat_burger", "tomato_lettuce_burger"]},
+      {"phase": 3, "orders": ["pizza", "fish_and_chips", "pepperoni_pizza", "fish_and_chips", "pizza"]},
+      {"phase": 4, "orders": ["tomato_soup", "mushroom_pizza", "tomato_lettuce_burger", "fish_and_chips", "tomato_salad"]}
+    ]},
+  "stars": {"1": [240, 540, 840], "2": [240, 520, 820], "3": [260, 580, 920], "4": [240, 520, 820]},
+  "starsProvenance": "ayce-switch",
+  "plates": {"mode": "sink", "count": 3, "startDirty": true, "startOn": "plateReturn"},
+  "grid": {
+    "cols": 18, "rows": 9, "confidence": "low",
+    "ascii": [
+      "##N#E#      #N##X#",
+      "S.....      ......",
+      "S##X#.#TOM  .#B##.",
+      "S.........  ......",
+      "S####.####  .#WD#V",
+      "#.........  .....R",
+      "###Y#.####  .#Y##.",
+      "......      ......",
+      "######      ######"
+    ]
+  },
+  "legendExtensions": {"N": "oven", "Y": "deep fryer with a frying basket", " ": "the street between the two buildings: void the chefs cannot cross on foot"},
+  "stations": {
+    "board": 1, "potBurner": 4, "panBurner": 0, "fryer": 2, "oven": 2, "mixer": 0, "steamer": 0,
+    "sink": 1, "serve": 1, "plateReturn": 1, "trash": 2, "extinguisher": 1, "plate": 3, "counter": 49,
+    "crates": {"note": "every crate rides the ferry platform and the set changes per phase: mushroom/tomato/onion in phase 1; bun and chop-needing crates in phase 2; pizza and fish-and-chips crates in phase 3; a full set in phase 4"}
+  },
+  "spawns": [{"x": 3, "y": 1}, {"x": 4, "y": 1}],
+  "zones": [
+    {"name": "left rooftop (E-shaped)", "stations": ["potBurner", "trash", "oven", "extinguisher", "fryer"], "links": [{"to": "ferry platform", "via": "walk-when-docked"}]},
+    {"name": "right rooftop (3-shaped)", "stations": ["oven", "trash", "board", "sink", "fryer", "serve", "plateReturn"], "links": [{"to": "ferry platform", "via": "walk-when-docked"}]},
+    {"name": "ferry platform", "stations": ["crates", "board (phases 2 and 4)", "conveyor (phase 2)"], "links": [{"to": "left rooftop", "via": "helicopter ferry"}, {"to": "right rooftop", "via": "helicopter ferry"}]}
+  ],
+  "dynamics": [
+    {"type": "ferry-platform", "detail": "a platform slung under Kevin's helicopter crosses between the two buildings, carrying every crate; its layout is rebuilt each phase (sideways H of counters, then two conveyor sections that move up and down, then a board-split slab that rotates 90 degrees clockwise, then three tables that crawl across with stops in the middle and at each edge)", "periodSec": null},
+    {"type": "meteors", "detail": "meteors fall throughout and set counters alight on impact; one strike is scripted at the start of phase 2, hitting the right building's oven, chopping board and nearby counters", "periodSec": null},
+    {"type": "phase-script", "detail": "four phases of five orders; each ends when its last order reaches the Ever Peckish. Cookware must be swapped by hand between phases: pots to pans before phase 2, at least one pot back before phase 4", "periodSec": null}
+  ],
+  "hazards": ["falling meteors set counters on fire", "the street between the buildings cannot be crossed on foot"],
+  "features": {
+    "splitKitchen": true, "throwRequired": true, "movingPlatforms": true, "conveyors": true,
+    "portals": false, "floorTiles": 60, "counterTiles": 68, "stationTiles": 19,
+    "longestWalkTiles": null, "chokepointWidth": 1, "recipeSteps": 5
+  },
+  "missingMechanics": ["scripted order phases that end on delivery", "a ferry platform rebuilt per phase, with rotation and multi-stop travel", "meteors that set counters alight, plus a scripted strike", "deep fryer and the fish-and-chips family", "oven and the pizza family", "salad (chop and plate, no cooking)", "cookware taken off a burner and swapped pot to pan", "plates that start dirty"],
+  "estimates": ["spawns", "ferry crossing and dwell times", "phase 3 rotation period", "meteor rate and targeting", "grid", "stars (AYCE-Switch, not OC1)", "the OC1 phase-1 order list (the wiki gives the AYCE order plus a trivia note on the OC1 differences)"]
+}

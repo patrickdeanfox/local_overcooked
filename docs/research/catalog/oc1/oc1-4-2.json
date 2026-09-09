@@ -1,0 +1,47 @@
+{
+  "id": "oc1-4-2", "game": "oc1", "world": 4, "index": 2, "name": "4-2", "theme": "Munch Mansion",
+  "wiki": "https://overcooked.fandom.com/wiki/4-2_(Overcooked!)", "screenshots": ["oc1/4-2.jpg", "oc1/4-2-lit.jpg"],
+  "timeLimitSec": 240, "timerStartsOnFirstServe": false, "unlockStars": 35, "players": [1, 2, 3, 4],
+  "recipes": ["onion_soup", "tomato_soup", "mushroom_soup"], "orderVariants": 3,
+  "orders": {"initial": 2, "intervalSec": 18, "max": 4, "timeSec": 60},
+  "stars": {"1": [null, null, 100], "2": [null, null, 110], "3": null, "4": null},
+  "starsProvenance": "oc1",
+  "plates": {"mode": "sink", "count": 3},
+  "grid": {
+    "cols": 15, "rows": 10, "confidence": "med",
+    "ascii": [
+      "       #ES#ppp#",
+      "##WD##B.......V",
+      "B.............R",
+      "#.............#",
+      "#.....##X######",
+      "S.....#######T#",
+      "#.............#",
+      "#.............#",
+      "O.............M",
+      "###############"
+    ]
+  },
+  "legendExtensions": {},
+  "stations": {
+    "board": 2, "potBurner": 2, "panBurner": 0, "fryer": 0, "oven": 0, "mixer": 0, "steamer": 0,
+    "sink": 1, "serve": 1, "plateReturn": 1, "trash": 1, "extinguisher": 1, "plate": 3, "counter": 45,
+    "crates": {"onion": 1, "tomato": 1, "mushroom": 1}
+  },
+  "spawns": [{"x": 4, "y": 3}, {"x": 10, "y": 6}],
+  "zones": [
+    {"name": "north corridor", "stations": ["sink", "board", "potBurner", "extinguisher", "plate", "serve", "plateReturn", "trash"], "links": [{"to": "south corridor", "via": "walk"}]},
+    {"name": "south corridor", "stations": ["crates"], "links": [{"to": "north corridor", "via": "walk"}]}
+  ],
+  "dynamics": [
+    {"type": "darkness", "detail": "the kitchen is unlit; only cones from the chefs' lamps reveal it, and raw ingredients glow in the dark", "periodSec": null}
+  ],
+  "hazards": ["darkness: no map visibility outside the chefs' light cones"],
+  "features": {
+    "splitKitchen": false, "throwRequired": false, "movingPlatforms": false, "conveyors": false,
+    "portals": false, "floorTiles": 82, "counterTiles": 61, "stationTiles": 16,
+    "longestWalkTiles": 23, "chokepointWidth": 2, "recipeSteps": 4
+  },
+  "missingMechanics": ["darkness with per-chef light cones", "glow-in-the-dark ingredients"],
+  "estimates": ["orders.initial", "orders.intervalSec", "orders.max", "orders.timeSec", "spawns", "grid", "features.chokepointWidth", "dynamics[0] cone size"]
+}

@@ -1,0 +1,53 @@
+{
+  "id": "oc1-6-4", "game": "oc1", "world": 6, "index": 4, "name": "6-4", "theme": "Cosmic Canteen",
+  "wiki": "https://overcooked.fandom.com/wiki/6-4_(Overcooked!)", "screenshots": ["oc1/6-4.jpg"],
+  "timeLimitSec": 240, "timerStartsOnFirstServe": false, "unlockStars": 74, "players": [1, 2, 3, 4],
+  "recipes": ["salad", "tomato_salad", "onion_soup", "tomato_soup", "mushroom_soup", "meat_burger", "lettuce_burger", "tomato_lettuce_burger"],
+  "orderVariants": 8,
+  "orders": {"initial": 2, "intervalSec": 20, "max": 4, "timeSec": 75},
+  "stars": {"1": [60, 160, 260], "2": [80, 180, 280], "3": [160, 360, 580], "4": [80, 180, 280]},
+  "starsProvenance": "ayce-switch",
+  "plates": {"mode": "sink", "count": 4},
+  "grid": {
+    "cols": 16, "rows": 11, "confidence": "low",
+    "ascii": [
+      "      #TO#      ",
+      "      ....      ",
+      "                ",
+      "#####?SSFF?#####",
+      "V...#......#...V",
+      "R...G.BB##.G...R",
+      "L...G......G...M",
+      "#pp##E#WD#X##pp#",
+      "                ",
+      "      ....      ",
+      "      #UA#      "
+    ]
+  },
+  "legendExtensions": {"?": "rotation button: the left one turns the chamber ring 90 degrees counterclockwise, the right one 90 degrees clockwise", "G": "chamber doorway, walkable only while a chamber is docked on that side"},
+  "stations": {
+    "board": 2, "potBurner": 2, "panBurner": 2, "fryer": 0, "oven": 0, "mixer": 0, "steamer": 0,
+    "sink": 1, "serve": 2, "plateReturn": 2, "trash": 1, "extinguisher": 1, "plate": 4, "counter": 26,
+    "button": 2,
+    "crates": {"lettuce": 1, "mushroom": 1, "tomato": 1, "onion": 1, "bun": 1, "meat": 1}
+  },
+  "spawns": [{"x": 6, "y": 4}, {"x": 8, "y": 5}],
+  "zones": [
+    {"name": "centre", "stations": ["potBurner", "panBurner", "board", "sink", "trash", "extinguisher", "button"], "links": [{"to": "docked chamber (west)", "via": "doorway"}, {"to": "docked chamber (east)", "via": "doorway"}]},
+    {"name": "pair 1 chamber A", "stations": ["lettuce crate", "plate", "plateReturn", "serve"], "links": [{"to": "centre", "via": "doorway when docked"}]},
+    {"name": "pair 1 chamber B", "stations": ["mushroom crate", "plate", "plateReturn", "serve"], "links": [{"to": "centre", "via": "doorway when docked"}]},
+    {"name": "pair 2 chamber A", "stations": ["tomato crate", "onion crate"], "links": [{"to": "centre", "via": "doorway when docked"}]},
+    {"name": "pair 2 chamber B", "stations": ["bun crate", "meat crate"], "links": [{"to": "centre", "via": "doorway when docked"}]}
+  ],
+  "dynamics": [
+    {"type": "rotating-chambers", "detail": "four outer chambers ride a ring around the centre; two buttons inside the centre rotate the ring 90 degrees clockwise or counterclockwise, and only the two chambers on opposite sides are reachable at a time", "periodSec": null}
+  ],
+  "hazards": ["OC1 only: dirty plates appear at just one of the two plate returns at a time"],
+  "features": {
+    "splitKitchen": true, "throwRequired": false, "movingPlatforms": true, "conveyors": false,
+    "portals": false, "floorTiles": 44, "counterTiles": 52, "stationTiles": 26,
+    "longestWalkTiles": 2, "chokepointWidth": 1, "recipeSteps": 4
+  },
+  "missingMechanics": ["chambers rotating around a ring in 90 degree steps, carrying stations and items", "buttons", "salad recipe family (chop and plate, no cooking)", "three recipe families in one order pool", "two serving counters and two plate returns, with dirty plates arriving at only one at a time"],
+  "estimates": ["orders.initial", "orders.intervalSec", "orders.max", "orders.timeSec", "spawns", "dynamics[0] rotation duration and whether chefs ride", "grid", "stars (AYCE-Switch, not OC1)"]
+}
