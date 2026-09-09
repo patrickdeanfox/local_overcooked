@@ -42,6 +42,11 @@ const SPRAY_FX = { intervalSec: 0.05, distance: 0.38 } as const;
 
 const PEDESTRIAN = { moveEpsilon: 1e-4 } as const;
 
+/** A thrown item arcs from hand height and comes down over its range. */
+const FLIGHT = { lift: 0.45, arcHeight: 0.55, scale: 0.9 } as const;
+const DASH_FX = { everySec: 0.05, behind: 0.2 } as const;
+const FALL_FX = { puffs: 5 } as const;
+
 const BADGE_STYLE: Phaser.Types.GameObjects.Text.TextStyle = {
   fontFamily: 'monospace',
   fontSize: `${BADGE.fontPx}px`,
@@ -81,6 +86,9 @@ export class KitchenRenderer {
   private readonly tileItems = new Map<number, ItemView>();
   private readonly chefs = new Map<number, ChefRig>();
   private readonly held = new Map<number, ItemView>();
+  private readonly flying = new Map<number, ItemView>();
+  private readonly dashDustTimer: number[] = [];
+  private readonly wasFalling: boolean[] = [];
   private readonly pedestrians = new Map<number, ChefRig>();
   private readonly highlights: THREE.Mesh[] = [];
   private readonly firePositions = new Map<string, THREE.Vector3>();
@@ -128,9 +136,11 @@ export class KitchenRenderer {
     this.drawSliders(state);
     this.drawGates(state);
     this.drawTileItems(state);
+    this.drawFlying(state);
     this.drawHighlights(state, targets);
     this.drawChopping(state, targets);
     this.drawChefs(state, dtSec);
+    this.drawDashDust(state, dtSec);
     this.drawPedestrians(state, dtSec);
     this.drawFires(state);
     this.drawSteam(state);
@@ -151,6 +161,8 @@ export class KitchenRenderer {
     for (const rig of this.chefs.values()) rig.dispose();
     this.chefs.clear();
     this.held.clear();
+    for (const view of this.flying.values()) view.view.removeFromParent();
+    this.flying.clear();
     for (const rig of this.pedestrians.values()) rig.dispose();
     this.pedestrians.clear();
     for (const ring of this.highlights) ring.removeFromParent();
@@ -249,6 +261,27 @@ export class KitchenRenderer {
     }
   }
 
+  /** Thrown items, pooled by flight id: an arc from hand height back down over the range. */
+  private drawFlying(state: Readonly<SimState>): void {
+    const live = state.flying ?? [];
+    for (const flight of live) {
+      const view = this.viewFor(this.flying.get(flight.id), flight.item, (built) => {
+        built.scale.setScalar(FLIGHT.scale);
+        this.stage.scene.add(built);
+        this.flying.set(flight.id, { signature: itemSignature(flight.item), view: built });
+      });
+      const total = flight.flown + flight.rangeLeft;
+      const progress = total > 0 ? flight.flown / total : 1;
+      view.position.set(flight.x, FLIGHT.lift + Math.sin(progress * Math.PI) * FLIGHT.arcHeight, flight.y);
+      view.visible = true;
+    }
+    for (const [id, view] of this.flying) {
+      if (live.some((flight) => flight.id === id)) continue;
+      view.view.removeFromParent();
+      this.flying.delete(id);
+    }
+  }
+
   /** Reuses the pooled view when the item still looks the same, otherwise builds a new one. */
   private viewFor(current: ItemView | undefined, item: Item, install: (built: THREE.Group) => void): THREE.Group {
     const signature = itemSignature(item);
@@ -295,18 +328,44 @@ export class KitchenRenderer {
   }
 
   private drawChefs(state: Readonly<SimState>, dtSec: number): void {
-    const seen = new Set<number>();
+    const shown = new Set<number>();
     for (const chef of state.chefs) {
-      seen.add(chef.index);
+      const falling = chef.action === 'falling';
+      // A chef in the hole is out of sight until it respawns; the fall itself is a burst of dust.
+      if (falling && this.wasFalling[chef.index] !== true) {
+        for (let i = 0; i < FALL_FX.puffs; i++) this.fx.spawnDust(new THREE.Vector3(chef.x, 0, chef.y));
+      }
+      this.wasFalling[chef.index] = falling;
+      if (falling) continue;
+      shown.add(chef.index);
       const rig = this.chefs.get(chef.index) ?? this.makeChef(chef.index);
       rig.setPosition(chef.x, chef.y);
       rig.setFacing(chef.facing);
-      rig.setMoving(chef.action === 'walking');
+      rig.setMoving(chef.action === 'walking' || chef.action === 'dashing');
+      rig.setDashing(chef.action === 'dashing');
       rig.update(dtSec);
       this.drawHeldItem(chef, rig);
     }
     for (const [index, rig] of this.chefs) {
-      rig.group.visible = seen.has(index);
+      rig.group.visible = shown.has(index);
+    }
+  }
+
+  /** A trail of floor dust behind a dashing chef. */
+  private drawDashDust(state: Readonly<SimState>, dtSec: number): void {
+    for (const chef of state.chefs) {
+      const timer = (this.dashDustTimer[chef.index] ?? 0) - dtSec;
+      if (chef.action !== 'dashing') {
+        this.dashDustTimer[chef.index] = 0;
+        continue;
+      }
+      if (timer > 0) {
+        this.dashDustTimer[chef.index] = timer;
+        continue;
+      }
+      this.dashDustTimer[chef.index] = DASH_FX.everySec;
+      const facing = FACING_VECTORS[chef.facing];
+      this.fx.spawnDust(new THREE.Vector3(chef.x - facing.dx * DASH_FX.behind, 0, chef.y - facing.dy * DASH_FX.behind));
     }
   }
 

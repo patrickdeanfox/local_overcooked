@@ -1,0 +1,51 @@
+# -- Throwing, dashing and the gap on screen: a thrown onion arcs across a hole and lands on the
+#    far floor, a dash stretches the chef and leaves dust, a chef that walks into the hole vanishes
+#    and comes back at its spawn ----------------------------------------------------------------
+#
+# No shipped level has a gap yet, so the script rebuilds the running 1-1 in place with a test
+# kitchen through the hot-reload path (GameScene.onLevelsChanged), the same 13x8 grid the sim
+# tests use: a two-tile hole in columns 7 and 8 with a floor bridge on row 3.
+until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
+wait 600
+tap Enter
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.sim
+wait 500
+eval (__oc.scene.onLevelsChanged({ order: ['oc1-1-1'], levels: { 'oc1-1-1': { id: 'oc1-1-1', name: 'QA gap', game: 'custom', world: 9, index: 1, theme: 'default', timeLimitSec: 300, timerStartsOnFirstServe: false, recipes: ['onion_soup'], orders: { initial: 1, intervalSec: 1000, max: 4, timeSec: 120 }, stars: { 1: [10, 40, 60], 2: [10, 40, 60] }, plates: { mode: 'sink', count: 1 }, grid: ['#############', '#O.....__..B#', '#R.....__..S#', '#..........W#', '#......__..D#', '#p.....__..V#', '#X.....__..E#', '#############'], spawns: [{ x: 3, y: 3 }, { x: 9, y: 3 }] } } }), 'rebuilt')
+wait 800
+eval JSON.stringify(['level', __oc.level.name, 'gap tiles', __oc.sim.getState().tiles.filter((t) => t.type === 'gap').length, 'chef', [__oc.sim.getState().chefs[0].x, __oc.sim.getState().chefs[0].y]])
+shot 23-00-gap-kitchen.png
+
+# -- Throw: face right, hold an onion, E throws it over the bridge row --------------------------
+eval ((c) => (c.holding = { kind: 'ingredient', id: 9001, type: 'onion', chopped: false, chopProgress: 0 }, c.facing = 'right', 'armed'))(__oc.sim.getState().chefs[0])
+wait 100
+tap KeyE
+wait 120
+eval JSON.stringify(['in flight', (__oc.sim.getState().flying || []).map((f) => [Math.round(f.x * 100) / 100, Math.round(f.y * 100) / 100, f.item.id]), 'views', __oc.scene.kitchen.flying.size, 'visible', [...__oc.scene.kitchen.flying.values()].map((v) => v.view.visible)])
+shot 23-01-onion-in-flight.png
+until 5000 (__oc.sim.getState().flying || []).length === 0
+wait 200
+eval JSON.stringify(['landed at (7,3)', __oc.sim.itemAt(7, 3), 'views left', __oc.scene.kitchen.flying.size])
+shot 23-02-onion-landed.png
+
+# -- Dash: Q from the spawn, facing right -----------------------------------------------------------
+eval ((c) => (c.x = 3.5, c.y = 3.5, c.facing = 'right', 'placed'))(__oc.sim.getState().chefs[0])
+wait 100
+tap KeyQ
+wait 70
+eval JSON.stringify(['mid dash', __oc.sim.getState().chefs[0].action, Math.round(__oc.sim.getState().chefs[0].x * 100) / 100, 'stretch z', Math.round(__oc.scene.kitchen.chefs.get(0).group.scale.z * 100) / 100])
+shot 23-03-mid-dash.png
+wait 400
+eval JSON.stringify(['after dash', __oc.sim.getState().chefs[0].action, Math.round(__oc.sim.getState().chefs[0].x * 100) / 100, 'cooldown', __oc.sim.getState().chefs[0].dashCooldown !== undefined])
+
+# -- Fall: walk into the hole from (6.4, 1.5), vanish, come back at the spawn -----------------------
+eval ((c) => (c.x = 6.4, c.y = 1.5, c.facing = 'right', 'placed'))(__oc.sim.getState().chefs[0])
+wait 100
+hold KeyD 300
+wait 200
+eval JSON.stringify(['fallen', __oc.sim.getState().chefs[0].action, 'respawnIn', Math.round((__oc.sim.getState().chefs[0].respawnIn || 0) * 10) / 10, 'rig visible', __oc.scene.kitchen.chefs.get(0).group.visible])
+shot 23-04-fallen.png
+until 8000 __oc.sim.getState().chefs[0].action !== 'falling'
+wait 200
+eval JSON.stringify(['respawned', __oc.sim.getState().chefs[0].action, [__oc.sim.getState().chefs[0].x, __oc.sim.getState().chefs[0].y], 'rig visible', __oc.scene.kitchen.chefs.get(0).group.visible])
+shot 23-05-respawned.png
+errors

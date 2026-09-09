@@ -17,6 +17,9 @@ const RIG = {
   idleTimeScale: 0.9,
   heldY: 0.48,            // held item slot, fraction of the chef's height above the feet
   heldZ: 0.28,            // and in front of the body, same unit
+  dashStretch: 0.22,      // how far the body stretches along its heading while dashing
+  dashSquash: 0.1,        // and how much it flattens
+  stretchSpeed: 18,       // approach speed of the stretch, per second
 } as const;
 // Toque sizes are fractions of the head bone's length, so the hat follows the chef's scale.
 // The Kenney head is 0.87 bone lengths wide and ends 1.06 bone lengths above the bone root.
@@ -112,6 +115,8 @@ export class ChefRig {
   private readonly run: THREE.AnimationAction | null;
   private moving = false;
   private targetYaw = 0;
+  private stretch = 0;       // 0 upright, 1 fully stretched along the heading
+  private targetStretch = 0;
 
   /** `withHat` adds a toque when the model has a head bone; the creatures have none and go bare. */
   constructor(spec: ChefRigSpec, withHat: boolean) {
@@ -154,6 +159,11 @@ export class ChefRig {
     if (dx !== 0 || dz !== 0) this.targetYaw = Math.atan2(dx, dz);
   }
 
+  /** A dashing chef leans into a stretch along its heading; it eases back when the dash ends. */
+  setDashing(dashing: boolean): void {
+    this.targetStretch = dashing ? 1 : 0;
+  }
+
   setMoving(moving: boolean): void {
     if (moving === this.moving) return;
     this.moving = moving;
@@ -171,6 +181,9 @@ export class ChefRig {
     const delta = shortestArc(this.group.rotation.y, this.targetYaw);
     const step = Math.min(1, dtSec * RIG.turnSpeedRad);
     this.group.rotation.y += delta * step;
+    this.stretch += (this.targetStretch - this.stretch) * Math.min(1, dtSec * RIG.stretchSpeed);
+    // Local z is the heading (yaw turns the whole group), so scaling z stretches along the dash.
+    this.group.scale.set(1, 1 - this.stretch * RIG.dashSquash, 1 + this.stretch * RIG.dashStretch);
     this.mixer.update(dtSec);
   }
 
