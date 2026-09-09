@@ -1,0 +1,183 @@
+{
+  "id": "oc1-2-1",
+  "game": "oc1",
+  "world": 2,
+  "index": 1,
+  "name": "2-1",
+  "theme": "Ravenous Roads",
+  "wiki": "https://overcooked.fandom.com/wiki/2-1_(Overcooked!)",
+  "screenshots": [
+    "oc1/2-1.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 10,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "meat_burger",
+    "lettuce_burger",
+    "tomato_lettuce_burger"
+  ],
+  "orderVariants": 3,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 26,
+    "max": 4,
+    "timeSec": 110
+  },
+  "stars": {
+    "1": [
+      null,
+      null,
+      180
+    ],
+    "2": [
+      null,
+      null,
+      240
+    ],
+    "3": null,
+    "4": null
+  },
+  "starsProvenance": "oc1",
+  "plates": {
+    "mode": "return-clean",
+    "count": 3
+  },
+  "grid": {
+    "cols": 13,
+    "rows": 8,
+    "confidence": "med",
+    "ascii": [
+      "#FFF#ppp#    ",
+      "U.......V    ",
+      "#.......R    ",
+      "    _____    ",
+      "    A.......X",
+      "    L.......#",
+      "    T.......B",
+      "    #E###B###"
+    ]
+  },
+  "legendExtensions": {
+    "_": "highway between the trucks; falling off costs 5 s"
+  },
+  "stations": {
+    "board": 2,
+    "potBurner": 0,
+    "panBurner": 3,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 0,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plate": 3,
+    "counter": 15,
+    "crates": {
+      "bun": 1,
+      "meat": 1,
+      "lettuce": 1,
+      "tomato": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 6,
+      "y": 1
+    },
+    {
+      "x": 7,
+      "y": 5
+    }
+  ],
+  "zones": [
+    {
+      "name": "lower truck",
+      "stations": [
+        "crates",
+        "board",
+        "trash",
+        "extinguisher"
+      ],
+      "links": [
+        {
+          "to": "upper truck",
+          "via": "throw"
+        },
+        {
+          "to": "upper truck",
+          "via": "walk-when-close"
+        }
+      ]
+    },
+    {
+      "name": "upper truck",
+      "stations": [
+        "panBurner",
+        "plate",
+        "bun crate",
+        "serve",
+        "plateReturn"
+      ],
+      "links": [
+        {
+          "to": "lower truck",
+          "via": "throw"
+        },
+        {
+          "to": "lower truck",
+          "via": "walk-when-close"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "moving-platforms",
+      "detail": "two truck beds drift apart and back together; while together a chef can walk between them, while apart items must be thrown",
+      "periodSec": 12
+    }
+  ],
+  "hazards": [
+    "fall off a truck: 5 s time penalty",
+    "pan fire"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": true,
+    "movingPlatforms": true,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 35,
+    "counterTiles": 28,
+    "stationTiles": 13,
+    "longestWalkTiles": null,
+    "chokepointWidth": 0,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "throwing",
+    "moving platforms",
+    "fall hazard with time penalty",
+    "clean plate return with no sink"
+  ],
+  "estimates": [
+    "orders",
+    "spawns",
+    "stars.1[0]",
+    "stars.1[1]",
+    "stars.2[0]",
+    "stars.2[1]",
+    "dynamics[0].periodSec",
+    "grid.ascii (inter-truck offset and gap width)"
+  ]
+}

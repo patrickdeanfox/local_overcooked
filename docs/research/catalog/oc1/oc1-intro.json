@@ -1,0 +1,166 @@
+{
+  "id": "oc1-intro",
+  "game": "oc1",
+  "world": 0,
+  "index": 0,
+  "name": "Intro Apocalypse",
+  "theme": "Treacle Town (Apocalypse)",
+  "wiki": "https://overcooked.fandom.com/wiki/Intro_Apocalypse",
+  "screenshots": [
+    "oc1/intro-apocalypse.jpg",
+    "oc1/intro-apocalypse-2p.jpg"
+  ],
+  "timeLimitSec": 100,
+  "timerStartsOnFirstServe": true,
+  "unlockStars": 0,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "salad",
+    "tomato_salad"
+  ],
+  "orderVariants": 2,
+  "orders": {
+    "initial": 1,
+    "intervalSec": 14,
+    "max": 3,
+    "timeSec": 60
+  },
+  "stars": {
+    "1": [
+      60,
+      180,
+      300
+    ],
+    "2": [
+      60,
+      220,
+      420
+    ],
+    "3": [
+      60,
+      300,
+      460
+    ],
+    "4": [
+      60,
+      300,
+      460
+    ]
+  },
+  "starsProvenance": "oc1",
+  "plates": {
+    "mode": "return-clean",
+    "count": 1
+  },
+  "grid": {
+    "cols": 13,
+    "rows": 8,
+    "confidence": "high",
+    "ascii": [
+      "##B#B###L#T##",
+      "#.....#.....#",
+      "#.....#.....#",
+      "#.....#......",
+      "#.....#......",
+      "#.....#.....V",
+      "#.....#.....#",
+      "##########p##"
+    ]
+  },
+  "legendExtensions": {},
+  "stations": {
+    "board": 2,
+    "potBurner": 0,
+    "panBurner": 0,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 0,
+    "serve": 1,
+    "plateReturn": 0,
+    "trash": 0,
+    "extinguisher": 0,
+    "plate": 1,
+    "counter": 37,
+    "crates": {
+      "lettuce": 1,
+      "tomato": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 3,
+      "y": 1
+    },
+    {
+      "x": 9,
+      "y": 1
+    }
+  ],
+  "zones": [
+    {
+      "name": "west room",
+      "stations": [
+        "board"
+      ],
+      "links": [
+        {
+          "to": "east room",
+          "via": "counter hand-off over column 6"
+        }
+      ]
+    },
+    {
+      "name": "east room",
+      "stations": [
+        "crates",
+        "plate",
+        "serve"
+      ],
+      "links": [
+        {
+          "to": "west room",
+          "via": "counter hand-off over column 6"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "layout-by-player-count",
+      "detail": "divider column 6 is 5 tiles in 1P (gap at (6,6)) and 6 tiles in 2-4P, sealing the two rooms",
+      "periodSec": null
+    }
+  ],
+  "hazards": [],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": false,
+    "movingPlatforms": false,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 62,
+    "counterTiles": 42,
+    "stationTiles": 5,
+    "longestWalkTiles": 7,
+    "chokepointWidth": 0,
+    "recipeSteps": 3
+  },
+  "missingMechanics": [
+    "salad recipes",
+    "clean plate return with no sink",
+    "per-player-count layout"
+  ],
+  "estimates": [
+    "orders",
+    "spawns",
+    "plates.count",
+    "timerStartsOnFirstServe"
+  ]
+}

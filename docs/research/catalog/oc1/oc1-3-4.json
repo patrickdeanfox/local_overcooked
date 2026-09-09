@@ -1,0 +1,200 @@
+{
+  "id": "oc1-3-4",
+  "game": "oc1",
+  "world": 3,
+  "index": 4,
+  "name": "3-4",
+  "theme": "Glazed Glacier",
+  "wiki": "https://overcooked.fandom.com/wiki/3-4_(Overcooked!)",
+  "screenshots": [
+    "oc1/3-4.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 29,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "chips",
+    "fish",
+    "fish_and_chips"
+  ],
+  "orderVariants": 3,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 24,
+    "max": 4,
+    "timeSec": 110
+  },
+  "stars": {
+    "1": [
+      null,
+      null,
+      170
+    ],
+    "2": [
+      null,
+      null,
+      180
+    ],
+    "3": null,
+    "4": null
+  },
+  "starsProvenance": "oc1",
+  "plates": {
+    "mode": "sink",
+    "count": 2
+  },
+  "grid": {
+    "cols": 15,
+    "rows": 8,
+    "confidence": "med",
+    "ascii": [
+      "#XYY##___#ppY##",
+      "J.....===.....#",
+      "%.....___.....#",
+      "E.....___.....V",
+      "#.....___.....V",
+      "#.....===.....R",
+      "#.....___.....#",
+      "#WD###___#B#B##"
+    ]
+  },
+  "legendExtensions": {
+    "Y": "deep fryer with a frying basket",
+    "J": "fish crate",
+    "%": "potato crate",
+    "_": "frozen river; falling in costs 5 s",
+    "=": "ice floe, a walkable platform drifting down the river"
+  },
+  "stations": {
+    "board": 2,
+    "potBurner": 0,
+    "panBurner": 0,
+    "fryer": 3,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 1,
+    "serve": 2,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plate": 2,
+    "counter": 22,
+    "crates": {
+      "fish": 1,
+      "potato": 1
+    },
+    "drying": 1
+  },
+  "spawns": [
+    {
+      "x": 3,
+      "y": 3
+    },
+    {
+      "x": 11,
+      "y": 3
+    }
+  ],
+  "zones": [
+    {
+      "name": "west bank",
+      "stations": [
+        "crates",
+        "fryer",
+        "extinguisher",
+        "sink",
+        "trash"
+      ],
+      "links": [
+        {
+          "to": "east bank",
+          "via": "moving-platform"
+        },
+        {
+          "to": "east bank",
+          "via": "throw"
+        }
+      ]
+    },
+    {
+      "name": "east bank",
+      "stations": [
+        "fryer",
+        "plate",
+        "serve",
+        "plateReturn",
+        "board"
+      ],
+      "links": [
+        {
+          "to": "west bank",
+          "via": "moving-platform"
+        },
+        {
+          "to": "west bank",
+          "via": "throw"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "moving-platforms",
+      "detail": "ice floes of varying size drift down the river; a chef rides one across and steps off on the far bank",
+      "periodSec": 7
+    },
+    {
+      "type": "mixed-friction-floor",
+      "detail": "ice is slippery, the snowy patches on the same map are not",
+      "periodSec": null
+    },
+    {
+      "type": "fall-hazard",
+      "detail": "the frozen river; falling in costs 5 s",
+      "periodSec": null
+    }
+  ],
+  "hazards": [
+    "fall in the river: 5 s time penalty",
+    "fryer fire",
+    "missing a floe and having to wait"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": false,
+    "movingPlatforms": true,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 66,
+    "counterTiles": 36,
+    "stationTiles": 14,
+    "longestWalkTiles": 15,
+    "chokepointWidth": 1,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "moving platforms",
+    "fall hazard with time penalty",
+    "slippery floor with mixed friction",
+    "fish and chips recipes",
+    "deep fryer and frying basket",
+    "dash"
+  ],
+  "estimates": [
+    "orders",
+    "spawns",
+    "stars.1[0]",
+    "stars.1[1]",
+    "stars.2[0]",
+    "stars.2[1]",
+    "dynamics[0].periodSec",
+    "grid.ascii (river width and floe positions)"
+  ]
+}

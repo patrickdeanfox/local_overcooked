@@ -1,0 +1,162 @@
+{
+  "id": "oc1-1-1",
+  "game": "oc1",
+  "world": 1,
+  "index": 1,
+  "name": "1-1",
+  "theme": "Treacle Town",
+  "wiki": "https://overcooked.fandom.com/wiki/1-1_(Overcooked!)",
+  "screenshots": [
+    "oc1/1-1.jpg",
+    "oc1/1-1-ayce.jpg"
+  ],
+  "timeLimitSec": 150,
+  "timerStartsOnFirstServe": true,
+  "unlockStars": 1,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "onion_soup"
+  ],
+  "orderVariants": 1,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 18,
+    "max": 4,
+    "timeSec": 60
+  },
+  "stars": {
+    "1": [
+      10,
+      40,
+      60
+    ],
+    "2": [
+      10,
+      40,
+      60
+    ],
+    "3": [
+      20,
+      40,
+      100
+    ],
+    "4": [
+      20,
+      40,
+      120
+    ]
+  },
+  "starsProvenance": "oc1",
+  "plates": {
+    "mode": "sink",
+    "count": 2
+  },
+  "grid": {
+    "cols": 13,
+    "rows": 8,
+    "confidence": "high",
+    "ascii": [
+      "###O####S##E#",
+      "#...........#",
+      "#...........W",
+      "##########..D",
+      "R...........#",
+      "V...........#",
+      "V...........X",
+      "###B#B###pp##"
+    ]
+  },
+  "legendExtensions": {},
+  "stations": {
+    "board": 2,
+    "potBurner": 1,
+    "panBurner": 0,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 1,
+    "serve": 2,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plate": 2,
+    "counter": 36,
+    "crates": {
+      "onion": 1
+    },
+    "drying": 1
+  },
+  "spawns": [
+    {
+      "x": 4,
+      "y": 1
+    },
+    {
+      "x": 8,
+      "y": 1
+    }
+  ],
+  "zones": [
+    {
+      "name": "north corridor",
+      "stations": [
+        "onion crate",
+        "potBurner",
+        "extinguisher",
+        "sink"
+      ],
+      "links": [
+        {
+          "to": "south half",
+          "via": "walk"
+        },
+        {
+          "to": "south half",
+          "via": "counter hand-off over the row-3 island"
+        }
+      ]
+    },
+    {
+      "name": "south half",
+      "stations": [
+        "board",
+        "serve",
+        "plateReturn",
+        "trash",
+        "plate"
+      ],
+      "links": [
+        {
+          "to": "north corridor",
+          "via": "walk"
+        }
+      ]
+    }
+  ],
+  "dynamics": [],
+  "hazards": [],
+  "features": {
+    "splitKitchen": false,
+    "throwRequired": false,
+    "movingPlatforms": false,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 57,
+    "counterTiles": 47,
+    "stationTiles": 11,
+    "longestWalkTiles": 20,
+    "chokepointWidth": 2,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [],
+  "estimates": [
+    "orders",
+    "spawns"
+  ]
+}

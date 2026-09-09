@@ -1,0 +1,179 @@
+{
+  "id": "oc1-1-6",
+  "game": "oc1",
+  "world": 1,
+  "index": 6,
+  "name": "1-6",
+  "theme": "Treacle Town",
+  "wiki": "https://overcooked.fandom.com/wiki/1-6_(Overcooked!)",
+  "screenshots": [
+    "oc1/1-6.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 8,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "meat_burger",
+    "lettuce_burger",
+    "tomato_lettuce_burger"
+  ],
+  "orderVariants": 3,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 24,
+    "max": 4,
+    "timeSec": 100
+  },
+  "stars": {
+    "1": [
+      40,
+      60,
+      90
+    ],
+    "2": [
+      60,
+      120,
+      200
+    ],
+    "3": null,
+    "4": null
+  },
+  "starsProvenance": "oc1",
+  "plates": {
+    "mode": "sink",
+    "count": 3
+  },
+  "grid": {
+    "cols": 13,
+    "rows": 8,
+    "confidence": "med",
+    "ascii": [
+      "##WD###pFpFp#",
+      "A.....G.....#",
+      "T.....G.....E",
+      "L.....G.....V",
+      "#.....G.....V",
+      "#.....G.....R",
+      "X.....G.....#",
+      "##B#BF###F#U#"
+    ]
+  },
+  "legendExtensions": {},
+  "stations": {
+    "board": 2,
+    "potBurner": 0,
+    "panBurner": 4,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 1,
+    "serve": 2,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plate": 3,
+    "counter": 21,
+    "crates": {
+      "meat": 1,
+      "tomato": 1,
+      "lettuce": 1,
+      "bun": 1
+    },
+    "drying": 1
+  },
+  "spawns": [
+    {
+      "x": 3,
+      "y": 2
+    },
+    {
+      "x": 9,
+      "y": 2
+    }
+  ],
+  "zones": [
+    {
+      "name": "low side",
+      "stations": [
+        "crates",
+        "sink",
+        "board",
+        "panBurner",
+        "trash"
+      ],
+      "links": [
+        {
+          "to": "high side",
+          "via": "walk-when-open"
+        },
+        {
+          "to": "high side",
+          "via": "throw"
+        }
+      ]
+    },
+    {
+      "name": "high side",
+      "stations": [
+        "panBurner",
+        "plate",
+        "bun crate",
+        "serve",
+        "plateReturn",
+        "extinguisher"
+      ],
+      "links": [
+        {
+          "to": "low side",
+          "via": "walk-when-open"
+        },
+        {
+          "to": "low side",
+          "via": "drop down"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "gate",
+      "detail": "earthquake raises and lowers the east half; the seam column is crossable only while the floors are level, and the high side can always be dropped down from",
+      "periodSec": 10
+    }
+  ],
+  "hazards": [
+    "pan fire",
+    "being stranded on the wrong side of the seam"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": true,
+    "movingPlatforms": false,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 66,
+    "counterTiles": 38,
+    "stationTiles": 17,
+    "longestWalkTiles": 12,
+    "chokepointWidth": 1,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "throwing",
+    "one-way drop-down between floor heights"
+  ],
+  "estimates": [
+    "orders",
+    "spawns",
+    "stars.2[0]",
+    "stars.2[1]",
+    "dynamics[0].periodSec"
+  ]
+}

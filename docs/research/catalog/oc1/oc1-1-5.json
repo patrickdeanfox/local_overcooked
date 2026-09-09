@@ -1,0 +1,141 @@
+{
+  "id": "oc1-1-5",
+  "game": "oc1",
+  "world": 1,
+  "index": 5,
+  "name": "1-5",
+  "theme": "Treacle Town",
+  "wiki": "https://overcooked.fandom.com/wiki/1-5_(Overcooked!)",
+  "screenshots": [
+    "oc1/1-5.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 6,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "onion_soup",
+    "tomato_soup",
+    "mushroom_soup"
+  ],
+  "orderVariants": 3,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 20,
+    "max": 4,
+    "timeSec": 85
+  },
+  "stars": {
+    "1": [
+      30,
+      70,
+      120
+    ],
+    "2": [
+      40,
+      90,
+      160
+    ],
+    "3": null,
+    "4": null
+  },
+  "starsProvenance": "oc1",
+  "plates": {
+    "mode": "sink",
+    "count": 3
+  },
+  "grid": {
+    "cols": 14,
+    "rows": 8,
+    "confidence": "high",
+    "ascii": [
+      "#MOT#RVVE#WD##",
+      "#............X",
+      "#.##########.#",
+      "#.##########.#",
+      "#.##########.#",
+      "#.#######ppp.#",
+      "#............#",
+      "#B#B####S#S#S#"
+    ]
+  },
+  "legendExtensions": {},
+  "stations": {
+    "board": 2,
+    "potBurner": 3,
+    "panBurner": 0,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 1,
+    "serve": 2,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plate": 3,
+    "counter": 65,
+    "crates": {
+      "mushroom": 1,
+      "onion": 1,
+      "tomato": 1
+    },
+    "drying": 1
+  },
+  "spawns": [
+    {
+      "x": 5,
+      "y": 1
+    },
+    {
+      "x": 7,
+      "y": 1
+    }
+  ],
+  "zones": [
+    {
+      "name": "the ring",
+      "stations": [
+        "crates",
+        "board",
+        "potBurner",
+        "sink",
+        "serve",
+        "plateReturn",
+        "trash",
+        "extinguisher",
+        "plate"
+      ],
+      "links": []
+    }
+  ],
+  "dynamics": [],
+  "hazards": [
+    "pot fire: a pot starts cooking on its first ingredient and burns about 22 s later, which one lap of this ring can outrun"
+  ],
+  "features": {
+    "splitKitchen": false,
+    "throwRequired": false,
+    "movingPlatforms": false,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 32,
+    "counterTiles": 80,
+    "stationTiles": 15,
+    "longestWalkTiles": 5,
+    "chokepointWidth": 1,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [],
+  "estimates": [
+    "orders",
+    "spawns",
+    "stars.2[0]",
+    "stars.2[1]"
+  ]
+}
