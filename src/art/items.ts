@@ -8,7 +8,7 @@ import { FRIED_INGREDIENTS, INGREDIENT_TYPES, SOUP_INGREDIENTS, type IngredientT
 import { BURGER_LAYERS, TEX, TEXTURE_SIZES, type BurgerLayer } from './keys';
 import { PALETTE } from './palette';
 import {
-  fillCircle, fillEllipse, fillPolygon, fillRound, makeTexture, radial, roundRectPath,
+  drawText, fillCircle, fillEllipse, fillPolygon, fillRound, line, makeTexture, radial, roundRectPath,
   strokeEllipse, strokeRound, vGradient, withAlpha, type Point,
 } from './draw';
 
@@ -18,6 +18,13 @@ const ITEM = TEXTURE_SIZES.item;      // 40
 const FX = TEXTURE_SIZES.fx;          // 40
 const FIRE = TEXTURE_SIZES.fire;      // 64
 const ITEM_R = 15;                    // shape radius inside a 40 px item sprite
+// Mechanics spec (docs/MECHANICS.md) sprites, as fractions of the shape radius.
+const TRAY = { w: 2.2, h: 1.7, rim: 0.16, corner: 0.22 } as const;
+const BOX = { w: 1.9, h: 1.6, corner: 0.12, tape: 0.22 } as const;
+const CHALK = { w: 2.1, h: 1.55, corner: 0.16, frame: 0.1, fontPx: 19 } as const;
+const CHALK_BOARD = '#2f3b31';
+const CHALK_BOARD_LIGHT = '#3d4a3f';
+const CHALK_WHITE = '#f4f1e6';
 
 const SOUP_COLORS: Record<IngredientType, string> = {
   onion: PALETTE.soupOnion,
@@ -764,6 +771,84 @@ export function drawPlate(
   }
 }
 
+// ─── Mechanics spec ─────────────────────────────────────────────────────────
+
+/** Steel serving tray seen from above: a rounded rectangle with a raised rim and a handle
+ *  notch at each short end. Empty; presentation stacks the load on top. */
+export function drawTray(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  const w = r * TRAY.w;
+  const h = r * TRAY.h;
+  const x = cx - w / 2;
+  const y = cy - h / 2;
+  const rim = r * TRAY.rim;
+  withAlpha(ctx, 0.18, () => fillRound(ctx, x + 1, y + 3, w, h, r * TRAY.corner, '#000000'));
+  fillRound(ctx, x, y, w, h, r * TRAY.corner, PALETTE.metalDark);
+  ctx.fillStyle = vGradient(ctx, y + rim, y + h - rim, [[0, PALETTE.metalLight], [1, PALETTE.metal]]);
+  roundRectPath(ctx, x + rim, y + rim, w - rim * 2, h - rim * 2, r * TRAY.corner * 0.7);
+  ctx.fill();
+  strokeRound(ctx, x, y, w, h, r * TRAY.corner, PALETTE.metalEdge, Math.max(1, r * 0.08));
+  // Handle notches in the rim at the short ends.
+  for (const side of [-1, 1]) {
+    fillRound(ctx, cx + side * (w / 2 - rim * 1.6) - rim * 0.6, cy - h * 0.18, rim * 1.2, h * 0.36, rim * 0.5, PALETTE.metalEdge);
+  }
+  // Sheen across the bed.
+  withAlpha(ctx, 0.35, () => line(ctx, x + w * 0.2, y + h * 0.3, x + w * 0.62, y + h * 0.3, '#ffffff', Math.max(1, r * 0.07)));
+}
+
+/** Closed delivery box: a wooden crate seen from above, planks across the lid and a strap. */
+export function drawDeliveryCrate(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  const w = r * BOX.w;
+  const h = r * BOX.h;
+  const x = cx - w / 2;
+  const y = cy - h / 2;
+  withAlpha(ctx, 0.18, () => fillRound(ctx, x + 1, y + 3, w, h, r * BOX.corner, '#000000'));
+  ctx.fillStyle = vGradient(ctx, y, y + h, [[0, PALETTE.woodLight], [1, PALETTE.wood]]);
+  roundRectPath(ctx, x, y, w, h, r * BOX.corner);
+  ctx.fill();
+  strokeRound(ctx, x, y, w, h, r * BOX.corner, PALETTE.woodDark, Math.max(1, r * 0.09));
+  // Lid planks.
+  withAlpha(ctx, 0.55, () => {
+    for (const f of [0.33, 0.66]) line(ctx, x + 1, y + h * f, x + w - 1, y + h * f, PALETTE.woodDark, 1);
+  });
+  // Strap around the middle, with its buckle.
+  const tapeW = r * BOX.tape;
+  fillRound(ctx, cx - tapeW / 2, y, tapeW, h, 0, PALETTE.metalDark);
+  withAlpha(ctx, 0.5, () => line(ctx, cx - tapeW / 2 + 1, y, cx - tapeW / 2 + 1, y + h, PALETTE.metalLight, 1));
+  fillRound(ctx, cx - tapeW * 0.7, cy - tapeW * 0.5, tapeW * 1.4, tapeW, 1, PALETTE.metalLight);
+  // Corner nails.
+  withAlpha(ctx, 0.6, () => {
+    for (const [dx, dy] of [[x + 3, y + 3], [x + w - 3, y + 3], [x + 3, y + h - 3], [x + w - 3, y + h - 3]] as const) {
+      fillCircle(ctx, dx, dy, Math.max(1, r * 0.07), PALETTE.woodDark);
+    }
+  });
+}
+
+/** Chalk "86" on a small hanging board: what a kitchen hangs over a crate that has run out. */
+export function drawChalk86(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  const w = r * CHALK.w;
+  const h = r * CHALK.h;
+  const x = cx - w / 2;
+  const y = cy - h / 2 + r * 0.18; // the string above takes the rest of the sprite
+  // String up to a nail.
+  const nailY = y - r * 0.5;
+  line(ctx, cx - w * 0.3, y, cx, nailY, PALETTE.rope, Math.max(1, r * 0.07));
+  line(ctx, cx + w * 0.3, y, cx, nailY, PALETTE.rope, Math.max(1, r * 0.07));
+  fillCircle(ctx, cx, nailY, r * 0.1, PALETTE.metalEdge);
+  // Frame and board.
+  withAlpha(ctx, 0.2, () => fillRound(ctx, x + 1, y + 2, w, h, r * CHALK.corner, '#000000'));
+  fillRound(ctx, x, y, w, h, r * CHALK.corner, PALETTE.woodDark);
+  const f = r * CHALK.frame;
+  ctx.fillStyle = vGradient(ctx, y + f, y + h - f, [[0, CHALK_BOARD_LIGHT], [1, CHALK_BOARD]]);
+  roundRectPath(ctx, x + f, y + f, w - f * 2, h - f * 2, r * CHALK.corner * 0.6);
+  ctx.fill();
+  // Chalk dust, then the figures twice with a hair of offset for a hand-written look.
+  withAlpha(ctx, 0.12, () => fillEllipse(ctx, cx, cy + r * 0.2, w * 0.36, h * 0.28, CHALK_WHITE));
+  const fontPx = CHALK.fontPx * (r / ITEM_R);
+  withAlpha(ctx, 0.55, () => drawText(ctx, '86', cx + 0.6, y + h / 2 + 0.6, { size: fontPx, color: CHALK_WHITE, weight: 'bold' }));
+  drawText(ctx, '86', cx, y + h / 2, { size: fontPx, color: CHALK_WHITE, weight: 'bold' });
+  withAlpha(ctx, 0.7, () => line(ctx, cx - w * 0.3, y + h - f - r * 0.14, cx + w * 0.3, y + h - f - r * 0.14, CHALK_WHITE, Math.max(1, r * 0.07)));
+}
+
 // ─── Effects ────────────────────────────────────────────────────────────────
 
 function drawSmokePuff(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, alpha: number): void {
@@ -874,6 +959,11 @@ export function generateItemTextures(scene: Phaser.Scene): void {
     strokeRound(ctx, x, y, bodyW, bodyH, ITEM_R * 0.28, PALETTE.extinguisherDark, 1.5);
     withAlpha(ctx, 0.45, () => fillRound(ctx, x + bodyW * 0.16, y + bodyH * 0.1, bodyW * 0.16, bodyH * 0.3, bodyW * 0.08, '#ffffff'));
   });
+
+  // Mechanics spec (docs/MECHANICS.md).
+  makeTexture(scene, TEX.tray, ITEM, ITEM, (ctx) => drawTray(ctx, c, c, ITEM_R));
+  makeTexture(scene, TEX.deliveryCrate, ITEM, ITEM, (ctx) => drawDeliveryCrate(ctx, c, c, ITEM_R));
+  makeTexture(scene, TEX.chalk86, FX, FX, (ctx) => drawChalk86(ctx, centred(FX), centred(FX), ITEM_R));
 
   makeTexture(scene, TEX.fire, FIRE, FIRE, (ctx) => {
     const fc = centred(FIRE);

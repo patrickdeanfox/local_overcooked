@@ -18,6 +18,8 @@ const ALL_EVENT_TYPES: readonly SimEventType[] = [
   'timerStart', 'timerWarning', 'levelEnd',
   'gateOpen', 'gateClose',
   'throw', 'catch', 'throwLand', 'dash', 'dashBump', 'chefFell',
+  'crateEmpty', 'orderRewritten', 'restockDue', 'restockTick', 'restocked',
+  'trayLift', 'traySet', 'trayWobble',
 ];
 
 const ALL_SFX: readonly SfxName[] = [
@@ -32,6 +34,8 @@ const ALL_SFX: readonly SfxName[] = [
   'timerStart', 'timerWarning', 'levelEnd',
   'gateOpen', 'gateClose',
   'throw', 'catch', 'throwLand', 'dash', 'dashBump', 'chefFell',
+  'crateEmpty', 'orderRewritten', 'restockDue', 'restockTick', 'restocked',
+  'trayLift', 'traySet', 'trayWobble',
   'uiMove', 'uiConfirm', 'uiBack',
 ];
 

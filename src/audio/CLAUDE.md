@@ -5,9 +5,9 @@ Web Audio only: every sound is synthesised, there are no audio files. The `Audio
 Owner: the audio agent (shared with art). Files: `src/audio/**`, `tests/audio.test.ts`. Branch prefix `audio/`. Read `docs/DESIGN.md` once for the whole picture and `docs/WORKFLOW.md` for how PRs land.
 
 ## Files
-- `types.ts` — the contract: `SfxName` (35 names), `AudioBus` (`resume`, `play`, `startMusic`, `stopMusic`, `setMuted` / `isMuted`, `setMusicEnabled` / `isMusicEnabled`, `setSfxEnabled` / `isSfxEnabled`), `SfxForEvent`. Additive changes only.
+- `types.ts` — the contract: `SfxName` (43 names), `AudioBus` (`resume`, `play`, `startMusic`, `stopMusic`, `setMuted` / `isMuted`, `setMusicEnabled` / `isMusicEnabled`, `setSfxEnabled` / `isSfxEnabled`), `SfxForEvent`. Additive changes only.
 - `index.ts` — `createAudioBus()` and `sfxForEvent(event)`, a switch over every `SimEventType` returning an `SfxName` or null.
-- `sfx.ts` — `SFX_TABLE`, one synthesised one-shot per `SfxName`, each given the synth context and an absolute start time. Keep every sound under about half a second; they fire several times a second.
+- `sfx.ts` — `SFX_TABLE`, one synthesised one-shot per `SfxName`, each given the synth context and an absolute start time. Keep every sound under about half a second; they fire several times a second. The mechanics group (`docs/MECHANICS.md`): `crateEmpty` a hollow low knock, `orderRewritten` a chalk squeak over a falling pair (the mirror of `orderNew`'s rise, so a rewrite never reads as a new ticket), `restockDue` a two-tone doorbell, `restockTick` a cardboard rustle per unloading tick, `restocked` a fast high triad (higher and quicker than `serve`), `trayLift` a metallic scrape up, `traySet` a clink over a thud, `trayWobble` three falling clinks.
 - `music.ts` — the loop: 8 bars at 120 bpm, I-vi-IV-V twice, bass on eighth steps, a triangle lead (softened from a square for long sessions), scheduled 250 ms ahead on the audio clock from a 25 ms interval.
 - `synth.ts` — `tone`, `noise`, the 16-voice pool, the shared one-second noise buffer, `safely()` so one bad parameter cannot kill the game.
 

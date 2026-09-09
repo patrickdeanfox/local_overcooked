@@ -22,10 +22,10 @@
   "fridge": { "src": "KayKit_Restaurant_Bits_1.0_FREE/Assets/gltf/fridge_A.gltf", "url": "models/kaykit/fridge_A.gltf", "scale": 0.5 },
   "hood": { "src": "KayKit_Restaurant_Bits_1.0_FREE/Assets/gltf/extractorhood.gltf", "url": "models/kaykit/extractorhood.gltf", "scale": 0.5 },
 
-  "shelf": { "src": "KayKit_Restaurant_Bits_1.0_FREE/Assets/gltf/wall_orderwindow.gltf", "url": "models/kaykit/wall_orderwindow.gltf", "scale": 0.5 },
-  "trayRack": { "src": "KayKit_Restaurant_Bits_1.0_FREE/Assets/gltf/kitchencabinet.gltf", "url": "models/kaykit/kitchencabinet.gltf", "scale": 0.5 },
+  "shelf": { "src": "KayKit_Restaurant_Bits_1.0_FREE/Assets/gltf/wall_orderwindow.gltf", "url": "models/kaykit/wall_orderwindow.gltf", "fit": 1 },
+  "trayRack": { "src": "KayKit_Restaurant_Bits_1.0_FREE/Assets/gltf/kitchentable_B.gltf", "url": "models/kaykit/kitchentable_B.gltf", "scale": 0.5 },
   "delivery": { "src": "KayKit_Restaurant_Bits_1.0_FREE/Assets/gltf/door_A.gltf", "url": "models/kaykit/door_A.gltf", "scale": 0.5 },
-  "deliveryCrate": { "src": "KayKit_Restaurant_Bits_1.0_FREE/Assets/gltf/crate_lid.gltf", "url": "models/kaykit/crate_lid.gltf", "scale": 0.5 },
+  "deliveryCrate": { "src": "kenney_furniture-kit/Models/GLTF format/cardboardBoxClosed.glb", "url": "models/kenney-furniture/cardboardBoxClosed.glb", "fit": 0.6 },
   "tray": { "src": "kenney_food-kit/Models/GLB format/plate-rectangle.glb", "url": "models/kenney-food/plate-rectangle.glb", "fit": 0.7 },
 
   "carSedan": { "src": "kenney_car-kit/Models/GLB format/sedan.glb", "url": "models/kenney-cars/sedan.glb", "fit": 1.7 },

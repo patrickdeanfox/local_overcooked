@@ -167,6 +167,55 @@ export const SFX_TABLE: Record<SfxName, SfxDef> = {
     noise(sc, { start: t + 0.3, dur: 0.14, gain: 0.14, filter: 'lowpass', freq: 500 });
   },
 
+  // Mechanics spec (docs/MECHANICS.md): shortages, deliveries and the tray.
+  // A hollow knock on an empty wooden crate.
+  crateEmpty: (sc, t) => {
+    tone(sc, { type: 'sine', freq: 190, freqEnd: 95, start: t, dur: 0.14, gain: 0.24, attack: 0.003 });
+    noise(sc, { start: t, dur: 0.08, gain: 0.16, filter: 'lowpass', freq: 700, freqEnd: 220 });
+  },
+  // A ticket changing: chalk squeak over a falling pair, the opposite shape of orderNew's rise.
+  orderRewritten: (sc, t) => {
+    noise(sc, { start: t, dur: 0.11, gain: 0.07, filter: 'bandpass', freq: 2400, freqEnd: 3400, q: 3 });
+    tone(sc, { type: 'triangle', freq: 1040, start: t + 0.02, dur: 0.09, gain: 0.18 });
+    tone(sc, { type: 'triangle', freq: 780, start: t + 0.12, dur: 0.15, gain: 0.18, hold: 0.4 });
+  },
+  // The delivery is at the door: a two-tone doorbell.
+  restockDue: (sc, t) => {
+    tone(sc, { type: 'sine', freq: NOTE.e6, start: t, dur: 0.2, gain: 0.18, hold: 0.5 });
+    tone(sc, { type: 'triangle', freq: NOTE.e6, start: t, dur: 0.2, gain: 0.05 });
+    tone(sc, { type: 'sine', freq: NOTE.c6, start: t + 0.18, dur: 0.28, gain: 0.18, hold: 0.5 });
+    tone(sc, { type: 'triangle', freq: NOTE.c6, start: t + 0.18, dur: 0.28, gain: 0.05 });
+  },
+  // Unloading: cardboard shifting, one rustle per tick.
+  restockTick: (sc, t) => {
+    noise(sc, { start: t, dur: 0.12, gain: 0.12, filter: 'bandpass', freq: 1200, q: 1.2 });
+    tone(sc, { type: 'sine', freq: 220, freqEnd: 170, start: t, dur: 0.06, gain: 0.05 });
+  },
+  // Crates full again: a quick high triad, brighter and faster than serve.
+  restocked: (sc, t) => {
+    [NOTE.c6, NOTE.e6, NOTE.g6].forEach((freq, i) => {
+      tone(sc, { type: 'sine', freq, start: t + i * 0.05, dur: 0.16, gain: 0.14 });
+    });
+  },
+  // Lifting the tray: a short metallic scrape upward.
+  trayLift: (sc, t) => {
+    noise(sc, { start: t, dur: 0.14, gain: 0.14, filter: 'bandpass', freq: 2200, freqEnd: 4200, q: 2 });
+    tone(sc, { type: 'triangle', freq: 500, freqEnd: 900, start: t, dur: 0.1, gain: 0.08 });
+  },
+  // Setting it down: a clink with a dull thud under it.
+  traySet: (sc, t) => {
+    tone(sc, { type: 'sine', freq: 2600, freqEnd: 2100, start: t, dur: 0.08, gain: 0.14, attack: 0.002 });
+    tone(sc, { type: 'sine', freq: 3900, start: t + 0.01, dur: 0.05, gain: 0.06 });
+    noise(sc, { start: t, dur: 0.05, gain: 0.12, filter: 'lowpass', freq: 900 });
+  },
+  // A bumped tray: three quick clinks, each a little lower.
+  trayWobble: (sc, t) => {
+    for (let i = 0; i < 3; i++) {
+      tone(sc, { type: 'sine', freq: 2400 - i * 300, start: t + i * 0.05, dur: 0.04, gain: 0.1, attack: 0.002 });
+      noise(sc, { start: t + i * 0.05, dur: 0.02, gain: 0.06, filter: 'highpass', freq: 3000 });
+    }
+  },
+
   // Menus.
   uiMove: (sc, t) => {
     tone(sc, { type: 'square', freq: 700, start: t, dur: 0.045, gain: 0.12 });

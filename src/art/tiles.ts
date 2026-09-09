@@ -64,6 +64,12 @@ const DECK_BLOCK: BlockColors = {
 const LEDGE_BLOCK: BlockColors = {
   top: PALETTE.ledgeTop, topHi: PALETTE.ledgeTopHi, edge: PALETTE.ledgeFace, edgeDark: PALETTE.ledgeFaceDark,
 };
+// Mechanics spec (docs/MECHANICS.md): the pass-through shelf and the delivery door are cut into
+// walls, so they borrow the ledge's stone; the shelf's sill is a counter top.
+const WALL_TOP_H = T - 16;         // a wall stands taller than a counter, like the risen gate ledge
+const HATCH = { y: 14, h: 30, post: 7, sillH: 8 } as const; // the opening in the shelf wall and its posts
+const RAIL = { x: 8, y1: 15, y2: 39, h: 5 } as const;       // the two tray rails on the rack
+const DOOR = { frame: 6, panelInset: 7, knobR: 2.6 } as const;
 
 // ─── Shared block ───────────────────────────────────────────────────────────
 
@@ -197,6 +203,110 @@ function drawGate(ctx: CanvasRenderingContext2D): void {
   withAlpha(ctx, 0.75, () => {
     for (const [x, y, rr] of RUBBLE) fillCircle(ctx, x, y, rr, PALETTE.gateRubble);
   });
+}
+
+// ─── Walls (mechanics spec) ─────────────────────────────────────────────────
+
+/** A plain interior wall: stone top face, a deep front face with mortar courses. The closed
+ *  pass-through shelf and the base of the delivery door and the open shelf all start here. */
+function drawWall(ctx: CanvasRenderingContext2D): void {
+  drawBlock(ctx, LEDGE_BLOCK);
+  ctx.fillStyle = vGradient(ctx, WALL_TOP_H, T, [[0, PALETTE.ledgeFace], [1, PALETTE.ledgeFaceDark]]);
+  ctx.fillRect(0, WALL_TOP_H, T, T - WALL_TOP_H);
+  withAlpha(ctx, 0.4, () => line(ctx, 0, WALL_TOP_H + 0.5, T, WALL_TOP_H + 0.5, '#ffffff', 1));
+  speckle(ctx, 26, '#ffffff', 0.1, 23);
+  speckle(ctx, 26, '#000000', 0.1, 29);
+  withAlpha(ctx, 0.45, () => {
+    line(ctx, 0, WALL_TOP_H + 8, T, WALL_TOP_H + 8, PALETTE.ledgeMortar, 1);
+    for (const x of [14, 34, 52]) line(ctx, x, WALL_TOP_H + 1, x, WALL_TOP_H + 8, PALETTE.ledgeMortar, 1);
+    for (const x of [24, 44]) line(ctx, x, WALL_TOP_H + 8, x, T, PALETTE.ledgeMortar, 1);
+  });
+}
+
+/** Pass-through shelf, open: the wall with a hatch cut through it, a counter-top sill along
+ *  the bottom of the opening and a stone post either side. Items sit on the sill. */
+function drawShelf(ctx: CanvasRenderingContext2D): void {
+  drawWall(ctx);
+  const x = HATCH.post;
+  const w = T - HATCH.post * 2;
+  // The opening: dark, so it reads as a hole through to the other room.
+  ctx.fillStyle = vGradient(ctx, HATCH.y, HATCH.y + HATCH.h, [[0, PALETTE.voidEdge], [1, '#3a3129']]);
+  ctx.fillRect(x, HATCH.y, w, HATCH.h);
+  withAlpha(ctx, 0.5, () => {
+    line(ctx, x, HATCH.y + 0.5, x + w, HATCH.y + 0.5, '#000000', 2);
+    line(ctx, x + 0.5, HATCH.y, x + 0.5, HATCH.y + HATCH.h, '#000000', 1);
+    line(ctx, x + w - 0.5, HATCH.y, x + w - 0.5, HATCH.y + HATCH.h, '#000000', 1);
+  });
+  // The sill: a counter top set into the wall, with its own lip.
+  const sillY = HATCH.y + HATCH.h - HATCH.sillH;
+  ctx.fillStyle = vGradient(ctx, sillY, sillY + HATCH.sillH, [[0, PALETTE.counterTopHi], [1, PALETTE.counterTop]]);
+  ctx.fillRect(x - 2, sillY, w + 4, HATCH.sillH);
+  ctx.fillStyle = PALETTE.counterEdge;
+  ctx.fillRect(x - 2, sillY + HATCH.sillH, w + 4, 3);
+  withAlpha(ctx, 0.5, () => line(ctx, x - 2, sillY + 0.5, x + w + 2, sillY + 0.5, '#ffffff', 1));
+  // Posts either side of the opening.
+  withAlpha(ctx, 0.35, () => {
+    line(ctx, x - 0.5, HATCH.y - 2, x - 0.5, sillY + HATCH.sillH + 3, PALETTE.ledgeTopHi, 1);
+    line(ctx, x + w + 0.5, HATCH.y - 2, x + w + 0.5, sillY + HATCH.sillH + 3, PALETTE.ledgeFaceDark, 1);
+  });
+}
+
+/** Pass-through shelf while the mechanic is off: a plain wall, nothing to reach through. */
+function drawShelfClosed(ctx: CanvasRenderingContext2D): void {
+  drawWall(ctx);
+}
+
+/** Tray rack: a counter with two metal rails the tray slides between, and a darker bed under it. */
+function drawTrayRack(ctx: CanvasRenderingContext2D): void {
+  drawBlock(ctx, WOOD_BLOCK);
+  withAlpha(ctx, 0.3, () => fillRound(ctx, RAIL.x, RAIL.y1 + RAIL.h, T - RAIL.x * 2, RAIL.y2 - RAIL.y1 - RAIL.h, 3, PALETTE.counterEdgeDark));
+  for (const y of [RAIL.y1, RAIL.y2]) {
+    fixtureShadow(ctx, RAIL.x, y, T - RAIL.x * 2, RAIL.h, 2.5);
+    fillRound(ctx, RAIL.x, y, T - RAIL.x * 2, RAIL.h, 2.5, PALETTE.metalLight);
+    strokeRound(ctx, RAIL.x, y, T - RAIL.x * 2, RAIL.h, 2.5, PALETTE.metalDark, 1);
+    withAlpha(ctx, 0.5, () => line(ctx, RAIL.x + 3, y + 1.5, T - RAIL.x - 3, y + 1.5, '#ffffff', 1));
+  }
+  // Rail feet where they bolt to the counter.
+  withAlpha(ctx, 0.6, () => {
+    for (const [dx, dy] of [[RAIL.x + 3, RAIL.y1 + 2.5], [T - RAIL.x - 3, RAIL.y1 + 2.5], [RAIL.x + 3, RAIL.y2 + 2.5], [T - RAIL.x - 3, RAIL.y2 + 2.5]] as const) {
+      fillCircle(ctx, dx, dy, 1.4, PALETTE.metalEdge);
+    }
+  });
+}
+
+/** Delivery door: a wall with a wooden door set into it, a brass knob and a small "in" tag.
+ *  No counter top, because nothing is ever placed on a door. */
+function drawDelivery(ctx: CanvasRenderingContext2D): void {
+  drawWall(ctx);
+  const x = DOOR.frame;
+  const y = 4;
+  const w = T - DOOR.frame * 2;
+  const h = WALL_TOP_H - y - 2;
+  // Frame, then the door slab with two panels.
+  fillRound(ctx, x - 2, y - 2, w + 4, h + 4, 3, PALETTE.ledgeFaceDark);
+  ctx.fillStyle = vGradient(ctx, y, y + h, [[0, PALETTE.wood], [1, PALETTE.woodDark]]);
+  ctx.fillRect(x, y, w, h);
+  withAlpha(ctx, 0.5, () => {
+    strokeRound(ctx, x + DOOR.panelInset, y + 5, w - DOOR.panelInset * 2, h * 0.36, 2, PALETTE.woodDark, 2);
+    strokeRound(ctx, x + DOOR.panelInset, y + h * 0.52, w - DOOR.panelInset * 2, h * 0.38, 2, PALETTE.woodDark, 2);
+  });
+  withAlpha(ctx, 0.25, () => {
+    fillRound(ctx, x + DOOR.panelInset + 1, y + 6, w - DOOR.panelInset * 2 - 2, h * 0.36 - 2, 2, PALETTE.woodLight);
+    fillRound(ctx, x + DOOR.panelInset + 1, y + h * 0.52 + 1, w - DOOR.panelInset * 2 - 2, h * 0.38 - 2, 2, PALETTE.woodLight);
+  });
+  fillCircle(ctx, x + w - 8, y + h * 0.5, DOOR.knobR, PALETTE.hudGold);
+  withAlpha(ctx, 0.6, () => fillCircle(ctx, x + w - 8.6, y + h * 0.5 - 0.6, DOOR.knobR * 0.45, '#ffffff'));
+  // Deliveries tag: a small card with a chevron pointing in through the door.
+  fillRound(ctx, TOP_CX - 9, y + 2, 18, 9, 2, PALETTE.textLight);
+  ctx.strokeStyle = PALETTE.serveGlowDark;
+  ctx.lineWidth = 2;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(TOP_CX - 4, y + 4.5);
+  ctx.lineTo(TOP_CX, y + 8.5);
+  ctx.lineTo(TOP_CX + 4, y + 4.5);
+  ctx.stroke();
+  ctx.lineCap = 'butt';
 }
 
 // ─── Furniture tiles ────────────────────────────────────────────────────────
@@ -452,6 +562,9 @@ const TILE_DRAWERS: Record<Exclude<TileType, 'crate'>, TileDraw> = {
   slider: drawSlider,
   gate: drawGate,
   gap: drawGap,
+  shelf: drawShelf,
+  trayRack: drawTrayRack,
+  delivery: drawDelivery,
 };
 
 export function generateTileTextures(scene: Phaser.Scene): void {
@@ -461,6 +574,7 @@ export function generateTileTextures(scene: Phaser.Scene): void {
     makeTexture(scene, TEX.tile(type), T, T, (ctx) => draw(ctx));
   }
   makeTexture(scene, TEX.gateClosed, T, T, (ctx) => drawGateClosed(ctx));
+  makeTexture(scene, TEX.shelfClosed, T, T, (ctx) => drawShelfClosed(ctx));
   for (const ingredient of INGREDIENT_TYPES) {
     makeTexture(scene, TEX.crate(ingredient), T, T, (ctx) => drawCrate(ctx, ingredient));
   }
