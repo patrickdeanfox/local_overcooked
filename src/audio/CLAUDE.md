@@ -5,7 +5,7 @@ Web Audio only: every sound is synthesised, there are no audio files. The `Audio
 Owner: the audio agent (shared with art). Files: `src/audio/**`, `tests/audio.test.ts`. Branch prefix `audio/`. Read `docs/DESIGN.md` once for the whole picture and `docs/WORKFLOW.md` for how PRs land.
 
 ## Files
-- `types.ts` — the contract: `SfxName` (29 names), `AudioBus` (`resume`, `play`, `startMusic`, `stopMusic`, `setMuted` / `isMuted`, `setMusicEnabled` / `isMusicEnabled`, `setSfxEnabled` / `isSfxEnabled`), `SfxForEvent`. Additive changes only.
+- `types.ts` — the contract: `SfxName` (35 names), `AudioBus` (`resume`, `play`, `startMusic`, `stopMusic`, `setMuted` / `isMuted`, `setMusicEnabled` / `isMusicEnabled`, `setSfxEnabled` / `isSfxEnabled`), `SfxForEvent`. Additive changes only.
 - `index.ts` — `createAudioBus()` and `sfxForEvent(event)`, a switch over every `SimEventType` returning an `SfxName` or null.
 - `sfx.ts` — `SFX_TABLE`, one synthesised one-shot per `SfxName`, each given the synth context and an absolute start time. Keep every sound under about half a second; they fire several times a second.
 - `music.ts` — the loop: 8 bars at 120 bpm, I-vi-IV-V twice, bass on eighth steps, a triangle lead (softened from a square for long sessions), scheduled 250 ms ahead on the audio clock from a 25 ms interval.
@@ -33,4 +33,4 @@ Owner: the audio agent (shared with art). Files: `src/audio/**`, `tests/audio.te
 `sfxForEvent` maps every event type to a name in `ALL_SFX`; `SFX_TABLE` defines exactly those names; the bus survives `resume`, every `play`, `startMusic` and `stopMusic` with no `AudioContext` and no `localStorage`, and tracks mute state anyway.
 
 ## Roadmap work that lands here
-Throw, catch and dash sounds (`docs/ROADMAP.md` item 4), sounds for every new station (item 5), recorded CC0 samples and per-level music (item 12).
+Sounds for every new station (`docs/ROADMAP.md` item 5), recorded CC0 samples and per-level music (item 12).

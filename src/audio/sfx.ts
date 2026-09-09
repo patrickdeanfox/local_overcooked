@@ -141,6 +141,32 @@ export const SFX_TABLE: Record<SfxName, SfxDef> = {
     tone(sc, { type: 'square', freq: 80, start: t + 0.24, dur: 0.1, gain: 0.12 });
   },
 
+  // Throwing, dashing and falling.
+  throw: (sc, t) => {
+    noise(sc, { start: t, dur: 0.16, gain: 0.2, filter: 'bandpass', freq: 900, freqEnd: 2600, q: 0.8 });
+    tone(sc, { type: 'triangle', freq: 300, freqEnd: 760, start: t, dur: 0.12, gain: 0.14 });
+  },
+  catch: (sc, t) => {
+    noise(sc, { start: t, dur: 0.06, gain: 0.18, filter: 'lowpass', freq: 1200 });
+    tone(sc, { type: 'sine', freq: 520, freqEnd: 380, start: t, dur: 0.1, gain: 0.2 });
+  },
+  throwLand: (sc, t) => {
+    noise(sc, { start: t, dur: 0.08, gain: 0.16, filter: 'lowpass', freq: 700 });
+    tone(sc, { type: 'triangle', freq: 260, freqEnd: 150, start: t, dur: 0.1, gain: 0.14 });
+  },
+  dash: (sc, t) => {
+    noise(sc, { start: t, dur: 0.18, gain: 0.16, filter: 'bandpass', freq: 500, freqEnd: 1800, q: 0.7 });
+    tone(sc, { type: 'sine', freq: 180, freqEnd: 420, start: t, dur: 0.14, gain: 0.1 });
+  },
+  dashBump: (sc, t) => {
+    tone(sc, { type: 'square', freq: 220, freqEnd: 110, start: t, dur: 0.12, gain: 0.16 });
+    noise(sc, { start: t, dur: 0.1, gain: 0.2, filter: 'lowpass', freq: 900, freqEnd: 300 });
+  },
+  chefFell: (sc, t) => {
+    tone(sc, { type: 'triangle', freq: 700, freqEnd: 120, start: t, dur: 0.45, gain: 0.18, hold: 0.2 });
+    noise(sc, { start: t + 0.3, dur: 0.14, gain: 0.14, filter: 'lowpass', freq: 500 });
+  },
+
   // Menus.
   uiMove: (sc, t) => {
     tone(sc, { type: 'square', freq: 700, start: t, dur: 0.045, gain: 0.12 });
