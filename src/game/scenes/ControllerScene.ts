@@ -1,22 +1,31 @@
+// ─── Controllers page ───────────────────────────────────────────────────────
+// One column per player: a live view of the stick, d-pad, face buttons and keys, then a
+// table. The Device row says which keyboard set or pad the player holds (left / right
+// changes it; a pad another player holds is swapped, a keyboard set releases the pad).
+// "Set up controls" walks through every action one press at a time. Selecting an action
+// row adds the next key or button to it; the chop button clears it for the chosen device.
+// Stick, d-pad and deadzone rows belong to the pad the player holds and are remembered by
+// pad id. Everything is saved at once. Owned by the input arm.
 import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH, MAX_PLAYERS, SCENE } from '../../config';
 import { TEX } from '../../art/keys';
 import {
-  ACTIONS, ACTION_NAMES, NO_PAD, PAD_BUTTON,
-  axisEdge, createInputManager, createPlayerInput, keyCodeLabel, padButtonLabel, readMenuInput,
+  ACTIONS, ACTION_NAMES, DEADZONE_STEP, NO_PAD, PAD_BUTTON, STICK_DEADZONE,
+  axisEdge, clampDeadzone, cloneGamepadBinding, createInputManager, createPlayerInput, keyCodeLabel, keyboardSetLabel,
+  padButtonLabel, readMenuInput,
 } from '../../input';
-import type { CaptureResult, FullInputManager, GameAction, PadKind, PlayerInput } from '../../input';
+import type { CaptureResult, DeviceChoice, FullInputManager, GameAction, PadKind, PlayerInput } from '../../input';
 
 // ─── Layout constants ───────────────────────────────────────────────────────
 const PANEL_COUNT = MAX_PLAYERS;
 const MARGIN_X = 32;
 const PANEL_GAP = 16;
 const PANEL_W = (GAME_WIDTH - MARGIN_X * 2 - PANEL_GAP) / PANEL_COUNT;
-const PANEL_Y = 116;
-const PANEL_H = 620;
+const PANEL_Y = 108;
+const PANEL_H = 650;
 const PANEL_RADIUS = 10;
 
-const VIZ_CY = PANEL_Y + 152;
+const VIZ_CY = PANEL_Y + 118;
 const STICK_CX = 82;
 const STICK_R = 46;
 const STICK_DOT_R = 9;
@@ -25,19 +34,18 @@ const FACE_CX = 318;
 const FACE_OFFSET = 32;
 const FACE_R = 18;
 const KEY_CX = 468;
-const KEY_CY = PANEL_Y + 140;
+const KEY_CY = PANEL_Y + 106;
 const KEY_W = 30;
 const KEY_H = 28;
 
-const HEADER_Y = PANEL_Y + 240;
-const LIST_TOP = PANEL_Y + 262;
-const ROW_H = 40;
-const ROW_COUNT = ACTIONS.length + 1;   // actions + "reset to defaults"
-const RESET_ROW = ACTIONS.length;
+const HEADER_Y = PANEL_Y + 192;
+const LIST_TOP = PANEL_Y + 210;
+const ROW_H = 30;
 const COL_ACTION_X = 18;
-const COL_KEY_X = 300;
+const COL_KEY_X = 268;
 const COL_PAD_X = 452;
-const FOOTNOTE_Y = PANEL_Y + PANEL_H - 26;
+const FOOTNOTE_Y = PANEL_Y + PANEL_H - 22;
+const VALUE_MAX_CHARS = 34; // pad ids run long; the value column is about this wide
 
 const COLOR = {
   panel: 0x241d1a,
@@ -61,12 +69,35 @@ const TEXT = {
 
 const FONT = 'system-ui, "Segoe UI", Arial, sans-serif';
 const INSECURE_WARNING_COLOR = '#ff7b6b';
+const UNBOUND = '—';
+
+const FIRST_RUN_STATUS = 'First time here? Choose "Set up controls" to walk through every button.';
+const CLAIM_HINT = 'Press a button on an unassigned pad to give it to the highlighted player.';
+const INSECURE_HINT = 'Gamepads are blocked on plain http from another device. Open the https:// address printed by npm start (accept the certificate warning once), or use the keyboard.';
+const TOP_HINT = 'Move: WASD / arrows / stick     Choose: Space, Enter or A     Back: Esc or B     Left / right: switch player, or change a setting row';
+const FOOTNOTE = 'Select a row to add a key or button · the chop button clears it for the chosen device · Esc cancels';
 
 /** ASCII stand-ins used when the art module has not generated a prompt texture yet. */
 const PAD_GLYPH: Record<string, string | undefined> = {
   A: 'A', B: 'B', X: 'X', Y: 'Y',
   Cross: 'X', Circle: 'O', Square: '[]', Triangle: '/\\',
 };
+
+// ─── Rows ───────────────────────────────────────────────────────────────────
+type RowKind = 'device' | 'wizard' | 'action' | 'stick' | 'dpad' | 'deadzone' | 'reset';
+interface RowSpec { kind: RowKind; action?: GameAction; }
+/** The table, top to bottom. Setting rows take left / right for their value. */
+const ROWS: readonly RowSpec[] = [
+  { kind: 'device' },
+  { kind: 'wizard' },
+  ...ACTIONS.map((action): RowSpec => ({ kind: 'action', action })),
+  { kind: 'stick' },
+  { kind: 'dpad' },
+  { kind: 'deadzone' },
+  { kind: 'reset' },
+];
+const ROW_COUNT = ROWS.length;
+const SETTING_ROWS: readonly RowKind[] = ['device', 'stick', 'dpad', 'deadzone'];
 
 interface FaceSlot { button: number; dx: number; dy: number; }
 const FACE_SLOTS: readonly FaceSlot[] = [
@@ -93,6 +124,9 @@ const KEY_SLOTS: readonly KeySlot[] = [
   { action: 'pickup', dx: 0, dy: 38, w: 104 },
   { action: 'interact', dx: 0, dy: 72, w: 104 },
 ];
+
+/** The guided setup: one action at a time for one player. */
+interface Wizard { player: number; step: number; }
 
 // ─── Prompt badge ───────────────────────────────────────────────────────────
 /** Uses TEX.buttonPrompt(label) when the art module has drawn it, plain text otherwise. */
@@ -138,7 +172,6 @@ interface RowTexts {
 
 interface Panel {
   title: Phaser.GameObjects.Text;
-  device: Phaser.GameObjects.Text;
   rows: RowTexts[];
   keyLabels: Phaser.GameObjects.Text[];
   faces: PromptBadge[];
@@ -156,6 +189,7 @@ export class ControllerScene extends Phaser.Scene {
   private prevMenuX = 0;
   private prevMenuY = 0;
   private capturingAction: GameAction | null = null;
+  private wizard: Wizard | null = null;
   private labelsDirty = true;
   private deviceNames: string[] = [];
   private readonly menu: PlayerInput = createPlayerInput();
@@ -167,6 +201,7 @@ export class ControllerScene extends Phaser.Scene {
     this.column = 0;
     this.row = 0;
     this.capturingAction = null;
+    this.wizard = null;
     this.labelsDirty = true;
     this.deviceNames = [];
     this.panels = [];
@@ -174,20 +209,16 @@ export class ControllerScene extends Phaser.Scene {
     this.gfx = this.add.graphics();
 
     this.add.text(GAME_WIDTH / 2, 32, 'CONTROLLERS', { fontFamily: FONT, fontSize: '30px', color: TEXT.bright }).setOrigin(0.5);
-    this.add.text(GAME_WIDTH / 2, 66,
-      'Move: WASD / arrows / stick     Choose: Space, Enter or A     Back: Esc or B',
-      { fontFamily: FONT, fontSize: '15px', color: TEXT.dim }).setOrigin(0.5);
+    this.add.text(GAME_WIDTH / 2, 62, TOP_HINT, { fontFamily: FONT, fontSize: '14px', color: TEXT.dim }).setOrigin(0.5);
     // Browsers block the Gamepad API on plain http from any address other than localhost.
     const insecure = typeof window !== 'undefined' && !window.isSecureContext;
-    this.add.text(GAME_WIDTH / 2, 90,
-      insecure
-        ? 'Gamepads are blocked on plain http from another device. Open the https:// address printed by npm start (accept the certificate warning once), or use the keyboard.'
-        : 'Press a button on an unassigned pad to give it to the highlighted player.',
-      { fontFamily: FONT, fontSize: '15px', color: insecure ? INSECURE_WARNING_COLOR : TEXT.dim }).setOrigin(0.5);
+    this.add.text(GAME_WIDTH / 2, 86, insecure ? INSECURE_HINT : CLAIM_HINT,
+      { fontFamily: FONT, fontSize: '14px', color: insecure ? INSECURE_WARNING_COLOR : TEXT.dim }).setOrigin(0.5);
 
     for (let p = 0; p < PANEL_COUNT; p++) this.panels.push(this.buildPanel(p));
 
-    this.status = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 30, '', { fontFamily: FONT, fontSize: '16px', color: TEXT.accent }).setOrigin(0.5);
+    this.status = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 22, '', { fontFamily: FONT, fontSize: '16px', color: TEXT.accent }).setOrigin(0.5);
+    if (!this.mgr.hasSavedBindings()) this.status.setText(FIRST_RUN_STATUS);
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.mgr.destroy());
   }
@@ -195,8 +226,7 @@ export class ControllerScene extends Phaser.Scene {
   // ── Construction ──────────────────────────────────────────────────────────
   private buildPanel(index: number): Panel {
     const px = panelX(index);
-    const title = this.add.text(px + 18, PANEL_Y + 16, `PLAYER ${index + 1}`, { fontFamily: FONT, fontSize: '20px', color: TEXT.bright });
-    const device = this.add.text(px + 18, PANEL_Y + 44, '', { fontFamily: FONT, fontSize: '14px', color: TEXT.dim, wordWrap: { width: PANEL_W - 36 } });
+    const title = this.add.text(px + 18, PANEL_Y + 12, `PLAYER ${index + 1}`, { fontFamily: FONT, fontSize: '20px', color: TEXT.bright });
 
     this.add.text(px + COL_ACTION_X, HEADER_Y, 'ACTION', { fontFamily: FONT, fontSize: '12px', color: TEXT.dim });
     this.add.text(px + COL_KEY_X, HEADER_Y, 'KEYBOARD', { fontFamily: FONT, fontSize: '12px', color: TEXT.dim });
@@ -206,9 +236,9 @@ export class ControllerScene extends Phaser.Scene {
     for (let r = 0; r < ROW_COUNT; r++) {
       const y = rowCenterY(r);
       rows.push({
-        name: this.add.text(px + COL_ACTION_X, y, '', { fontFamily: FONT, fontSize: '16px', color: TEXT.bright }).setOrigin(0, 0.5),
-        key: this.add.text(px + COL_KEY_X, y, '', { fontFamily: FONT, fontSize: '15px', color: TEXT.dim }).setOrigin(0, 0.5),
-        pad: this.add.text(px + COL_PAD_X, y, '', { fontFamily: FONT, fontSize: '15px', color: TEXT.dim }).setOrigin(0, 0.5),
+        name: this.add.text(px + COL_ACTION_X, y, '', { fontFamily: FONT, fontSize: '15px', color: TEXT.bright }).setOrigin(0, 0.5),
+        key: this.add.text(px + COL_KEY_X, y, '', { fontFamily: FONT, fontSize: '14px', color: TEXT.dim }).setOrigin(0, 0.5),
+        pad: this.add.text(px + COL_PAD_X, y, '', { fontFamily: FONT, fontSize: '14px', color: TEXT.dim }).setOrigin(0, 0.5),
       });
     }
 
@@ -224,10 +254,9 @@ export class ControllerScene extends Phaser.Scene {
       faces.push(new PromptBadge(this, px + FACE_CX + slot.dx, VIZ_CY + slot.dy));
     }
 
-    this.add.text(px + COL_ACTION_X, FOOTNOTE_Y, 'Choose a row to rebind it — the next key or button is bound. Esc cancels.',
-      { fontFamily: FONT, fontSize: '13px', color: TEXT.dim });
+    this.add.text(px + COL_ACTION_X, FOOTNOTE_Y, FOOTNOTE, { fontFamily: FONT, fontSize: '12px', color: TEXT.dim, wordWrap: { width: PANEL_W - 36 } });
 
-    return { title, device, rows, keyLabels, faces };
+    return { title, rows, keyLabels, faces };
   }
 
   // ── Frame ─────────────────────────────────────────────────────────────────
@@ -251,7 +280,10 @@ export class ControllerScene extends Phaser.Scene {
     this.prevMenuX = menu.moveX;
 
     if (stepY !== 0) this.row = (this.row + stepY + ROW_COUNT) % ROW_COUNT;
-    if (stepX !== 0) this.column = (this.column + stepX + PANEL_COUNT) % PANEL_COUNT;
+    if (stepX !== 0) {
+      if (SETTING_ROWS.includes(ROWS[this.row].kind)) this.changeSetting(stepX);
+      else this.column = (this.column + stepX + PANEL_COUNT) % PANEL_COUNT;
+    }
 
     const claim = this.mgr.pollPadClaim();
     if (claim !== NO_PAD) {
@@ -262,45 +294,197 @@ export class ControllerScene extends Phaser.Scene {
     }
 
     if (menu.pickupPressed) this.activateRow();
+    else if (menu.interactPressed) this.clearRow();
     if (menu.backPressed === true || menu.pausePressed === true) this.scene.start(SCENE.TITLE);
   }
 
+  // ── Rows ──────────────────────────────────────────────────────────────────
   private activateRow(): void {
-    if (this.row === RESET_ROW) {
-      this.mgr.resetBindings(this.column);
-      this.mgr.save();
-      this.labelsDirty = true;
-      this.status.setText(`Player ${this.column + 1} reset to defaults`);
-      return;
+    const spec = ROWS[this.row];
+    switch (spec.kind) {
+      case 'device':
+      case 'stick':
+      case 'dpad':
+      case 'deadzone':
+        this.changeSetting(1);
+        return;
+      case 'wizard':
+        this.startWizard(this.column);
+        return;
+      case 'reset':
+        this.mgr.resetBindings(this.column);
+        this.mgr.save();
+        this.labelsDirty = true;
+        this.status.setText(`Player ${this.column + 1} reset to defaults`);
+        return;
+      case 'action':
+        if (spec.action === undefined) return;
+        this.capturingAction = spec.action;
+        this.mgr.startCapture();
+        this.status.setText(`Press a key or button to add to "${ACTION_NAMES[spec.action]}" — Esc cancels`);
+        return;
     }
-    this.capturingAction = ACTIONS[this.row];
-    this.mgr.startCapture();
-    this.status.setText(`Press a key or button for "${ACTION_NAMES[this.capturingAction]}" — Esc cancels`);
   }
 
-  private applyCapture(result: CaptureResult): void {
-    const action = this.capturingAction;
-    this.capturingAction = null;
-    if (action === null || result.kind === 'cancel') {
-      this.status.setText('Cancelled');
-      return;
-    }
+  /** The chop button on an action row empties it for the device the player holds. */
+  private clearRow(): void {
+    const spec = ROWS[this.row];
+    if (spec.kind !== 'action' || spec.action === undefined) return;
     const player = this.column;
-    if (result.kind === 'keyboard') {
+    const device = this.mgr.getDevice(player);
+    if (device.kind === 'keyboard') {
       const current = this.mgr.getKeyboardBinding(player);
-      const keys: Record<GameAction, string[]> = { ...current.keys };
-      keys[action] = [result.code];
-      this.mgr.setKeyboardBinding(player, { kind: 'keyboard', keys });
-      this.status.setText(`${ACTION_NAMES[action]} → ${keyCodeLabel(result.code)}`);
+      this.mgr.setKeyboardBinding(player, { kind: 'keyboard', keys: { ...current.keys, [spec.action]: [] } });
     } else {
       const current = this.mgr.getGamepadBinding(player);
-      const buttons: Record<GameAction, number[]> = { ...current.buttons };
-      buttons[action] = [result.button];
-      this.mgr.setGamepadBinding(player, { ...current, buttons });
-      this.status.setText(`${ACTION_NAMES[action]} → ${padButtonLabel(result.button, this.mgr.getPadKind(player))}`);
+      this.mgr.setGamepadBinding(player, { ...cloneGamepadBinding(current, current.padIndex), buttons: { ...current.buttons, [spec.action]: [] } });
     }
     this.mgr.save();
     this.labelsDirty = true;
+    this.status.setText(`"${ACTION_NAMES[spec.action]}" cleared on ${this.deviceLabel(player, device)} — select the row to add a new one`);
+  }
+
+  /** Left / right on a setting row. */
+  private changeSetting(delta: number): void {
+    const spec = ROWS[this.row];
+    const player = this.column;
+    switch (spec.kind) {
+      case 'device':
+        this.changeDevice(player, delta);
+        break;
+      case 'stick': {
+        const current = this.mgr.getGamepadBinding(player);
+        this.mgr.setGamepadBinding(player, { ...cloneGamepadBinding(current, current.padIndex), useLeftStick: !current.useLeftStick });
+        this.status.setText(`Left stick ${current.useLeftStick ? 'off' : 'on'} for player ${player + 1}'s pad`);
+        break;
+      }
+      case 'dpad': {
+        const current = this.mgr.getGamepadBinding(player);
+        this.mgr.setGamepadBinding(player, { ...cloneGamepadBinding(current, current.padIndex), useDpad: !current.useDpad });
+        this.status.setText(`D-pad ${current.useDpad ? 'off' : 'on'} for player ${player + 1}'s pad`);
+        break;
+      }
+      case 'deadzone': {
+        const current = this.mgr.getGamepadBinding(player);
+        const deadzone = clampDeadzone((current.deadzone ?? STICK_DEADZONE) + delta * DEADZONE_STEP);
+        this.mgr.setGamepadBinding(player, { ...cloneGamepadBinding(current, current.padIndex), deadzone });
+        this.status.setText(`Stick deadzone ${formatDeadzone(deadzone)} for player ${player + 1}'s pad`);
+        break;
+      }
+      default:
+        return;
+    }
+    this.mgr.save();
+    this.labelsDirty = true;
+  }
+
+  /** Cycles through the keyboard sets and every connected pad. */
+  private changeDevice(player: number, delta: number): void {
+    const options = this.deviceOptions();
+    const current = this.mgr.getDevice(player);
+    let at = options.findIndex((option) => sameDevice(option, current));
+    if (at < 0) at = 0;
+    const next = options[(at + delta + options.length) % options.length];
+    if (next.kind === 'keyboard') this.mgr.setKeyboardSet(player, next.set);
+    else this.mgr.assignPad(next.padIndex, player);
+    this.status.setText(`Player ${player + 1} now uses ${this.deviceLabel(player, this.mgr.getDevice(player))}`);
+  }
+
+  private deviceOptions(): DeviceChoice[] {
+    const options: DeviceChoice[] = [];
+    for (let set = 0; set < PANEL_COUNT; set++) options.push({ kind: 'keyboard', set });
+    for (const pad of this.mgr.listPads()) options.push({ kind: 'gamepad', padIndex: pad.index });
+    return options;
+  }
+
+  private deviceLabel(player: number, device: DeviceChoice): string {
+    if (device.kind === 'keyboard') return keyboardSetLabel(device.set, this.mgr.getKeyboardBinding(player));
+    const pad = this.mgr.listPads().find((info) => info.index === device.padIndex);
+    return `Pad ${device.padIndex}: ${pad === undefined ? '?' : pad.id}`;
+  }
+
+  // ── Guided setup ──────────────────────────────────────────────────────────
+  private startWizard(player: number): void {
+    this.wizard = { player, step: 0 };
+    this.column = player;
+    this.beginWizardStep();
+  }
+
+  private beginWizardStep(): void {
+    const wizard = this.wizard;
+    if (wizard === null) return;
+    if (wizard.step >= ACTIONS.length) {
+      this.wizard = null;
+      this.mgr.save();
+      this.labelsDirty = true;
+      this.status.setText(`Player ${wizard.player + 1} is set up`);
+      return;
+    }
+    const action = ACTIONS[wizard.step];
+    const device = this.mgr.getDevice(wizard.player);
+    const what = device.kind === 'gamepad' ? 'button' : 'key';
+    this.row = ROWS.findIndex((spec) => spec.kind === 'action' && spec.action === action);
+    this.capturingAction = action;
+    this.mgr.startCapture();
+    this.status.setText(
+      `Player ${wizard.player + 1}, press the ${what} for "${ACTION_NAMES[action]}" (${wizard.step + 1} of ${ACTIONS.length}) — Esc keeps ${this.currentLabel(wizard.player, action)}`,
+    );
+  }
+
+  private currentLabel(player: number, action: GameAction): string {
+    const device = this.mgr.getDevice(player);
+    if (device.kind === 'keyboard') return joinKeyLabels(this.mgr.getKeyboardBinding(player).keys[action]);
+    return joinPadLabels(this.mgr.getGamepadBinding(player).buttons[action], this.mgr.getPadKind(player));
+  }
+
+  // ── Capture ───────────────────────────────────────────────────────────────
+  /** A row capture adds to the action; a wizard capture replaces it. Esc keeps what is there. */
+  private applyCapture(result: CaptureResult): void {
+    const action = this.capturingAction;
+    this.capturingAction = null;
+    const wizard = this.wizard;
+    if (action === null || result.kind === 'cancel') {
+      this.status.setText(wizard === null ? 'Cancelled' : 'Kept');
+      this.advanceWizard();
+      return;
+    }
+    const player = wizard === null ? this.column : wizard.player;
+    const replace = wizard !== null;
+    if (result.kind === 'keyboard') {
+      const current = this.mgr.getKeyboardBinding(player);
+      const list = replace ? [result.code] : addUnique(current.keys[action], result.code);
+      this.mgr.setKeyboardBinding(player, { kind: 'keyboard', keys: { ...current.keys, [action]: list } });
+      this.status.setText(`${ACTION_NAMES[action]} → ${joinKeyLabels(list)}`);
+    } else {
+      if (!this.padBelongsTo(result.padIndex, player)) {
+        this.status.setText(`That pad belongs to another player — press player ${player + 1}'s pad or a key`);
+        this.capturingAction = action;
+        this.mgr.startCapture();
+        return;
+      }
+      const current = this.mgr.getGamepadBinding(player);
+      const list = replace ? [result.button] : addUnique(current.buttons[action], result.button);
+      this.mgr.setGamepadBinding(player, { ...cloneGamepadBinding(current, current.padIndex), buttons: { ...current.buttons, [action]: list } });
+      this.status.setText(`${ACTION_NAMES[action]} → ${joinPadLabels(list, this.mgr.getPadKind(player))}`);
+    }
+    this.mgr.save();
+    this.labelsDirty = true;
+    this.advanceWizard();
+  }
+
+  /** An unassigned pad pressed during a capture is claimed for the player; another player's pad is not. */
+  private padBelongsTo(padIndex: number, player: number): boolean {
+    if (this.mgr.getPadIndex(player) === padIndex) return true;
+    const pad = this.mgr.listPads().find((info) => info.index === padIndex);
+    if (pad === undefined || pad.player >= 0) return false;
+    this.mgr.assignPad(padIndex, player);
+    return true;
+  }
+
+  private advanceWizard(): void {
+    if (this.wizard === null) return;
+    this.wizard.step += 1;
+    this.beginWizardStep();
   }
 
   // ── Text ──────────────────────────────────────────────────────────────────
@@ -317,24 +501,53 @@ export class ControllerScene extends Phaser.Scene {
 
     for (let p = 0; p < PANEL_COUNT; p++) {
       const panel = this.panels[p];
-      const padIndex = this.mgr.getPadIndex(p);
       const kind = this.mgr.getPadKind(p);
-      panel.device.setText(padIndex === NO_PAD ? 'Keyboard only — no pad assigned' : `Pad ${padIndex}: ${this.deviceNames[p]}`);
-
       const keyboard = this.mgr.getKeyboardBinding(p);
       const gamepad = this.mgr.getGamepadBinding(p);
-      for (let r = 0; r < ACTIONS.length; r++) {
-        const action = ACTIONS[r];
-        panel.rows[r].name.setText(ACTION_NAMES[action]);
-        panel.rows[r].key.setText(joinKeyLabels(keyboard.keys[action]));
-        panel.rows[r].pad.setText(joinPadLabels(gamepad.buttons[action], kind));
+      const device = this.mgr.getDevice(p);
+      const padNote = device.kind === 'gamepad' ? '' : ' · next pad';
+
+      for (let r = 0; r < ROW_COUNT; r++) {
+        const spec = ROWS[r];
+        const row = panel.rows[r];
+        row.pad.setText('');
+        switch (spec.kind) {
+          case 'device':
+            row.name.setText('Device');
+            row.key.setText(truncate(this.deviceLabel(p, device), VALUE_MAX_CHARS));
+            break;
+          case 'wizard':
+            row.name.setText('Set up controls');
+            row.key.setText('every action, one press at a time');
+            break;
+          case 'action':
+            if (spec.action === undefined) break;
+            row.name.setText(ACTION_NAMES[spec.action]);
+            row.key.setText(joinKeyLabels(keyboard.keys[spec.action]));
+            row.pad.setText(joinPadLabels(gamepad.buttons[spec.action], kind));
+            break;
+          case 'stick':
+            row.name.setText('Left stick');
+            row.key.setText(`${gamepad.useLeftStick ? 'on' : 'off'}${padNote}`);
+            break;
+          case 'dpad':
+            row.name.setText('D-pad');
+            row.key.setText(`${gamepad.useDpad ? 'on' : 'off'}${padNote}`);
+            break;
+          case 'deadzone':
+            row.name.setText('Stick deadzone');
+            row.key.setText(`${formatDeadzone(gamepad.deadzone ?? STICK_DEADZONE)}${padNote}`);
+            break;
+          case 'reset':
+            row.name.setText('Reset to defaults');
+            row.key.setText('');
+            break;
+        }
       }
-      panel.rows[RESET_ROW].name.setText('Reset to defaults');
-      panel.rows[RESET_ROW].key.setText('');
-      panel.rows[RESET_ROW].pad.setText('');
 
       for (let k = 0; k < KEY_SLOTS.length; k++) {
-        panel.keyLabels[k].setText(keyCodeLabel(keyboard.keys[KEY_SLOTS[k].action][0]));
+        const code = keyboard.keys[KEY_SLOTS[k].action][0];
+        panel.keyLabels[k].setText(code === undefined ? UNBOUND : keyCodeLabel(code));
       }
       for (let f = 0; f < FACE_SLOTS.length; f++) {
         panel.faces[f].setLabel(this, padButtonLabel(FACE_SLOTS[f].button, kind));
@@ -428,13 +641,33 @@ function rowCenterY(row: number): number {
 }
 
 function joinKeyLabels(codes: readonly string[]): string {
+  if (codes.length === 0) return UNBOUND;
   let out = '';
   for (let i = 0; i < codes.length; i++) out += (i === 0 ? '' : ' / ') + keyCodeLabel(codes[i]);
   return out;
 }
 
 function joinPadLabels(buttons: readonly number[], kind: PadKind): string {
+  if (buttons.length === 0) return UNBOUND;
   let out = '';
   for (let i = 0; i < buttons.length; i++) out += (i === 0 ? '' : ' / ') + padButtonLabel(buttons[i], kind);
   return out;
+}
+
+function addUnique<T>(list: readonly T[], item: T): T[] {
+  return list.includes(item) ? list.slice() : [...list, item];
+}
+
+function sameDevice(a: DeviceChoice, b: DeviceChoice): boolean {
+  if (a.kind === 'keyboard' && b.kind === 'keyboard') return a.set === b.set;
+  if (a.kind === 'gamepad' && b.kind === 'gamepad') return a.padIndex === b.padIndex;
+  return false;
+}
+
+function formatDeadzone(value: number): string {
+  return value.toFixed(2);
+}
+
+function truncate(text: string, max: number): string {
+  return text.length <= max ? text : `${text.slice(0, max - 1)}…`;
 }

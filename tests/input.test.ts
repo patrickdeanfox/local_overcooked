@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import {
-  ACTIONS, BINDINGS_VERSION, NO_PAD, PAD_BUTTON, STICK_DEADZONE,
-  applyRadialDeadzone, axisEdge, clearEdgeLatch, createEdgeLatch, createHeldState,
+  ACTIONS, BINDINGS_VERSION, DEADZONE_MAX, DEADZONE_MIN, DEADZONE_STEP, KEYBOARD_SET_COUNT, NO_PAD, PAD_BUTTON, STICK_DEADZONE,
+  applyRadialDeadzone, axisEdge, clampDeadzone, clearEdgeLatch, cloneGamepadBinding, createEdgeLatch, createHeldState,
   createPlayerInput, copyHeldState,
-  defaultGamepadBinding, defaultKeyboardBinding, defaultPlayerBindings,
-  keyCodeLabel, labelForAction, latchEdges, mergeHeldState, padButtonLabel, padKindFromId,
-  parseBindings, readGamepad, readKeyboard, readMenuInput, serialiseBindings, writePlayerInput,
-  writeStepInput,
-  type PadSnapshot, type Vec2,
+  defaultBindingsStore, defaultGamepadBinding, defaultKeyboardBinding, defaultPlayerBindings,
+  keyCodeLabel, keyboardSetLabel, labelForAction, latchEdges, menuLabels, mergeHeldState, padBindingFor, padButtonLabel,
+  padKindFromId, parseBindings, readGamepad, readKeyboard, readMenuInput, serialiseBindings, swapKeyboardSets,
+  writePlayerInput, writeStepInput,
+  type BindingsStore, type PadSnapshot, type Vec2,
 } from '../src/input/mapping';
 import type { PlayerInput } from '../src/sim/types';
-import type { GameAction, PlayerBindings } from '../src/input/types';
+import type { GameAction, HintAction } from '../src/input/types';
 
 // ─── Fixtures ───────────────────────────────────────────────────────────────
 const XBOX_ID = 'Xbox 360 Controller (XInput STANDARD GAMEPAD)';
@@ -185,6 +185,23 @@ describe('readGamepad', () => {
     expect(held.moveX).toBe(0);
   });
 
+  it('uses the pad\'s own deadzone when it has one', () => {
+    const held = createHeldState();
+    readGamepad(fakePad({ axes: [0.4, 0, 0, 0] }), binding, held, vec());
+    expect(held.moveX).toBeGreaterThan(0);               // past the default 0.25
+    readGamepad(fakePad({ axes: [0.4, 0, 0, 0] }), { ...binding, deadzone: 0.5 }, held, vec());
+    expect(held.moveX).toBe(0);                          // inside this pad's 0.5
+    readGamepad(fakePad({ axes: [0.2, 0, 0, 0] }), { ...binding, deadzone: 0 }, held, vec());
+    expect(held.moveX).toBeCloseTo(0.2, 6);              // no deadzone at all
+  });
+
+  it('clamps a deadzone to its range in whole steps', () => {
+    expect(clampDeadzone(STICK_DEADZONE + DEADZONE_STEP)).toBeCloseTo(0.3, 9);
+    expect(clampDeadzone(-1)).toBe(DEADZONE_MIN);
+    expect(clampDeadzone(5)).toBe(DEADZONE_MAX);
+    expect(clampDeadzone(0.26)).toBeCloseTo(0.25, 9);
+  });
+
   it('honours a remapped button', () => {
     const remapped = defaultGamepadBinding();
     remapped.buttons.pickup = [PAD_BUTTON.RB];
@@ -294,6 +311,33 @@ describe('label selection', () => {
     expect(labelForAction('left', keyboard, { binding: gamepad, id: XBOX_ID })).toBe('Stick');
     expect(labelForAction('left', keyboard, { binding: { ...gamepad, useLeftStick: false }, id: XBOX_ID })).toBe('←');
   });
+
+  it('names the fixed menu-back button and an unbound action', () => {
+    const keyboard = defaultKeyboardBinding(0);
+    const gamepad = defaultGamepadBinding(0);
+    expect(labelForAction('back', keyboard, null)).toBe('Bksp');
+    expect(labelForAction('back', keyboard, { binding: gamepad, id: XBOX_ID })).toBe('B');
+    expect(labelForAction('back', keyboard, { binding: gamepad, id: 'DualSense Wireless Controller' })).toBe('Circle');
+    const bare = defaultKeyboardBinding(0);
+    bare.keys.pickup = [];
+    expect(labelForAction('pickup', bare, null)).toBe('—');
+  });
+
+  it('builds the words of a menu hint line for either device', () => {
+    const keyboard = defaultKeyboardBinding(0);
+    const onKeys = (action: HintAction): string => labelForAction(action, keyboard, null);
+    expect(menuLabels(onKeys)).toEqual({ choose: 'W / S', change: 'A / D', select: 'Space', back: 'Esc or Bksp' });
+    const pad = { binding: defaultGamepadBinding(0), id: 'DualSense Wireless Controller' };
+    const onPad = (action: HintAction): string => labelForAction(action, keyboard, pad);
+    expect(menuLabels(onPad)).toEqual({ choose: 'Stick', change: 'Stick', select: 'Cross', back: 'Options or Circle' });
+    const dpadOnly = { binding: { ...defaultGamepadBinding(0), useLeftStick: false }, id: XBOX_ID };
+    expect(menuLabels((action) => labelForAction(action, keyboard, dpadOnly)).choose).toBe('↑ / ↓');
+  });
+
+  it('names a keyboard set by its movement keys', () => {
+    expect(keyboardSetLabel(0, defaultKeyboardBinding(0))).toBe('Keyboard set 1 (W A S D)');
+    expect(keyboardSetLabel(1, defaultKeyboardBinding(1))).toBe('Keyboard set 2 (↑ ← ↓ →)');
+  });
 });
 
 // ─── Menu helpers ───────────────────────────────────────────────────────────
@@ -393,88 +437,179 @@ describe('edge latch', () => {
   });
 });
 
+// ─── The store ──────────────────────────────────────────────────────────────
+describe('bindings store', () => {
+  it('starts every player on their own keyboard set with no pads known', () => {
+    const store = defaultBindingsStore(2);
+    expect(store.keyboards.length).toBe(KEYBOARD_SET_COUNT);
+    expect(store.players.map((p) => p.keyboardSet)).toEqual([0, 1]);
+    expect(store.pads).toEqual({});
+    expect(store.players[0].gamepad.padIndex).toBe(NO_PAD);
+  });
+
+  it('swaps keyboard sets so two players never share one', () => {
+    const store = defaultBindingsStore(2);
+    swapKeyboardSets(store, 0, 1);
+    expect(store.players.map((p) => p.keyboardSet)).toEqual([1, 0]);
+    swapKeyboardSets(store, 0, 1); // already held: nothing moves
+    expect(store.players.map((p) => p.keyboardSet)).toEqual([1, 0]);
+    swapKeyboardSets(store, 1, 7); // no such set
+    expect(store.players.map((p) => p.keyboardSet)).toEqual([1, 0]);
+  });
+
+  it('gives a known pad its own map and an unknown pad the slot fallback', () => {
+    const store = defaultBindingsStore(2);
+    const own = defaultGamepadBinding();
+    own.buttons.pickup = [PAD_BUTTON.Y];
+    store.pads['DualSense Wireless Controller'] = own;
+    expect(padBindingFor(store, 0, 'DualSense Wireless Controller')).toBe(own);
+    expect(padBindingFor(store, 1, 'never seen')).toBe(store.players[1].gamepad);
+  });
+
+  it('clones a pad binding without its session pad index', () => {
+    const binding = defaultGamepadBinding(3);
+    binding.deadzone = 0.4;
+    const copy = cloneGamepadBinding(binding);
+    expect(copy.padIndex).toBe(NO_PAD);
+    expect(copy.deadzone).toBe(0.4);
+    expect(copy.buttons.up).not.toBe(binding.buttons.up);
+    expect(cloneGamepadBinding(defaultGamepadBinding()).deadzone).toBeUndefined();
+  });
+});
+
 // ─── Persistence ────────────────────────────────────────────────────────────
 describe('bindings persistence', () => {
-  it('round-trips through JSON', () => {
-    const bindings = defaultPlayerBindings(2);
-    bindings[0].keyboard.keys.pickup = ['KeyF'];
-    bindings[1].gamepad.buttons.interact = [PAD_BUTTON.Y];
-    bindings[1].gamepad.useDpad = false;
+  it('round-trips the store through JSON', () => {
+    const store = defaultBindingsStore(2);
+    store.keyboards[0].keys.pickup = ['KeyF'];
+    store.players[1].gamepad.buttons.interact = [PAD_BUTTON.Y];
+    store.players[1].gamepad.useDpad = false;
+    swapKeyboardSets(store, 0, 1);
+    const pad = defaultGamepadBinding();
+    pad.buttons.pickup = [PAD_BUTTON.RB, PAD_BUTTON.A];
+    pad.deadzone = 0.35;
+    store.pads['DualSense Wireless Controller'] = pad;
 
-    const parsed = parseBindings(serialiseBindings(bindings), 2);
+    const parsed = parseBindings(serialiseBindings(store), 2);
     expect(parsed).not.toBeNull();
     if (parsed === null) return;
-    expect(parsed[0].keyboard.keys.pickup).toEqual(['KeyF']);
-    expect(parsed[1].gamepad.buttons.interact).toEqual([PAD_BUTTON.Y]);
-    expect(parsed[1].gamepad.useDpad).toBe(false);
-    expect(parsed[0].keyboard.keys.up).toEqual(['KeyW']);
-    for (const action of ACTIONS) expect(parsed[1].keyboard.keys[action].length).toBeGreaterThan(0);
+    expect(parsed.keyboards[0].keys.pickup).toEqual(['KeyF']);
+    expect(parsed.players.map((p) => p.keyboardSet)).toEqual([1, 0]);
+    expect(parsed.players[1].gamepad.buttons.interact).toEqual([PAD_BUTTON.Y]);
+    expect(parsed.players[1].gamepad.useDpad).toBe(false);
+    expect(parsed.pads['DualSense Wireless Controller']).toMatchObject({ buttons: { pickup: [PAD_BUTTON.RB, PAD_BUTTON.A] }, deadzone: 0.35 });
+    for (const action of ACTIONS) expect(parsed.keyboards[1].keys[action].length).toBeGreaterThan(0);
   });
 
   it('never persists the live pad assignment', () => {
-    const bindings = defaultPlayerBindings(2);
-    bindings[0].gamepad.padIndex = 3;
-    const parsed = parseBindings(serialiseBindings(bindings), 2);
-    expect(parsed?.[0].gamepad.padIndex).toBe(NO_PAD);
+    const store = defaultBindingsStore(2);
+    store.players[0].gamepad.padIndex = 3;
+    store.pads.x = defaultGamepadBinding(2);
+    const parsed = parseBindings(serialiseBindings(store), 2);
+    expect(parsed?.players[0].gamepad.padIndex).toBe(NO_PAD);
+    expect(parsed?.pads.x.padIndex).toBe(NO_PAD);
   });
 
   it('returns fresh arrays, not references into the payload', () => {
-    const bindings = defaultPlayerBindings(2);
-    const json = serialiseBindings(bindings);
+    const json = serialiseBindings(defaultBindingsStore(2));
     const a = parseBindings(json, 2);
     const b = parseBindings(json, 2);
-    expect(a?.[0].keyboard.keys.up).not.toBe(b?.[0].keyboard.keys.up);
+    expect(a?.keyboards[0].keys.up).not.toBe(b?.keyboards[0].keys.up);
+  });
+
+  it('keeps an action unbound on one device', () => {
+    const store = defaultBindingsStore(2);
+    store.keyboards[0].keys.pause = [];
+    store.players[0].gamepad.buttons.interact = [];
+    const parsed = parseBindings(serialiseBindings(store), 2);
+    expect(parsed?.keyboards[0].keys.pause).toEqual([]);
+    expect(parsed?.players[0].gamepad.buttons.interact).toEqual([]);
+  });
+
+  it('migrates a v1 payload: each keyboard becomes that player\'s set, pads stay unknown', () => {
+    const v1 = defaultPlayerBindings(2);
+    v1[0].keyboard.keys.pickup = ['KeyF'];
+    v1[1].gamepad.buttons.pickup = [PAD_BUTTON.Y];
+    const raw = JSON.stringify({ version: 1, players: v1 });
+    const parsed = parseBindings(raw, 2);
+    expect(parsed).not.toBeNull();
+    if (parsed === null) return;
+    expect(parsed.keyboards.length).toBe(2);
+    expect(parsed.keyboards[0].keys.pickup).toEqual(['KeyF']);
+    expect(parsed.players.map((p) => p.keyboardSet)).toEqual([0, 1]);
+    expect(parsed.players[1].gamepad.buttons.pickup).toEqual([PAD_BUTTON.Y]);
+    expect(parsed.pads).toEqual({});
+    // and it comes back out as v2
+    expect((JSON.parse(serialiseBindings(parsed)) as { version: number }).version).toBe(BINDINGS_VERSION);
   });
 
   it('rejects anything unusable and lets the caller fall back to defaults', () => {
-    const good: PlayerBindings[] = defaultPlayerBindings(2);
-    const json = serialiseBindings(good);
-    const payload = JSON.parse(json) as { version: number; players: unknown[] };
+    const payload = JSON.parse(serialiseBindings(defaultBindingsStore(2))) as BindingsStore & { version: number };
 
     expect(parseBindings(null, 2)).toBeNull();
     expect(parseBindings('', 2)).toBeNull();
     expect(parseBindings('not json at all', 2)).toBeNull();
     expect(parseBindings('[]', 2)).toBeNull();
     expect(parseBindings('"a string"', 2)).toBeNull();
-    expect(parseBindings(JSON.stringify({ version: BINDINGS_VERSION + 1, players: payload.players }), 2)).toBeNull();
-    expect(parseBindings(JSON.stringify({ players: payload.players }), 2)).toBeNull();
+    expect(parseBindings(JSON.stringify({ ...payload, version: BINDINGS_VERSION + 1 }), 2)).toBeNull();
+    expect(parseBindings(JSON.stringify({ ...payload, version: undefined }), 2)).toBeNull();
     expect(parseBindings(JSON.stringify({ version: BINDINGS_VERSION }), 2)).toBeNull();
     // fewer players stored than asked for
-    expect(parseBindings(JSON.stringify({ version: BINDINGS_VERSION, players: [payload.players[0]] }), 2)).toBeNull();
+    expect(parseBindings(JSON.stringify({ ...payload, players: [payload.players[0]] }), 2)).toBeNull();
+    // no keyboard sets at all
+    expect(parseBindings(JSON.stringify({ ...payload, keyboards: [] }), 2)).toBeNull();
+    // pads must be an object
+    expect(parseBindings(JSON.stringify({ ...payload, pads: [] }), 2)).toBeNull();
+    // v1 with a broken player
+    expect(parseBindings(JSON.stringify({ version: 1, players: [{}, {}] }), 2)).toBeNull();
+  });
+
+  it('rejects two players on one keyboard set or a set that does not exist', () => {
+    const shared = JSON.parse(serialiseBindings(defaultBindingsStore(2))) as BindingsStore;
+    shared.players[1].keyboardSet = 0;
+    expect(parseBindings(JSON.stringify({ version: BINDINGS_VERSION, ...shared }), 2)).toBeNull();
+    const missing = JSON.parse(serialiseBindings(defaultBindingsStore(2))) as BindingsStore;
+    missing.players[1].keyboardSet = 5;
+    expect(parseBindings(JSON.stringify({ version: BINDINGS_VERSION, ...missing }), 2)).toBeNull();
   });
 
   it('rejects a payload with a missing or malformed action', () => {
+    type Loose = {
+      version: number;
+      keyboards: { keys: Record<string, unknown> }[];
+      players: { keyboardSet: number; gamepad: { buttons: Record<string, unknown>; useDpad: unknown; deadzone?: unknown } }[];
+      pads: Record<string, { buttons: Record<string, unknown> }>;
+    };
+    const fresh = (): Loose => JSON.parse(serialiseBindings(defaultBindingsStore(2))) as Loose;
     for (const action of ACTIONS) {
-      const bad = JSON.parse(serialiseBindings(defaultPlayerBindings(2))) as {
-        version: number;
-        players: { keyboard: { keys: Record<string, unknown> }; gamepad: { buttons: Record<string, unknown> } }[];
-      };
-      delete bad.players[0].keyboard.keys[action];
+      const bad = fresh();
+      delete bad.keyboards[0].keys[action];
       expect(parseBindings(JSON.stringify(bad), 2)).toBeNull();
     }
 
-    const wrongTypes = JSON.parse(serialiseBindings(defaultPlayerBindings(2))) as {
-      players: { keyboard: { keys: Record<GameAction, unknown> }; gamepad: { buttons: Record<GameAction, unknown>; useDpad: unknown } }[];
-      version: number;
-    };
-    wrongTypes.players[0].keyboard.keys.pickup = 'Space';
+    const wrongTypes = fresh();
+    wrongTypes.keyboards[0].keys.pickup = 'Space';
     expect(parseBindings(JSON.stringify(wrongTypes), 2)).toBeNull();
 
-    const emptyArray = JSON.parse(serialiseBindings(defaultPlayerBindings(2))) as typeof wrongTypes;
-    emptyArray.players[0].keyboard.keys.pickup = [];
-    expect(parseBindings(JSON.stringify(emptyArray), 2)).toBeNull();
-
-    const badButton = JSON.parse(serialiseBindings(defaultPlayerBindings(2))) as typeof wrongTypes;
+    const badButton = fresh();
     badButton.players[1].gamepad.buttons.pickup = [1.5];
     expect(parseBindings(JSON.stringify(badButton), 2)).toBeNull();
 
-    const negativeButton = JSON.parse(serialiseBindings(defaultPlayerBindings(2))) as typeof wrongTypes;
+    const negativeButton = fresh();
     negativeButton.players[1].gamepad.buttons.pickup = [-1];
     expect(parseBindings(JSON.stringify(negativeButton), 2)).toBeNull();
 
-    const badFlag = JSON.parse(serialiseBindings(defaultPlayerBindings(2))) as typeof wrongTypes;
+    const badFlag = fresh();
     badFlag.players[1].gamepad.useDpad = 'yes';
     expect(parseBindings(JSON.stringify(badFlag), 2)).toBeNull();
+
+    const badDeadzone = fresh();
+    badDeadzone.players[1].gamepad.deadzone = 2;
+    expect(parseBindings(JSON.stringify(badDeadzone), 2)).toBeNull();
+
+    const badPad = fresh();
+    badPad.pads['some pad'] = { buttons: {} };
+    expect(parseBindings(JSON.stringify(badPad), 2)).toBeNull();
   });
 });
 

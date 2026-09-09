@@ -5,7 +5,7 @@
 // and the chefs stay on the title and the Chefs page, where they change most often.
 import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH, MAX_PLAYERS, SCENE } from '../../config';
-import { createInputManager } from '../../input';
+import { createInputManager, menuLabels } from '../../input';
 import type { InputManager } from '../../input/types';
 import { getAudioBus, installAudioGestureResume, installMuteToggle } from '../audioBus';
 import {
@@ -31,7 +31,11 @@ const SETTINGS = {
 } as const;
 
 const HEADING = 'SETTINGS';
-const HINT = 'up / down choose · left / right change · Esc or B back · M mutes everything';
+/** The hint line in the first player's own labels (keys, or the pad's buttons). */
+function hintLine(mgr: InputManager): string {
+  const labels = menuLabels((action) => mgr.labelFor(0, action));
+  return `${labels.choose} choose · ${labels.change} change · ${labels.back} back · M mutes everything`;
+}
 const ASSIST_NOTE = 'A run with any assist on is not saved and earns no stars';
 
 type RowId = 'seedMode' | 'seedValue' | 'freePlay' | AssistId | 'customDifficulty' | 'music' | 'sfx' | 'back';
@@ -70,9 +74,9 @@ export class SettingsScene extends Phaser.Scene {
 
     this.cameras.main.setBackgroundColor(COLOR.bg);
     this.add.text(GAME_WIDTH / 2, SETTINGS.headingY, HEADING, textStyle(SETTINGS.headingFontPx, TEXT_COLOR.accent)).setOrigin(0.5);
-    this.add.text(GAME_WIDTH / 2, SETTINGS.hintY, HINT, textStyle(SETTINGS.hintFontPx, TEXT_COLOR.dim)).setOrigin(0.5);
 
     this.inputMgr = createInputManager(this, MAX_PLAYERS);
+    this.add.text(GAME_WIDTH / 2, SETTINGS.hintY, hintLine(this.inputMgr), textStyle(SETTINGS.hintFontPx, TEXT_COLOR.dim)).setOrigin(0.5);
     this.menuInput = new MenuInput();
     this.keyboardNav = new KeyboardNav(this);
     this.disposers.push(installAudioGestureResume(this), installMuteToggle(this));

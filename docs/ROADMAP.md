@@ -4,7 +4,7 @@ Where the game goes from the 2026-09-08 build. Ordered by value per effort, not 
 
 Done so far: first playable, Overcooked 1 world 1 (1-1 to 1-6) with soups, burgers, fire, sinks, plate stacks, pedestrians, sliders and the earthquake gate; the full 3D kitchen (Three.js behind Phaser, CC0 Kenney and KayKit kits, level themes, steam, a chopping animation, street dressing with parked cars); level select with saved stars and unlocks; four difficulty presets, a custom difficulty page that scales every timer and ticket number, and three seed modes; the Chefs page with 15 characters previewed in 3D; the Settings page with three assists and separate music and effects switches; the F8 play-note reporter; the headless playtest harness with 20 scripted scenarios; the https LAN server and desktop launcher; and a research catalog of all 74 Overcooked 1 and 2 levels (`docs/research/catalog/`).
 
-How the items relate: throwing and dashing (item 4) unblock 24 catalogued levels, so they come before the bulk of the level work (item 5). New kits (item 6) dress the levels as they land. The controller wizard (item 3) is small and self-contained, so it can run in parallel with anything. Procedural kitchens (item 8) read the catalog and reuse the level validator, so they need nothing from items 4 to 7. `docs/WORKFLOW.md` says how to run several of these at once.
+How the items relate: throwing and dashing (item 4) unblock 24 catalogued levels, so they come before the bulk of the level work (item 5). New kits (item 6) dress the levels as they land. Procedural kitchens (item 8) read the catalog and reuse the level validator, so they need nothing from items 4 to 7. `docs/WORKFLOW.md` says how to run several of these at once.
 
 ## 1. Tune world 1 by play — S, ongoing
 - Apply `docs/research/sim-constants-recommendations.md` to `src/sim/constants.ts`.
@@ -17,17 +17,10 @@ Shipped in PRs #41 and #42: a fifth preset, `custom`, whose modifiers come from 
 
 Left for later: station swaps within slots and fewer plates as modifiers (item 9), and a per-level reference in the preview line once the title remembers which level the cursor was on.
 
-## 3. Controller setup that feels intentional — M
-What exists: seven `GameAction`s in `src/input/types.ts` (four directions, pick up, interact, pause). The Controllers page (`src/game/scenes/ControllerScene.ts`) shows live input per player, remaps any action per device, resets a player to defaults and lets an unassigned pad claim a player. Menu back is fixed on Backspace and B/Circle. Rough edges confirmed in code: no way to swap or release an assigned pad (`unassignPad()` exists in `src/input/index.ts` with no caller), the keyboard set is hard-wired to the player index, remapping collapses a dual default such as Shift+Ctrl to one key, the stick and d-pad toggles and the deadzone are not editable, and the page never lists the pads the browser sees.
+## 3. Controller setup that feels intentional — done 2026-09-08, except step 6
+Shipped in PR #43 (input arm): a **Device** row per player (Keyboard set 1, Keyboard set 2, or any connected pad by name; a pad another player holds is swapped, a keyboard set releases the pad and the sets stay distinct); **Set up controls**, a guided wizard that asks for every action one press at a time; captures on an action row **add** to its list and the chop button **clears** it for the chosen device, so Shift+Ctrl survives; bindings **keyed by pad id** (`BINDINGS_VERSION` 2 with a one-shot v1 migration in `parseBindings`); **Left stick, D-pad and Stick deadzone** rows per pad; and **`menuLabels`**, the one helper every hint line (title, Settings, Custom difficulty, Chefs, pause, results) reads its labels through, so a PlayStation pad sees Cross / Square everywhere. `hasSavedBindings()` drives a first-run pointer on the title and the page. Docs in `docs/CONTROLS.md`; tests in `tests/input.test.ts`; harness script `tools/playtests/21-controllers-setup.txt`.
 
-Build, in this order:
-1. **Device per player.** A "Device" row at the top of each player column: Keyboard set 1, Keyboard set 2, or any connected pad by name (`listPads()` already exists). Choosing a pad another player holds swaps them; choosing a keyboard set releases the pad. This is the piece that makes assignment deliberate instead of connection-order luck.
-2. **Guided binding wizard.** "Player 1, press the button for Pick up", one action at a time, per device, using the existing capture code; offered on first run and from a "Set up controls" row. Captures add to the action's list instead of replacing it, with a "Clear" option, so Shift+Ctrl survives.
-3. **Bindings keyed by pad identity.** Store gamepad bindings under the pad's id string so a reconnected pad keeps its map; that is `BINDINGS_VERSION` 2 with a one-shot migration from v1 in `parseBindings()`.
-4. **Stick and d-pad toggles, deadzone slider.** `useLeftStick`, `useDpad` and `STICK_DEADZONE` become per-pad settings edited on the page.
-5. **Glyphs everywhere.** Every hint line (title, pause, results, HUD) uses the detected pad's labels (Cross/Square vs A/X) through one helper; today only the Controllers page does.
-6. **Room for throw and dash.** The action list grows to nine with item 4. Note the conflict: B/Circle is the fixed menu-back button and `backPressed` is only read by `src/game/ui/menuInput.ts`, so in-game B is free for dash if the fixed back binding stays menu-only. Decide the defaults when item 4 lands and put them in `src/input/mapping.ts`.
-- Docs: `docs/CONTROLS.md` describes the page; update it with each step. Tests: `tests/input.test.ts`.
+Left for item 4: **room for throw and dash.** The action list grows to nine; B / Circle stays the fixed menu-back button and `backPressed` is only read by menus, so in-game B is free for dash. Decide the defaults when item 4 lands and put them in `src/input/mapping.ts`; the saved payload then needs a migration step next to `parseV1` that fills the new actions with their defaults.
 
 ## 4. Overcooked 2 dynamics: throwing and dashing — M
 Why first among the mechanics: the catalog lists throwing as missing on 24 of 74 levels, more than any other mechanic, and OC1 1-6 was shipped with a timed gate standing in for its throw-over drop. The design is written out in `docs/research/oc2-roadmap-notes.md` sections 3, 4 and 16; the short version:
@@ -116,8 +109,7 @@ Build in stages, each shippable:
 ## Known gaps in the current build
 - Order cadence, timeout and tip amounts are estimates; the wiki publishes none (`docs/research/sim-constants-recommendations.md`). Tune by play.
 - 1-3's 1-star and 2-star thresholds are derived, not published (`docs/LEVELS.md`).
-- Remapping an action replaces its whole binding list, so the Shift+Ctrl default becomes one key (item 3).
-- No pad swap or release from the UI, no reset-progress entry (items 3, 9).
+- No reset-progress entry (item 9).
 - Gamepad paths are unit-tested against fake pads only; use the Controllers screen to verify yours.
 - 35 of the 74 catalog grids are low confidence and want a better screenshot before transcription.
 - One music loop for every level; the chef's baked `jump` clip is unused.

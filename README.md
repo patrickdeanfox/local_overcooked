@@ -74,7 +74,7 @@ Development with hot reload (also reachable on the LAN): `npm run dev`. Editing 
 | Chop / wash / spray (hold) | Left Shift or Ctrl | Right Shift or Ctrl | X | Square |
 | Pause / back | Esc | Esc | Start / B | Options / Circle |
 
-Keyboard set 1 always drives player 1 and set 2 always drives player 2, so the game works with no pads at all. Pads are assigned in the order they connect; the **Controllers** entry on the title screen shows live input for each player and lets you remap any action. Bindings persist in the browser. Details and quirks: `docs/CONTROLS.md`.
+Each player holds one keyboard set (WASD or the arrows), so the game works with no pads at all. Pads are assigned in the order they connect; the **Controllers** entry on the title screen shows live input for each player, lets you pick each player's device (a keyboard set or a pad by name), walks you through every button with **Set up controls**, adds or clears keys and buttons per action, and sets the stick, d-pad and deadzone per pad. Bindings persist in the browser, pads by their id. Details and quirks: `docs/CONTROLS.md`.
 
 Other keys: **M** mute, **F3** or backtick debug overlay, **F4** (held, dev only) fake HUD state.
 
@@ -127,4 +127,4 @@ Each `src/` part has a `CLAUDE.md` with its rules, boundaries, tests and how-to-
 4. Timers and star thresholds come from the level page infobox and star chart; `docs/research/oc1-levels.md` has every OC1 level tabulated.
 
 ## What is not in this build
-A guided controller setup, Overcooked 1 worlds 2 to 6 and all of Overcooked 2 (moving trucks, conveyor belts, fish and chips, pizza, burritos, mixers), throwing and dashing, more Kenney kits for the world themes, a character maker and custom models, procedurally generated kitchens, playing from two devices, recorded sound, and Tiled import. The order in which those land, with the files each one touches, is in `docs/ROADMAP.md`.
+Overcooked 1 worlds 2 to 6 and all of Overcooked 2 (moving trucks, conveyor belts, fish and chips, pizza, burritos, mixers), throwing and dashing, more Kenney kits for the world themes, a character maker and custom models, procedurally generated kitchens, playing from two devices, recorded sound, and Tiled import. The order in which those land, with the files each one touches, is in `docs/ROADMAP.md`.

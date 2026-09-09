@@ -1,0 +1,139 @@
+# -- Controllers page: first-run pointer, the Device row swaps keyboard sets, a capture adds a
+#    key, the chop button clears one, the wizard walks every action, the v2 payload persists and
+#    the hint lines use the player's own labels --------------------------------------------------
+#
+# Title rows, in cursor order: six levels, Players, Difficulty, Chefs, Settings, Controllers - so
+# Controllers is index 10. The page has no MenuList, so its rows are top-level Text objects, so
+# __ui.texts('Controller') lists every label on the page. Column rows, top to bottom: Device,
+# Set up controls, Move up, Move down, Move left, Move right, Pick up / drop, Chop / wash / spray,
+# Pause, Left stick, D-pad, Stick deadzone, Reset to defaults.
+until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
+wait 600
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval localStorage.removeItem('local-overcooked.bindings.v1')
+eval JSON.stringify(['title hint', __ui.texts('Title').filter((t) => /choose|First time/.test(t))])
+
+# -- Down to Controllers: the status line points at the wizard on a first run -----------------
+tap ArrowUp
+wait 150
+eval JSON.stringify(['cursor on', __ui.index(), 'status', __ui.status()])
+tap Enter
+wait 700
+eval JSON.stringify(['scenes', __ui.scenes()])
+eval JSON.stringify(['page texts', __ui.texts('Controller')])
+shot 21-00-controllers-first-run.png
+
+# -- Device row: right swaps player 1 onto keyboard set 2, so player 2 takes set 1 -------------
+tap ArrowRight
+wait 300
+eval JSON.stringify(['after swap', __ui.texts('Controller').filter((t) => /Keyboard set|now uses/.test(t))])
+eval JSON.stringify(['stored sets', JSON.parse(localStorage.getItem('local-overcooked.bindings.v1')).players.map((p) => p.keyboardSet), 'version', JSON.parse(localStorage.getItem('local-overcooked.bindings.v1')).version])
+shot 21-01-device-swapped.png
+tap ArrowLeft
+wait 300
+eval JSON.stringify(['swapped back', JSON.parse(localStorage.getItem('local-overcooked.bindings.v1')).players.map((p) => p.keyboardSet)])
+
+# -- Pick up row (index 6): Enter then F adds F to Space, and the row reads Space / F -----------------
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap Enter
+wait 300
+eval JSON.stringify(['capturing', __ui.texts('Controller').filter((t) => /Press a key/.test(t))])
+tap KeyF
+wait 400
+eval JSON.stringify(['after add', __ui.texts('Controller').filter((t) => /Space|→/.test(t))])
+eval JSON.stringify(['stored pickup', JSON.parse(localStorage.getItem('local-overcooked.bindings.v1')).keyboards[0].keys.pickup])
+shot 21-02-added-key.png
+
+# -- Chop button clears the row for the keyboard set, and the row shows a dash ----------------------
+tap ShiftLeft
+wait 400
+eval JSON.stringify(['after clear', __ui.texts('Controller').filter((t) => /cleared|^—$/.test(t))])
+eval JSON.stringify(['stored pickup', JSON.parse(localStorage.getItem('local-overcooked.bindings.v1')).keyboards[0].keys.pickup])
+
+# -- The wizard (row 1): seven presses, each replacing the action's key ------------------------
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
+eval JSON.stringify(['on wizard row', __ui.texts('Controller').filter((t) => /Set up controls/.test(t)).length])
+tap Enter
+wait 300
+eval JSON.stringify(['wizard step 1', __ui.texts('Controller').filter((t) => /press the key/.test(t))])
+shot 21-03-wizard-step-1.png
+tap KeyI
+wait 250
+tap KeyK
+wait 250
+tap KeyJ
+wait 250
+tap KeyL
+wait 250
+tap KeyU
+wait 250
+tap KeyO
+wait 250
+tap Escape
+wait 400
+eval JSON.stringify(['wizard done', __ui.texts('Controller').filter((t) => /is set up|Kept/.test(t))])
+eval JSON.stringify(['stored keys', JSON.parse(localStorage.getItem('local-overcooked.bindings.v1')).keyboards[0].keys])
+shot 21-04-wizard-done.png
+
+# -- Back to the title: the hint line now names the new keys ----------------------------------
+tap Escape
+wait 700
+eval JSON.stringify(['title hint', __ui.texts('Title').filter((t) => /choose/.test(t)), 'status', __ui.status()])
+shot 21-05-title-new-labels.png
+
+# -- Reload: the v2 payload comes back, and the wizard keys still drive player 1 --------------
+eval location.reload()
+wait 1500
+until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
+wait 600
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval JSON.stringify(['after reload hint', __ui.texts('Title').filter((t) => /choose/.test(t))])
+tap ArrowUp
+wait 150
+tap Enter
+wait 700
+eval JSON.stringify(['page after reload', __ui.texts('Controller').filter((t) => /^(I|K|J|L|U|O|Space|Enter)$|Keyboard set/.test(t))])
+
+# -- Reset row (last): everything back to WASD ------------------------------------------------
+tap ArrowUp
+wait 150
+tap Enter
+wait 400
+eval JSON.stringify(['after reset', __ui.texts('Controller').filter((t) => /reset|Keyboard set/.test(t)), JSON.parse(localStorage.getItem('local-overcooked.bindings.v1')).keyboards[0].keys.up])
+
+# -- A v1 payload migrates -------------------------------------------------------------------
+eval localStorage.setItem('local-overcooked.bindings.v1', JSON.stringify({ version: 1, players: [{ keyboard: { kind: 'keyboard', keys: { up: ['KeyW'], down: ['KeyS'], left: ['KeyA'], right: ['KeyD'], pickup: ['KeyF'], interact: ['ShiftLeft'], pause: ['Escape'] } }, gamepad: { kind: 'gamepad', padIndex: -1, buttons: { up: [12], down: [13], left: [14], right: [15], pickup: [3], interact: [2], pause: [9] }, useLeftStick: true, useDpad: true } }, { keyboard: { kind: 'keyboard', keys: { up: ['ArrowUp'], down: ['ArrowDown'], left: ['ArrowLeft'], right: ['ArrowRight'], pickup: ['Enter'], interact: ['ShiftRight'], pause: ['Escape'] } }, gamepad: { kind: 'gamepad', padIndex: -1, buttons: { up: [12], down: [13], left: [14], right: [15], pickup: [0], interact: [2], pause: [9] }, useLeftStick: true, useDpad: true } }] }))
+eval location.reload()
+wait 1500
+until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
+wait 600
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval JSON.stringify(['v1 migrated hint', __ui.texts('Title').filter((t) => /choose/.test(t))])
+tap ArrowUp
+wait 150
+tap Enter
+wait 700
+eval JSON.stringify(['v1 migrated page', __ui.texts('Controller').filter((t) => /^F$|^Y$|Keyboard set/.test(t))])
+shot 21-06-v1-migrated.png
+logs
+errors

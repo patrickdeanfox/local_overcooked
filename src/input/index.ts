@@ -1,23 +1,24 @@
 // ─── Input manager ──────────────────────────────────────────────────────────
-// Keyboard + Gamepad API, merged per player slot. Keyboard set i always drives slot i,
-// so the game is playable with no pads at all; a pad assigned to slot i is OR-ed on top.
-// All decoding lives in ./mapping (pure, unit-tested); this file only wires the DOM to it.
+// Keyboard + Gamepad API, merged per player slot. Each slot holds one keyboard set (two
+// players never share one), so the game is playable with no pads at all; a pad assigned
+// to the slot is OR-ed on top. Pads are remembered by id, so a reconnected pad keeps its
+// map. All decoding lives in ./mapping (pure, unit-tested); this file only wires the DOM.
 
 import type Phaser from 'phaser';
 import { STORAGE_KEYS } from '../config';
 import { log } from '../log';
 import type { PlayerInput } from '../sim/types';
 import type {
-  Binding, CaptureResult, FullInputManager, GameAction, GamepadBinding, KeyboardBinding,
+  Binding, CaptureResult, DeviceChoice, FullInputManager, GameAction, GamepadBinding, HintAction, KeyboardBinding,
   PadInfo, PadKind, PlayerBindings, RawPlayerState,
 } from './types';
 import {
   ACTIONS, NO_PAD, STICK_DEADZONE,
   applyRadialDeadzone, clearHeldState, clearPlayerInput, copyHeldState, createHeldState,
-  createPlayerInput, defaultKeyboardBinding, defaultGamepadBinding, defaultPlayerBindings,
-  isPadButtonPressed, labelForAction, mergeHeldState, padKindFromId, parseBindings,
-  readGamepad, readKeyboard, serialiseBindings, writePlayerInput,
-  type HeldState, type Vec2,
+  createPlayerInput, defaultBindingsStore, defaultGamepadBinding, defaultKeyboardBinding,
+  isPadButtonPressed, labelForAction, mergeHeldState, padBindingFor, padKindFromId, parseBindings,
+  readGamepad, readKeyboard, serialiseBindings, swapKeyboardSets, writePlayerInput,
+  type BindingsStore, type HeldState, type Vec2,
 } from './mapping';
 
 export * from './types';
@@ -60,7 +61,10 @@ function createSlot(): Slot {
 class BrowserInputManager implements FullInputManager {
   readonly players: number;
 
-  private readonly bindings: PlayerBindings[];
+  /** What is persisted: keyboard sets, per-slot pad fallbacks, pads by id. */
+  private store: BindingsStore;
+  /** Per slot, the keyboard set and pad binding in force right now; references into the store. */
+  private readonly live: PlayerBindings[];
   private readonly slots: Slot[];
   private readonly outputs: PlayerInput[];
   private readonly keysDown = new Set<string>();
@@ -83,6 +87,7 @@ class BrowserInputManager implements FullInputManager {
   private captureResult: CaptureResult | null = null;
   private pendingClaim = NO_PAD;
   private destroyed = false;
+  private savedOnce = false;
   /**
    * Swallows rising edges for one frame. Set on the first poll and after a remap, so the
    * key or button that was just bound cannot immediately fire the action it was bound to.
@@ -91,7 +96,8 @@ class BrowserInputManager implements FullInputManager {
 
   constructor(players: number) {
     this.players = players;
-    this.bindings = this.loadBindings(players);
+    this.store = this.loadBindings(players);
+    this.live = [];
     this.slots = [];
     this.outputs = [];
     this.playerPad = [];
@@ -100,7 +106,9 @@ class BrowserInputManager implements FullInputManager {
       this.slots.push(slot);
       this.outputs.push(slot.out);
       this.playerPad.push(NO_PAD);
+      this.live.push({ keyboard: this.store.keyboards[0], gamepad: this.store.players[i].gamepad });
     }
+    this.refreshLive();
     window.addEventListener('keydown', this.onKeyDown);
     window.addEventListener('keyup', this.onKeyUp);
     window.addEventListener('blur', this.onBlur);
@@ -115,10 +123,10 @@ class BrowserInputManager implements FullInputManager {
     for (let i = 0; i < this.players; i++) {
       const slot = this.slots[i];
       copyHeldState(slot.held, slot.prev);
-      readKeyboard(this.bindings[i].keyboard, this.isKeyDown, slot.held);
+      readKeyboard(this.live[i].keyboard, this.isKeyDown, slot.held);
       const pad = this.padForPlayer(i);
       if (pad !== null) {
-        readGamepad(pad, this.bindings[i].gamepad, this.padScratch, this.vec);
+        readGamepad(pad, this.live[i].gamepad, this.padScratch, this.vec);
         mergeHeldState(slot.held, this.padScratch);
       }
       if (this.suppressEdges) copyHeldState(slot.held, slot.prev);
@@ -145,7 +153,7 @@ class BrowserInputManager implements FullInputManager {
     raw.padId = record === null ? '' : record.id;
     raw.padKind = record === null ? 'xbox' : record.kind;
     if (pad !== null) {
-      applyRadialDeadzone(pad.axes[0] ?? 0, pad.axes[1] ?? 0, STICK_DEADZONE, this.vec);
+      applyRadialDeadzone(pad.axes[0] ?? 0, pad.axes[1] ?? 0, this.live[player].gamepad.deadzone ?? STICK_DEADZONE, this.vec);
       raw.stickX = this.vec.x;
       raw.stickY = this.vec.y;
       const count = pad.buttons.length;
@@ -156,13 +164,26 @@ class BrowserInputManager implements FullInputManager {
       raw.stickY = 0;
       if (raw.buttons.length !== 0) raw.buttons.length = 0;
     }
-    const keys = this.bindings[player].keyboard.keys;
+    const keys = this.live[player].keyboard.keys;
     for (let a = 0; a < ACTIONS.length; a++) {
       const action = ACTIONS[a];
       const codes = keys[action];
       let down = false;
       for (let c = 0; c < codes.length; c++) if (this.isKeyDown(codes[c])) { down = true; break; }
       raw.keysDown[action] = down;
+    }
+  }
+
+  // ── Live bindings ─────────────────────────────────────────────────────────
+  /** Points each slot at its keyboard set and at the binding of the pad it holds. */
+  private refreshLive(): void {
+    for (let i = 0; i < this.players; i++) {
+      const slot = this.store.players[i];
+      this.live[i].keyboard = this.store.keyboards[slot.keyboardSet] ?? this.store.keyboards[0];
+      const record = this.recordForPlayer(i);
+      const gamepad = record === null ? slot.gamepad : padBindingFor(this.store, i, record.id);
+      gamepad.padIndex = record === null ? NO_PAD : record.index;
+      this.live[i].gamepad = gamepad;
     }
   }
 
@@ -216,16 +237,13 @@ class BrowserInputManager implements FullInputManager {
     const prevButtons: boolean[] = [];
     for (let b = 0; b < buttonCount; b++) prevButtons.push(false);
     this.padRecords[index] = { index, id, kind: padKindFromId(id), player: NO_PLAYER, handled: false, prevButtons };
-    log.info('gamepad seen', index, id);
+    log.info('gamepad seen', index, id, this.store.pads[id] ? '(remembered)' : '(new)');
   }
 
   private removePad(index: number): void {
     const record = this.padRecords[index];
     if (!record) return;
-    if (record.player !== NO_PLAYER) {
-      this.playerPad[record.player] = NO_PAD;
-      this.bindings[record.player].gamepad.padIndex = NO_PAD;
-    }
+    if (record.player !== NO_PLAYER) this.detach(record.player);
     this.padRecords[index] = null;
     log.info('gamepad gone', index, record.id);
   }
@@ -252,20 +270,13 @@ class BrowserInputManager implements FullInputManager {
     return this.padRecords[index] ?? null;
   }
 
-  assignPad(padIndex: number, player: number): void {
-    if (player < 0 || player >= this.players) return;
-    const record = this.padRecords[padIndex];
-    if (!record) return;
-    if (record.player !== NO_PLAYER) this.unassignPad(record.player);
-    const previous = this.playerPad[player];
-    if (previous !== NO_PAD) this.unassignPad(player);
+  private attach(record: PadRecord, player: number): void {
     record.player = player;
     record.handled = true;
-    this.playerPad[player] = padIndex;
-    this.bindings[player].gamepad.padIndex = padIndex;
+    this.playerPad[player] = record.index;
   }
 
-  unassignPad(player: number): void {
+  private detach(player: number): void {
     const index = this.playerPad[player];
     if (index === NO_PAD) return;
     const record = this.padRecords[index];
@@ -274,7 +285,26 @@ class BrowserInputManager implements FullInputManager {
       record.handled = true;
     }
     this.playerPad[player] = NO_PAD;
-    this.bindings[player].gamepad.padIndex = NO_PAD;
+  }
+
+  /** Gives the pad to the player. A pad another player holds is swapped for this player's pad. */
+  assignPad(padIndex: number, player: number): void {
+    if (player < 0 || player >= this.players) return;
+    const record = this.padRecords[padIndex];
+    if (!record || record.player === player) return;
+    const other = record.player;
+    const mine = this.playerPad[player];
+    if (other !== NO_PLAYER) this.detach(other);
+    if (mine !== NO_PAD) this.detach(player);
+    this.attach(record, player);
+    const swapped = mine === NO_PAD ? null : this.padRecords[mine];
+    if (other !== NO_PLAYER && swapped) this.attach(swapped, other);
+    this.refreshLive();
+  }
+
+  unassignPad(player: number): void {
+    this.detach(player);
+    this.refreshLive();
   }
 
   pollPadClaim(): number {
@@ -291,6 +321,23 @@ class BrowserInputManager implements FullInputManager {
       out.push({ index: record.index, id: record.id, kind: record.kind, player: record.player });
     }
     return out;
+  }
+
+  // ── Devices ───────────────────────────────────────────────────────────────
+  getKeyboardSet(player: number): number {
+    return this.store.players[player].keyboardSet;
+  }
+
+  setKeyboardSet(player: number, set: number): void {
+    if (player < 0 || player >= this.players) return;
+    this.detach(player);
+    swapKeyboardSets(this.store, player, set);
+    this.refreshLive();
+  }
+
+  getDevice(player: number): DeviceChoice {
+    const index = this.playerPad[player];
+    return index === NO_PAD ? { kind: 'keyboard', set: this.getKeyboardSet(player) } : { kind: 'gamepad', padIndex: index };
   }
 
   // ── Remap capture ─────────────────────────────────────────────────────────
@@ -320,7 +367,7 @@ class BrowserInputManager implements FullInputManager {
 
   // ── Bindings ──────────────────────────────────────────────────────────────
   getBinding(player: number): Binding {
-    return this.playerPad[player] === NO_PAD ? this.bindings[player].keyboard : this.bindings[player].gamepad;
+    return this.playerPad[player] === NO_PAD ? this.live[player].keyboard : this.live[player].gamepad;
   }
 
   setBinding(player: number, binding: Binding): void {
@@ -329,22 +376,27 @@ class BrowserInputManager implements FullInputManager {
   }
 
   getKeyboardBinding(player: number): KeyboardBinding {
-    return this.bindings[player].keyboard;
+    return this.live[player].keyboard;
   }
 
   getGamepadBinding(player: number): GamepadBinding {
-    return this.bindings[player].gamepad;
+    return this.live[player].gamepad;
   }
 
+  /** Replaces the keyboard set the player holds. */
   setKeyboardBinding(player: number, binding: KeyboardBinding): void {
     if (player < 0 || player >= this.players) return;
-    this.bindings[player].keyboard = binding;
+    this.store.keyboards[this.store.players[player].keyboardSet] = binding;
+    this.refreshLive();
   }
 
+  /** Replaces the map of the pad the player holds (remembered by pad id), or the slot's fallback without a pad. */
   setGamepadBinding(player: number, binding: GamepadBinding): void {
     if (player < 0 || player >= this.players) return;
-    binding.padIndex = this.playerPad[player];
-    this.bindings[player].gamepad = binding;
+    const record = this.recordForPlayer(player);
+    if (record === null) this.store.players[player].gamepad = binding;
+    else this.store.pads[record.id] = binding;
+    this.refreshLive();
   }
 
   resetBindings(player?: number): void {
@@ -352,14 +404,18 @@ class BrowserInputManager implements FullInputManager {
     const last = player === undefined ? this.players - 1 : player;
     for (let i = first; i <= last; i++) {
       if (i < 0 || i >= this.players) continue;
-      this.bindings[i].keyboard = defaultKeyboardBinding(i);
-      this.bindings[i].gamepad = defaultGamepadBinding(this.playerPad[i]);
+      const set = this.store.players[i].keyboardSet;
+      this.store.keyboards[set] = defaultKeyboardBinding(set);
+      this.store.players[i].gamepad = defaultGamepadBinding();
+      const record = this.recordForPlayer(i);
+      if (record !== null) delete this.store.pads[record.id];
     }
+    this.refreshLive();
   }
 
-  labelFor(player: number, action: GameAction): string {
+  labelFor(player: number, action: HintAction): string {
     const record = this.recordForPlayer(player);
-    const bindings = this.bindings[player];
+    const bindings = this.live[player];
     return labelForAction(action, bindings.keyboard, record === null ? null : { binding: bindings.gamepad, id: record.id });
   }
 
@@ -382,20 +438,28 @@ class BrowserInputManager implements FullInputManager {
   }
 
   // ── Persistence ───────────────────────────────────────────────────────────
-  private loadBindings(players: number): PlayerBindings[] {
+  private loadBindings(players: number): BindingsStore {
     try {
       const parsed = parseBindings(window.localStorage.getItem(STORAGE_KEYS.BINDINGS), players);
-      if (parsed !== null) return parsed;
+      if (parsed !== null) {
+        this.savedOnce = true;
+        return parsed;
+      }
       log.info('bindings: using defaults');
     } catch (err) {
       log.warn('bindings load failed', err);
     }
-    return defaultPlayerBindings(players);
+    return defaultBindingsStore(players);
+  }
+
+  hasSavedBindings(): boolean {
+    return this.savedOnce;
   }
 
   save(): void {
     try {
-      window.localStorage.setItem(STORAGE_KEYS.BINDINGS, serialiseBindings(this.bindings));
+      window.localStorage.setItem(STORAGE_KEYS.BINDINGS, serialiseBindings(this.store));
+      this.savedOnce = true;
     } catch (err) {
       log.warn('bindings save failed', err);
     }

@@ -27,7 +27,10 @@ export interface PauseActions {
   onResume: () => void;
   onRestart: () => void;
   onQuit: () => void;
+  hint?: string; // the hint line in the player's own labels; a generic one when absent
 }
+
+const DEFAULT_HINT = 'Move to choose · Pickup to confirm · left / right toggles';
 
 export class PauseMenu {
   private readonly root: Phaser.GameObjects.Container;
@@ -48,7 +51,7 @@ export class PauseMenu {
       .text(cx, cy + PAUSE.titleOffsetY, 'Paused', textStyle(PAUSE.titleFontPx, TEXT_COLOR.accent))
       .setOrigin(0.5);
     const hint = scene.add
-      .text(cx, cy + PAUSE.hintOffsetY, 'Move to choose · Pickup to confirm · left / right toggles', textStyle(PAUSE.hintFontPx, TEXT_COLOR.dim))
+      .text(cx, cy + PAUSE.hintOffsetY, actions.hint ?? DEFAULT_HINT, textStyle(PAUSE.hintFontPx, TEXT_COLOR.dim))
       .setOrigin(0.5);
     this.root.add([dim, panel, title, hint]);
 

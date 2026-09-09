@@ -4,7 +4,7 @@
 import Phaser from 'phaser';
 import { TEX } from '../../art/keys';
 import { GAME_HEIGHT, GAME_WIDTH, MAX_PLAYERS, SCENE } from '../../config';
-import { createInputManager } from '../../input';
+import { createInputManager, menuLabels } from '../../input';
 import type { InputManager } from '../../input/types';
 import { log } from '../../log';
 import { getAudioBus, installAudioGestureResume, installMuteToggle } from '../audioBus';
@@ -149,11 +149,12 @@ export class ResultsScene extends Phaser.Scene {
     items.push({ label: () => 'Back to title', onSelect: () => this.goToTitle() });
     this.menu = new MenuList(this, GAME_WIDTH / 2, RESULTS.menuY, items, { spacing: RESULTS.menuSpacing });
 
+    const labels = menuLabels((action) => this.inputMgr.labelFor(0, action));
     this.add
       .text(
         GAME_WIDTH / 2,
         RESULTS.hintY,
-        `${this.inputMgr.labelFor(0, 'pickup')} select · M mute`,
+        `${labels.choose} choose · ${labels.select} select · M mute`,
         textStyle(RESULTS.hintFontPx, TEXT_COLOR.dim),
       )
       .setOrigin(0.5);

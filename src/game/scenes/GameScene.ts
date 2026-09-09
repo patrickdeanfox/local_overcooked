@@ -7,7 +7,7 @@ import { sfxForEvent } from '../../audio';
 import type { AudioBus } from '../../audio/types';
 import { GAME_HEIGHT, GAME_WIDTH, MAX_PLAYERS, SCENE } from '../../config';
 import {
-  clearEdgeLatch, createEdgeLatch, createInputManager, createPlayerInput, latchEdges,
+  clearEdgeLatch, createEdgeLatch, createInputManager, createPlayerInput, latchEdges, menuLabels,
   writeStepInput, type EdgeLatch,
 } from '../../input';
 import type { InputManager } from '../../input/types';
@@ -122,10 +122,12 @@ export class GameScene extends Phaser.Scene {
     this.disposers.push(installAudioGestureResume(this), installMuteToggle(this));
     this.audio.startMusic();
 
+    const labels = menuLabels((action) => this.inputMgr.labelFor(0, action));
     this.pauseMenu = new PauseMenu(this, {
       onResume: () => this.pauseMenu.close(),
       onRestart: () => this.restartLevel(),
       onQuit: () => this.quitToTitle(),
+      hint: `${labels.choose} choose · ${labels.select} confirm · ${labels.change} toggles`,
     });
     this.debugOverlay = new DebugOverlay(this, this.kitchen);
     this.installKeys();
