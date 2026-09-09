@@ -22,6 +22,11 @@ export interface AudioBus {
   stopMusic(): void;
   setMuted(muted: boolean): void;
   isMuted(): boolean;
+  /** Music and sound effects can be switched off on their own, under the master mute. */
+  setMusicEnabled(enabled: boolean): void;
+  isMusicEnabled(): boolean;
+  setSfxEnabled(enabled: boolean): void;
+  isSfxEnabled(): boolean;
 }
 
 export type SfxForEvent = (event: SimEvent) => SfxName | null;

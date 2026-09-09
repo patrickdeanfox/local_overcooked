@@ -3,7 +3,8 @@ import { GAME_HEIGHT, GAME_WIDTH } from './config';
 import { BootScene } from './game/scenes/BootScene';
 import { TitleScene } from './game/scenes/TitleScene';
 import { ControllerScene } from './game/scenes/ControllerScene';
-import { AssistsScene } from './game/scenes/AssistsScene';
+import { SettingsScene } from './game/scenes/SettingsScene';
+import { ChefsScene } from './game/scenes/ChefsScene';
 import { GameScene } from './game/scenes/GameScene';
 import { ResultsScene } from './game/scenes/ResultsScene';
 import { installPlayNotes } from './game/playnotes';
@@ -20,7 +21,7 @@ const game = new Phaser.Game({
   antialias: true,
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   input: { gamepad: true, keyboard: true },
-  scene: [BootScene, TitleScene, ControllerScene, AssistsScene, GameScene, ResultsScene],
+  scene: [BootScene, TitleScene, ControllerScene, SettingsScene, ChefsScene, GameScene, ResultsScene],
 });
 
 // Bug / idea reporter on every screen (F8 or the corner button).

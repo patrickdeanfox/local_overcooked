@@ -1,8 +1,10 @@
 // ─── Chef rigs ──────────────────────────────────────────────────────────────
-// One animated Kenney character per chef or pedestrian: a skin texture, an optional toque,
-// idle/run clips cross-faded by movement, and a yaw that turns smoothly towards the facing.
-// The model faces +Z at rest, so "down" (towards the camera) is yaw 0.
+// One animated character per chef or pedestrian: a model (the Kenney chef rig, or one of the
+// Platformer Kit creatures), an optional skin texture and toque, idle/run clips cross-faded
+// by movement, and a yaw that turns smoothly towards the facing. Models face +Z at rest, so
+// "down" (towards the camera) is yaw 0.
 import * as THREE from 'three';
+import type { ModelRole } from '../../../art/models';
 import type { Facing } from '../../../sim/types';
 import { modelClips, modelInstance, modelSize } from './loader';
 
@@ -29,7 +31,16 @@ const HAT = {
   puffSink: 0.3,          // fraction of the puff's lower half tucked into the band
   segments: 18,
 } as const;
+/** Clip names in the chef rig; other models name theirs in their ChefRigSpec. */
 const CLIP = { idle: 'idle', run: 'run' } as const;
+
+/** What a rig is built from: the model role, an optional skin texture painted over its
+ *  materials, and the model's idle / run clip names when they differ from the chef rig's. */
+export interface ChefRigSpec {
+  model: ModelRole;
+  url?: string;
+  clips?: { idle: string; run: string };
+}
 
 const textureCache = new Map<string, THREE.Texture>();
 
@@ -102,19 +113,21 @@ export class ChefRig {
   private moving = false;
   private targetYaw = 0;
 
-  constructor(skinUrl: string, withHat: boolean) {
-    const model = modelInstance('chef');
-    applySkin(model, skinUrl);
+  /** `withHat` adds a toque when the model has a head bone; the creatures have none and go bare. */
+  constructor(spec: ChefRigSpec, withHat: boolean) {
+    const model = modelInstance(spec.model);
+    if (spec.url) applySkin(model, spec.url);
     if (withHat) addHat(model);
     this.group.add(model);
-    const height = modelSize('chef').y;
+    const height = modelSize(spec.model).y;
     this.heldSlot.position.set(0, RIG.heldY * height, RIG.heldZ * height);
     this.group.add(this.heldSlot);
 
     this.mixer = new THREE.AnimationMixer(model);
-    const clips = modelClips('chef');
-    const idleClip = THREE.AnimationClip.findByName(clips, CLIP.idle);
-    const runClip = THREE.AnimationClip.findByName(clips, CLIP.run);
+    const clips = modelClips(spec.model);
+    const names = spec.clips ?? CLIP;
+    const idleClip = THREE.AnimationClip.findByName(clips, names.idle);
+    const runClip = THREE.AnimationClip.findByName(clips, names.run);
     this.idle = idleClip ? this.mixer.clipAction(idleClip) : null;
     this.run = runClip ? this.mixer.clipAction(runClip) : null;
     if (this.idle) {

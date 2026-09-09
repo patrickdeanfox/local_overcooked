@@ -18,7 +18,7 @@ const SCHEDULE_AHEAD_S = 0.25;        // how far ahead notes are queued
 
 const MUSIC_GAIN = 0.125;             // ~-18 dB under the master gain
 const BASS_GAIN = 0.5;
-const LEAD_GAIN = 0.28;
+const LEAD_GAIN = 0.34;               // a triangle lead is quieter than the square it replaced
 const BASS_DUR = 0.22;
 const LEAD_DUR = 0.19;
 const MIN_GAIN = 0.0001;
@@ -88,7 +88,7 @@ export function createMusicPlayer(ctx: AudioContext, dest: AudioNode): MusicPlay
     const motifStep = MOTIF[index % MOTIF.length];
     if (motifStep !== null) {
       const freq = LEAD_ROOT * Math.pow(2, (motifStep + BAR_SHIFTS[bar]) / 12);
-      voice('square', freq, at, LEAD_DUR, LEAD_GAIN);
+      voice('triangle', freq, at, LEAD_DUR, LEAD_GAIN); // softer than a square wave over a long session
     }
   }
 

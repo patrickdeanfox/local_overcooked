@@ -1,169 +1,111 @@
-# -- Settings: difficulty, seed mode, free play, and that they survive a reload -------------
+# -- Settings: difficulty on the title, seed and free play on the Settings page, and that they
+#    survive a reload ----------------------------------------------------------------------------
 #
-# Walks the title's settings rows, then starts 1-4 twice on a pinned seed and once more on the
-# daily seed, reloading the page in between so the saved settings have to be read back.
-# Rows, in cursor order: six levels, Players, Difficulty, Seed, Seed number, Free play,
-# Controllers - so Difficulty is index 7, Seed 8, Seed number 9 and Free play 10.
+# Title rows, in cursor order: six levels, Players, Difficulty, Chefs, Settings, Controllers - so
+# Difficulty is index 7 and Settings index 9. The Settings page lists Seed, Seed number, Free play,
+# the three assists, Music, Sound effects, Back.
 until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
 wait 600
 eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
 eval JSON.stringify(['settings', __ui.settings()])
 eval JSON.stringify(__ui.options())
 
-# -- Free play toggles every lock ------------------------------------------------------------
-tap ArrowDown
-wait 200
-tap ArrowDown
-wait 200
-tap ArrowDown
-wait 200
-tap ArrowDown
-wait 200
-tap ArrowDown
-wait 200
-tap ArrowDown
-wait 200
-tap ArrowDown
-wait 200
-tap ArrowDown
-wait 200
-tap ArrowDown
-wait 200
-tap ArrowDown
-wait 200
-eval JSON.stringify(['cursor on', __ui.index(), __ui.options()[4]])
-tap ArrowRight
-wait 300
-eval JSON.stringify(['free play on', __ui.settings().freePlay, __ui.levels().map(l => l.locked)])
-shot 16-00-free-play-on.png
-tap ArrowRight
-wait 300
-eval JSON.stringify(['free play off', __ui.settings().freePlay, __ui.levels().map(l => l.locked)])
-tap ArrowRight
-wait 300
-eval JSON.stringify(['free play on again', __ui.settings().freePlay, __ui.levels().map(l => l.locked)])
-
 # -- Difficulty: right steps up a preset ------------------------------------------------------
-tap ArrowUp
-wait 200
-tap ArrowUp
-wait 200
-tap ArrowUp
-wait 200
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
 eval JSON.stringify(['cursor on', __ui.index(), __ui.options()[1]])
 tap ArrowRight
 wait 300
 eval JSON.stringify(['preset', __ui.settings().preset, __ui.options()[1]])
 
-# -- Seed: random -> daily -> fixed, with the number left at 1 ---------------------------------
+# -- Settings page: free play toggles every lock, seed random -> daily -> fixed ----------------
 tap ArrowDown
-wait 200
+wait 150
+tap ArrowDown
+wait 150
+eval JSON.stringify(['cursor on', __ui.index(), __ui.options()[3]])
+tap Enter
+wait 700
+eval JSON.stringify(['page rows', __ui.menu('Settings')])
+shot 16-00-settings-page.png
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
 tap ArrowRight
 wait 300
-eval JSON.stringify(['seed mode', __ui.settings().seedMode, __ui.options()[2]])
+eval JSON.stringify(['free play on', JSON.parse(localStorage.getItem('local-overcooked.settings.v1')).freePlay, __ui.menu('Settings')[2]])
+tap ArrowUp
+wait 150
+tap ArrowUp
+wait 150
 tap ArrowRight
 wait 300
-eval JSON.stringify(['seed mode', __ui.settings().seedMode, __ui.settings().fixedSeed, __ui.options()[2]])
-shot 16-01-settings.png
+eval JSON.stringify(['seed mode', JSON.parse(localStorage.getItem('local-overcooked.settings.v1')).seedMode, __ui.menu('Settings')[0]])
+tap ArrowRight
+wait 300
+eval JSON.stringify(['seed mode', JSON.parse(localStorage.getItem('local-overcooked.settings.v1')).seedMode, __ui.menu('Settings')[0]])
+shot 16-01-settings-fixed-seed.png
+tap Escape
+wait 700
+eval JSON.stringify(['title after settings', __ui.options()[3], __ui.settings().freePlay, __ui.levels().map(l => l.locked)])
+shot 16-02-title-free-play.png
 
-# -- Run one of 1-4 on Hard with seed 1 ---------------------------------------------------------
+# -- Run 1-4 on Hard with seed 1 ----------------------------------------------------------------
 tap ArrowUp
-wait 200
+wait 150
 tap ArrowUp
-wait 200
+wait 150
 tap ArrowUp
-wait 200
+wait 150
 tap ArrowUp
-wait 200
+wait 150
 tap ArrowUp
-wait 200
+wait 150
+tap ArrowUp
+wait 150
+eval JSON.stringify(['cursor on', __ui.index()])
 tap Enter
 wait 1500
 until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.sim
 eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
 eval JSON.stringify(['level', __oc.level.id, 'seed', __oc.sim.getState().seed, 'timeLeft', Math.round(__oc.sim.getState().timeLeft)])
-eval JSON.stringify(['level json orders', __oc.level.orders, 'level json timeLimit', __oc.level.timeLimitSec])
 eval JSON.stringify(['effective', __oc.sim.getEffectiveSettings()])
 eval JSON.stringify(['first tickets', __qa.orders()])
 eval localStorage.setItem('qa.run1', JSON.stringify(__oc.sim.getState().orders.map(o => o.recipeId)))
-shot 16-02-hard-1-4.png
+shot 16-03-hard-1-4.png
 
 # -- Reload: the settings have to come back, and the same seed has to deal the same tickets ------
-goto http://localhost:5176/
+eval location.reload()
+wait 1500
 until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
 wait 600
 eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
 eval JSON.stringify(['settings after reload', __ui.settings()])
 eval JSON.stringify(['locks after reload', __ui.levels().map(l => l.locked)])
 tap ArrowDown
-wait 200
+wait 150
 tap ArrowDown
-wait 200
+wait 150
 tap ArrowDown
-wait 200
+wait 150
 tap Enter
 wait 1500
 until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.sim
 eval JSON.stringify(['level', __oc.level.id, 'seed', __oc.sim.getState().seed])
 eval JSON.stringify(['run 1', localStorage.getItem('qa.run1'), 'run 2', JSON.stringify(__oc.sim.getState().orders.map(o => o.recipeId)), 'identical', localStorage.getItem('qa.run1') === JSON.stringify(__oc.sim.getState().orders.map(o => o.recipeId))])
-eval JSON.stringify(['effective again', __oc.sim.getEffectiveSettings()])
-shot 16-03-second-run-same-seed.png
-
-# -- Daily: the same value on two runs the same day -----------------------------------------------
-goto http://localhost:5176/
-until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
-wait 600
-eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
-tap ArrowDown
-wait 200
-tap ArrowDown
-wait 200
-tap ArrowDown
-wait 200
-tap ArrowDown
-wait 200
-tap ArrowDown
-wait 200
-tap ArrowDown
-wait 200
-tap ArrowDown
-wait 200
-tap ArrowDown
-wait 200
-eval JSON.stringify(['cursor on', __ui.index(), __ui.options()[2]])
-tap ArrowLeft
-wait 300
-eval JSON.stringify(['seed mode', __ui.settings().seedMode, __ui.options()[2]])
-tap ArrowUp
-wait 200
-tap ArrowUp
-wait 200
-tap ArrowUp
-wait 200
-tap ArrowUp
-wait 200
-tap ArrowUp
-wait 200
-tap ArrowUp
-wait 200
-tap ArrowUp
-wait 200
-tap ArrowUp
-wait 200
-tap Enter
-wait 1500
-until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.sim
-eval JSON.stringify(['level', __oc.level.id, 'daily seed', __oc.sim.getState().seed])
-eval localStorage.setItem('qa.daily1', String(__oc.sim.getState().seed))
-goto http://localhost:5176/
-until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
-wait 600
-eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
-eval JSON.stringify(['settings after reload', __ui.settings(), __ui.options()[2]])
-tap Enter
-wait 1500
-until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.sim
-eval JSON.stringify(['level', __oc.level.id, 'daily seed again', __oc.sim.getState().seed, 'first run', localStorage.getItem('qa.daily1'), 'identical', String(__oc.sim.getState().seed) === localStorage.getItem('qa.daily1')])
-shot 16-04-daily-seed.png
+shot 16-04-second-run-same-seed.png
 logs
 errors

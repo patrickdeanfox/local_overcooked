@@ -3,7 +3,7 @@
 // stepping while it is open.
 import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH } from '../../config';
-import { getAudioBus } from '../audioBus';
+import { getAudioBus, setMusicEnabled, setSfxEnabled } from '../audioBus';
 import { MenuList } from './MenuList';
 import type { MenuNav } from './menuInput';
 import { COLOR, TEXT_COLOR, textStyle } from './theme';
@@ -11,14 +11,14 @@ import { COLOR, TEXT_COLOR, textStyle } from './theme';
 const PAUSE = {
   dimAlpha: 0.7,
   panelWidth: 460,
-  panelHeight: 320,
+  panelHeight: 400,
   panelAlpha: 0.98,
   panelEdgePx: 3,
-  titleOffsetY: -104,
+  titleOffsetY: -150,
   titleFontPx: 34,
-  menuOffsetY: -18,
+  menuOffsetY: -66,
   menuSpacing: 46,
-  hintOffsetY: 112,
+  hintOffsetY: 158,
   hintFontPx: 14,
   depth: 2000,
 } as const;
@@ -48,10 +48,13 @@ export class PauseMenu {
       .text(cx, cy + PAUSE.titleOffsetY, 'Paused', textStyle(PAUSE.titleFontPx, TEXT_COLOR.accent))
       .setOrigin(0.5);
     const hint = scene.add
-      .text(cx, cy + PAUSE.hintOffsetY, 'Move to choose · Pickup to confirm', textStyle(PAUSE.hintFontPx, TEXT_COLOR.dim))
+      .text(cx, cy + PAUSE.hintOffsetY, 'Move to choose · Pickup to confirm · left / right toggles', textStyle(PAUSE.hintFontPx, TEXT_COLOR.dim))
       .setOrigin(0.5);
     this.root.add([dim, panel, title, hint]);
 
+    const audio = getAudioBus();
+    const toggleMusic = (): void => { setMusicEnabled(!audio.isMusicEnabled()); };
+    const toggleSfx = (): void => { setSfxEnabled(!audio.isSfxEnabled()); };
     this.menu = new MenuList(
       scene,
       cx,
@@ -59,6 +62,8 @@ export class PauseMenu {
       [
         { label: () => 'Resume', onSelect: actions.onResume },
         { label: () => 'Restart level', onSelect: actions.onRestart },
+        { label: () => `Music: ${audio.isMusicEnabled() ? 'on' : 'off'}`, onSelect: toggleMusic, onLeft: toggleMusic, onRight: toggleMusic },
+        { label: () => `Sound effects: ${audio.isSfxEnabled() ? 'on' : 'off'}`, onSelect: toggleSfx, onLeft: toggleSfx, onRight: toggleSfx },
         { label: () => 'Quit to title', onSelect: actions.onQuit },
       ],
       { spacing: PAUSE.menuSpacing },
@@ -91,6 +96,7 @@ export class PauseMenu {
   update(nav: MenuNav): void {
     if (!this.open) return;
     this.menu.handle(nav);
+    if (nav.confirm || nav.left || nav.right) this.menu.refresh(); // the audio rows show the new state
   }
 
   destroy(): void {
