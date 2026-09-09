@@ -102,6 +102,32 @@ export const ASSIST_NAMES: Readonly<Record<AssistId, string>> = Object.freeze({
 });
 export const NO_ASSISTS: Readonly<Assists> = Object.freeze({ instantCooking: false, ordersNeverExpire: false, noBurning: false });
 
+// ─── Mechanics ──────────────────────────────────────────────────────────────
+// The five additions from docs/MECHANICS.md, each switched on its own. Off is the kitchen as
+// it shipped, so the star thresholds stay tuned for off. Unlike assists, a run with mechanics
+// on is saved and earns stars: two-plate carry and chop assist make a level easier, the 86
+// system makes it harder, and the tray and the shelf depend on the layout.
+export interface Mechanics {
+  twoPlateCarry: boolean;    // a second clean plate from the rack; no dash while holding two
+  chopAssist: boolean;       // a second chef at the same board halves the remaining time
+  tray: boolean;             // the tray from its rack carries three items, slowly
+  passThroughShelf: boolean; // shelf tiles open into hatches reachable from both sides
+  eightySix: boolean;        // crates run out, tickets rewrite, deliveries restock
+}
+export type MechanicId = keyof Mechanics;
+/** The order the settings page lists them in: the spec's prototype order. */
+export const MECHANIC_IDS: readonly MechanicId[] = ['passThroughShelf', 'chopAssist', 'twoPlateCarry', 'eightySix', 'tray'];
+export const MECHANIC_NAMES: Readonly<Record<MechanicId, string>> = Object.freeze({
+  twoPlateCarry: 'Two-plate carry',
+  chopAssist: 'Chop assist',
+  tray: 'The tray',
+  passThroughShelf: 'Pass-through shelf',
+  eightySix: 'The 86 system',
+});
+export const NO_MECHANICS: Readonly<Mechanics> = Object.freeze({
+  twoPlateCarry: false, chopAssist: false, tray: false, passThroughShelf: false, eightySix: false,
+});
+
 // ─── Audio ──────────────────────────────────────────────────────────────────
 // Music and sound effects switch off on their own; the M key's master mute sits above both.
 export interface AudioSettings {
@@ -118,6 +144,7 @@ export interface Settings {
   fixedSeed: number;    // used when seedMode is 'fixed'
   freePlay: boolean;    // ignores unlock thresholds
   assists: Assists;
+  mechanics: Mechanics; // the docs/MECHANICS.md additions that are switched on
   audio: AudioSettings;
   chefs: number[];      // character (CHEF_SKINS index) per player, index = player
 }
@@ -130,6 +157,7 @@ export const DEFAULT_SETTINGS: Readonly<Settings> = Object.freeze({
   fixedSeed: 1,
   freePlay: false,
   assists: NO_ASSISTS,
+  mechanics: NO_MECHANICS,
   audio: DEFAULT_AUDIO,
   chefs: [...DEFAULT_CHEF_SKINS],
 });
@@ -140,6 +168,7 @@ export function defaultSettings(): Settings {
     ...DEFAULT_SETTINGS,
     custom: { ...DEFAULT_CUSTOM },
     assists: { ...NO_ASSISTS },
+    mechanics: { ...NO_MECHANICS },
     audio: { ...DEFAULT_AUDIO },
     chefs: [...DEFAULT_CHEF_SKINS],
   };
@@ -170,6 +199,14 @@ function asAssists(value: unknown): Assists {
     ordersNeverExpire: asBoolean(stored?.ordersNeverExpire, NO_ASSISTS.ordersNeverExpire),
     noBurning: asBoolean(stored?.noBurning, NO_ASSISTS.noBurning),
   };
+}
+
+/** Each mechanic on or off; anything missing (a save from before they existed) is off. */
+function asMechanics(value: unknown): Mechanics {
+  const stored = asRecord(value);
+  const out: Mechanics = { ...NO_MECHANICS };
+  for (const id of MECHANIC_IDS) out[id] = asBoolean(stored?.[id], NO_MECHANICS[id]);
+  return out;
 }
 
 function asAudio(value: unknown): AudioSettings {
@@ -203,10 +240,10 @@ export function presetName(preset: PresetId): string {
   return (PRESETS[preset] ?? PRESETS[DEFAULT_PRESET]).name;
 }
 
-/** The Sim modifiers for the chosen preset, plus whichever assists are switched on. */
+/** The Sim modifiers for the chosen preset, plus whichever assists and mechanics are switched on. */
 export function presetModifiers(settings: Readonly<Settings>): Modifiers {
   const base = settings.preset === CUSTOM_PRESET ? customModifiers(settings.custom) : presetOf(settings).modifiers;
-  return { ...base, ...assistModifiers(settings.assists) };
+  return { ...base, ...assistModifiers(settings.assists), ...mechanicModifiers(settings.mechanics) };
 }
 
 // ─── Custom difficulty helpers ──────────────────────────────────────────────
@@ -263,6 +300,20 @@ export function isAssisted(modifiers: Readonly<Modifiers> | undefined): boolean 
   return modifiers?.instantCooking === true || modifiers?.ordersNeverExpire === true || modifiers?.noBurning === true;
 }
 
+// ─── Mechanics helpers ──────────────────────────────────────────────────────
+/** Only the mechanics that are on, so untouched settings add nothing to a preset. */
+export function mechanicModifiers(mechanics: Readonly<Mechanics>): Modifiers {
+  const mods: Modifiers = {};
+  for (const id of MECHANIC_IDS) if (mechanics[id]) mods[id] = true;
+  return mods;
+}
+
+/** 'off', or the mechanics that are on. */
+export function mechanicSummary(mechanics: Readonly<Mechanics>): string {
+  const on = MECHANIC_IDS.filter((id) => mechanics[id]).map((id) => MECHANIC_NAMES[id].toLowerCase());
+  return on.length > 0 ? on.join(' · ') : 'off';
+}
+
 /** 'off', or the assists that are on. */
 export function assistSummary(assists: Readonly<Assists>): string {
   const on = ASSIST_IDS.filter((id) => assists[id]).map((id) => ASSIST_NAMES[id].toLowerCase());
@@ -277,6 +328,8 @@ export function settingsSummary(settings: Readonly<Settings>): string {
   if (settings.freePlay) parts.push('free play');
   const assists = ASSIST_IDS.filter((id) => settings.assists[id]).length;
   if (assists > 0) parts.push(`${assists} assist${assists === 1 ? '' : 's'}`);
+  const mechanics = MECHANIC_IDS.filter((id) => settings.mechanics[id]).length;
+  if (mechanics > 0) parts.push(`${mechanics} mechanic${mechanics === 1 ? '' : 's'}`);
   if (!settings.audio.music) parts.push('music off');
   if (!settings.audio.sfx) parts.push('sound off');
   return parts.length > 0 ? parts.join(' · ') : 'defaults';
@@ -324,6 +377,7 @@ export function describeModifiers(modifiers: Readonly<Modifiers>): string {
   if (modifiers.instantCooking) parts.push('instant cooking');
   if (modifiers.ordersNeverExpire) parts.push('orders never expire');
   if (modifiers.noBurning) parts.push('no burning');
+  for (const id of MECHANIC_IDS) if (modifiers[id]) parts.push(MECHANIC_NAMES[id].toLowerCase());
   return parts.length > 0 ? parts.join(' · ') : 'level defaults';
 }
 
@@ -372,6 +426,7 @@ export function loadSettings(storage: StorageLike | null = browserStorage()): Se
     fixedSeed: normaliseSeed(asCount(stored.fixedSeed, DEFAULT_SETTINGS.fixedSeed)),
     freePlay: asBoolean(stored.freePlay, DEFAULT_SETTINGS.freePlay),
     assists: asAssists(stored.assists),
+    mechanics: asMechanics(stored.mechanics),
     audio: asAudio(stored.audio),
     chefs: asChefs(stored.chefs),
   };

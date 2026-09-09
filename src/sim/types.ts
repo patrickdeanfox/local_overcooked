@@ -37,7 +37,11 @@ export type TileType =
   | 'plateStack'  // solid; 'stack' plate mode: clean plates respawn here after a serve
   | 'slider'      // solid counter that moves with its slider group (tile.group), 1-3 ship counters
   | 'gate'        // floor that is walkable only while its gate group (tile.group) is open, 1-6 earthquake seam
-  | 'gap';        // a hole: no wall, a thrown item flies over it, a chef that steps on it falls and respawns at its spawn
+  | 'gap'         // a hole: no wall, a thrown item flies over it, a chef that steps on it falls and respawns at its spawn
+  // Mechanics spec (docs/MECHANICS.md), each behind a Modifiers switch:
+  | 'shelf'       // pass-through shelf: a hatch in a wall, a counter reachable from both sides; a throw stops at it. Solid wall while the mechanic is off
+  | 'trayRack'    // counter that starts with the tray on it (legend 't'); a plain counter while the mechanic is off
+  | 'delivery';   // delivery door: restock crates arrive here (86 system); solid, holds nothing, no interaction while the mechanic is off
 
 export interface Tile {
   x: number;
@@ -45,6 +49,8 @@ export interface Tile {
   type: TileType;
   ingredient?: IngredientType; // crate only
   group?: string;              // slider and gate tiles
+  stock?: number;              // crate, 86 system on: items left; 0 = empty ("86"). Absent = never runs out
+  capacity?: number;           // crate: items a full crate holds (the fill level is stock / capacity)
 }
 
 export type Facing = 'up' | 'down' | 'left' | 'right';
@@ -85,7 +91,14 @@ export interface PlateItem {
 }
 export interface DirtyPlateItem { kind: 'dirtyPlate'; id: number; count: number; } // a stack
 export interface ExtinguisherItem { kind: 'extinguisher'; id: number; }
-export type Item = IngredientItem | PotItem | PlateItem | DirtyPlateItem | ExtinguisherItem;
+/** What a tray can carry: ingredients in any state and single plates, clean or with a dish. */
+export type TrayLoad = IngredientItem | PlateItem;
+/** The tray (docs/MECHANICS.md section 3): a physical object from the tray rack that carries up
+ *  to TRAY_CAPACITY items. items[items.length - 1] is the top item, the one that loads and
+ *  unloads first. A chef carrying it walks at TRAY_SPEED_SCALE, cannot dash or throw, and takes
+ *  TRAY_WINDUP_SEC to lift or set it down. */
+export interface TrayItem { kind: 'tray'; id: number; items: TrayLoad[]; }
+export type Item = IngredientItem | PotItem | PlateItem | DirtyPlateItem | ExtinguisherItem | TrayItem;
 export type ItemKind = Item['kind'];
 
 // ─── Recipes and orders ─────────────────────────────────────────────────────
@@ -101,10 +114,15 @@ export interface Order {
   recipeId: string;
   timeLeft: number;  // seconds until it expires
   timeTotal: number; // seconds it started with
+  originalRecipeId?: string; // 86 system: what the ticket asked for before a shortage rewrote it; a dish matching it still serves
+  rewrittenAt?: number;      // 86 system: SimState.elapsed when the ticket was last rewritten, for the HUD flash
 }
 
 // ─── Actors ──────────────────────────────────────────────────────────────────
-export type ChefAction = 'idle' | 'walking' | 'chopping' | 'washing' | 'extinguishing' | 'dashing' | 'falling';
+export type ChefAction =
+  | 'idle' | 'walking' | 'chopping' | 'washing' | 'extinguishing' | 'dashing' | 'falling'
+  | 'lifting'    // tray wind-up: picking the tray up or setting it down, pinned for TRAY_WINDUP_SEC
+  | 'unloading'; // 86 system: unloading a delivery at the door, both hands busy for RESTOCK_UNLOAD_SEC
 export interface Chef {
   index: number;          // 0 = player 1, 1 = player 2
   x: number;              // center, tile units
@@ -116,6 +134,9 @@ export interface Chef {
   dashCooldown?: number;  // seconds until the next dash; absent = ready
   dashTimeLeft?: number;  // seconds of dash movement left; absent = not dashing
   respawnIn?: number;     // seconds until a fallen chef is back at its spawn; absent = on the floor
+  assisting?: boolean;    // chop assist: true while this chef is the second pair of hands at a station this step
+  windupLeft?: number;    // tray: seconds of lift / set-down wind-up left; absent = not winding up
+  wobble?: number;        // tray: seconds left in the wobble window after a bump; a second bump inside it drops the top item
 }
 /** A thrown item in the air: straight flight until it is caught, hits something or runs out of range. */
 export interface FlyingItem {
@@ -137,6 +158,10 @@ export interface Pedestrian { id: number; x: number; y: number; vx: number; vy: 
 export interface SliderGroup { id: string; offsetX: number; offsetY: number; }     // current tile offset
 /** A gate group (1-6 earthquake seam): its 'gate' tiles are walkable only while open. */
 export interface GateGroup { id: string; open: boolean; secondsToChange: number; }
+/** 86 system: one restock on its way. It waits arrivesIn seconds, then sits at the delivery door
+ *  until a chef unloads it (unloaded 0..1); on a level with no door it restocks by itself when
+ *  it arrives. Unloading refills every crate of the ingredient. */
+export interface Restock { id: number; ingredient: IngredientType; arrivesIn: number; unloaded: number; }
 
 export type LevelPhase = 'prep' | 'running' | 'ended';
 
@@ -158,6 +183,12 @@ export interface Modifiers {
   instantCooking?: boolean;    // pots and pans are ready the moment they start cooking
   ordersNeverExpire?: boolean; // tickets keep their full timer: no expiry, no fail penalty
   noBurning?: boolean;         // cooked food stays cooked, so stoves never start fires
+  // Mechanics (docs/MECHANICS.md), all off by default; off means the kitchen plays as before.
+  twoPlateCarry?: boolean;     // a second clean plate can be taken from a drying rack or plate stack; no dash with two
+  chopAssist?: boolean;        // a second chef at the same board (or delivery) doubles the rate; off: one chef per station
+  tray?: boolean;              // the tray rack starts with a tray; off: the rack is an empty counter
+  passThroughShelf?: boolean;  // shelf tiles are counters reachable from both sides; off: solid wall
+  eightySix?: boolean;         // crates run out, tickets rewrite, deliveries restock; off: crates never run out
 }
 
 // ─── Snapshot ────────────────────────────────────────────────────────────────
@@ -185,6 +216,7 @@ export interface SimState {
   gates?: GateGroup[];         // one per gate dynamic; absent on levels without gates
   seed?: number;               // the run's seed, for the results screen
   flying?: FlyingItem[];       // thrown items in the air; absent until the first throw
+  restocks?: Restock[];        // 86 system: deliveries on their way or waiting at the door; absent until the first shortage
 }
 
 // ─── Input ───────────────────────────────────────────────────────────────────
@@ -220,7 +252,15 @@ export type SimEventType =
   | 'gateOpen' | 'gateClose'       // 1-6 earthquake seam
   | 'throw' | 'catch' | 'throwLand' // value = the flight id; throwLand also fires when the item is lost
   | 'dash' | 'dashBump'            // dashBump: chef = the dasher, value = the chef it hit
-  | 'chefFell';                    // a chef stepped on a gap; it respawns after FALL_PENALTY_SEC
+  | 'chefFell'                     // a chef stepped on a gap; it respawns after FALL_PENALTY_SEC
+  // Mechanics spec (docs/MECHANICS.md)
+  | 'crateEmpty'                   // 86: the last item left crate (x, y); the chalk mark goes up
+  | 'orderRewritten'               // 86: value = the order id whose recipe changed to a substitute
+  | 'restockDue'                   // 86: a delivery arrived at the door (x, y), or restocked by itself on a level with no door
+  | 'restockTick'                  // 86: unloading in progress at (x, y), rate limited like chopTick
+  | 'restocked'                    // 86: the crates of an ingredient are full again; x, y = the door, or the first crate
+  | 'trayLift' | 'traySet'         // tray: the wind-up finished and the tray is in hand / on tile (x, y)
+  | 'trayWobble';                  // tray: a bump made the load wobble; the drop that a second bump causes is a plain 'drop'
 export interface SimEvent {
   type: SimEventType;
   chef?: number;   // chef index that caused it, if any

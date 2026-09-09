@@ -24,6 +24,16 @@ export interface StationOverride {
   type?: TileType;
   ingredient?: IngredientType;
   group?: string;
+  stock?: number;  // crate, 86 system: this crate's size instead of eightySix.crateSize (also makes an exempt ingredient finite)
+}
+
+/** 86 system (docs/MECHANICS.md section 5). Only read while the eightySix mechanic is on. */
+export interface EightySixSettings {
+  crateSize?: number;        // items per crate; CRATE_SIZE when absent
+  restockDelaySec?: number;  // seconds from a shortage to its delivery; RESTOCK_DELAY_SEC when absent
+  exempt?: IngredientType[]; // ingredients whose crates never run out, on top of the automatic rule: an
+                             // ingredient in every recipe of the level (its "bread") is exempt unless a crate override sets stock
+  scripted?: { atSec: number; ingredient: IngredientType }[]; // shortages on a timer: the crates of the ingredient empty at atSec
 }
 
 export interface ItemPlacement { x: number; y: number; item: ItemKind; count?: number; ware?: Ware; }
@@ -72,6 +82,7 @@ export interface LevelDef {
   stations?: StationOverride[];
   items?: ItemPlacement[];
   dynamics?: Dynamic[];
+  eightySix?: EightySixSettings; // 86 system tuning; the mechanic works without it using the constants
 }
 
 export interface LegendEntry { type: TileType; ingredient?: IngredientType; group?: string; item?: ItemKind; ware?: Ware; }
@@ -107,12 +118,17 @@ export const LEGEND: Readonly<Record<string, LegendEntry>> = Object.freeze({
   'J': { type: 'crate', ingredient: 'fish' },
   'Ø': { type: 'crate', ingredient: 'prawn' },
   'C': { type: 'crate' },  // ingredient set by a stations override; validateLevel insists
+  // Mechanics spec (docs/MECHANICS.md). Lowercase, so the catalog's uppercase extension characters stay free.
+  'h': { type: 'shelf' },                  // pass-through shelf (a hatch in a wall)
+  't': { type: 'trayRack', item: 'tray' }, // tray rack, the tray on it; the sim removes the tray while the mechanic is off
+  'd': { type: 'delivery' },               // delivery door for restocks
 });
 
 /** Tiles a chef body cannot enter. 'gate' is walkable while open, so it is not listed; the sim closes it.
  *  'gap' is not listed either: it has no wall, a chef walks straight in and falls. */
 export const SOLID_TILES: ReadonlySet<TileType> = new Set<TileType>([
   'void', 'counter', 'crate', 'board', 'stove', 'sink', 'drying', 'plateReturn', 'serve', 'trash', 'plateStack', 'slider',
+  'shelf', 'trayRack', 'delivery',
 ]);
 /** Tiles a chef can stand on: not solid, and not a hole. Spawns and paths need this. */
 export function isWalkable(type: TileType): boolean { return !SOLID_TILES.has(type) && type !== 'gap'; }
@@ -130,6 +146,7 @@ export function makeItem(kind: ItemKind, count = 1, ware?: Ware): Item {
     case 'plate': return { kind, id, dish: null };
     case 'dirtyPlate': return { kind, id, count };
     case 'extinguisher': return { kind, id };
+    case 'tray': return { kind, id, items: [] };
   }
 }
 
@@ -157,6 +174,7 @@ export function parseGrid(level: LevelDef): ParsedGrid {
     if (s.type) t.type = s.type;
     if (s.ingredient) t.ingredient = s.ingredient;
     if (s.group) t.group = s.group;
+    if (s.stock !== undefined) t.capacity = s.stock; // the sim turns capacity into stock when the 86 mechanic is on
   }
   for (const p of level.items ?? []) {
     const i = p.y * width + p.x;
@@ -221,5 +239,28 @@ export function validateLevel(level: LevelDef): string[] {
     }
   }
   for (const g of gateGroups) errors.push(`gate tiles of group '${g}' have no gate dynamic`);
+  // Mechanics spec: crate sizes and scripted shortages must name real crates; the tray needs its rack.
+  for (const s of level.stations ?? []) {
+    if (s.stock === undefined) continue;
+    const t = parsed.tiles[s.y * parsed.width + s.x];
+    if (!t || t.type !== 'crate') errors.push(`stock override at (${s.x},${s.y}) is not on a crate`);
+    else if (!(s.stock >= 1)) errors.push(`stock override at (${s.x},${s.y}) must be >= 1`);
+  }
+  const es = level.eightySix;
+  if (es) {
+    if (es.crateSize !== undefined && !(es.crateSize >= 1)) errors.push('eightySix.crateSize must be >= 1');
+    if (es.restockDelaySec !== undefined && !(es.restockDelaySec > 0)) errors.push('eightySix.restockDelaySec must be > 0');
+    for (const ingredient of es.exempt ?? []) {
+      if (!crates.has(ingredient)) errors.push(`eightySix.exempt names ${ingredient}, which has no crate`);
+    }
+    for (const s of es.scripted ?? []) {
+      if (!crates.has(s.ingredient)) errors.push(`eightySix.scripted names ${s.ingredient}, which has no crate`);
+      if (!(s.atSec >= 0)) errors.push('eightySix.scripted atSec must be >= 0');
+    }
+  }
+  if (count('delivery') > 1) errors.push('at most one delivery tile');
+  parsed.items.forEach((item, i) => {
+    if (item?.kind === 'tray' && parsed.tiles[i].type !== 'trayRack') errors.push(`tray at (${parsed.tiles[i].x},${parsed.tiles[i].y}) is not on a trayRack tile`);
+  });
   return errors;
 }

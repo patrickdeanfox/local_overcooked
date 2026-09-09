@@ -13,6 +13,9 @@ export type SfxName =
   | 'timerStart' | 'timerWarning' | 'levelEnd'
   | 'gateOpen' | 'gateClose'
   | 'throw' | 'catch' | 'throwLand' | 'dash' | 'dashBump' | 'chefFell'
+  // Mechanics spec (docs/MECHANICS.md): the 86 sting must read as different from orderNew
+  | 'crateEmpty' | 'orderRewritten' | 'restockDue' | 'restockTick' | 'restocked'
+  | 'trayLift' | 'traySet' | 'trayWobble'
   | 'uiMove' | 'uiConfirm' | 'uiBack';
 
 export interface AudioBus {

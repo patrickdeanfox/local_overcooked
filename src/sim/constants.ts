@@ -43,6 +43,20 @@ export const DASH_THROW_BONUS = 1.5;       // range multiplier for a throw insid
 export const DASH_BUMP_PUSH = 0.6;         // tiles a chef hit by a dash is shoved
 export const FALL_PENALTY_SEC = 5;         // seconds a fallen chef is out before it respawns (wiki 2-1, 3-1, 3-3, 3-4)
 
+// ─── Mechanics spec (docs/MECHANICS.md) ─────────────────────────────────────
+// Numbers from the spec's tuning table (section 7); ranges given there, midpoints taken.
+export const TWO_PLATE_MAX = 2;            // clean plates one chef can carry with two-plate carry on
+export const ASSIST_RATE = 2;              // progress multiplier with a second chef at a board or delivery; never higher
+export const TRAY_CAPACITY = 3;            // items a tray holds
+export const TRAY_SPEED_SCALE = 0.75;      // chef speed while carrying the tray (spec: 20% to 30% slower)
+export const TRAY_WINDUP_SEC = 0.5;        // lift and set-down wind-up, each (spec: 0.4 to 0.6 s)
+export const TRAY_WOBBLE_SEC = 1.0;        // window after a bump in which a second bump drops the top item (spec gives none)
+export const CRATE_SIZE = 8;               // items per crate when the level's eightySix block gives no crateSize (spec: 4 to 12)
+export const RESTOCK_DELAY_SEC = 30;       // seconds from a crate emptying to its delivery arriving (spec: 20 to 45 s)
+export const RESTOCK_UNLOAD_SEC = 4;       // seconds of held interact to unload a delivery alone (2 s with assist)
+export const MAX_SIMULTANEOUS_86 = 2;      // while this many ingredients are out, no other crate gives up its last item
+export const ORDER_REWRITE_FLASH_SEC = 2;  // how long the HUD flashes a rewritten ticket
+
 // ─── Sim internals (added by the simulation agent) ──────────────────────────
 export const MOVE_DEADZONE = 0.2;         // stick magnitude below which the chef stands still
 export const TICK_EVENT_HZ = 4;           // max chopTick / washTick / spray events per second

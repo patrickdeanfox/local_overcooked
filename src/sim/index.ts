@@ -57,6 +57,12 @@ export interface EffectiveSettings {
   instantCooking: boolean;
   ordersNeverExpire: boolean;
   noBurning: boolean;
+  // Mechanics (docs/MECHANICS.md), each on or off for the run.
+  twoPlateCarry: boolean;
+  chopAssist: boolean;
+  tray: boolean;
+  passThroughShelf: boolean;
+  eightySix: boolean;
 }
 
 interface SliderSpec { group: string; axis: 'x' | 'y'; amplitude: number; periodSec: number; phase: number; }
@@ -162,6 +168,11 @@ function effectiveSettings(level: LevelDef, mods: Modifiers | undefined): Effect
     instantCooking: mods?.instantCooking === true,
     ordersNeverExpire: mods?.ordersNeverExpire === true,
     noBurning: mods?.noBurning === true,
+    twoPlateCarry: mods?.twoPlateCarry === true,
+    chopAssist: mods?.chopAssist === true,
+    tray: mods?.tray === true,
+    passThroughShelf: mods?.passThroughShelf === true,
+    eightySix: mods?.eightySix === true,
   };
 }
 
