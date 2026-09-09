@@ -7,7 +7,7 @@ Owner: the levels agent. Files: `src/levels/**`, `tests/levels*.test.ts`, `docs/
 ## Files
 - `schema.ts` — the contract: `LevelDef` and its parts (`OrderSettings`, `LevelStars`, `PlateSettings`, `StationOverride`, `ItemPlacement`, the `Dynamic` union: `pedestrians`, `sliders`, `gate`), `LEGEND` (30 characters, including the generic `C` crate that takes its ingredient from a `stations` override), `SOLID_TILES` (tiles with a wall), `isWalkable` (not solid and not a `gap`), `makeItem`, `parseGrid`, `validateLevel`. Additive changes only.
 - `index.ts` — discovers every JSON under this directory with `import.meta.glob`, keys `LEVELS` by the `id` inside the file (not the path), sorts `LEVEL_ORDER` by game, world, index, and exports `DEFAULT_LEVEL_ID`.
-- `oc1/1-1.json` to `1-6.json` and `oc1/3-2.json` — the seven shipped levels. 3-2 is the first split kitchen and the first to use a `stations` override (its plate return is a `plateStack` that starts empty).
+- `oc1/1-1.json` to `1-6.json`, `oc1/3-2.json` and `oc2/1-1.json` — the eight shipped levels. 3-2 is the first split kitchen; it and OC2 1-1 use a `stations` override (their plate return is a `plateStack` that starts empty).
 
 ## Boundary
 - Imports from `src/sim`: ingredient lists, `RECIPES`, `recipeDishType`, and the `Tile`, `Item`, `TileType`, `Ware` types. The sim imports `parseGrid` and `SOLID_TILES` back (a known cycle).

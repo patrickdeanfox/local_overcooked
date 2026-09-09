@@ -1,0 +1,28 @@
+{
+  "id": "oc2-1-1",
+  "name": "1-1",
+  "game": "oc2",
+  "world": 1,
+  "index": 1,
+  "theme": "sushi-city",
+  "source": "https://overcooked.fandom.com/wiki/1-1_(Overcooked!_2)",
+  "unlockStars": 1,
+  "timeLimitSec": 150,
+  "timerStartsOnFirstServe": true,
+  "recipes": ["fish_sashimi", "prawn_sashimi"],
+  "orders": { "initial": 2, "intervalSec": 18, "max": 4, "timeSec": 60 },
+  "stars": { "1": [20, 60, 240], "2": [20, 160, 300] },
+  "plates": { "mode": "stack", "count": 4 },
+  "grid": [
+    "##########",
+    "#........V",
+    "X........#",
+    "J.pp..pp.Ø",
+    "#........#",
+    "#........#",
+    "#........#",
+    "#BB####BB#"
+  ],
+  "spawns": [{ "x": 2, "y": 6 }, { "x": 7, "y": 6 }],
+  "stations": [{ "x": 9, "y": 2, "type": "plateStack" }]
+}
