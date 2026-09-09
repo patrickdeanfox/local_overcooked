@@ -27,7 +27,7 @@ One JSON file per level under `src/levels/<game>/`. Type: `LevelDef` in `src/lev
 | `p` | counter | starts with a clean plate on it |
 | `1`–`4` | slider | moving counter in group 1–4, driven by a `sliders` dynamic |
 
-`stations` can override any cell (`{x, y, type?, ingredient?, group?}`); `items` can place items (`{x, y, item, count?}`).
+`stations` can override any cell (`{x, y, type?, ingredient?, group?}`); `items` can place items (`{x, y, item, count?, ware?}`, with `ware: 'pan'` turning a placed `pot` into a pan). Legend `G` tiles are always gate group `1` and `1`–`4` are slider groups; a second gate group needs a `stations` override with its `group`.
 
 ## Fields
 - `id` (`oc1-1-1`), `name` (`1-1`), `game` (`oc1`|`oc2`|`custom`), `world`, `index`, `theme`, `source` (wiki URL).
@@ -43,7 +43,9 @@ One JSON file per level under `src/levels/<game>/`. Type: `LevelDef` in `src/lev
   - `{type: 'sliders', group, axis, amplitude, periodSec, phase?}`
   - `{type: 'gate', group, periodSec, openSec, phase?}`: the group's `gate` tiles are walkable for `openSec` of every `periodSec`, starting open.
 
-Validation is recipe-driven: every ingredient of every recipe needs a crate, soups need a stove with a pot (`S`), meat needs a stove with a pan (`F`), chopped ingredients need a board.
+Validation (`validateLevel`, run by `npm test`, not at runtime) checks: an `id`, a non-empty rectangular grid of known legend characters, at least two spawns on walkable tiles inside the grid, a serve tile and a crate tile, at least one recipe and every recipe id known; then the recipe-driven rules: every ingredient of every recipe needs a crate, soups need a stove with a pot (`S`) and only soup ingredients, meat needs a stove with a pan (`F`), chopped ingredients need a board; `plates.mode: 'sink'` needs a sink and a plate return, `'stack'` needs a plate stack; `timeLimitSec > 0`, `unlockStars >= 0`; every `sliders` and `gate` dynamic names a group with tiles, every gate group has exactly one dynamic with `0 < openSec < periodSec`, and `pedestrians` need road tiles.
+
+`tests/levels.test.ts` adds gates the validator does not: the grid fits 16x10; `id` is `<game>-<world>-<index>` and `name` is `<world>-<index>`; `source` is an overcooked.fandom.com URL; exactly two distinct spawns; every crate, board, stove, serve and sink is reachable from both spawns; every extinguisher tile has a walkable neighbour; plate items on the grid equal `plates.count`; star triples strictly increase; `orders.timeSec > 1.5 * intervalSec` and `0 < initial <= max`; and each level's four order numbers are pinned in a table so a change is deliberate.
 
 ## Authoring method
 1. Download the wiki screenshot (see CLAUDE.md), convert to PNG, view it.

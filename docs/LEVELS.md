@@ -29,7 +29,7 @@ tile counts.
 ## 1-1 — Treacle Town
 
 ```
-###O####S###E
+###O####S##E#
 #...........#
 #...........W
 ##########..D
@@ -45,7 +45,7 @@ V...........X
 | --- | --- |
 | `O` (3,0) | Onion crate, top-left of the back counter |
 | `S` (8,0) | Burner with a pot |
-| `E` (12,0) | Corner counter with the fire extinguisher |
+| `E` (11,0) | Counter with the fire extinguisher. The screenshot puts it in the corner at (12,0), but that tile touches no floor tile, so no chef could ever reach it; it sits one tile in, where a chef at (11,1) can grab it. |
 | `W` (12,2) / `D` (12,3) | Sink basin and its draining rack on the right wall |
 | `R` (0,4) | Plate return |
 | `V` (0,5), (0,6) | Serving hatch, two tiles tall |
@@ -485,11 +485,12 @@ be deliberate.
 None of it is order tuning, so none of it was changed here. Each item is a one- or
 two-character edit for whoever owns the grids.
 
-- **1-1's fire extinguisher cannot be picked up.** `E` sits at (12,0) with a counter at (11,0),
-  a counter at (12,1) and the edge of the map on its other two sides, so no chef can ever face
-  it. A fire in this kitchen can never be put out. Moving the `E` one column left, to (11,0),
-  fixes it: that tile is reachable from the walkable (11,1). Evidence:
-  `tools/playtests/09-1-1-extinguisher-unreachable.txt`.
+- **1-1's fire extinguisher could not be picked up (fixed).** `E` sat at (12,0) with a counter
+  at (11,0), a counter at (12,1) and the edge of the map on its other two sides, so no chef could
+  ever face it and a fire could never be put out. The `E` now sits one column left, at (11,0),
+  reachable from the walkable (11,1); the grid above shows the shipped layout. Evidence:
+  `tools/playtests/09-1-1-extinguisher-unreachable.txt`; the guard is the extinguisher-reach
+  test in `tests/levels.test.ts`.
 - **1-2 has exactly one way through the crossing.** Column 9 is counter at every row except
   y=1, and column 5 opens only at y=3 and y=4, so every ingredient, every plate and every
   finished dish funnels through the single tile (9,1). Two chefs cannot pass each other in it,

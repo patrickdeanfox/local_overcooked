@@ -1,5 +1,7 @@
 # Build plan: first playable
 
+**Status, evening of 2026-09-08: every phase below shipped.** World 1 grew to six levels, the code-drawn art became a 3D kitchen, and the menus, play notes and level catalog followed. This file stays as the record of how the first build was organised; the current direction is `docs/ROADMAP.md`, the architecture is `docs/DESIGN.md`, and the way to run several parts in parallel is `docs/WORKFLOW.md`.
+
 Decided 2026-09-08. Scope: Overcooked 1 levels 1-1, 1-2, 1-3, cloned 1:1 from the wiki. Two players, one screen, gamepads or keyboard. Code-drawn art, synthesized audio. Everything else is roadmap (`docs/ROADMAP.md`).
 
 ## Phases

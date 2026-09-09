@@ -2,6 +2,12 @@
 
 Two-player Overcooked clone in the browser. Phaser 3 (menus, HUD, input) + Three.js (the 3D kitchen, on a canvas behind Phaser's transparent one) + Vite + TypeScript. One screen, two gamepads (or keyboard).
 
+## Where to read
+- `docs/DESIGN.md` — how the arms fit: data flow, contracts, determinism, the level and asset pipelines, the couplings types do not catch.
+- `docs/WORKFLOW.md` — one arm per branch, contracts first, what can run in parallel, merge order, the PR checklist.
+- One `CLAUDE.md` per arm, loaded automatically when you edit inside it: `src/sim/`, `src/game/`, `src/input/`, `src/art/`, `src/audio/`, `src/levels/`, `tools/`, `docs/research/`. Each lists its files, boundary, per-frame contract, how-to-add recipes, tests and gotchas.
+- `docs/ROADMAP.md` — what comes next, with the files each item touches. `README.md` — what a player sees.
+
 ## Commands
 - `npm run dev` — Vite dev server with HMR, reachable on the LAN (`--host`).
 - `npm run build` — typecheck + production build into `dist/`.
@@ -25,7 +31,9 @@ These files are the shared interface between modules. **Additive changes only** 
 - `src/art/**` + `src/audio/**` + `assets/**` + `public/models/**` + `tools/sync-models.mjs`, `tools/export-chef.py`, `tools/make-chef-skins.py` — art + audio agent.
 - `src/levels/**` + `tests/levels*` + `docs/LEVEL_*.md` — levels agent.
 - `docs/research/**` — research agents.
-- `src/main.ts`, `package.json`, configs, `README.md`, `docs/PLAN.md`, `docs/ROADMAP.md` — integrator only.
+- `src/main.ts`, `src/config.ts`, `src/log.ts`, `server.mjs`, `package.json`, configs, `tools/` except the three art scripts, `README.md`, `docs/PLAN.md`, `docs/ROADMAP.md`, `docs/DESIGN.md`, `docs/WORKFLOW.md` — integrator only.
+- Each arm keeps its own `CLAUDE.md` current when its rules, files or tests change; that file is part of the arm.
+- Branch prefix per arm: `sim/`, `game/`, `input/`, `art/`, `audio/`, `levels/`, `tools/`, `research/`, `docs/`. Details in `docs/WORKFLOW.md`.
 
 ## Style
 - Strict TypeScript, no `any`, no non-null assertions except Phaser field initialisation (`!`).
