@@ -2,7 +2,7 @@
 import type { PlayerInput } from '../sim/types';
 export type { PlayerInput } from '../sim/types';
 
-export type GameAction = 'up' | 'down' | 'left' | 'right' | 'pickup' | 'interact' | 'pause';
+export type GameAction = 'up' | 'down' | 'left' | 'right' | 'pickup' | 'interact' | 'pause' | 'throw' | 'dash';
 
 export type DeviceKind = 'keyboard' | 'gamepad';
 

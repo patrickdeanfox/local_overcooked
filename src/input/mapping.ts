@@ -46,7 +46,7 @@ export const PLAYSTATION_ID = /playstation|dualshock|dualsense|054c|wireless con
  */
 export const XBOX_ID = /xbox|x-box|045e/i;
 
-export const ACTIONS: readonly GameAction[] = ['up', 'down', 'left', 'right', 'pickup', 'interact', 'pause'];
+export const ACTIONS: readonly GameAction[] = ['up', 'down', 'left', 'right', 'pickup', 'interact', 'pause', 'throw', 'dash'];
 export const ACTION_NAMES: Record<GameAction, string> = {
   up: 'Move up',
   down: 'Move down',
@@ -55,13 +55,25 @@ export const ACTION_NAMES: Record<GameAction, string> = {
   pickup: 'Pick up / drop',
   interact: 'Chop / wash / spray',
   pause: 'Pause',
+  throw: 'Throw',
+  dash: 'Dash',
 };
+/** Actions added after the first saved maps: a stored map that lacks them gets their defaults instead of being dropped. */
+export const LATER_ACTIONS: readonly GameAction[] = ['throw', 'dash'];
 
 const DEFAULT_KEYS: readonly Record<GameAction, readonly string[]>[] = [
-  { up: ['KeyW'], down: ['KeyS'], left: ['KeyA'], right: ['KeyD'], pickup: ['Space'], interact: ['ShiftLeft', 'ControlLeft'], pause: ['Escape'] },
-  { up: ['ArrowUp'], down: ['ArrowDown'], left: ['ArrowLeft'], right: ['ArrowRight'], pickup: ['Enter'], interact: ['ShiftRight', 'ControlRight'], pause: ['Escape'] },
+  {
+    up: ['KeyW'], down: ['KeyS'], left: ['KeyA'], right: ['KeyD'],
+    pickup: ['Space'], interact: ['ShiftLeft', 'ControlLeft'], pause: ['Escape'], throw: ['KeyE'], dash: ['KeyQ'],
+  },
+  {
+    up: ['ArrowUp'], down: ['ArrowDown'], left: ['ArrowLeft'], right: ['ArrowRight'],
+    pickup: ['Enter'], interact: ['ShiftRight', 'ControlRight'], pause: ['Escape'], throw: ['Slash'], dash: ['Period'],
+  },
 ];
 
+// B / Circle is the fixed menu-back button, but backPressed is read only by menus, so it is
+// free to be the in-game dash.
 const DEFAULT_PAD_BUTTONS: Record<GameAction, readonly number[]> = {
   up: [PAD_BUTTON.DPAD_UP],
   down: [PAD_BUTTON.DPAD_DOWN],
@@ -70,6 +82,8 @@ const DEFAULT_PAD_BUTTONS: Record<GameAction, readonly number[]> = {
   pickup: [PAD_BUTTON.A],
   interact: [PAD_BUTTON.X],
   pause: [PAD_BUTTON.START],
+  throw: [PAD_BUTTON.Y],
+  dash: [PAD_BUTTON.B],
 };
 
 const XBOX_LABELS: Record<number, string | undefined> = {
@@ -115,6 +129,8 @@ export interface HeldState {
   interact: boolean;
   pause: boolean;
   back: boolean;
+  throw: boolean;
+  dash: boolean;
 }
 
 // ─── Defaults ───────────────────────────────────────────────────────────────
@@ -201,19 +217,24 @@ export function clampDeadzone(value: number): number {
 
 // ─── Held state helpers ─────────────────────────────────────────────────────
 export function createHeldState(): HeldState {
-  return { moveX: 0, moveY: 0, up: false, down: false, left: false, right: false, pickup: false, interact: false, pause: false, back: false };
+  return {
+    moveX: 0, moveY: 0, up: false, down: false, left: false, right: false,
+    pickup: false, interact: false, pause: false, back: false, throw: false, dash: false,
+  };
 }
 
 export function clearHeldState(h: HeldState): void {
   h.moveX = 0; h.moveY = 0;
   h.up = false; h.down = false; h.left = false; h.right = false;
   h.pickup = false; h.interact = false; h.pause = false; h.back = false;
+  h.throw = false; h.dash = false;
 }
 
 export function copyHeldState(src: HeldState, dst: HeldState): void {
   dst.moveX = src.moveX; dst.moveY = src.moveY;
   dst.up = src.up; dst.down = src.down; dst.left = src.left; dst.right = src.right;
   dst.pickup = src.pickup; dst.interact = src.interact; dst.pause = src.pause; dst.back = src.back;
+  dst.throw = src.throw; dst.dash = src.dash;
 }
 
 /** OR the buttons of `src` into `dst`; `dst` keeps its movement unless it is neutral. */
@@ -226,6 +247,8 @@ export function mergeHeldState(dst: HeldState, src: HeldState): void {
   dst.interact = dst.interact || src.interact;
   dst.pause = dst.pause || src.pause;
   dst.back = dst.back || src.back;
+  dst.throw = dst.throw || src.throw;
+  dst.dash = dst.dash || src.dash;
   if (dst.moveX === 0) dst.moveX = src.moveX;
   if (dst.moveY === 0) dst.moveY = src.moveY;
 }
@@ -275,6 +298,8 @@ export function readKeyboard(binding: KeyboardBinding, isDown: (code: string) =>
   out.interact = anyKeyDown(keys.interact, isDown);
   out.pause = anyKeyDown(keys.pause, isDown);
   out.back = anyKeyDown(BACK_KEYS, isDown);
+  out.throw = anyKeyDown(keys.throw, isDown);
+  out.dash = anyKeyDown(keys.dash, isDown);
   out.moveX = (out.right ? 1 : 0) - (out.left ? 1 : 0);
   out.moveY = (out.down ? 1 : 0) - (out.up ? 1 : 0);
   return out;
@@ -292,6 +317,8 @@ export function readGamepad(pad: PadSnapshot, binding: GamepadBinding, out: Held
   out.interact = anyPadButtonPressed(pad, buttons.interact);
   out.pause = anyPadButtonPressed(pad, buttons.pause);
   out.back = anyPadButtonPressed(pad, BACK_BUTTONS);
+  out.throw = anyPadButtonPressed(pad, buttons.throw);
+  out.dash = anyPadButtonPressed(pad, buttons.dash);
   const dx = (out.right ? 1 : 0) - (out.left ? 1 : 0);
   const dy = (out.down ? 1 : 0) - (out.up ? 1 : 0);
   if (binding.useDpad && (dx !== 0 || dy !== 0)) {
@@ -309,13 +336,17 @@ export function readGamepad(pad: PadSnapshot, binding: GamepadBinding, out: Held
 
 // ─── Rising edges ───────────────────────────────────────────────────────────
 export function createPlayerInput(): PlayerInput {
-  return { moveX: 0, moveY: 0, pickupPressed: false, interactPressed: false, interactHeld: false, pausePressed: false, backPressed: false };
+  return {
+    moveX: 0, moveY: 0, pickupPressed: false, interactPressed: false, interactHeld: false,
+    pausePressed: false, backPressed: false, throwPressed: false, dashPressed: false,
+  };
 }
 
 export function clearPlayerInput(out: PlayerInput): void {
   out.moveX = 0; out.moveY = 0;
   out.pickupPressed = false; out.interactPressed = false; out.interactHeld = false;
   out.pausePressed = false; out.backPressed = false;
+  out.throwPressed = false; out.dashPressed = false;
 }
 
 /** Turns this frame's held state plus last frame's into a PlayerInput, in place. */
@@ -327,6 +358,8 @@ export function writePlayerInput(held: HeldState, prev: HeldState, out: PlayerIn
   out.interactHeld = held.interact;
   out.pausePressed = held.pause && !prev.pause;
   out.backPressed = held.back && !prev.back;
+  out.throwPressed = held.throw && !prev.throw;
+  out.dashPressed = held.dash && !prev.dash;
   return out;
 }
 
@@ -336,21 +369,25 @@ export function writePlayerInput(held: HeldState, prev: HeldState, out: PlayerIn
 // 120 Hz+, and any frame the browser shortens). Without a latch that press is polled,
 // never handed to a step, and lost. The latch holds it until a step consumes it.
 
-export interface EdgeLatch { pickup: boolean; interact: boolean; }
+export interface EdgeLatch { pickup: boolean; interact: boolean; throw: boolean; dash: boolean; }
 
 export function createEdgeLatch(): EdgeLatch {
-  return { pickup: false, interact: false };
+  return { pickup: false, interact: false, throw: false, dash: false };
 }
 
 export function clearEdgeLatch(latch: EdgeLatch): void {
   latch.pickup = false;
   latch.interact = false;
+  latch.throw = false;
+  latch.dash = false;
 }
 
 /** ORs one poll's rising edges into the latch. */
 export function latchEdges(latch: EdgeLatch, input: PlayerInput): EdgeLatch {
   latch.pickup = latch.pickup || input.pickupPressed;
   latch.interact = latch.interact || input.interactPressed;
+  latch.throw = latch.throw || input.throwPressed === true;
+  latch.dash = latch.dash || input.dashPressed === true;
   return latch;
 }
 
@@ -370,6 +407,8 @@ export function writeStepInput(
   out.interactHeld = src.interactHeld;
   out.pickupPressed = consumeEdges && latch.pickup;
   out.interactPressed = consumeEdges && latch.interact;
+  out.throwPressed = consumeEdges && latch.throw;
+  out.dashPressed = consumeEdges && latch.dash;
   out.pausePressed = false;
   out.backPressed = false;
   return out;
@@ -388,6 +427,8 @@ export function readMenuInput(inputs: readonly PlayerInput[], out: PlayerInput =
     out.interactHeld = out.interactHeld || p.interactHeld;
     out.pausePressed = out.pausePressed === true || p.pausePressed === true;
     out.backPressed = out.backPressed === true || p.backPressed === true;
+    out.throwPressed = out.throwPressed === true || p.throwPressed === true;
+    out.dashPressed = out.dashPressed === true || p.dashPressed === true;
   }
   return out;
 }
@@ -539,16 +580,23 @@ function asRecord(v: unknown): Record<string, unknown> | null {
   return typeof v === 'object' && v !== null && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
 }
 
-function validateKeyboardBinding(v: unknown): KeyboardBinding | null {
+/** A stored map from before an action existed gets that action's default; `set` picks which keyboard set's. */
+function validateKeyboardBinding(v: unknown, set: number): KeyboardBinding | null {
   const o = asRecord(v);
   if (o === null || o.kind !== 'keyboard') return null;
   const src = asRecord(o.keys);
   if (src === null) return null;
+  const fallback = defaultKeyboardBinding(set).keys;
   const keys = {} as Record<GameAction, string[]>;
   for (let i = 0; i < ACTIONS.length; i++) {
-    const value = src[ACTIONS[i]];
+    const action = ACTIONS[i];
+    const value = src[action];
+    if (value === undefined && LATER_ACTIONS.includes(action)) {
+      keys[action] = fallback[action];
+      continue;
+    }
     if (!isCodeArray(value)) return null;
-    keys[ACTIONS[i]] = value.slice();
+    keys[action] = value.slice();
   }
   return { kind: 'keyboard', keys };
 }
@@ -560,11 +608,17 @@ function validateGamepadBinding(v: unknown): GamepadBinding | null {
   if (o.deadzone !== undefined && (typeof o.deadzone !== 'number' || !Number.isFinite(o.deadzone) || o.deadzone < DEADZONE_MIN || o.deadzone > DEADZONE_MAX)) return null;
   const src = asRecord(o.buttons);
   if (src === null) return null;
+  const fallback = defaultGamepadBinding().buttons;
   const buttons = {} as Record<GameAction, number[]>;
   for (let i = 0; i < ACTIONS.length; i++) {
-    const value = src[ACTIONS[i]];
+    const action = ACTIONS[i];
+    const value = src[action];
+    if (value === undefined && LATER_ACTIONS.includes(action)) {
+      buttons[action] = fallback[action];
+      continue;
+    }
     if (!isButtonArray(value)) return null;
-    buttons[ACTIONS[i]] = value.slice();
+    buttons[action] = value.slice();
   }
   const out: GamepadBinding = { kind: 'gamepad', padIndex: NO_PAD, buttons, useLeftStick: o.useLeftStick, useDpad: o.useDpad };
   if (typeof o.deadzone === 'number') out.deadzone = o.deadzone;
@@ -579,7 +633,7 @@ function parseV1(root: Record<string, unknown>, players: number): BindingsStore 
   for (let i = 0; i < players; i++) {
     const entry = asRecord(list[i]);
     if (entry === null) return null;
-    const keyboard = validateKeyboardBinding(entry.keyboard);
+    const keyboard = validateKeyboardBinding(entry.keyboard, i);
     const gamepad = validateGamepadBinding(entry.gamepad);
     if (keyboard === null || gamepad === null) return null;
     store.keyboards.push(keyboard);
@@ -595,7 +649,7 @@ function parseV2(root: Record<string, unknown>, players: number): BindingsStore 
   if (!Array.isArray(keyboardsRaw) || keyboardsRaw.length === 0 || !Array.isArray(playersRaw) || playersRaw.length < players || padsRaw === null) return null;
   const store: BindingsStore = { keyboards: [], players: [], pads: {} };
   for (let i = 0; i < keyboardsRaw.length; i++) {
-    const keyboard = validateKeyboardBinding(keyboardsRaw[i]);
+    const keyboard = validateKeyboardBinding(keyboardsRaw[i], i);
     if (keyboard === null) return null;
     store.keyboards.push(keyboard);
   }

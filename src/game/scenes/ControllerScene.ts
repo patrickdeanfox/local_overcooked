@@ -40,7 +40,7 @@ const KEY_H = 28;
 
 const HEADER_Y = PANEL_Y + 192;
 const LIST_TOP = PANEL_Y + 210;
-const ROW_H = 30;
+const ROW_H = 27; // fifteen rows (nine actions plus six fixed) between the header and the footnote
 const COL_ACTION_X = 18;
 const COL_KEY_X = 268;
 const COL_PAD_X = 452;
@@ -236,9 +236,9 @@ export class ControllerScene extends Phaser.Scene {
     for (let r = 0; r < ROW_COUNT; r++) {
       const y = rowCenterY(r);
       rows.push({
-        name: this.add.text(px + COL_ACTION_X, y, '', { fontFamily: FONT, fontSize: '15px', color: TEXT.bright }).setOrigin(0, 0.5),
-        key: this.add.text(px + COL_KEY_X, y, '', { fontFamily: FONT, fontSize: '14px', color: TEXT.dim }).setOrigin(0, 0.5),
-        pad: this.add.text(px + COL_PAD_X, y, '', { fontFamily: FONT, fontSize: '14px', color: TEXT.dim }).setOrigin(0, 0.5),
+        name: this.add.text(px + COL_ACTION_X, y, '', { fontFamily: FONT, fontSize: '14px', color: TEXT.bright }).setOrigin(0, 0.5),
+        key: this.add.text(px + COL_KEY_X, y, '', { fontFamily: FONT, fontSize: '13px', color: TEXT.dim }).setOrigin(0, 0.5),
+        pad: this.add.text(px + COL_PAD_X, y, '', { fontFamily: FONT, fontSize: '13px', color: TEXT.dim }).setOrigin(0, 0.5),
       });
     }
 

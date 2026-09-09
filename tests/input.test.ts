@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  ACTIONS, BINDINGS_VERSION, DEADZONE_MAX, DEADZONE_MIN, DEADZONE_STEP, KEYBOARD_SET_COUNT, NO_PAD, PAD_BUTTON, STICK_DEADZONE,
+  ACTIONS, BINDINGS_VERSION, DEADZONE_MAX, DEADZONE_MIN, DEADZONE_STEP, KEYBOARD_SET_COUNT, LATER_ACTIONS, NO_PAD, PAD_BUTTON,
+  STICK_DEADZONE,
   applyRadialDeadzone, axisEdge, clampDeadzone, clearEdgeLatch, cloneGamepadBinding, createEdgeLatch, createHeldState,
   createPlayerInput, copyHeldState,
   defaultBindingsStore, defaultGamepadBinding, defaultKeyboardBinding, defaultPlayerBindings,
@@ -115,6 +116,21 @@ describe('writePlayerInput rising edges', () => {
     expect(out.interactHeld).toBe(true);
   });
 
+  it('reports throw and dash as rising edges', () => {
+    const held = createHeldState();
+    const prev = createHeldState();
+    const out = createPlayerInput();
+    held.throw = true;
+    held.dash = true;
+    writePlayerInput(held, prev, out);
+    expect(out.throwPressed).toBe(true);
+    expect(out.dashPressed).toBe(true);
+    copyHeldState(held, prev);
+    writePlayerInput(held, prev, out);
+    expect(out.throwPressed).toBe(false);
+    expect(out.dashPressed).toBe(false);
+  });
+
   it('tracks pause and back edges independently', () => {
     const held = createHeldState();
     const prev = createHeldState();
@@ -150,6 +166,11 @@ describe('readGamepad', () => {
 
     readGamepad(fakePad({ pressed: [PAD_BUTTON.B] }), binding, held, vec());
     expect(held.back).toBe(true);
+    expect(held.dash).toBe(true); // B is menu back and the in-game dash at once
+
+    readGamepad(fakePad({ pressed: [PAD_BUTTON.Y] }), binding, held, vec());
+    expect(held.throw).toBe(true);
+    expect(held.dash).toBe(false);
   });
 
   it('treats an analog button over the threshold as pressed', () => {
@@ -237,6 +258,19 @@ describe('readKeyboard', () => {
       readKeyboard(defaultKeyboardBinding(player), (c) => c === 'Escape', held);
       expect(held.pause).toBe(true);
     }
+  });
+
+  it('reads throw and dash from their keys', () => {
+    const held = createHeldState();
+    readKeyboard(defaultKeyboardBinding(0), (c) => c === 'KeyE', held);
+    expect(held.throw).toBe(true);
+    expect(held.dash).toBe(false);
+    readKeyboard(defaultKeyboardBinding(0), (c) => c === 'KeyQ', held);
+    expect(held.dash).toBe(true);
+    readKeyboard(defaultKeyboardBinding(1), (c) => c === 'Slash', held);
+    expect(held.throw).toBe(true);
+    readKeyboard(defaultKeyboardBinding(1), (c) => c === 'Period', held);
+    expect(held.dash).toBe(true);
   });
 
   it('merges a pad on top of the keyboard, keyboard movement winning', () => {
@@ -393,6 +427,8 @@ describe('edge latch', () => {
     input.pickupPressed = true;
     input.interactPressed = true;
     input.interactHeld = true;
+    input.throwPressed = true;
+    input.dashPressed = true;
     return input;
   }
 
@@ -403,6 +439,8 @@ describe('edge latch', () => {
     expect(stepped.length).toBe(1);
     expect(stepped[0].pickupPressed).toBe(true);
     expect(stepped[0].interactPressed).toBe(true);
+    expect(stepped[0].throwPressed).toBe(true);
+    expect(stepped[0].dashPressed).toBe(true);
   });
 
   it('fires a press on the first sub-step only', () => {
@@ -410,6 +448,8 @@ describe('edge latch', () => {
     const stepped = frame(press(), STEP * 3);
     expect(stepped.length).toBe(3);
     expect(stepped.map((s) => s.pickupPressed)).toEqual([true, false, false]);
+    expect(stepped.map((s) => s.throwPressed)).toEqual([true, false, false]);
+    expect(stepped.map((s) => s.dashPressed)).toEqual([true, false, false]);
     expect(stepped.map((s) => s.interactHeld)).toEqual([true, true, true]);
   });
 
@@ -564,6 +604,30 @@ describe('bindings persistence', () => {
     expect(parseBindings(JSON.stringify({ version: 1, players: [{}, {}] }), 2)).toBeNull();
   });
 
+  it('fills throw and dash with their defaults in a map saved before they existed', () => {
+    type Loose = { keyboards: { keys: Record<string, unknown> }[]; players: { gamepad: { buttons: Record<string, unknown> } }[] };
+    const old = JSON.parse(serialiseBindings(defaultBindingsStore(2))) as Loose;
+    for (const action of LATER_ACTIONS) {
+      delete old.keyboards[0].keys[action];
+      delete old.keyboards[1].keys[action];
+      delete old.players[1].gamepad.buttons[action];
+    }
+    const parsed = parseBindings(JSON.stringify(old), 2);
+    expect(parsed).not.toBeNull();
+    if (parsed === null) return;
+    expect(parsed.keyboards[0].keys.throw).toEqual(['KeyE']);
+    expect(parsed.keyboards[1].keys.dash).toEqual(['Period']);
+    expect(parsed.players[1].gamepad.buttons.throw).toEqual([PAD_BUTTON.Y]);
+    expect(parsed.players[1].gamepad.buttons.dash).toEqual([PAD_BUTTON.B]);
+    // and a v1 payload from before them
+    const v1 = defaultPlayerBindings(2);
+    delete (v1[0].keyboard.keys as Partial<Record<string, string[]>>).throw;
+    delete (v1[0].gamepad.buttons as Partial<Record<string, number[]>>).dash;
+    const migrated = parseBindings(JSON.stringify({ version: 1, players: v1 }), 2);
+    expect(migrated?.keyboards[0].keys.throw).toEqual(['KeyE']);
+    expect(migrated?.players[0].gamepad.buttons.dash).toEqual([PAD_BUTTON.B]);
+  });
+
   it('rejects two players on one keyboard set or a set that does not exist', () => {
     const shared = JSON.parse(serialiseBindings(defaultBindingsStore(2))) as BindingsStore;
     shared.players[1].keyboardSet = 0;
@@ -582,6 +646,7 @@ describe('bindings persistence', () => {
     };
     const fresh = (): Loose => JSON.parse(serialiseBindings(defaultBindingsStore(2))) as Loose;
     for (const action of ACTIONS) {
+      if (LATER_ACTIONS.includes(action)) continue; // those get their defaults instead
       const bad = fresh();
       delete bad.keyboards[0].keys[action];
       expect(parseBindings(JSON.stringify(bad), 2)).toBeNull();
@@ -631,14 +696,21 @@ describe('defaults', () => {
     expect(p1.keys.up).toEqual(['KeyW']);
     expect(p1.keys.pickup).toEqual(['Space']);
     expect(p1.keys.interact).toEqual(['ShiftLeft', 'ControlLeft']);
+    expect(p1.keys.throw).toEqual(['KeyE']);
+    expect(p1.keys.dash).toEqual(['KeyQ']);
     const p2 = defaultKeyboardBinding(1);
     expect(p2.keys.up).toEqual(['ArrowUp']);
     expect(p2.keys.pickup).toEqual(['Enter']);
     expect(p2.keys.interact).toEqual(['ShiftRight', 'ControlRight']);
+    expect(p2.keys.throw).toEqual(['Slash']);
+    expect(p2.keys.dash).toEqual(['Period']);
     const pad = defaultGamepadBinding();
     expect(pad.buttons.pickup).toEqual([PAD_BUTTON.A]);
     expect(pad.buttons.interact).toEqual([PAD_BUTTON.X]);
     expect(pad.buttons.pause).toEqual([PAD_BUTTON.START]);
+    expect(pad.buttons.throw).toEqual([PAD_BUTTON.Y]);
+    expect(pad.buttons.dash).toEqual([PAD_BUTTON.B]);
+    expect(ACTIONS.length).toBe(9);
     expect(pad.buttons.up).toEqual([PAD_BUTTON.DPAD_UP]);
     expect(pad.padIndex).toBe(NO_PAD);
   });
