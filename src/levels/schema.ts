@@ -104,6 +104,9 @@ export const LEGEND: Readonly<Record<string, LegendEntry>> = Object.freeze({
   '4': { type: 'slider', group: '4' },
   'G': { type: 'gate', group: '1' },
   '_': { type: 'gap' },
+  'J': { type: 'crate', ingredient: 'fish' },
+  'Ø': { type: 'crate', ingredient: 'prawn' },
+  'C': { type: 'crate' },  // ingredient set by a stations override; validateLevel insists
 });
 
 /** Tiles a chef body cannot enter. 'gate' is walkable while open, so it is not listed; the sim closes it.
@@ -186,6 +189,9 @@ export function validateLevel(level: LevelDef): string[] {
   parsed.items.forEach((item, i) => {
     if (item?.kind === 'pot' && parsed.tiles[i].type === 'stove') wares.add(item.ware ?? 'pot');
   });
+  for (const t of parsed.tiles) {
+    if (t.type === 'crate' && !t.ingredient) errors.push(`crate (${t.x},${t.y}) has no ingredient: use a stations override`);
+  }
   if (count('serve') === 0) errors.push('no serve tile');
   if (count('crate') === 0) errors.push('no crate tile');
   if (!level.recipes?.length) errors.push('no recipes');

@@ -25,7 +25,11 @@ const INGREDIENT_ROLE: Readonly<Record<IngredientType, { raw: ModelRole; chopped
   meat: { raw: 'meat', chopped: 'meatChopped', cooked: 'meatCooked' },
   bun: { raw: 'bun', chopped: 'bun' },
   lettuce: { raw: 'lettuce', chopped: 'lettuceChopped' },
+  fish: { raw: 'fish', chopped: 'fishChopped' },
+  prawn: { raw: 'prawn', chopped: 'prawnChopped' }, // the Food Kit has no prawn: a mussel stands in
 };
+/** Plated (sashimi, salad) pieces sit on the plate in a small ring. */
+const PLATED = { ring: 0.07, scale: 0.85 } as const;
 const BURGER_LAYER_ROLE: Readonly<Record<BurgerLayer, ModelRole>> = {
   bunBottom: 'bunBottom', meat: 'meatCooked', lettuce: 'lettuceSlice', tomato: 'tomatoSlice', bunTop: 'bunTop',
 };
@@ -135,11 +139,31 @@ function plateView(count: number, dish: Dish | null): THREE.Group {
       const stack = burgerStack(dish);
       stack.position.y = top + plateHeight;
       root.add(stack);
+    } else if (dish.type === 'plated') {
+      const pieces = platedPieces(dish);
+      pieces.position.y = top + plateHeight;
+      root.add(pieces);
     } else {
       root.add(soupDisc(soupColor(dish.ingredients[0]), SOUP.plateRadius, top + SOUP.plateLevel));
     }
   }
   return root;
+}
+
+/** Each plated ingredient's chopped model, laid around the plate's centre. */
+function platedPieces(dish: Dish): THREE.Group {
+  const group = new THREE.Group();
+  const count = dish.ingredients.length;
+  dish.ingredients.forEach((ingredient, i) => {
+    const piece = modelInstance(INGREDIENT_ROLE[ingredient].chopped);
+    piece.scale.setScalar(PLATED.scale);
+    const angle = (i / count) * Math.PI * 2;
+    const radius = count === 1 ? 0 : PLATED.ring;
+    piece.position.set(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
+    piece.rotation.y = angle;
+    group.add(piece);
+  });
+  return group;
 }
 
 function dirtyPlateView(count: number): THREE.Group {

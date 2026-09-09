@@ -13,6 +13,8 @@ One JSON file per level under `src/levels/<game>/`. Type: `LevelDef` in `src/lev
 | `#` | counter | holds one item |
 | `O` `T` `M` | crate | onion / tomato / mushroom source (soups) |
 | `A` `U` `L` | crate | meat (beef) / bun / lettuce source (burgers) |
+| `J` `Ø` | crate | fish / prawn source (sashimi, Overcooked 2) |
+| `C` | crate | a crate whose ingredient a `stations` override sets (`{ x, y, ingredient }`); the validator rejects one left without |
 | `B` | board | chopping board |
 | `S` | stove | burner, starts with an empty pot |
 | `F` | stove | burner, starts with an empty frying pan (fries one chopped meat) |

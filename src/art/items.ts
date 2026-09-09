@@ -27,6 +27,8 @@ const SOUP_COLORS: Record<IngredientType, string> = {
   meat: PALETTE.meatCooked,
   bun: PALETTE.bun,
   lettuce: PALETTE.lettuce,
+  fish: PALETTE.fishFlesh,
+  prawn: PALETTE.prawn,
 };
 
 /** Sesame seeds on a bun dome: [dx, dy] as fractions of the shape radius. */
@@ -565,11 +567,11 @@ export function drawPan(ctx: CanvasRenderingContext2D, cx: number, cy: number, r
 
 const RAW_SHAPES: Record<IngredientType, ShapeFn> = {
   onion: drawOnionRaw, tomato: drawTomatoRaw, mushroom: drawMushroomRaw,
-  meat: drawMeatRaw, bun: drawBun, lettuce: drawLettuceRaw,
+  meat: drawMeatRaw, bun: drawBun, lettuce: drawLettuceRaw, fish: drawFishRaw, prawn: drawPrawnRaw,
 };
 const CHOPPED_SHAPES: Record<IngredientType, ShapeFn> = {
   onion: drawOnionChopped, tomato: drawTomatoChopped, mushroom: drawMushroomChopped,
-  meat: drawMeatChopped, bun: drawBun, lettuce: drawLettuceChopped,
+  meat: drawMeatChopped, bun: drawBun, lettuce: drawLettuceChopped, fish: drawFishChopped, prawn: drawPrawnChopped,
 };
 /** Fried ingredients after the pan; anything else falls back to its chopped shape. */
 const COOKED_SHAPES: Partial<Record<IngredientType, ShapeFn>> = {
@@ -581,6 +583,98 @@ export function drawIngredient(
   ctx: CanvasRenderingContext2D, type: IngredientType, chopped: boolean, cx: number, cy: number, r: number,
 ): void {
   (chopped ? CHOPPED_SHAPES : RAW_SHAPES)[type](ctx, cx, cy, r);
+}
+
+// ─── Seafood (Overcooked 2 sashimi) ─────────────────────────────────────────
+
+/** A whole fish side-on: blue-grey body, pale belly, a tail fin and an eye. */
+function drawFishRaw(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  const bodyX = cx - r * 0.12;
+  // Tail fin first so the body overlaps its root.
+  fillPolygon(ctx, [
+    [cx + r * 0.5, cy],
+    [cx + r * 0.98, cy - r * 0.42],
+    [cx + r * 0.98, cy + r * 0.42],
+  ], PALETTE.fishDark);
+  ctx.beginPath();
+  ctx.ellipse(bodyX, cy, r * 0.7, r * 0.4, 0, 0, Math.PI * 2);
+  ctx.fillStyle = vGradient(ctx, cy - r * 0.4, cy + r * 0.4, [[0, PALETTE.fish], [0.55, PALETTE.fish], [1, PALETTE.fishBelly]]);
+  ctx.fill();
+  ctx.strokeStyle = PALETTE.fishDark;
+  ctx.lineWidth = Math.max(1, r * 0.09);
+  ctx.stroke();
+  // Dorsal fin and eye.
+  fillPolygon(ctx, [[bodyX - r * 0.2, cy - r * 0.36], [bodyX + r * 0.05, cy - r * 0.62], [bodyX + r * 0.25, cy - r * 0.36]], PALETTE.fishDark);
+  fillCircle(ctx, bodyX - r * 0.4, cy - r * 0.1, r * 0.08, PALETTE.chefEye);
+}
+
+/** Three salmon slices: pale orange with white fat lines. */
+function drawFishChopped(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  const slices: readonly (readonly [number, number, number])[] = [
+    [cx - r * 0.5, cy + r * 0.3, -0.35],
+    [cx + r * 0.05, cy - r * 0.05, -0.35],
+    [cx + r * 0.55, cy - r * 0.42, -0.35],
+  ];
+  for (const [sx, sy, rot] of slices) {
+    ctx.save();
+    ctx.translate(sx, sy);
+    ctx.rotate(rot);
+    fillRound(ctx, -r * 0.42, -r * 0.24, r * 0.84, r * 0.48, r * 0.14, PALETTE.fishFlesh);
+    strokeRound(ctx, -r * 0.42, -r * 0.24, r * 0.84, r * 0.48, r * 0.14, PALETTE.prawnDark, Math.max(1, r * 0.06));
+    withAlpha(ctx, 0.8, () => {
+      for (const dx of [-0.22, 0, 0.22]) {
+        ctx.beginPath();
+        ctx.moveTo(dx * r - r * 0.08, -r * 0.2);
+        ctx.quadraticCurveTo(dx * r + r * 0.1, 0, dx * r - r * 0.08, r * 0.2);
+        ctx.strokeStyle = PALETTE.fishFleshLight;
+        ctx.lineWidth = Math.max(1, r * 0.07);
+        ctx.stroke();
+      }
+    });
+    ctx.restore();
+  }
+}
+
+/** One curled prawn: a thick arc for the body with segment lines and a fanned tail. */
+function drawPrawnCurl(ctx: CanvasRenderingContext2D, cx: number, cy: number, s: number): void {
+  ctx.beginPath();
+  ctx.arc(cx, cy, s * 0.62, Math.PI * 0.95, Math.PI * 1.95);
+  ctx.strokeStyle = PALETTE.prawnDark;
+  ctx.lineWidth = s * 0.5;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx, cy, s * 0.62, Math.PI * 0.95, Math.PI * 1.95);
+  ctx.strokeStyle = PALETTE.prawn;
+  ctx.lineWidth = s * 0.36;
+  ctx.stroke();
+  withAlpha(ctx, 0.7, () => {
+    for (const a of [1.15, 1.35, 1.55, 1.75]) {
+      const ang = Math.PI * a;
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(ang) * s * 0.46, cy + Math.sin(ang) * s * 0.46);
+      ctx.lineTo(cx + Math.cos(ang) * s * 0.78, cy + Math.sin(ang) * s * 0.78);
+      ctx.strokeStyle = PALETTE.prawnLight;
+      ctx.lineWidth = Math.max(1, s * 0.06);
+      ctx.stroke();
+    }
+  });
+  // Tail fan at the arc's end.
+  const tailAng = Math.PI * 1.95;
+  const tx = cx + Math.cos(tailAng) * s * 0.62;
+  const ty = cy + Math.sin(tailAng) * s * 0.62;
+  fillPolygon(ctx, [[tx, ty], [tx + s * 0.34, ty - s * 0.22], [tx + s * 0.34, ty + s * 0.26]], PALETTE.prawnDark);
+  ctx.lineCap = 'butt';
+}
+
+function drawPrawnRaw(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  drawPrawnCurl(ctx, cx - r * 0.05, cy + r * 0.12, r * 0.95);
+}
+
+/** Two prawn pieces, peeled and halved. */
+function drawPrawnChopped(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  drawPrawnCurl(ctx, cx - r * 0.42, cy + r * 0.3, r * 0.55);
+  drawPrawnCurl(ctx, cx + r * 0.4, cy - r * 0.2, r * 0.55);
 }
 
 // ─── Cookware ───────────────────────────────────────────────────────────────

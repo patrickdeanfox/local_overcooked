@@ -6,17 +6,20 @@
 // Coordinates: tile units, x right, y down, (0,0) is the top-left tile. Chef x/y is the
 // chef's center, so a chef standing in the middle of tile (3,2) has x=3.5, y=2.5.
 
-export type IngredientType = 'onion' | 'tomato' | 'mushroom' | 'meat' | 'bun' | 'lettuce';
-export const INGREDIENT_TYPES: readonly IngredientType[] = ['onion', 'tomato', 'mushroom', 'meat', 'bun', 'lettuce'];
+export type IngredientType = 'onion' | 'tomato' | 'mushroom' | 'meat' | 'bun' | 'lettuce' | 'fish' | 'prawn';
+export const INGREDIENT_TYPES: readonly IngredientType[] = ['onion', 'tomato', 'mushroom', 'meat', 'bun', 'lettuce', 'fish', 'prawn'];
 /** Ingredients that go in a pot and make soup. */
 export const SOUP_INGREDIENTS: readonly IngredientType[] = ['onion', 'tomato', 'mushroom'];
 /** Ingredients that need the chopping board before use (buns never do). */
-export const CHOPPED_INGREDIENTS: readonly IngredientType[] = ['onion', 'tomato', 'mushroom', 'meat', 'lettuce'];
+export const CHOPPED_INGREDIENTS: readonly IngredientType[] = ['onion', 'tomato', 'mushroom', 'meat', 'lettuce', 'fish', 'prawn'];
 /** Ingredients that go in a pan after chopping and come out cooked. */
 export const FRIED_INGREDIENTS: readonly IngredientType[] = ['meat'];
+/** Chopped ingredients that go straight onto a plate as a 'plated' dish (sashimi; salads later). */
+export const PLATED_INGREDIENTS: readonly IngredientType[] = ['fish', 'prawn'];
 
 export type Ware = 'pot' | 'pan'; // cookware that sits on a stove
-export type DishType = 'soup' | 'burger';
+/** 'plated': chopped ingredients assembled directly on the plate, no heat (Overcooked 2 sashimi, salad). */
+export type DishType = 'soup' | 'burger' | 'plated';
 
 export type TileType =
   | 'void'        // outside the kitchen; not walkable, nothing placed
@@ -71,7 +74,8 @@ export interface PotItem {
   burnProgress: number;   // 0..1 after cooked while still on the stove; 1 → burnt (+ fire)
 }
 /** What sits on a plate. 'soup' comes from pouring a pot; 'burger' is assembled from bun,
- *  cooked meat and chopped toppings, in any order. ingredients sorted alphabetically. */
+ *  cooked meat and chopped toppings, in any order; 'plated' is chopped PLATED_INGREDIENTS laid
+ *  straight on the plate. ingredients sorted alphabetically. */
 export interface Dish { type: DishType; ingredients: IngredientType[]; }
 export interface PlateItem {
   kind: 'plate';

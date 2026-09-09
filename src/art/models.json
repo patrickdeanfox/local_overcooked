@@ -51,5 +51,9 @@
   "charOobi": { "src": "kenney_platformer-kit/Models/GLB format/character-oobi.glb", "url": "models/kenney-platformer/character-oobi.glb", "height": 1.05 },
   "charOodi": { "src": "kenney_platformer-kit/Models/GLB format/character-oodi.glb", "url": "models/kenney-platformer/character-oodi.glb", "height": 1.05 },
   "charOoli": { "src": "kenney_platformer-kit/Models/GLB format/character-ooli.glb", "url": "models/kenney-platformer/character-ooli.glb", "height": 1.05 },
-  "charOopi": { "src": "kenney_platformer-kit/Models/GLB format/character-oopi.glb", "url": "models/kenney-platformer/character-oopi.glb", "height": 1.05 }
+  "charOopi": { "src": "kenney_platformer-kit/Models/GLB format/character-oopi.glb", "url": "models/kenney-platformer/character-oopi.glb", "height": 1.05 },
+  "fish": {"src": "kenney_food-kit/Models/GLB format/fish.glb", "url": "models/kenney-food/fish.glb", "fit": 0.4},
+  "fishChopped": {"src": "kenney_food-kit/Models/GLB format/sushi-salmon.glb", "url": "models/kenney-food/sushi-salmon.glb", "fit": 0.3},
+  "prawn": {"src": "kenney_food-kit/Models/GLB format/mussel.glb", "url": "models/kenney-food/mussel.glb", "fit": 0.32},
+  "prawnChopped": {"src": "kenney_food-kit/Models/GLB format/mussel-open.glb", "url": "models/kenney-food/mussel-open.glb", "fit": 0.32}
 }
