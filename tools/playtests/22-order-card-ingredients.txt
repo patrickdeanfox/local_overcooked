@@ -1,0 +1,27 @@
+# -- Order cards show one icon per ingredient under the dish: three onions for an onion soup,
+#    bun, lettuce, meat and tomato for a salad burger ------------------------------------------
+#
+# The title opens with the cursor on 1-1. GameScene keeps its Hud on `hud`, whose `cards` map
+# holds the live card sprites, so the icons can be read back as texture keys.
+until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
+wait 600
+tap Enter
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.sim
+wait 800
+eval JSON.stringify(['level', __oc.level.id, 'cards', [...__oc.scene.hud.cards.values()].map((c) => [c.recipeId, c.icon.texture.key, c.ingredients.filter((s) => s.visible).map((s) => s.texture.key)])])
+shot 22-00-soup-cards.png
+
+# -- 1-4: burgers with toppings ------------------------------------------------------------------
+eval (__oc.scene.scene.start('Game', { levelId: 'oc1-1-4', seed: 7 }), 'started')
+wait 1500
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.level.id === 'oc1-1-4'
+wait 800
+eval JSON.stringify(['level', __oc.level.id, 'cards', [...__oc.scene.hud.cards.values()].map((c) => [c.recipeId, c.icon.texture.key, c.ingredients.filter((s) => s.visible).map((s) => s.texture.key)])])
+shot 22-01-burger-cards.png
+
+# -- Force every burger variant on screen so all three rows can be read ---------------------------
+eval ((st) => (st.orders.length = 0, ['meat_burger', 'lettuce_burger', 'tomato_lettuce_burger'].forEach((recipeId, i) => st.orders.push({ id: 900 + i, recipeId, timeLeft: 60, timeTotal: 60 })), st.orders.length))(__oc.sim.getState())
+wait 600
+eval JSON.stringify(['forced cards', [...__oc.scene.hud.cards.values()].filter((c) => !c.leaving).map((c) => [c.recipeId, c.ingredients.filter((s) => s.visible).map((s) => s.texture.key)])])
+shot 22-02-all-burgers.png
+errors

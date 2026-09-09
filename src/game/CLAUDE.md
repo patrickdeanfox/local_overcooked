@@ -16,7 +16,7 @@ Top level
 
 `scenes/` — `BootScene` (textures, then all models, then Title), `TitleScene` (level list plus players, difficulty, Chefs, Settings, Controllers rows), `SettingsScene`, `CustomDifficultyScene` (one row per sim number; the preview line under the list is computed by a throwaway `Sim` on the first level, so it cannot disagree with the game), `ChefsScene` (live 3D preview on the shared stage), `GameScene` (the loop), `ResultsScene` (the only writer of progress).
 
-`ui/` — `theme.ts`, `Hud.ts` (order cards, score, timer, prep hint), `MenuList.ts`, `LevelList.ts`, `menuInput.ts` (`MenuInput` from `PlayerInput`, `KeyboardNav` from raw keys, merged into rising edges), `PauseMenu.ts` (an overlay, not a scene: the sim simply stops stepping), `DebugOverlay.ts` (F3 or backtick).
+`ui/` — `theme.ts`, `Hud.ts` (order cards with the dish icon, a row of one icon per ingredient, the name and the time bar; score, timer, prep hint), `MenuList.ts`, `LevelList.ts`, `menuInput.ts` (`MenuInput` from `PlayerInput`, `KeyboardNav` from raw keys, merged into rising edges), `PauseMenu.ts` (an overlay, not a scene: the sim simply stops stepping), `DebugOverlay.ts` (F3 or backtick).
 
 `render/` — `KitchenRenderer.ts` (SimState → Three scene plus a thin Phaser overlay) and `three/`: `stage.ts` (the WebGL canvas behind Phaser, camera fit, lights, projection, low-fx), `loader.ts` (glTF load, normalise, cache per `ModelRole`), `tiles.ts` (stations, ground, theme dressing, sliders, gates, knives), `items.ts` (item views and their change signature), `chefs.ts` (rig, skin, toque, idle/run crossfade), `fx.ts` (fire, smoke, steam, spray sprites).
 
@@ -51,7 +51,7 @@ Poll input once → if the F8 form is open, render the current state and return 
 - **A custom difficulty number**: a `Modifiers` field (sim arm) first; then a `CustomDifficulty` key, a `CUSTOM_FIELDS` row with its range and step, a `DEFAULT_CUSTOM` entry, a `describeModifiers` line, and a `preview` case in `CustomDifficultyScene.ts`.
 
 ## Tests and checks
-`tests/game.settings.test.ts`, `tests/game.progress.test.ts` (fake and throwing storages), `tests/playnotes.test.ts` (`buildNote`, queue helpers: keep them importable in Node), `tests/art.test.ts` for the `TEX` contract. There are no unit tests for scenes, the renderer or the HUD: `npm run typecheck` plus the headless harness are the checks. Every feature has a script in `tools/playtests/` (`07` covers the scene flow, `15` to `19` cover menus, settings, assists and chefs, `20` the custom difficulty page); add one for anything new and read the screenshots.
+`tests/game.settings.test.ts`, `tests/game.progress.test.ts` (fake and throwing storages), `tests/playnotes.test.ts` (`buildNote`, queue helpers: keep them importable in Node), `tests/art.test.ts` for the `TEX` contract. There are no unit tests for scenes, the renderer or the HUD: `npm run typecheck` plus the headless harness are the checks. Every feature has a script in `tools/playtests/` (`07` covers the scene flow, `15` to `19` cover menus, settings, assists and chefs, `20` the custom difficulty page, `22` the order cards); add one for anything new and read the screenshots.
 
 ## Gotchas
 - A menu choice can start another scene mid-update; check `ready` after every handler.
