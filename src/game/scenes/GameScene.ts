@@ -132,6 +132,7 @@ export class GameScene extends Phaser.Scene {
       onQuit: () => this.quitToTitle(),
       hint: `${labels.choose} choose · ${labels.select} confirm · ${labels.change} toggles`,
       controls: `${labelFor('pickup')} pick up / drop · ${labelFor('interact')} chop, wash, spray · ${labelFor('throw')} throw · ${labelFor('dash')} dash`,
+      strategy: level.strategy,
     });
     this.debugOverlay = new DebugOverlay(this, this.kitchen);
     this.buildTutorial(level); // after the input manager: the text carries the player's button names

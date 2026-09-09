@@ -5,6 +5,8 @@
   "world": 1,
   "index": 2,
   "theme": "treacle-town",
+  "description": "Tomato soup joins the menu. A busy crosswalk cuts the kitchen in two, crates and the serving hatch on one side, boards, pots and the sink on the other, with pedestrians barging through between them.",
+  "strategy": "The bottom of the kitchen is open, so cross there instead of braving the crosswalk for every ingredient. Take a pot off its burner when it is not holding a full soup, or it burns while you are away.",
   "source": "https://overcooked.fandom.com/wiki/1-2_(Overcooked!)",
   "unlockStars": 2,
   "timeLimitSec": 240,

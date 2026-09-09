@@ -5,6 +5,8 @@
   "world": 1,
   "index": 1,
   "theme": "sushi-city",
+  "description": "Overcooked 2's opener: sashimi, the simplest dish there is. Fish on the left, prawns on the right, four plates on the centre islands and four chopping boards in the bottom corners.",
+  "strategy": "The clock waits for the first serve, so chop a pile of fish and prawns before you serve anything. There is no sink and the plate return sits beside the serving counter, so leave the plates there rather than carrying them about.",
   "source": "https://overcooked.fandom.com/wiki/1-1_(Overcooked!_2)",
   "unlockStars": 1,
   "timeLimitSec": 150,

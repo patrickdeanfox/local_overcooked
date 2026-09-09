@@ -5,6 +5,8 @@
   "world": 1,
   "index": 3,
   "theme": "savoury-seas",
+  "description": "A short tutorial kitchen for two-plate carry: two plate stacks on one wall, the serve on the far one.",
+  "strategy": "Take a plate, take a second from the other stack, put one down, then cook and serve.",
   "timeLimitSec": 120,
   "timerStartsOnFirstServe": true,
   "recipes": ["onion_soup"],

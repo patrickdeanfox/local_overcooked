@@ -41,6 +41,8 @@ Shipped levels adopt a mechanic through `stations`, `items` and `eightySix`, nev
 
 ## Fields
 - `id` (`oc1-1-1`), `name` (`1-1`), `game` (`oc1`|`oc2`|`custom`|`tutorial`), `world`, `index`, `theme`, `source` (wiki URL).
+- `description`: a sentence or two for the title's level card, paraphrased from the wiki page's overview for the campaigns: the kitchen and what it throws at you (its dish, its obstacle, where things are), never how to beat it. `tests/levels.test.ts` wants 60 to 260 characters and no strategy words.
+- `strategy`: how to beat it, paraphrased from the wiki page's Strategies section for the campaigns and adapted to what the clone can do (throws, carried pots); the clone's own kitchens carry their design intent. Never shown uninvited: the title card swaps it in while the work button is pressed on a level row, and the pause menu has a Strategy row. 40 to 300 characters (four wrapped lines on the card).
 - `timeLimitSec`, `timerStartsOnFirstServe` (1-1 has prep time).
 - `recipes`: ids from `src/sim/recipes.ts`. Orders are drawn from this list.
 - `orders`: `{initial, intervalSec, max, timeSec, first?}`. `first` pins the recipes of the first tickets in order (each must be on the menu); the seed deals the rest. The 86 tutorial uses it so the tomato ticket is up when the tomato crate empties.

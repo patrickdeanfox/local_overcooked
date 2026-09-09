@@ -5,6 +5,8 @@
   "world": 1,
   "index": 1,
   "theme": "treacle-town",
+  "description": "The first kitchen: onion soup, one pot, two plates and a sink to wash them in. A long counter island runs down the middle of the room, and the clock only starts when the first soup goes out.",
+  "strategy": "Let one chef pass onions over the middle counter so the other only chops. With a single pot, pour each soup onto a plate the moment it is done to free the pot, and wash plates as soon as they come back. The clock waits for your first serve, so stock up on chopped onions before it starts.",
   "source": "https://overcooked.fandom.com/wiki/1-1_(Overcooked!)",
   "unlockStars": 0,
   "timeLimitSec": 150,

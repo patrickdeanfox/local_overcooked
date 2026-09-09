@@ -5,6 +5,8 @@
   "world": 1,
   "index": 4,
   "theme": "default",
+  "description": "A short tutorial kitchen for the 86 system: an onion crate, a tomato crate that runs out, and a delivery door beside them.",
+  "strategy": "Empty the tomato crate, watch the ticket rewrite itself, unload the delivery at the door, then serve either soup.",
   "timeLimitSec": 120,
   "timerStartsOnFirstServe": true,
   "recipes": ["onion_soup", "tomato_soup"],

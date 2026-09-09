@@ -5,6 +5,8 @@
   "world": 1,
   "index": 2,
   "theme": "treacle-town",
+  "description": "The three burgers down a corridor the full width of the screen: everything an ingredient needs at one end, everything a dish needs at the other, a tray rack halfway. Built for the tray, with small crates and a delivery door for the 86 system.",
+  "strategy": "Fetch the tray early and bring three ingredients per trip; leave it by the boards and let the plates travel in hands. When a crate empties, unload the delivery at the far end on the next ingredient run.",
   "timeLimitSec": 240,
   "timerStartsOnFirstServe": false,
   "recipes": ["meat_burger", "lettuce_burger", "tomato_lettuce_burger"],

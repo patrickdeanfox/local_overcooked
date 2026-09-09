@@ -108,6 +108,8 @@ export interface LevelDef {
   world: number;
   index: number;
   theme: string;         // e.g. 'treacle-town', 'savoury-seas'
+  description?: string;  // a sentence or two for the level card: the kitchen and what it throws at you, never how to beat it
+  strategy?: string;     // how to beat it, from the wiki's Strategies where there is a page; shown only on demand
   source?: string;       // wiki URL the layout was transcribed from
   unlockStars?: number;  // total stars needed to unlock (wiki infobox); absent or 0 = always open
   timeLimitSec: number;

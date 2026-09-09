@@ -5,6 +5,8 @@
   "world": 1,
   "index": 5,
   "theme": "treacle-town",
+  "description": "A short tutorial kitchen for the tray: the crate at one end, the board and pot at the other, the rack halfway along.",
+  "strategy": "Lift the tray, load three onions, unload one onto the board, set the tray down, then cook and serve.",
   "timeLimitSec": 120,
   "timerStartsOnFirstServe": true,
   "recipes": ["onion_soup"],

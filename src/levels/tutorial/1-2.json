@@ -5,6 +5,8 @@
   "world": 1,
   "index": 2,
   "theme": "treacle-town",
+  "description": "A short tutorial kitchen for chop assist: one room, two boards side by side, one soup.",
+  "strategy": "Get an onion onto a board, chop it with both chefs at the same board, then finish the soup. Alone, just chop and serve.",
   "timeLimitSec": 120,
   "timerStartsOnFirstServe": true,
   "recipes": ["onion_soup"],
