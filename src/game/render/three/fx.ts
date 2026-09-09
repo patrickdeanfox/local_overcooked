@@ -19,6 +19,8 @@ const FIRE = {
 const SMOKE = { size: 0.45, lift: 0.75, riseSpeed: 0.35, lifeSec: 1.1, everySec: 0.28, alpha: 0.55 } as const;
 const SPRAY = { size: 0.42, lifeSec: 0.26, speed: 2.6, lift: 0.45, everySec: 0.05, jitter: 0.18, alpha: 0.9 } as const;
 const STEAM = { size: 0.22, lift: 0.28, riseSpeed: 0.55, lifeSec: 0.9, everySec: 0.22, alpha: 0.35, color: 0xffffff, wobble: 0.12 } as const;
+/** Floor dust behind a dashing chef and around one that fell: the smoke sprite, low and short-lived. */
+const DUST = { size: 0.3, lift: 0.08, riseSpeed: 0.4, lifeSec: 0.4, alpha: 0.5, spread: 0.25 } as const;
 const PUFF_GROWTH = 0.6; // puffs grow by this fraction over their life
 
 interface Puff { sprite: THREE.Sprite; age: number; velocity: THREE.Vector3; life: number; size: number; alpha: number; }
@@ -75,6 +77,20 @@ export class FxPool {
   setSteamSources(positions: readonly THREE.Vector3[]): void {
     this.steamSources.length = 0;
     for (const position of positions) this.steamSources.push(position.clone());
+  }
+
+  /** One dust puff at floor level, scattered a little around `origin`. */
+  spawnDust(origin: THREE.Vector3): void {
+    const sprite = makeSprite(this.smokeTexture, DUST.size, DUST.alpha);
+    sprite.position.copy(origin);
+    sprite.position.x += (Math.random() - 0.5) * DUST.spread;
+    sprite.position.z += (Math.random() - 0.5) * DUST.spread;
+    sprite.position.y += DUST.lift;
+    this.scene.add(sprite);
+    this.puffs.push({
+      sprite, age: 0, life: DUST.lifeSec, size: DUST.size, alpha: DUST.alpha,
+      velocity: new THREE.Vector3((Math.random() - 0.5) * DUST.spread, DUST.riseSpeed, (Math.random() - 0.5) * DUST.spread),
+    });
   }
 
   spawnSpray(origin: THREE.Vector3, direction: THREE.Vector3): void {
