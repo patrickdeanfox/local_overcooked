@@ -12,6 +12,7 @@ export type SfxName =
   | 'orderNew' | 'orderFail'
   | 'timerStart' | 'timerWarning' | 'levelEnd'
   | 'gateOpen' | 'gateClose'
+  | 'throw' | 'catch' | 'throwLand' | 'dash' | 'dashBump' | 'chefFell'
   | 'uiMove' | 'uiConfirm' | 'uiBack';
 
 export interface AudioBus {

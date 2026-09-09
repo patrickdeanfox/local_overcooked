@@ -189,6 +189,12 @@ export function sfxForEvent(event: SimEvent): SfxName | null {
     case 'levelEnd': return 'levelEnd';
     case 'gateOpen': return 'gateOpen';
     case 'gateClose': return 'gateClose';
+    case 'throw': return 'throw';
+    case 'catch': return 'catch';
+    case 'throwLand': return 'throwLand';
+    case 'dash': return 'dash';
+    case 'dashBump': return 'dashBump';
+    case 'chefFell': return 'chefFell';
     default: return null;
   }
 }
