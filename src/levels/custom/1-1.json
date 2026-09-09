@@ -5,6 +5,8 @@
   "world": 1,
   "index": 1,
   "theme": "default",
+  "description": "Three soups in a near-split kitchen: prep on the left, cooking on the right, and a wall between them with three hatches and a single gap at its end. Built for the pass-through shelf; with the switch off the hatches are wall.",
+  "strategy": "One chef chops on the left and posts through the hatches; the other cooks, plates and serves on the right and posts the empty plates back. The gap at the end of the wall is for whoever gets stuck.",
   "timeLimitSec": 240,
   "timerStartsOnFirstServe": false,
   "recipes": ["onion_soup", "tomato_soup", "mushroom_soup"],

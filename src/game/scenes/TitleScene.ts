@@ -65,20 +65,24 @@ const TITLE = {
   starsNoteY: 72,
   starsNoteFontPx: 13,
   cardX: 950,
-  cardY: 690,
+  cardY: 664,
   cardWidth: 580,
-  cardHeight: 136,
+  cardHeight: 196,
   cardAlpha: 0.93,
   cardTextX: 686,       // left edge of the card's text
-  cardNameY: 660,
+  cardNameY: 594,
   cardNameFontPx: 38,
   cardNameMaxPx: 380,
-  cardThemeY: 696,
+  cardThemeY: 626,
   cardThemeFontPx: 13,
-  cardRecordY: 724,
-  cardRecordFontPx: 16,
+  cardDescY: 642,       // the level's description, wrapped, top-aligned
+  cardDescFontPx: 15,
+  cardDescWrapPx: 524,
+  cardDescLineSpacing: 3,
+  cardRecordY: 740,
+  cardRecordFontPx: 15,
   cardStarsX: 1170,     // the middle star
-  cardStarsY: 664,
+  cardStarsY: 598,
   cardStarGap: 44,
   cardStarScale: 1.15,
   promptY: GAME_HEIGHT - 26,
@@ -91,7 +95,7 @@ const TITLE = {
 
 /** The diorama: the selected kitchen framed to the right of the sidebar, seen from the front-right. */
 const DIORAMA = {
-  band: { left: 650, top: 60, right: 1250, bottom: 600 },
+  band: { left: 650, top: 60, right: 1250, bottom: 545 },
   yawRad: -0.42,
   pitchDeg: 50,
   swayRad: 0.07,
@@ -104,6 +108,8 @@ const HEADING = { first: 'LOCAL ', second: 'OVERCOOKED' } as const;
 const TAGLINE = 'TWO CHEFS  ·  ONE KITCHEN  ·  NOT ENOUGH TIME';
 const FIRST_RUN_HINT = 'First time? Controllers walks you through every button';
 const NEVER_PLAYED = 'Never played';
+const STRATEGY_KICKER = 'HOW TO BEAT IT';
+const NO_STRATEGY = 'No strategy written for this kitchen yet';
 
 /** Option rows, in the order the cursor walks through them. */
 const OPTION = { tutorials: 0, players: 1, difficulty: 2, chefs: 3, settings: 4, controllers: 5 } as const;
@@ -133,11 +139,13 @@ export class TitleScene extends Phaser.Scene {
   private swayMs = 0;
   private cardName!: Phaser.GameObjects.Text;
   private cardTheme!: Phaser.GameObjects.Text;
+  private cardDescription!: Phaser.GameObjects.Text;
   private cardRecord!: Phaser.GameObjects.Text;
   private readonly cardStars: Phaser.GameObjects.Image[] = [];
   private index = 0;
   private optionsY: number = TITLE.optionsMaxY;
   private statusMessage = '';
+  private strategyShown = false; // the card shows the strategy instead of the description; off again on every move
   private ready = false;
 
   constructor() { super(SCENE.TITLE); }
@@ -192,11 +200,13 @@ export class TitleScene extends Phaser.Scene {
 
   override update(_time: number, deltaMs: number): void {
     if (!this.ready || !this.menu) return;
-    const nav = mergeNav(this.menuInput.poll(this.inputMgr.poll()), this.keyboardNav.poll());
+    const inputs = this.inputMgr.poll();
+    const nav = mergeNav(this.menuInput.poll(inputs), this.keyboardNav.poll());
     if (nav.up || nav.down) this.moveCursor(nav.down ? 1 : -1);
     if (!this.ready) return;
     if (this.onLevelRow()) {
       if (nav.confirm) this.chooseLevel();
+      else if (inputs.some((input) => input.interactPressed)) this.toggleStrategy();
     } else {
       this.menu.setIndex(this.index - this.levelCount());
       this.menu.handle({ ...nav, up: false, down: false });
@@ -320,6 +330,10 @@ export class TitleScene extends Phaser.Scene {
       .setPosition(TITLE.cardX, TITLE.cardY);
     this.cardName = this.add.text(TITLE.cardTextX, TITLE.cardNameY, '', displayStyle(TITLE.cardNameFontPx, TEXT_COLOR.accent)).setOrigin(0, 0.5);
     this.cardTheme = this.add.text(TITLE.cardTextX, TITLE.cardThemeY, '', textStyle(TITLE.cardThemeFontPx, TEXT_COLOR.dim)).setOrigin(0, 0.5);
+    this.cardDescription = this.add
+      .text(TITLE.cardTextX, TITLE.cardDescY, '', textStyle(TITLE.cardDescFontPx, TEXT_COLOR.bright, { wordWrap: { width: TITLE.cardDescWrapPx } }))
+      .setOrigin(0, 0)
+      .setLineSpacing(TITLE.cardDescLineSpacing);
     this.cardRecord = this.add.text(TITLE.cardTextX, TITLE.cardRecordY, '', textStyle(TITLE.cardRecordFontPx)).setOrigin(0, 0.5);
     for (let s = 0; s < MAX_STARS; s++) {
       this.cardStars.push(
@@ -336,7 +350,14 @@ export class TitleScene extends Phaser.Scene {
     this.buildDiorama(entry.id, levels[entry.id]);
     this.cardName.setText(entry.name).setScale(1);
     if (this.cardName.width > TITLE.cardNameMaxPx) this.cardName.setScale(TITLE.cardNameMaxPx / this.cardName.width);
-    this.cardTheme.setText(entry.theme.toUpperCase());
+    const level = levels[entry.id];
+    if (this.strategyShown) {
+      this.cardTheme.setText(STRATEGY_KICKER).setColor(TEXT_COLOR.accent);
+      this.cardDescription.setText(level?.strategy ?? NO_STRATEGY).setColor(TEXT_COLOR.accent);
+    } else {
+      this.cardTheme.setText(entry.theme.toUpperCase()).setColor(TEXT_COLOR.dim);
+      this.cardDescription.setText(level?.description ?? '').setColor(TEXT_COLOR.bright);
+    }
     const saved = levelProgress(this.progress, entry.id);
     if (entry.locked) {
       this.cardRecord.setText(`Locked · needs ${entry.unlockStars} stars from ${presetName(DEFAULT_PRESET)} or harder`).setColor(TEXT_COLOR.dim);
@@ -425,8 +446,16 @@ export class TitleScene extends Phaser.Scene {
     if (count === 0) return;
     this.index = (this.index + delta + count) % count;
     this.statusMessage = '';
+    this.strategyShown = false;
     getAudioBus().play('uiMove');
     this.refreshCursor();
+  }
+
+  /** The work button on a level row swaps the card's description for the strategy, and back. */
+  private toggleStrategy(): void {
+    this.strategyShown = !this.strategyShown;
+    getAudioBus().play('uiMove');
+    this.refreshCard();
   }
 
   private refreshCursor(): void {
@@ -462,13 +491,14 @@ export class TitleScene extends Phaser.Scene {
   // ─── Prompts ──────────────────────────────────────────────────────────────
   private refreshHint(): void {
     const labels = menuLabels(this.labelFor);
-    this.hintText.setText(`${labels.choose} choose · ${labels.change} change · ${labels.select} select · M mute`);
+    this.hintText.setText(`${labels.choose} choose · ${labels.change} change · ${labels.select} select · ${this.labelFor('interact')} strategy · M mute`);
   }
 
   /** Draws the button-prompt art for confirm and back when the art module has it. */
   private buildPrompts(): void {
     const actions: { action: HintAction; caption: string }[] = [
       { action: 'pickup', caption: 'Select' },
+      { action: 'interact', caption: 'Strategy' },
       { action: 'back', caption: 'Back' },
     ];
     actions.forEach(({ action, caption }, i) => {

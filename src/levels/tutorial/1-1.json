@@ -5,6 +5,8 @@
   "world": 1,
   "index": 1,
   "theme": "default",
+  "description": "A short tutorial kitchen for the pass-through shelf: an onion crate on one side of a wall with three hatches, the board, pot and serve on the other.",
+  "strategy": "Post the onion through a hatch, take it from the other side, then cook and serve. The clock waits for the first serve, so nothing hurries you.",
   "timeLimitSec": 120,
   "timerStartsOnFirstServe": true,
   "recipes": ["onion_soup"],

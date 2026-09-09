@@ -5,6 +5,8 @@
   "world": 1,
   "index": 3,
   "theme": "savoury-seas",
+  "description": "Mushroom soup joins the menu aboard a ship with no sink. The counters in the middle slide back and forth as the deck sways, so nothing you put down stays where you left it.",
+  "strategy": "The bottom is not blocked off, so ingredients can reach the boards without waiting on the sliding counters. The serving counter can be fed from either side.",
   "source": "https://overcooked.fandom.com/wiki/1-3_(Overcooked!)",
   "unlockStars": 4,
   "timeLimitSec": 240,

@@ -5,6 +5,8 @@
   "world": 1,
   "index": 3,
   "theme": "savoury-seas",
+  "description": "Three soups and fish sashimi in a compact room with a delivery door. The crates run small, two ingredients are scripted to run out, and the drying rack sits across the room from the serve. Built for the 86 system and two-plate carry.",
+  "strategy": "Carry two clean plates from the drying rack across the room at a time. When the onion or fish shortage hits, keep serving what you already built, since the rewritten ticket still pays for it, then unload the delivery.",
   "timeLimitSec": 240,
   "timerStartsOnFirstServe": false,
   "recipes": ["onion_soup", "tomato_soup", "mushroom_soup", "fish_sashimi"],

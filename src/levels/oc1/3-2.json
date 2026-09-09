@@ -5,6 +5,8 @@
   "world": 3,
   "index": 2,
   "theme": "savoury-seas",
+  "description": "Back on the deck, with the chefs kept apart. Each half of the kitchen has some of what a soup needs and none of the rest, so ingredients, plates and dishes all cross the divider counter.",
+  "strategy": "Keep the plates where both chefs can reach them, on the divider. Pots come off their burners and a held plate takes soup straight from a cooked pot, so the food can cross as a pot, a plate or a finished dish.",
   "source": "https://overcooked.fandom.com/wiki/3-2_(Overcooked!)",
   "unlockStars": 23,
   "timeLimitSec": 240,

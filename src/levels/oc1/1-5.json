@@ -5,6 +5,8 @@
   "world": 1,
   "index": 5,
   "theme": "treacle-town",
+  "description": "Three soups in a kitchen that is one long ring: crates in one corner, boards in the next, three pots in the third and the sink in the last, with one-tile passages all the way round.",
+  "strategy": "Run laps in one direction: take ingredients, chop them, drop them in the pots, and round again. Or carry a pot to the boards and cut the lap short.",
   "source": "https://overcooked.fandom.com/wiki/1-5_(Overcooked!)",
   "unlockStars": 6,
   "timeLimitSec": 240,

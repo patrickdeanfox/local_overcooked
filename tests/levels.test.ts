@@ -151,6 +151,16 @@ describe('levels', () => {
       expect(p.height).toBeLessThanOrEqual(10);
     });
 
+    it(`${l.id} describes itself for the level card`, () => {
+      // A sentence or two about the kitchen and its mechanics, never the strategy.
+      expect(l.description?.length ?? 0).toBeGreaterThanOrEqual(60);
+      expect(l.description?.length ?? 0).toBeLessThanOrEqual(260);
+      expect(l.description).not.toMatch(/strateg|best way|trick|tip:/i);
+      // The strategy is separate, so a card never shows it uninvited.
+      expect(l.strategy?.length ?? 0).toBeGreaterThanOrEqual(40);
+      expect(l.strategy?.length ?? 0).toBeLessThanOrEqual(300);
+    });
+
     it(`${l.id} names itself consistently`, () => {
       expect(l.id).toBe(`${l.game}-${l.world}-${l.index}`);
       expect(l.theme.length).toBeGreaterThan(0);

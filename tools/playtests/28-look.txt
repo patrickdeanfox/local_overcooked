@@ -10,6 +10,12 @@ eval JSON.stringify(['fonts', Array.from(document.fonts).map((f) => [f.family, f
 eval JSON.stringify(['title options', __ui.options(), 'status', __ui.status()])
 # 28-00: the title: wordmark, level tickets, option rows, the diorama of 1-1 with the card.
 shot 28-00-title.png
+tap ShiftLeft
+wait 300
+# 28-00b: the card swapped to the strategy by the work button.
+shot 28-00b-title-strategy.png
+tap ShiftLeft
+wait 200
 tap ArrowDown
 wait 400
 # 28-01: the cursor on 1-2 (locked): the ticket slid, the card says locked, the diorama shows 1-2.
@@ -61,4 +67,11 @@ tap Escape
 wait 500
 # 28-08: the pause menu.
 shot 28-08-pause.png
+tap ArrowUp
+wait 150
+tap Space
+wait 400
+eval JSON.stringify(['pause rows', __oc.scene.pauseMenu.menu.rows.map((r) => r.text)])
+# 28-08b: the Strategy row switched on, the panel grown by the block.
+shot 28-08b-pause-strategy.png
 errors

@@ -5,6 +5,8 @@
   "world": 1,
   "index": 6,
   "theme": "treacle-town",
+  "description": "Burgers on the only raised kitchen in the game. A constant earthquake keeps splitting the room in two: tomato, lettuce and beef crates, boards and the sink on one side, buns, pans, plates and the serve on the other.",
+  "strategy": "One chef chops on the low side and throws the food across the seam whenever it is closed; the high side fries, plates and serves. Dirty plates come back low, so wash in bursts and throw the clean ones up.",
   "source": "https://overcooked.fandom.com/wiki/1-6_(Overcooked!)",
   "unlockStars": 8,
   "timeLimitSec": 240,

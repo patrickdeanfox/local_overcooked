@@ -5,6 +5,8 @@
   "world": 1,
   "index": 4,
   "theme": "treacle-town",
+  "description": "Burgers and frying pans arrive. Two sectors joined by a short corridor: crates, sink, bin and boards on one side, four pans, the serving counter and five plates on the other.",
+  "strategy": "Leave chopped beef on the middle counters so the chef by the pans can fry it without the walk. Only wash when three or more plates have piled up at the return.",
   "source": "https://overcooked.fandom.com/wiki/1-4_(Overcooked!)",
   "unlockStars": 5,
   "timeLimitSec": 240,
