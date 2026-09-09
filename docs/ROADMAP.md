@@ -4,7 +4,7 @@ Where the game goes from the 2026-09-08 build. Ordered by value per effort, not 
 
 Done so far: first playable, Overcooked 1 world 1 (1-1 to 1-6) with soups, burgers, fire, sinks, plate stacks, pedestrians, sliders and the earthquake gate; the full 3D kitchen (Three.js behind Phaser, CC0 Kenney and KayKit kits, level themes, steam, a chopping animation, street dressing with parked cars); level select with saved stars and unlocks; four difficulty presets, a custom difficulty page that scales every timer and ticket number, and three seed modes; the Chefs page with 15 characters previewed in 3D; the Settings page with three assists and separate music and effects switches; the F8 play-note reporter; the headless playtest harness with 20 scripted scenarios; the https LAN server and desktop launcher; and a research catalog of all 74 Overcooked 1 and 2 levels (`docs/research/catalog/`).
 
-How the items relate: throwing and dashing (item 4) unblock 24 catalogued levels, so they come before the bulk of the level work (item 5). New kits (item 6) dress the levels as they land. Procedural kitchens (item 8) read the catalog and reuse the level validator, so they need nothing from items 4 to 7. `docs/WORKFLOW.md` says how to run several of these at once.
+How the items relate: throwing and dashing (item 4) unblock 24 catalogued levels, so they come before the bulk of the level work (item 5). New kits (item 6) dress the levels as they land. Procedural kitchens (item 8) read the catalog and reuse the level validator, so they need nothing from items 4 to 7. The theme reskin (item 13) waits for the station set from item 5 to settle and takes item 6's data-driven dressing as its first half; the noun map it needs can be written now. `docs/WORKFLOW.md` says how to run several of these at once.
 
 ## 1. Tune world 1 by play — S, ongoing
 - Apply `docs/research/sim-constants-recommendations.md` to `src/sim/constants.ts`.
@@ -107,6 +107,22 @@ Build in stages, each shippable:
 ## 12. Art and sound remaining
 - Done today: steam over cooking pots, the knife chop animation, level themes with a back wall and windows, the ship deck on water, taller chefs with a toque sized from the head bone, street asphalt and parked cars, low-fx mode under browser automation.
 - Next: order-card icons rendered from the 3D dishes; per-theme props (folded into item 6); recorded CC0 SFX behind `src/audio/types.ts` with the synth as fallback; per-level music themes (one loop today).
+
+## 13. Reskin to a different theme — M for the look, M for the rename, after the station set settles
+What exists: the cooking vocabulary is the domain model, not a skin. `IngredientType`, `DishType`, the `TileType` names (stove, sink, board, plateReturn, plateStack), `PotItem` and `PlateItem`, the chef actions `chopping` and `washing`, every `SfxName`, the `TEX` keys in `src/art/keys.ts`, the model roles in `src/art/models.json` and the `LEGEND` letters in `src/levels/schema.ts` all carry it. Counted on 2026-09-09: every sim file, 23 of 30 game files, all of art and levels, 3 of 5 audio files, 11 test files, the per-arm `CLAUDE.md` files and the docs. Player-facing copy is already data (`Recipe.name`, `LevelDef.title` and `theme`), so nothing in the sim has to change for the player to see another theme.
+
+When: after item 5 has added the stations the chosen levels need (conveyor, fryer, oven, mixer, steamer) and the set stops growing, and after item 6 has made theme dressing data. Renaming earlier means every level transcription translates the catalog's cooking words in your head and every new station gets named twice. The rename is a whole-repo PR whichever day it happens (contracts are additive-only, so a rename touches every consumer), and its size grows linearly with the station count, so waiting costs little.
+
+Do now, cheap, to keep the door open:
+- Pick the theme and write the noun map into `docs/THEME.md`: ingredient, chop, cook, burn, fire and extinguisher, plate, dirty plate, wash, serve, trash, order, chef. A mechanic with no natural counterpart (dirty plates and fire are the usual casualties) is a mechanics change, not a reskin; decide it before more levels build on that mechanic.
+- Keep player-facing copy in data (`Recipe.name`, level `title` and `theme`); no new hard-coded cooking copy in `src/game/scenes/`.
+- Start item 6 with its "theme dressing as data" step; that is most of the visual reskin.
+
+Build, in two layers:
+1. **Presentation reskin** (art, audio and game arms; runs in parallel with anything): model roles in `src/art/models.json` then `npm run models`; the synth or recorded SFX in `src/audio/`; recipe names in `src/sim/recipes.ts`; HUD and menu copy in `src/game/scenes/`; the dressing manifest from item 6; `README.md` and the title. The player sees the new theme with the sim untouched.
+2. **Vocabulary rename** (integrator, all arms idle, one PR): the unions in `src/sim/types.ts`, `LEGEND`, `TEX`, `SfxName`, the model roles, the level JSON, the tests, the per-arm `CLAUDE.md` files and `docs/`. Mechanical: a search-and-replace pass over the fixed word list in `docs/THEME.md`, then `npm test` and `npm run build`. Leave the catalog's cooking words in `docs/research/` as they are; the catalog-to-LevelDef converter (item 11) carries the map.
+
+Caveat: a reskin does not change that the layouts are Overcooked's. If distance from the original is the goal, the levels matter more than the nouns.
 
 ## Known gaps in the current build
 - Order cadence, timeout and tip amounts are estimates; the wiki publishes none (`docs/research/sim-constants-recommendations.md`). Tune by play.
