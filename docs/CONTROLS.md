@@ -1,7 +1,10 @@
 # Controls
 
-Two players share one screen. The keyboard drives both player slots at all times and a
-gamepad layers on top of it, so the game plays with two pads, one pad, or none.
+Two players share one screen. Each player holds one keyboard set (WASD or the arrows) at
+all times and a gamepad layers on top of it, so the game plays with two pads, one pad, or
+none. Every hint line in the menus, the pause screen and the results names the buttons of
+the device player 1 holds: keys on the keyboard, A / X on an Xbox pad, Cross / Square on
+a PlayStation pad.
 
 ## Pairing a controller
 
@@ -24,18 +27,23 @@ the page see it.
    keyboard keys. Move the stick and the dot moves with it.
 
 Pads are handed out in connection order: first pad to player 1, second to player 2,
-anything beyond that stays unassigned. To place an unassigned pad yourself, open the
-controller screen, move the highlight onto the player you want with left/right, and press
-any button on that pad.
+anything beyond that stays unassigned. To place a pad yourself, use the **Device** row at
+the top of a player's column: left / right cycles through Keyboard set 1, Keyboard set 2
+and every connected pad by name. Choosing a pad another player holds swaps the two pads;
+choosing a keyboard set releases the pad, and whoever held that set takes the one you
+gave up, so the two players never share a set. Pressing any button on an unassigned pad
+also gives it to the highlighted player.
 
 Unplugging a pad frees its slot at once and leaves that player on the keyboard. Plug it
-back in and it takes the first free slot.
+back in and it takes the first free slot, with the map it had before: pads are remembered
+by their id.
 
 ## Defaults
 
 ### Keyboard
 
-Both keyboard sets are always live, whatever pads are connected.
+Both keyboard sets are always live, whatever pads are connected. Player 1 starts on set 1
+and player 2 on set 2; the Device row swaps them.
 
 | Action | Player 1 | Player 2 |
 | --- | --- | --- |
@@ -62,7 +70,9 @@ Sony's vendor id `054c`.
 The left stick uses a radial deadzone of 0.25 and is renormalised afterwards, so the
 usable travel covers a full 0..1 and a diagonal never exceeds full speed. The d-pad
 overrides the stick while it is held. Triggers and other analog buttons count as pressed
-above 0.5.
+above 0.5. The **Left stick**, **D-pad** and **Stick deadzone** rows on the controller
+screen change these per pad (deadzone from 0 to 0.8 in steps of 0.05); the settings are
+stored with that pad's id and come back with it.
 
 Menu back is fixed on `Backspace` and B / Circle. It is the one action you cannot remap,
 so a bad binding can never strand you on a screen.
@@ -70,21 +80,37 @@ so a bad binding can never strand you on a screen.
 ## Remapping
 
 Everything happens on the controller screen (the **Controllers** entry on the title menu).
+Each player's column lists, top to bottom: Device, Set up controls, the seven actions,
+Left stick, D-pad, Stick deadzone, Reset to defaults.
 
-- **Move the highlight** with up/down on any device; left/right switches between the
-  player 1 and player 2 columns.
-- **Rebind an action**: highlight its row and press pick up (`Space`, `Enter`, or A on a
-  pad). The row lights up and the next key or button you press becomes the new binding.
-  `Esc` cancels without changing anything.
-- Keyboard and gamepad bindings are separate. Pressing a key rebinds only the keyboard
-  entry for that player; pressing a pad button rebinds only the gamepad entry.
-- **Reset to defaults** is the last row of each column and only affects that player.
+- **Move the highlight** with up/down on any device. Left/right switches between the
+  player 1 and player 2 columns on the action rows, and changes the value on the Device,
+  Left stick, D-pad and Stick deadzone rows.
+- **Set up controls** walks through every action for the highlighted player: "Player 1,
+  press the key for Pick up / drop", then the next, seven in all. Each press replaces that
+  action's binding on the device you pressed; `Esc` keeps the current binding and moves
+  on. The title's Controllers row and the page itself point at it on a first run, when
+  nothing has been saved yet.
+- **Add a key or button to an action**: highlight its row and press pick up (`Space`,
+  `Enter`, or A on a pad). The row lights up and the next key or button you press is
+  added to that action, so `Shift` and `Ctrl` can both keep chopping. `Esc` cancels.
+- **Clear an action**: highlight its row and press the chop button (`Shift` / `Ctrl`, or
+  X / Square). The action is emptied for the device shown on the Device row; add a new
+  key or button afterwards. An action may stay unbound on one device.
+- Keyboard and gamepad bindings are separate. Pressing a key changes only the keyboard set
+  the player holds; pressing a pad button changes only that pad's map. A button pressed on
+  a pad nobody holds gives that pad to the player first; another player's pad is ignored.
+- **Reset to defaults** is the last row of each column and only affects that player: their
+  keyboard set, and the map of the pad they hold.
 - **Leave** with `Esc` or B / Circle.
 
 Every change is written to `localStorage` straight away, under
-`local-overcooked.bindings.v1`. The saved payload is validated on load: a wrong version, a
-missing action, or a value of the wrong type sends the whole payload to the bin and the
-defaults load instead. Pad assignments last for the session only and are never saved.
+`local-overcooked.bindings.v1` (payload version 2: the keyboard sets, which set each player
+holds, a fallback pad map per player, and one map per pad id; version 1 payloads are
+migrated on load, each player's old keyboard becoming their set). The saved payload is
+validated on load: an older version, a missing action, a value of the wrong type, or two
+players on one keyboard set sends the whole payload to the bin and the defaults load
+instead. Pad assignments last for the session only and are never saved.
 
 To wipe the saved bindings by hand, run this in the browser console and reload:
 

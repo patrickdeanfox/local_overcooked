@@ -6,7 +6,7 @@
 // The top row picks the difficulty preset, so Custom can be switched on without leaving.
 import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH, MAX_PLAYERS, SCENE } from '../../config';
-import { createInputManager } from '../../input';
+import { createInputManager, menuLabels } from '../../input';
 import type { InputManager } from '../../input/types';
 import { Sim, type EffectiveSettings } from '../../sim';
 import type { LevelDef } from '../../levels/schema';
@@ -36,7 +36,11 @@ const LAYOUT = {
 } as const;
 
 const HEADING = 'CUSTOM DIFFICULTY';
-const HINT = 'up / down choose · left / right change · Esc or B back';
+/** The hint line in the first player's own labels (keys, or the pad's buttons). */
+function hintLine(mgr: InputManager): string {
+  const labels = menuLabels((action) => mgr.labelFor(0, action));
+  return `${labels.choose} choose · ${labels.change} change · ${labels.back} back`;
+}
 const UNLOCK_NOTE = 'A custom run is saved but its stars never count toward unlocks';
 const PREVIEW_PLAYERS = 1; // the preview Sim; the numbers shown do not depend on the player count
 const PREVIEW_SEED = 0;
@@ -113,9 +117,9 @@ export class CustomDifficultyScene extends Phaser.Scene {
 
     this.cameras.main.setBackgroundColor(COLOR.bg);
     this.add.text(GAME_WIDTH / 2, LAYOUT.headingY, HEADING, textStyle(LAYOUT.headingFontPx, TEXT_COLOR.accent)).setOrigin(0.5);
-    this.add.text(GAME_WIDTH / 2, LAYOUT.hintY, HINT, textStyle(LAYOUT.hintFontPx, TEXT_COLOR.dim)).setOrigin(0.5);
 
     this.inputMgr = createInputManager(this, MAX_PLAYERS);
+    this.add.text(GAME_WIDTH / 2, LAYOUT.hintY, hintLine(this.inputMgr), textStyle(LAYOUT.hintFontPx, TEXT_COLOR.dim)).setOrigin(0.5);
     this.menuInput = new MenuInput();
     this.keyboardNav = new KeyboardNav(this);
     this.disposers.push(installAudioGestureResume(this), installMuteToggle(this));

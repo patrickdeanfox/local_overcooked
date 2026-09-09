@@ -4,13 +4,18 @@
 // stream to these helpers; nothing else in the codebase should decode raw devices.
 
 import type { PlayerInput } from '../sim/types';
-import type { GameAction, GamepadBinding, KeyboardBinding, PadKind, PlayerBindings } from './types';
+import type { GameAction, GamepadBinding, HintAction, KeyboardBinding, PadKind, PlayerBindings } from './types';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
-/** Bumped whenever the persisted binding shape changes; older payloads are dropped. */
-export const BINDINGS_VERSION = 1;
-/** Radial deadzone for the left stick, in stick units. */
+/** Bumped whenever the persisted binding shape changes. v1 payloads are migrated; older ones dropped. */
+export const BINDINGS_VERSION = 2;
+const BINDINGS_VERSION_V1 = 1;
+/** Radial deadzone for the left stick, in stick units, for a pad that has not set its own. */
 export const STICK_DEADZONE = 0.25;
+/** The range a pad's own deadzone can be set to on the Controllers page, and one step of it. */
+export const DEADZONE_MIN = 0;
+export const DEADZONE_MAX = 0.8;
+export const DEADZONE_STEP = 0.05;
 export const AXIS_LEFT_X = 0;
 export const AXIS_LEFT_Y = 1;
 /** Analog buttons (triggers) count as pressed above this value. */
@@ -113,6 +118,9 @@ export interface HeldState {
 }
 
 // ─── Defaults ───────────────────────────────────────────────────────────────
+/** How many keyboard sets exist: one per player slot the defaults know about. */
+export const KEYBOARD_SET_COUNT = DEFAULT_KEYS.length;
+
 export function defaultKeyboardBinding(player: number): KeyboardBinding {
   const src = DEFAULT_KEYS[player % DEFAULT_KEYS.length];
   const keys = {} as Record<GameAction, string[]>;
@@ -138,8 +146,58 @@ export function defaultPlayerBindings(players: number): PlayerBindings[] {
   return out;
 }
 
-/** Kept for the original stub's consumers. Fresh objects; safe to mutate. */
-export const DEFAULT_KEYBOARD_BINDINGS: KeyboardBinding[] = [defaultKeyboardBinding(0), defaultKeyboardBinding(1)];
+// ─── The bindings store ─────────────────────────────────────────────────────
+// What is persisted and what the manager holds. Keyboard sets are entities of their own
+// (a player picks one, and two players never share one); pads are remembered by id so a
+// reconnected pad keeps its map; the per-slot gamepad binding is the fallback for a pad
+// the store has never seen. Pad assignment itself is per session and never stored.
+export interface PlayerSlotBindings {
+  keyboardSet: number;      // index into BindingsStore.keyboards
+  gamepad: GamepadBinding;  // used for any pad without an entry in pads
+}
+export interface BindingsStore {
+  keyboards: KeyboardBinding[];          // index = keyboard set
+  players: PlayerSlotBindings[];         // index = player slot
+  pads: Record<string, GamepadBinding>;  // by Gamepad.id
+}
+
+export function defaultBindingsStore(players: number): BindingsStore {
+  const keyboards: KeyboardBinding[] = [];
+  for (let i = 0; i < Math.max(players, KEYBOARD_SET_COUNT); i++) keyboards.push(defaultKeyboardBinding(i));
+  const slots: PlayerSlotBindings[] = [];
+  for (let i = 0; i < players; i++) slots.push({ keyboardSet: i % keyboards.length, gamepad: defaultGamepadBinding() });
+  return { keyboards, players: slots, pads: {} };
+}
+
+/** The binding a pad uses on this slot: its own entry when the store knows the pad, else the slot's fallback. */
+export function padBindingFor(store: BindingsStore, player: number, padId: string): GamepadBinding {
+  return store.pads[padId] ?? store.players[player].gamepad;
+}
+
+/** Gives `player` keyboard set `set`. Whoever held it takes the player's old set, so sets stay distinct. */
+export function swapKeyboardSets(store: BindingsStore, player: number, set: number): void {
+  if (set < 0 || set >= store.keyboards.length) return;
+  const slot = store.players[player];
+  if (!slot || slot.keyboardSet === set) return;
+  const previous = slot.keyboardSet;
+  for (let i = 0; i < store.players.length; i++) {
+    if (i !== player && store.players[i].keyboardSet === set) store.players[i].keyboardSet = previous;
+  }
+  slot.keyboardSet = set;
+}
+
+/** 'Keyboard set 1 (W A S D)': the set number and its movement keys, so a player knows which half they hold. */
+export function keyboardSetLabel(set: number, binding: KeyboardBinding): string {
+  const keys = [binding.keys.up[0], binding.keys.left[0], binding.keys.down[0], binding.keys.right[0]]
+    .map((code) => (code === undefined ? '—' : keyCodeLabel(code)))
+    .join(' ');
+  return `Keyboard set ${set + 1} (${keys})`;
+}
+
+export function clampDeadzone(value: number): number {
+  const clamped = Math.min(DEADZONE_MAX, Math.max(DEADZONE_MIN, value));
+  return Math.round(clamped / DEADZONE_STEP) * DEADZONE_STEP;
+}
 
 // ─── Held state helpers ─────────────────────────────────────────────────────
 export function createHeldState(): HeldState {
@@ -242,7 +300,7 @@ export function readGamepad(pad: PadSnapshot, binding: GamepadBinding, out: Held
   } else if (binding.useLeftStick) {
     const ax = pad.axes[AXIS_LEFT_X];
     const ay = pad.axes[AXIS_LEFT_Y];
-    applyRadialDeadzone(typeof ax === 'number' ? ax : 0, typeof ay === 'number' ? ay : 0, STICK_DEADZONE, scratch);
+    applyRadialDeadzone(typeof ax === 'number' ? ax : 0, typeof ay === 'number' ? ay : 0, binding.deadzone ?? STICK_DEADZONE, scratch);
     out.moveX = scratch.x;
     out.moveY = scratch.y;
   }
@@ -369,25 +427,56 @@ function isMovement(action: GameAction): boolean {
 /**
  * Prompt label for one action. A player with a pad gets pad labels (PlayStation names
  * when the pad id says so, Xbox names otherwise); a player on the keyboard gets key names.
+ * 'back' names the fixed menu-back button, which is not a GameAction.
  */
 export function labelForAction(
-  action: GameAction,
+  action: HintAction,
   keyboard: KeyboardBinding,
   pad: { binding: GamepadBinding; id: string } | null,
 ): string {
   if (pad !== null) {
+    const kind = padKindFromId(pad.id);
+    if (action === 'back') return padButtonLabel(BACK_BUTTONS[0], kind);
     if (isMovement(action) && pad.binding.useLeftStick) return 'Stick';
     const button = pad.binding.buttons[action][0];
-    return button === undefined ? '—' : padButtonLabel(button, padKindFromId(pad.id));
+    return button === undefined ? '—' : padButtonLabel(button, kind);
   }
+  if (action === 'back') return keyCodeLabel(BACK_KEYS[0]);
   const code = keyboard.keys[action][0];
   return code === undefined ? '—' : keyCodeLabel(code);
 }
 
+/** The words a menu hint line uses, in the player's own labels. */
+export interface MenuLabels {
+  choose: string; // 'W / S', '↑ / ↓' or 'Stick'
+  change: string; // 'A / D', '← / →' or 'Stick'
+  select: string; // 'Space', 'Enter', 'A', 'Cross'
+  back: string;   // 'Esc or Bksp', 'Start or B', 'Options or Circle'
+}
+
+/** One helper for every hint line, so the title, the pages, the pause menu and the results agree. */
+export function menuLabels(labelFor: (action: HintAction) => string): MenuLabels {
+  const up = labelFor('up');
+  const down = labelFor('down');
+  const left = labelFor('left');
+  const right = labelFor('right');
+  return {
+    choose: up === 'Stick' && down === 'Stick' ? 'Stick' : `${up} / ${down}`,
+    change: left === 'Stick' && right === 'Stick' ? 'Stick' : `${left} / ${right}`,
+    select: labelFor('pickup'),
+    back: `${labelFor('pause')} or ${labelFor('back')}`,
+  };
+}
+
 // ─── Persistence ────────────────────────────────────────────────────────────
+// v2: { version, keyboards[], players[{ keyboardSet, gamepad }], pads{ id: gamepad } }.
+// v1 was { version, players[{ keyboard, gamepad }] } and is migrated on read: each player's
+// keyboard becomes keyboard set i, their gamepad stays the slot fallback, no pads are known.
 export interface StoredBindings {
   version: number;
-  players: { keyboard: KeyboardBinding; gamepad: GamepadBinding }[];
+  keyboards: KeyboardBinding[];
+  players: PlayerSlotBindings[];
+  pads: Record<string, GamepadBinding>;
 }
 
 function cloneKeys(keys: Record<GameAction, string[]>): Record<GameAction, string[]> {
@@ -402,20 +491,34 @@ function cloneButtons(buttons: Record<GameAction, number[]>): Record<GameAction,
   return out;
 }
 
-export function serialiseBindings(players: readonly PlayerBindings[]): string {
+export function cloneKeyboardBinding(binding: KeyboardBinding): KeyboardBinding {
+  return { kind: 'keyboard', keys: cloneKeys(binding.keys) };
+}
+
+/** Pad assignment is per session, so the copy never carries a pad index. */
+export function cloneGamepadBinding(binding: GamepadBinding, padIndex: number = NO_PAD): GamepadBinding {
+  const out: GamepadBinding = {
+    kind: 'gamepad', padIndex, buttons: cloneButtons(binding.buttons), useLeftStick: binding.useLeftStick, useDpad: binding.useDpad,
+  };
+  if (binding.deadzone !== undefined) out.deadzone = binding.deadzone;
+  return out;
+}
+
+export function serialiseBindings(store: BindingsStore): string {
+  const pads: Record<string, GamepadBinding> = {};
+  for (const id of Object.keys(store.pads)) pads[id] = cloneGamepadBinding(store.pads[id]);
   const payload: StoredBindings = {
     version: BINDINGS_VERSION,
-    players: players.map((p) => ({
-      keyboard: { kind: 'keyboard', keys: cloneKeys(p.keyboard.keys) },
-      // Pad assignment is per-session, never persisted.
-      gamepad: { kind: 'gamepad', padIndex: NO_PAD, buttons: cloneButtons(p.gamepad.buttons), useLeftStick: p.gamepad.useLeftStick, useDpad: p.gamepad.useDpad },
-    })),
+    keyboards: store.keyboards.map(cloneKeyboardBinding),
+    players: store.players.map((p) => ({ keyboardSet: p.keyboardSet, gamepad: cloneGamepadBinding(p.gamepad) })),
+    pads,
   };
   return JSON.stringify(payload);
 }
 
+/** A list of key codes. Empty is allowed: an action can be unbound on one device. */
 function isCodeArray(v: unknown): v is string[] {
-  if (!Array.isArray(v) || v.length === 0) return false;
+  if (!Array.isArray(v)) return false;
   for (let i = 0; i < v.length; i++) {
     const item: unknown = v[i];
     if (typeof item !== 'string' || item.length === 0) return false;
@@ -424,7 +527,7 @@ function isCodeArray(v: unknown): v is string[] {
 }
 
 function isButtonArray(v: unknown): v is number[] {
-  if (!Array.isArray(v) || v.length === 0) return false;
+  if (!Array.isArray(v)) return false;
   for (let i = 0; i < v.length; i++) {
     const item: unknown = v[i];
     if (typeof item !== 'number' || !Number.isInteger(item) || item < 0 || item > 31) return false;
@@ -454,6 +557,7 @@ function validateGamepadBinding(v: unknown): GamepadBinding | null {
   const o = asRecord(v);
   if (o === null || o.kind !== 'gamepad') return null;
   if (typeof o.useLeftStick !== 'boolean' || typeof o.useDpad !== 'boolean') return null;
+  if (o.deadzone !== undefined && (typeof o.deadzone !== 'number' || !Number.isFinite(o.deadzone) || o.deadzone < DEADZONE_MIN || o.deadzone > DEADZONE_MAX)) return null;
   const src = asRecord(o.buttons);
   if (src === null) return null;
   const buttons = {} as Record<GameAction, number[]>;
@@ -462,14 +566,64 @@ function validateGamepadBinding(v: unknown): GamepadBinding | null {
     if (!isButtonArray(value)) return null;
     buttons[ACTIONS[i]] = value.slice();
   }
-  return { kind: 'gamepad', padIndex: NO_PAD, buttons, useLeftStick: o.useLeftStick, useDpad: o.useDpad };
+  const out: GamepadBinding = { kind: 'gamepad', padIndex: NO_PAD, buttons, useLeftStick: o.useLeftStick, useDpad: o.useDpad };
+  if (typeof o.deadzone === 'number') out.deadzone = o.deadzone;
+  return out;
+}
+
+/** v1: one keyboard and one gamepad per player, keyboard set i belonging to player i. */
+function parseV1(root: Record<string, unknown>, players: number): BindingsStore | null {
+  const list = root.players;
+  if (!Array.isArray(list) || list.length < players) return null;
+  const store: BindingsStore = { keyboards: [], players: [], pads: {} };
+  for (let i = 0; i < players; i++) {
+    const entry = asRecord(list[i]);
+    if (entry === null) return null;
+    const keyboard = validateKeyboardBinding(entry.keyboard);
+    const gamepad = validateGamepadBinding(entry.gamepad);
+    if (keyboard === null || gamepad === null) return null;
+    store.keyboards.push(keyboard);
+    store.players.push({ keyboardSet: i, gamepad });
+  }
+  return store;
+}
+
+function parseV2(root: Record<string, unknown>, players: number): BindingsStore | null {
+  const keyboardsRaw = root.keyboards;
+  const playersRaw = root.players;
+  const padsRaw = asRecord(root.pads);
+  if (!Array.isArray(keyboardsRaw) || keyboardsRaw.length === 0 || !Array.isArray(playersRaw) || playersRaw.length < players || padsRaw === null) return null;
+  const store: BindingsStore = { keyboards: [], players: [], pads: {} };
+  for (let i = 0; i < keyboardsRaw.length; i++) {
+    const keyboard = validateKeyboardBinding(keyboardsRaw[i]);
+    if (keyboard === null) return null;
+    store.keyboards.push(keyboard);
+  }
+  const taken = new Set<number>();
+  for (let i = 0; i < players; i++) {
+    const entry = asRecord(playersRaw[i]);
+    if (entry === null) return null;
+    const set = entry.keyboardSet;
+    const gamepad = validateGamepadBinding(entry.gamepad);
+    if (typeof set !== 'number' || !Number.isInteger(set) || set < 0 || set >= store.keyboards.length || taken.has(set) || gamepad === null) return null;
+    taken.add(set);
+    store.players.push({ keyboardSet: set, gamepad });
+  }
+  for (const id of Object.keys(padsRaw)) {
+    if (id.length === 0) return null;
+    const gamepad = validateGamepadBinding(padsRaw[id]);
+    if (gamepad === null) return null;
+    store.pads[id] = gamepad;
+  }
+  return store;
 }
 
 /**
- * Parses a persisted payload. Returns null for anything unusable — wrong version, wrong
- * shape, missing action, junk values — and the caller falls back to defaults.
+ * Parses a persisted payload into a store. A v1 payload is migrated; anything unusable
+ * (older version, wrong shape, missing action, junk values, two players on one keyboard
+ * set) returns null and the caller falls back to defaults.
  */
-export function parseBindings(raw: string | null, players: number): PlayerBindings[] | null {
+export function parseBindings(raw: string | null, players: number): BindingsStore | null {
   if (typeof raw !== 'string' || raw.length === 0) return null;
   let decoded: unknown;
   try {
@@ -478,17 +632,8 @@ export function parseBindings(raw: string | null, players: number): PlayerBindin
     return null;
   }
   const root = asRecord(decoded);
-  if (root === null || root.version !== BINDINGS_VERSION) return null;
-  const list = root.players;
-  if (!Array.isArray(list) || list.length < players) return null;
-  const out: PlayerBindings[] = [];
-  for (let i = 0; i < players; i++) {
-    const entry = asRecord(list[i]);
-    if (entry === null) return null;
-    const keyboard = validateKeyboardBinding(entry.keyboard);
-    const gamepad = validateGamepadBinding(entry.gamepad);
-    if (keyboard === null || gamepad === null) return null;
-    out.push({ keyboard, gamepad });
-  }
-  return out;
+  if (root === null) return null;
+  if (root.version === BINDINGS_VERSION_V1) return parseV1(root, players);
+  if (root.version !== BINDINGS_VERSION) return null;
+  return parseV2(root, players);
 }

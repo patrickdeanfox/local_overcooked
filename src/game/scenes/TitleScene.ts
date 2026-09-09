@@ -6,8 +6,8 @@
 import Phaser from 'phaser';
 import { TEX } from '../../art/keys';
 import { GAME_HEIGHT, GAME_WIDTH, MAX_PLAYERS, SCENE } from '../../config';
-import { createInputManager } from '../../input';
-import type { GameAction, InputManager } from '../../input/types';
+import { createInputManager, menuLabels } from '../../input';
+import type { FullInputManager, HintAction } from '../../input/types';
 import { log } from '../../log';
 import { getAudioBus, installAudioGestureResume, installMuteToggle } from '../audioBus';
 import { currentLevels, onLevelsHotReload } from '../levelHotReload';
@@ -55,6 +55,7 @@ const TITLE = {
 
 const HEADING = 'LOCAL OVERCOOKED';
 const TAGLINE = 'Two chefs, one kitchen, not enough time';
+const FIRST_RUN_HINT = 'First time? Controllers walks you through every button';
 
 /** Option rows, in the order the cursor walks through them. */
 const OPTION = { players: 0, difficulty: 1, chefs: 2, settings: 3, controllers: 4 } as const;
@@ -63,7 +64,7 @@ const OPTION = { players: 0, difficulty: 1, chefs: 2, settings: 3, controllers: 
 let selectedIndex = 0;
 
 export class TitleScene extends Phaser.Scene {
-  private inputMgr!: InputManager;
+  private inputMgr!: FullInputManager;
   private menuInput!: MenuInput;
   private keyboardNav!: KeyboardNav;
   private levelList: LevelList | null = null;
@@ -290,7 +291,10 @@ export class TitleScene extends Phaser.Scene {
 
   private statusForRow(): string {
     const entry = this.levelList?.entryAt(this.index);
-    if (!entry) return 'Left / right changes a setting';
+    if (!entry) {
+      const onControllers = this.index - this.levelCount() === OPTION.controllers;
+      return onControllers && !this.inputMgr.hasSavedBindings() ? FIRST_RUN_HINT : 'Left / right changes a setting';
+    }
     if (entry.locked) return `Locked · needs ${entry.unlockStars} stars from ${presetName(DEFAULT_PRESET)} or harder`;
     const saved = levelProgress(this.progress, entry.id);
     if (saved.plays === 0) return 'Never played';
@@ -299,17 +303,15 @@ export class TitleScene extends Phaser.Scene {
 
   // ─── Prompts ──────────────────────────────────────────────────────────────
   private refreshHint(): void {
-    this.hintText.setText(
-      `${this.labelFor('up')} / ${this.labelFor('down')} choose · left / right change · ` +
-        `${this.labelFor('pickup')} select · M mute`,
-    );
+    const labels = menuLabels(this.labelFor);
+    this.hintText.setText(`${labels.choose} choose · ${labels.change} change · ${labels.select} select · M mute`);
   }
 
   /** Draws the button-prompt art for confirm and back when the art module has it. */
   private buildPrompts(): void {
-    const actions: { action: GameAction; caption: string }[] = [
+    const actions: { action: HintAction; caption: string }[] = [
       { action: 'pickup', caption: 'Select' },
-      { action: 'pause', caption: 'Back' },
+      { action: 'back', caption: 'Back' },
     ];
     actions.forEach(({ action, caption }, i) => {
       const label = this.labelFor(action);
@@ -324,9 +326,7 @@ export class TitleScene extends Phaser.Scene {
     });
   }
 
-  private labelFor(action: GameAction): string {
-    return this.inputMgr.labelFor(0, action);
-  }
+  private readonly labelFor = (action: HintAction): string => this.inputMgr.labelFor(0, action);
 
   // ─── Teardown ─────────────────────────────────────────────────────────────
   private cleanup(): void {

@@ -6,7 +6,7 @@ import Phaser from 'phaser';
 import * as THREE from 'three';
 import { CHEF_SKINS, type ChefSkin } from '../../art/models';
 import { GAME_HEIGHT, GAME_WIDTH, MAX_PLAYERS, SCENE } from '../../config';
-import { createInputManager } from '../../input';
+import { createInputManager, menuLabels } from '../../input';
 import type { InputManager } from '../../input/types';
 import { getAudioBus, installAudioGestureResume, installMuteToggle } from '../audioBus';
 import { ChefRig } from '../render/three/chefs';
@@ -50,7 +50,11 @@ const PREVIEW = {
 
 const HEADING = 'CHEFS';
 const NOTE = 'Pick a character for each player. Two players never share one.';
-const HINT = 'up / down choose · left / right change character · Esc or B back · M mutes everything';
+/** The hint line in the first player's own labels (keys, or the pad's buttons). */
+function hintLine(mgr: InputManager): string {
+  const labels = menuLabels((action) => mgr.labelFor(0, action));
+  return `${labels.choose} choose · ${labels.change} change character · ${labels.back} back · M mutes everything`;
+}
 
 // ─── Scene ──────────────────────────────────────────────────────────────────
 export class ChefsScene extends Phaser.Scene {
@@ -74,9 +78,9 @@ export class ChefsScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('rgba(0,0,0,0)');
     this.add.text(GAME_WIDTH / 2, CHEFS.headingY, HEADING, textStyle(CHEFS.headingFontPx, TEXT_COLOR.accent)).setOrigin(0.5);
     this.add.text(GAME_WIDTH / 2, CHEFS.noteY, NOTE, textStyle(CHEFS.noteFontPx, TEXT_COLOR.dim)).setOrigin(0.5);
-    this.add.text(GAME_WIDTH / 2, CHEFS.hintY, HINT, textStyle(CHEFS.hintFontPx, TEXT_COLOR.dim)).setOrigin(0.5);
 
     this.inputMgr = createInputManager(this, MAX_PLAYERS);
+    this.add.text(GAME_WIDTH / 2, CHEFS.hintY, hintLine(this.inputMgr), textStyle(CHEFS.hintFontPx, TEXT_COLOR.dim)).setOrigin(0.5);
     this.menuInput = new MenuInput();
     this.keyboardNav = new KeyboardNav(this);
     this.disposers.push(installAudioGestureResume(this), installMuteToggle(this));
