@@ -1,0 +1,122 @@
+# -- Tutorials (docs/MECHANICS.md, the tutorial kitchens under src/levels/tutorial/): the Tutorials
+#    row on the title, the Tutorials page with its rules block, the rules panel at the start of the
+#    tray tutorial, every step of it walked with the pointer over the tile it names, the closing
+#    banner, then a one-player chop assist run skipped from the panel (the prep hint comes back), and
+#    the results screen after a tutorial (Next tutorial, Back to tutorials) ------------------------
+#
+# The Tutorials page is opened by scene start, like script 26 opens Settings, so the level list's
+# length does not matter. On the page the rows are the five tutorials then Back. Keyboard set 1:
+# Space picks up, Shift works, Q dashes, Backspace is menu back.
+until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
+wait 600
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval JSON.stringify(['title options', __ui.options()])
+eval JSON.stringify(['levels listed', __ui.levels().map((l) => l.name)])
+# 27-00: the title with the Tutorials row first among the settings rows and no tutorial in the level list.
+shot 27-00-title.png
+
+# -- The Tutorials page: five rows, the rules of the selected one under the list -----------------
+eval (__ui.scene('Title').scene.start('Tutorials'), 'opened')
+wait 700
+eval JSON.stringify(['page texts', __ui.texts('Tutorials')])
+# 27-01: the page with Pass-through shelf selected and its rules block.
+shot 27-01-tutorials-page.png
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 200
+# 27-02: The tray selected, its rules under the list.
+shot 27-02-tutorials-tray-selected.png
+tap Enter
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.level.id === 'tutorial-1-5'
+wait 900
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval JSON.stringify(['tutorial', __oc.scene.tutorial.describe(), 'tray on', __oc.sim.getEffectiveSettings().tray, 'phase', __oc.sim.getState().phase, 'modifiers', __oc.scene.modifiers])
+# 27-03: the rules panel over the kitchen before play.
+shot 27-03-tray-rules-panel.png
+tap Space
+wait 400
+eval JSON.stringify(['after start', __oc.scene.tutorial.describe(), 'prep hint hidden', !__oc.scene.hud.prepText.visible])
+# 27-04: step 1 in the banner, the pointer bobbing over the tray rack at (5,4).
+shot 27-04-step1-pointer-on-rack.png
+
+# -- Step 1: lift the tray -----------------------------------------------------------------------
+eval ((c) => (c.x = 5.5, c.y = 3.5, c.facing = 'down', 'placed'))(__oc.sim.getState().chefs[0])
+wait 100
+tap ShiftLeft
+wait 300
+# 27-05: the finished step lingering in green with its tick.
+shot 27-05-step1-tick.png
+wait 800
+eval JSON.stringify(['step', __oc.scene.tutorial.describe(), 'holding', __qa.held(0) && __qa.held(0).kind])
+# 27-06: step 2, the pointer over the onion crate at (1,0).
+shot 27-06-step2-pointer-on-crate.png
+
+# -- Step 2: three onions onto the tray -----------------------------------------------------------
+eval ((c) => (c.x = 1.5, c.y = 1.5, c.facing = 'up', 'placed'))(__oc.sim.getState().chefs[0])
+wait 100
+tap Space
+wait 150
+tap Space
+wait 150
+tap Space
+wait 1100
+eval JSON.stringify(['step', __oc.scene.tutorial.describe(), 'load', __qa.held(0).items.map((i) => i.type)])
+# 27-07: step 3 with three onions on the held tray, the pointer over the board at (9,0).
+shot 27-07-step3-loaded.png
+
+# -- Step 3: the top onion onto the board ---------------------------------------------------------
+eval ((c) => (c.x = 9.5, c.y = 1.5, c.facing = 'up', 'placed'))(__oc.sim.getState().chefs[0])
+wait 100
+tap Space
+wait 1100
+eval JSON.stringify(['step', __oc.scene.tutorial.describe(), 'board', __qa.tile(9, 0).item && __qa.tile(9, 0).item.type])
+# 27-08: step 4 (set the tray down), no pointer.
+shot 27-08-step4.png
+
+# -- Step 4: set the tray down on the counter at (3,4) -------------------------------------------
+eval ((c) => (c.x = 3.5, c.y = 3.5, c.facing = 'down', 'placed'))(__oc.sim.getState().chefs[0])
+wait 100
+tap ShiftLeft
+wait 1500
+eval JSON.stringify(['step', __oc.scene.tutorial.describe(), 'tray on counter', __qa.tile(3, 4).item && __qa.tile(3, 4).item.kind, 'traySet', __qa.count('traySet')])
+# 27-09: step 5, the pointer over the stove.
+shot 27-09-step5-pointer-on-stove.png
+
+# -- Step 5: serve a finished soup -----------------------------------------------------------------
+eval ((c) => (c.x = 11.5, c.y = 1.5, c.facing = 'right', c.holding = { kind: 'plate', id: 9901, dish: { type: 'soup', ingredients: ['onion', 'onion', 'onion'] } }, 'placed'))(__oc.sim.getState().chefs[0])
+wait 100
+tap Space
+wait 1100
+eval JSON.stringify(['done', __oc.scene.tutorial.describe(), 'phase', __oc.sim.getState().phase, 'served', __oc.sim.getState().servedCount])
+# 27-10: the closing banner in the accent colour, the clock running.
+shot 27-10-done-banner.png
+wait 6500
+# 27-11: the banner gone, the kitchen plain.
+shot 27-11-banner-gone.png
+
+# -- One player, chop assist: the assist step is dropped, skipping from the panel restores the prep hint
+eval (__oc.scene.scene.start('Game', { levelId: 'tutorial-1-2', players: 1 }), 'started')
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.level.id === 'tutorial-1-2' && __oc.sim.getState().chefs.length === 1
+wait 900
+eval JSON.stringify(['1P chop assist', __oc.scene.tutorial.describe()])
+# 27-12: the chop assist rules panel.
+shot 27-12-chop-assist-panel.png
+tap Backspace
+wait 400
+eval JSON.stringify(['skipped', __oc.scene.tutorial.describe(), 'prep hint back', __oc.scene.hud.prepText.visible])
+# 27-13: the walkthrough skipped, the kitchen with the plain prep hint.
+shot 27-13-skipped-prep-hint.png
+
+# -- The results screen after a tutorial -----------------------------------------------------------
+eval ((st) => (st.phase = 'running', st.timerRunning = true, st.timeLeft = 0.3, 'ending'))(__oc.sim.getState())
+until 8000 __ui.scenes().includes('Results')
+wait 600
+eval JSON.stringify(['results menu', __ui.menu('Results'), 'texts', __ui.texts('Results')])
+# 27-14: results with "Next tutorial (Two-plate carry)", "Back to tutorials" and the unlock note.
+shot 27-14-results-after-tutorial.png
+errors

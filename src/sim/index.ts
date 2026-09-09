@@ -182,6 +182,7 @@ function readyForPlate(item: IngredientItem): boolean {
  *  never touched: the same level object drives every difficulty. */
 function effectiveSettings(level: LevelDef, mods: Modifiers | undefined): EffectiveSettings {
   const orders = level.orders;
+  const forced = level.mechanics ?? {}; // a tutorial kitchen plays its mechanic whatever the switches say
   const max = Math.max(1, orders.max + (mods?.maxOrdersDelta ?? 0));
   return {
     timeLimitSec: level.timeLimitSec * (mods?.timeLimitScale ?? 1),
@@ -200,11 +201,11 @@ function effectiveSettings(level: LevelDef, mods: Modifiers | undefined): Effect
     instantCooking: mods?.instantCooking === true,
     ordersNeverExpire: mods?.ordersNeverExpire === true,
     noBurning: mods?.noBurning === true,
-    twoPlateCarry: mods?.twoPlateCarry === true,
-    chopAssist: mods?.chopAssist === true,
-    tray: mods?.tray === true,
-    passThroughShelf: mods?.passThroughShelf === true,
-    eightySix: mods?.eightySix === true,
+    twoPlateCarry: mods?.twoPlateCarry === true || forced.twoPlateCarry === true,
+    chopAssist: mods?.chopAssist === true || forced.chopAssist === true,
+    tray: mods?.tray === true || forced.tray === true,
+    passThroughShelf: mods?.passThroughShelf === true || forced.passThroughShelf === true,
+    eightySix: mods?.eightySix === true || forced.eightySix === true,
   };
 }
 
@@ -1994,9 +1995,11 @@ export class Sim {
       if (available.length > 0) list = available;
     }
     const cfg = this.settings.orders;
+    // A pinned first ticket (orders.first) takes its slot without a draw; the seed decides the rest.
+    const pinned = this.level.orders.first?.[this.nextOrderId - 1];
     const order: Order = {
       id: this.nextOrderId++,
-      recipeId: list[this.rng.int(list.length)],
+      recipeId: pinned !== undefined && list.includes(pinned) ? pinned : list[this.rng.int(list.length)],
       timeLeft: cfg.timeSec,
       timeTotal: cfg.timeSec,
     };

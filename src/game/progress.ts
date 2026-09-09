@@ -15,6 +15,8 @@ import { asCount, asRecord, browserStorage, readStored, writeStored, type Storag
 // ─── Constants ──────────────────────────────────────────────────────────────
 export const PROGRESS_VERSION = 1;
 export const MAX_STARS = 3;
+/** Level ids of the tutorial kitchens (game 'tutorial'): saved like any level, never an unlock. */
+export const TUTORIAL_ID_PREFIX = 'tutorial-';
 
 export interface LevelProgress {
   bestScore: number;
@@ -98,10 +100,17 @@ export function totalStars(progress: Readonly<Progress>): number {
   return total;
 }
 
-/** Stars that count toward unlocks: earned on 'normal' or harder. */
+/** True for a level whose stars can open others: every kitchen but the tutorials. */
+export function levelCountsTowardUnlock(levelId: string): boolean {
+  return !levelId.startsWith(TUTORIAL_ID_PREFIX);
+}
+
+/** Stars that count toward unlocks: earned on 'normal' or harder, outside the tutorials. */
 export function unlockingStars(progress: Readonly<Progress>): number {
   let total = 0;
-  for (const entry of Object.values(progress.levels)) total += levelUnlockStars(entry);
+  for (const [levelId, entry] of Object.entries(progress.levels)) {
+    if (levelCountsTowardUnlock(levelId)) total += levelUnlockStars(entry);
+  }
   return total;
 }
 

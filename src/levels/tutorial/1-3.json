@@ -1,0 +1,52 @@
+{
+  "id": "tutorial-1-3",
+  "name": "Two-plate carry",
+  "game": "tutorial",
+  "world": 1,
+  "index": 3,
+  "theme": "savoury-seas",
+  "timeLimitSec": 120,
+  "timerStartsOnFirstServe": true,
+  "recipes": ["onion_soup"],
+  "orders": { "initial": 1, "intervalSec": 30, "max": 2, "timeSec": 120 },
+  "stars": { "1": [20, 40, 60], "2": [20, 40, 80] },
+  "plates": { "mode": "stack", "count": 2 },
+  "grid": [
+    "#O##B#SSE##",
+    "P.........V",
+    "P.........#",
+    "#.........#",
+    "#.........X",
+    "###########"
+  ],
+  "spawns": [{ "x": 3, "y": 2 }, { "x": 7, "y": 2 }],
+  "mechanics": { "twoPlateCarry": true },
+  "tutorial": {
+    "title": "Two plates in hand",
+    "intro": [
+      "Holding one clean plate, press {pickup} at a plate stack or drying rack to take a second one.",
+      "Only stacks and drying racks give up a second plate; a plate on a counter never joins your hand.",
+      "Plates go down one at a time, top plate first. Food only goes on a plate once you hold just one.",
+      "You cannot dash while carrying two plates. That is the whole cost.",
+      "Handy on long kitchens where plate runs eat the clock."
+    ],
+    "steps": [
+      { "text": "Take a clean plate from a stack.", "goal": { "type": "holding", "kind": "plate", "count": 1 }, "at": { "x": 0, "y": 1 } },
+      {
+        "text": "With that plate in hand, face the other stack and press {pickup} again: you now carry two.",
+        "goal": { "type": "holding", "kind": "plate", "count": 2 },
+        "at": { "x": 0, "y": 2 }
+      },
+      {
+        "text": "Try {dash}: it refuses while you carry two. Put one plate down on a counter with {pickup}; the top plate goes first.",
+        "goal": { "type": "holding", "kind": "plate", "count": 1 }
+      },
+      {
+        "text": "Cook an onion soup, pour it onto a plate and serve it. Two plates in hand save a trip on long kitchens.",
+        "goal": { "type": "served", "count": 1 },
+        "at": { "x": 6, "y": 0 }
+      }
+    ],
+    "outro": "The second plate only ever comes from a plate stack or a drying rack, never from a counter."
+  }
+}

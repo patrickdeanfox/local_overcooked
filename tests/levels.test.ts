@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { LEVELS, LEVEL_ORDER } from '../src/levels';
-import { isWalkable, parseGrid, validateLevel } from '../src/levels/schema';
-import type { LevelDef, ParsedGrid } from '../src/levels/schema';
+import { isWalkable, MECHANIC_KEYS, parseGrid, validateLevel } from '../src/levels/schema';
+import type { LevelDef, MechanicKey, ParsedGrid } from '../src/levels/schema';
 import { RECIPES } from '../src/sim/recipes';
 import type { IngredientType, TileType, Ware } from '../src/sim/types';
 
@@ -118,17 +118,11 @@ describe('levels', () => {
     expect(LEVEL_ORDER.slice(0, 6)).toEqual(['oc1-1-1', 'oc1-1-2', 'oc1-1-3', 'oc1-1-4', 'oc1-1-5', 'oc1-1-6']);
   });
 
-  it('lists the games in campaign order: Overcooked 1, Overcooked 2, then the custom kitchens last', () => {
+  it('lists the games in campaign order: Overcooked 1, Overcooked 2, the custom kitchens, then the tutorials last', () => {
+    const rank: Record<LevelDef['game'], number> = { oc1: 0, oc2: 1, custom: 2, tutorial: 3 };
     const games = LEVEL_ORDER.map((id) => LEVELS[id].game);
-    const firstOc2 = games.indexOf('oc2');
-    const firstCustom = games.indexOf('custom');
-    expect(firstOc2).toBeGreaterThan(0);
-    expect(firstCustom).toBeGreaterThan(firstOc2);
-    for (let i = 0; i < games.length; i++) {
-      if (i < firstOc2) expect(games[i]).toBe('oc1');
-      else if (i < firstCustom) expect(games[i]).toBe('oc2');
-      else expect(games[i]).toBe('custom');
-    }
+    for (const game of Object.keys(rank) as LevelDef['game'][]) expect(games).toContain(game);
+    for (let i = 1; i < games.length; i++) expect(rank[games[i]]).toBeGreaterThanOrEqual(rank[games[i - 1]]);
   });
 
   it('gates count as walkable so a closed gate is the sim\'s job, not the grid\'s', () => {
@@ -160,7 +154,7 @@ describe('levels', () => {
     it(`${l.id} names itself consistently`, () => {
       expect(l.id).toBe(`${l.game}-${l.world}-${l.index}`);
       expect(l.theme.length).toBeGreaterThan(0);
-      if (l.game === 'custom') {
+      if (l.game === 'custom' || l.game === 'tutorial') {
         // The clone's own kitchens carry a title, not a world-index, and have no wiki page.
         expect(l.name.length).toBeGreaterThan(0);
         expect(l.source).toBeUndefined();
@@ -931,8 +925,127 @@ describe('custom-1-3 Short Order', () => {
   });
 });
 
+// ─── Tutorial kitchens ──────────────────────────────────────────────────────
+// One per mechanic, in the Settings page's order. Each forces its own switch on, waits for the
+// first serve before the clock runs, and carries the walkthrough the overlay plays.
+
+describe('tutorial kitchens', () => {
+  const EXPECTED: readonly { id: string; mechanic: MechanicKey; name: string }[] = [
+    { id: 'tutorial-1-1', mechanic: 'passThroughShelf', name: 'Pass-through shelf' },
+    { id: 'tutorial-1-2', mechanic: 'chopAssist', name: 'Chop assist' },
+    { id: 'tutorial-1-3', mechanic: 'twoPlateCarry', name: 'Two-plate carry' },
+    { id: 'tutorial-1-4', mechanic: 'eightySix', name: 'The 86 system' },
+    { id: 'tutorial-1-5', mechanic: 'tray', name: 'The tray' },
+  ];
+
+  it('has one tutorial per mechanic, and no other tutorial levels', () => {
+    const ids = LEVEL_ORDER.filter((id) => LEVELS[id].game === 'tutorial');
+    expect(ids).toEqual(EXPECTED.map((e) => e.id));
+  });
+
+  for (const { id, mechanic, name } of EXPECTED) {
+    describe(id, () => {
+      const l = level(id);
+      const p = parseGrid(l);
+
+      it(`forces ${mechanic} on and nothing else`, () => {
+        expect(l.name).toBe(name);
+        expect(l.mechanics).toEqual({ [mechanic]: true });
+        for (const key of MECHANIC_KEYS) if (key !== mechanic) expect(l.mechanics?.[key]).toBeUndefined();
+      });
+
+      it('is short, always open and waits for the first serve', () => {
+        expect(l.timerStartsOnFirstServe).toBe(true);
+        expect(l.timeLimitSec).toBeLessThanOrEqual(180);
+        expect(l.unlockStars).toBeUndefined();
+        expect(l.orders.max).toBeLessThanOrEqual(3);
+        expect(p.width * p.height).toBeLessThanOrEqual(13 * 6);
+      });
+
+      it('carries a walkthrough whose pointers sit on stations and whose last step is a serve', () => {
+        const t = l.tutorial;
+        expect(t).toBeDefined();
+        if (!t) return;
+        expect(t.title.length).toBeGreaterThan(0);
+        expect(t.intro.length).toBeGreaterThanOrEqual(3);
+        expect(t.steps.length).toBeGreaterThanOrEqual(3);
+        for (const step of t.steps) {
+          expect(step.text.length).toBeGreaterThan(0);
+          if (step.at) expect(isWalkable(tileAt(p, step.at.x, step.at.y)?.type ?? 'floor')).toBe(false);
+        }
+        expect(t.steps[t.steps.length - 1].goal).toEqual({ type: 'served', count: 1 });
+      });
+    });
+  }
+
+  it('the shelf tutorial has a wall of three hatches with a way round', () => {
+    const p = parseGrid(level('tutorial-1-1'));
+    expect(p.tiles.filter((t) => t.type === 'shelf').map((t) => [t.x, t.y])).toEqual([[5, 1], [5, 2], [5, 3]]);
+    expect(tileAt(p, 5, 4)?.type).toBe('floor');
+  });
+
+  it('the chop assist tutorial only asks for the assist itself with two players', () => {
+    const steps = level('tutorial-1-2').tutorial?.steps ?? [];
+    expect(steps.filter((s) => s.goal.type === 'assisting').map((s) => s.minPlayers)).toEqual([2]);
+    expect(steps.filter((s) => (s.minPlayers ?? 1) > 1).length).toBe(1);
+  });
+
+  it('the two-plate tutorial has two plate stacks side by side, away from the serve', () => {
+    const p = parseGrid(level('tutorial-1-3'));
+    expect(p.tiles.filter((t) => t.type === 'plateStack').map((t) => [t.x, t.y])).toEqual([[0, 1], [0, 2]]);
+    const serve = p.tiles.find((t) => t.type === 'serve') as { x: number };
+    expect(serve.x - 0).toBeGreaterThanOrEqual(8);
+  });
+
+  it('the 86 tutorial pins a tomato ticket first, gives the tomato crate three items and a quick delivery', () => {
+    const l = level('tutorial-1-4');
+    expect(l.orders.first).toEqual(['tomato_soup', 'onion_soup']);
+    expect(l.orders.initial).toBe(2);
+    expect(l.stations).toEqual([{ x: 2, y: 0, stock: 3 }]);
+    expect(l.eightySix?.restockDelaySec).toBeLessThanOrEqual(15);
+    const p = parseGrid(l);
+    expect(tileAt(p, 2, 0)).toMatchObject({ type: 'crate', ingredient: 'tomato', capacity: 3 });
+    expect(countType(p, 'delivery')).toBe(1);
+  });
+
+  it('the tray tutorial keeps the rack away from the crate', () => {
+    const p = parseGrid(level('tutorial-1-5'));
+    const rack = p.tiles.find((t) => t.type === 'trayRack') as { x: number; y: number };
+    const crate = p.tiles.find((t) => t.type === 'crate') as { x: number; y: number };
+    expect(Math.abs(rack.x - crate.x) + Math.abs(rack.y - crate.y)).toBeGreaterThanOrEqual(6);
+  });
+
+  it('validateLevel rejects a broken walkthrough, an unknown switch and an off-menu first ticket', () => {
+    const base = level('tutorial-1-5');
+    const broken: LevelDef = {
+      ...base,
+      mechanics: { ...base.mechanics, conveyor: true } as LevelDef['mechanics'],
+      orders: { ...base.orders, first: ['fish_sashimi'] },
+      tutorial: {
+        title: '',
+        intro: [],
+        steps: [
+          { text: 'off the grid', goal: { type: 'tileItem', x: 12, y: 0, w: 2, kind: 'ingredient' }, at: { x: 40, y: 0 } },
+          { text: 'not a crate', goal: { type: 'stock', x: 0, y: 0, max: 0 } },
+          { text: '', goal: { type: 'wait', sec: 0 } },
+        ],
+      },
+    };
+    const errors = validateLevel(broken);
+    expect(errors).toContain("mechanics names unknown switch 'conveyor'");
+    expect(errors).toContain("orders.first names 'fish_sashimi', which is not on the menu");
+    expect(errors).toContain('tutorial has no title');
+    expect(errors).toContain('tutorial step 0 points off the grid');
+    expect(errors).toContain('tutorial step 0 goal is off the grid');
+    expect(errors).toContain('tutorial step 1 stock goal is not on a crate');
+    expect(errors).toContain('tutorial step 2 has no text');
+    expect(errors).toContain('tutorial step 2 wait must be > 0');
+    expect(validateLevel({ ...base, tutorial: { title: 'x', intro: [], steps: [] } })).toContain('tutorial has no steps');
+  });
+});
+
 describe('order tuning', () => {
-  const expected: Record<string, { initial: number; intervalSec: number; max: number; timeSec: number }> = {
+  const expected: Record<string, { initial: number; intervalSec: number; max: number; timeSec: number; first?: string[] }> = {
     'oc1-1-1': { initial: 2, intervalSec: 18, max: 4, timeSec: 60 },
     'oc1-1-2': { initial: 2, intervalSec: 26, max: 4, timeSec: 90 },
     'oc1-1-3': { initial: 2, intervalSec: 20, max: 4, timeSec: 85 },
@@ -951,6 +1064,12 @@ describe('order tuning', () => {
     'custom-1-1': { initial: 2, intervalSec: 22, max: 4, timeSec: 90 },   // soups with a long walk, like 1-5
     'custom-1-2': { initial: 2, intervalSec: 24, max: 4, timeSec: 110 },  // burgers down a corridor, like 1-6's drip
     'custom-1-3': { initial: 2, intervalSec: 18, max: 4, timeSec: 80 },   // one-chop sashimi keeps the drip quick
+    // The tutorial kitchens: one ticket at a time, a long patience, and the clock waits for the first serve.
+    'tutorial-1-1': { initial: 1, intervalSec: 30, max: 2, timeSec: 120 },
+    'tutorial-1-2': { initial: 1, intervalSec: 30, max: 2, timeSec: 120 },
+    'tutorial-1-3': { initial: 1, intervalSec: 30, max: 2, timeSec: 120 },
+    'tutorial-1-4': { initial: 2, intervalSec: 30, max: 3, timeSec: 120, first: ['tomato_soup', 'onion_soup'] }, // the tomato ticket must be up when the crate empties
+    'tutorial-1-5': { initial: 1, intervalSec: 30, max: 2, timeSec: 120 },
   };
 
   for (const [id, orders] of Object.entries(expected)) {

@@ -23,6 +23,7 @@ import { DebugOverlay } from '../ui/DebugOverlay';
 import { Hud } from '../ui/Hud';
 import { KeyboardNav, MenuInput, mergeNav } from '../ui/menuInput';
 import { PauseMenu } from '../ui/PauseMenu';
+import { TutorialOverlay } from '../ui/TutorialOverlay';
 import { DEFAULT_PRESET, isAssisted, loadSettings, presetModifiers, presetName, seedFor, type PresetId } from '../settings';
 import { createEventRing, isPlayNotesOpen, setPlayNotesContext } from '../playnotes';
 import { COLOR, TEXT_COLOR, textStyle } from '../ui/theme';
@@ -64,6 +65,7 @@ export class GameScene extends Phaser.Scene {
   private hud!: Hud;
   private debugOverlay!: DebugOverlay;
   private pauseMenu!: PauseMenu;
+  private tutorial: TutorialOverlay | null = null; // the guided walkthrough of a tutorial kitchen
   private inputMgr!: InputManager;
   private menuInput!: MenuInput;
   private keyboardNav!: KeyboardNav;
@@ -130,6 +132,7 @@ export class GameScene extends Phaser.Scene {
       hint: `${labels.choose} choose · ${labels.select} confirm · ${labels.change} toggles`,
     });
     this.debugOverlay = new DebugOverlay(this, this.kitchen);
+    this.buildTutorial(level); // after the input manager: the text carries the player's button names
     this.installKeys();
     this.disposers.push(onLevelsHotReload((next) => this.onLevelsChanged(next)));
     this.disposers.push(setPlayNotesContext(() => this.playNotesContext()));
@@ -155,6 +158,7 @@ export class GameScene extends Phaser.Scene {
       chefs: st.chefs.map((c) => ({ x: Number(c.x.toFixed(2)), y: Number(c.y.toFixed(2)), holding: c.holding?.kind ?? null })),
       recentEvents: this.recentEvents.list(),
       paused: this.pauseMenu.isOpen,
+      tutorial: this.tutorial?.describe() ?? null,
     };
   }
 
@@ -173,6 +177,8 @@ export class GameScene extends Phaser.Scene {
     if (this.pauseMenu.isOpen) {
       this.pauseMenu.update(nav);
       if (!this.ready) return; // a menu choice may have started another scene
+    } else if (this.tutorial?.isBlocking) {
+      this.tutorial.handleNav(nav); // the rules panel: the kitchen holds still until the player starts
     } else if (!this.ending) {
       stepped = this.runSim(inputs, deltaMs, events);
       for (const event of events) {
@@ -180,6 +186,7 @@ export class GameScene extends Phaser.Scene {
         const sfx = sfxForEvent(event);
         if (sfx) this.audio.play(sfx);
       }
+      this.tutorial?.observe(this.sim.getState(), events, stepped.steps * SIM_DT);
     }
 
     const live = this.sim.getState();
@@ -202,6 +209,19 @@ export class GameScene extends Phaser.Scene {
     this.ending = false;
     this.fakeState = null;
     for (const latch of this.latches) clearEdgeLatch(latch); // no press carries into a rebuild
+  }
+
+  /** The walkthrough a tutorial kitchen carries (LevelDef.tutorial); nothing on other levels. */
+  private buildTutorial(level: LevelDef): void {
+    this.tutorial?.destroy();
+    this.tutorial = null;
+    if (!level.tutorial) return;
+    this.tutorial = new TutorialOverlay(this, level.tutorial, {
+      players: this.players,
+      kicker: `Tutorial · ${level.name}`,
+      labelFor: (action) => this.inputMgr.labelFor(0, action),
+      tileToScreen: (x, y, lift) => this.kitchen.tileToScreen(x, y, lift),
+    });
   }
 
   private installKeys(): void {
@@ -265,7 +285,9 @@ export class GameScene extends Phaser.Scene {
       i < live.chefs.length ? this.sim.getTargetTile(i) : null,
     );
     this.kitchen.draw(state, targets, deltaMs / 1000);
+    this.hud.setPrepHintSuppressed(this.tutorial?.isActive === true);
     this.hud.update(state, events, deltaMs);
+    this.tutorial?.draw(deltaMs);
     this.debugOverlay.update(state, {
       levelId: this.levelId,
       seed: this.seed,
@@ -371,6 +393,7 @@ export class GameScene extends Phaser.Scene {
     this.kitchen.destroy();
     this.hud.destroy();
     this.buildLevel(level);
+    this.buildTutorial(level);
     this.debugOverlay.setRenderer(this.kitchen);
   }
 
@@ -388,6 +411,8 @@ export class GameScene extends Phaser.Scene {
     this.keyboardNav?.destroy();
     this.debugOverlay?.destroy();
     this.pauseMenu?.destroy();
+    this.tutorial?.destroy();
+    this.tutorial = null;
     this.hud?.destroy();
     this.kitchen?.destroy();
     this.fakeState = null;

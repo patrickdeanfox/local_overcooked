@@ -1,0 +1,60 @@
+{
+  "id": "tutorial-1-5",
+  "name": "The tray",
+  "game": "tutorial",
+  "world": 1,
+  "index": 5,
+  "theme": "treacle-town",
+  "timeLimitSec": 120,
+  "timerStartsOnFirstServe": true,
+  "recipes": ["onion_soup"],
+  "orders": { "initial": 1, "intervalSec": 30, "max": 2, "timeSec": 120 },
+  "stars": { "1": [20, 40, 60], "2": [20, 40, 80] },
+  "plates": { "mode": "stack", "count": 2 },
+  "grid": [
+    "#O#######B#S#",
+    "#...........V",
+    "#...........#",
+    "#...........#",
+    "#X###t##PP#E#"
+  ],
+  "spawns": [{ "x": 4, "y": 2 }, { "x": 8, "y": 2 }],
+  "mechanics": { "tray": true },
+  "tutorial": {
+    "title": "Three items, one trip",
+    "intro": [
+      "The tray lives on its rack. Face the rack and press {interact} to lift it; face an empty counter and press {interact} to set it down. Each takes half a second.",
+      "With the tray in hand, {pickup} loads whatever is in front of you (up to three items) or hands its top item to the station you face.",
+      "Raw, chopped, cooked or plated: anything goes on it.",
+      "You walk about a quarter slower with it and cannot dash or throw. A shove makes the load wobble; a second shove within a second drops the top item.",
+      "On a long kitchen it saves two trips out of three; on a short one it is a trap."
+    ],
+    "steps": [
+      {
+        "text": "Face the tray rack and press {interact} to lift the tray. It takes half a second, so you commit to it.",
+        "goal": { "type": "holding", "kind": "tray" },
+        "at": { "x": 5, "y": 4 }
+      },
+      {
+        "text": "Carry it to the onion crate and press {pickup} three times facing the crate. The tray holds three items.",
+        "goal": { "type": "holding", "kind": "tray", "load": 3 },
+        "at": { "x": 1, "y": 0 }
+      },
+      {
+        "text": "You walk slower with the tray and cannot dash or throw. Walk to the chopping board and press {pickup} facing it to unload the top onion.",
+        "goal": { "type": "tileItem", "x": 9, "y": 0, "kind": "ingredient" },
+        "at": { "x": 9, "y": 0 }
+      },
+      {
+        "text": "Face an empty counter and press {interact} to set the tray down. Later, {pickup} facing it takes items off it again.",
+        "goal": { "type": "event", "event": "traySet" }
+      },
+      {
+        "text": "Chop the three onions, cook them, plate the soup and serve it.",
+        "goal": { "type": "served", "count": 1 },
+        "at": { "x": 11, "y": 0 }
+      }
+    ],
+    "outro": "The tray pays on long walks and costs time on short ones. Where the rack sits decides which."
+  }
+}

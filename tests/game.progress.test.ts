@@ -96,6 +96,17 @@ describe('star totals', () => {
     expect(unlockingStars(progress)).toBe(3);
   });
 
+  it('saves a tutorial run but leaves its stars out of the unlock total', () => {
+    const progress = played([
+      { levelId: 'tutorial-1-1', score: 60, stars: 3 },
+      { levelId: 'tutorial-1-5', score: 40, stars: 2 },
+      { levelId: 'oc1-1-1', score: 70, stars: 2 },
+    ]);
+    expect(levelProgress(progress, 'tutorial-1-1')).toMatchObject({ bestScore: 60, stars: 3, plays: 1 });
+    expect(totalStars(progress)).toBe(7);
+    expect(unlockingStars(progress)).toBe(2);
+  });
+
   it('saves a custom run but leaves its stars out of the unlock total', () => {
     const progress = played([
       { levelId: 'oc1-1-1', score: 400, stars: 3, preset: 'custom' },

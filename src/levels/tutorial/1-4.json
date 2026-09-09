@@ -1,0 +1,58 @@
+{
+  "id": "tutorial-1-4",
+  "name": "The 86 system",
+  "game": "tutorial",
+  "world": 1,
+  "index": 4,
+  "theme": "default",
+  "timeLimitSec": 120,
+  "timerStartsOnFirstServe": true,
+  "recipes": ["onion_soup", "tomato_soup"],
+  "orders": { "initial": 2, "intervalSec": 30, "max": 3, "timeSec": 120, "first": ["tomato_soup", "onion_soup"] },
+  "stars": { "1": [20, 40, 60], "2": [20, 40, 80] },
+  "plates": { "mode": "stack", "count": 1 },
+  "grid": [
+    "#OT#d#SS#E#",
+    "#.........V",
+    "#.........#",
+    "P.........#",
+    "#.........X",
+    "###BB######"
+  ],
+  "spawns": [{ "x": 3, "y": 2 }, { "x": 7, "y": 2 }],
+  "stations": [{ "x": 2, "y": 0, "stock": 3 }],
+  "eightySix": { "crateSize": 9, "restockDelaySec": 12 },
+  "mechanics": { "eightySix": true },
+  "tutorial": {
+    "title": "When the crate runs dry",
+    "intro": [
+      "Every crate holds a set number of items and shows its fill level. Taking the last one empties it: an 86, chalked over the crate.",
+      "Tickets never vanish. One that needed the missing ingredient rewrites itself to the nearest dish still on the menu, with a flash and a sting.",
+      "Work already done is never wasted: a dish built to the old ticket still serves and still pays.",
+      "A delivery arrives at the door after a while. Unload it with a held {interact}; a second chef makes it twice as fast.",
+      "At most two ingredients are ever out at once, and one used in every recipe on a level never runs out."
+    ],
+    "steps": [
+      {
+        "text": "Take three tomatoes from the crate. The last one empties it: a chalk 86 goes up and the fill bar hits red.",
+        "goal": { "type": "stock", "x": 2, "y": 0, "max": 0 },
+        "at": { "x": 2, "y": 0 }
+      },
+      {
+        "text": "The tomato soup ticket just rewrote itself to onion soup with a flash and now wears an 86 tag. A tomato soup built to the old ticket still serves.",
+        "goal": { "type": "wait", "sec": 6 }
+      },
+      {
+        "text": "A delivery is on its way to the door. When the crate appears there, face it and hold {interact} to unload it. Two chefs unload twice as fast.",
+        "goal": { "type": "event", "event": "restocked" },
+        "at": { "x": 4, "y": 0 }
+      },
+      {
+        "text": "Serve a soup. The rewritten ticket pays for onion soup, or for the tomato soup it used to ask for.",
+        "goal": { "type": "served", "count": 1 },
+        "at": { "x": 10, "y": 1 }
+      }
+    ],
+    "outro": "Crates only run out with the 86 switch on. Crate size and the delivery delay are set per level."
+  }
+}

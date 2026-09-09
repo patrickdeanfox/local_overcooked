@@ -1,0 +1,53 @@
+{
+  "id": "tutorial-1-1",
+  "name": "Pass-through shelf",
+  "game": "tutorial",
+  "world": 1,
+  "index": 1,
+  "theme": "default",
+  "timeLimitSec": 120,
+  "timerStartsOnFirstServe": true,
+  "recipes": ["onion_soup"],
+  "orders": { "initial": 1, "intervalSec": 30, "max": 2, "timeSec": 120 },
+  "stars": { "1": [20, 40, 60], "2": [20, 40, 80] },
+  "plates": { "mode": "stack", "count": 2 },
+  "grid": [
+    "#O#####S#PP#",
+    "#....h.....V",
+    "#....h.....#",
+    "#....h.....#",
+    "#..........#",
+    "####X##B#E##"
+  ],
+  "spawns": [{ "x": 2, "y": 2 }, { "x": 8, "y": 2 }],
+  "mechanics": { "passThroughShelf": true },
+  "tutorial": {
+    "title": "A hatch in the wall",
+    "intro": [
+      "The wall between the rooms has hatches in it: waist-high counters you can reach from either side.",
+      "Put an item on a hatch with {pickup}; anyone on the other side takes it with {pickup}. A hatch holds one item.",
+      "You cannot walk or throw through a hatch. A thrown item stops at it and drops on the floor in front.",
+      "Wide hatches are three side by side, so three items can wait at once.",
+      "The clock starts on your first serve, so practise first."
+    ],
+    "steps": [
+      { "text": "Take an onion from the crate.", "goal": { "type": "holding", "kind": "ingredient" }, "at": { "x": 1, "y": 0 } },
+      {
+        "text": "Face a hatch in the wall and press {pickup} to put the onion on it.",
+        "goal": { "type": "tileItem", "x": 5, "y": 1, "w": 1, "h": 3, "kind": "ingredient" },
+        "at": { "x": 5, "y": 2 }
+      },
+      {
+        "text": "Now take it from the other side: walk round the end of the wall (or let your partner grab it) and press {pickup} facing the hatch.",
+        "goal": { "type": "holding", "kind": "ingredient", "zone": { "x": 6, "y": 1, "w": 5, "h": 4 } },
+        "at": { "x": 5, "y": 2 }
+      },
+      {
+        "text": "Chop three onions on the board, cook them in the pot, plate the soup and serve it. The hatches save the walk every time.",
+        "goal": { "type": "served", "count": 1 },
+        "at": { "x": 7, "y": 5 }
+      }
+    ],
+    "outro": "Hatches turn a wall into a hand-off point. With the switch off in Settings, a hatch is plain wall."
+  }
+}
