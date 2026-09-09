@@ -7,20 +7,21 @@
 import type { LevelDef, OrderSettings } from '../levels/schema';
 import { isWalkable, parseGrid, SOLID_TILES } from '../levels/schema';
 import {
-  BURN_TIME, CATCH_RADIUS, CHEF_HITBOX, CHEF_RADIUS, CHEF_SPEED, CHOP_TIME, COOK_TIME, DASH_BUMP_PUSH,
-  DASH_COOLDOWN, DASH_SPEED, DASH_THROW_BONUS, DASH_THROW_WINDOW, DASH_TIME, EXTINGUISH_RATE, FALL_PENALTY_SEC,
-  FIRE_SPREAD_TIME, MAX_PUSH_ESCAPE, MOVE_DEADZONE, ORDER_FAIL_PENALTY, PAN_CAPACITY,
-  PAN_COOK_TIME, PLATE_RETURN_DELAY, PLATE_STACK_RETURN_DELAY, POT_CAPACITY, REACH, SIM_DT,
-  SPRAY_LATERAL_TOLERANCE, SPRAY_RANGE, THROW_OWN_CATCH_DISTANCE, THROW_RANGE, THROW_SPEED, TICK_EVENT_HZ,
-  TIMER_WARNING_AT, TIP_BASE, TIP_MAX, WASH_TIME,
+  ASSIST_RATE, BURN_TIME, CATCH_RADIUS, CHEF_HITBOX, CHEF_RADIUS, CHEF_SPEED, CHOP_TIME, COOK_TIME, CRATE_SIZE,
+  DASH_BUMP_PUSH, DASH_COOLDOWN, DASH_SPEED, DASH_THROW_BONUS, DASH_THROW_WINDOW, DASH_TIME, EXTINGUISH_RATE,
+  FALL_PENALTY_SEC, FIRE_SPREAD_TIME, MAX_PUSH_ESCAPE, MAX_SIMULTANEOUS_86, MOVE_DEADZONE, ORDER_FAIL_PENALTY,
+  PAN_CAPACITY, PAN_COOK_TIME, PLATE_RETURN_DELAY, PLATE_STACK_RETURN_DELAY, POT_CAPACITY, REACH,
+  RESTOCK_DELAY_SEC, RESTOCK_UNLOAD_SEC, SIM_DT, SPRAY_LATERAL_TOLERANCE, SPRAY_RANGE, THROW_OWN_CATCH_DISTANCE,
+  THROW_RANGE, THROW_SPEED, TICK_EVENT_HZ, TIMER_WARNING_AT, TIP_BASE, TIP_MAX, TRAY_CAPACITY, TRAY_SPEED_SCALE,
+  TRAY_WINDUP_SEC, TRAY_WOBBLE_SEC, TWO_PLATE_MAX, WASH_TIME,
 } from './constants';
-import { dishMatchesRecipe, isBurgerComponent, isPlatedComponent, RECIPES, sortIngredients } from './recipes';
+import { dishMatchesRecipe, isBurgerComponent, isPlatedComponent, RECIPES, recipeDishType, sortIngredients } from './recipes';
 import { mulberry32, type Rng } from './rng';
 import {
-  CHOPPED_INGREDIENTS, FACING_VECTORS, FRIED_INGREDIENTS, NO_INPUT, SOUP_INGREDIENTS,
-  type Chef, type ChefAction, type DirtyPlateItem, type FlyingItem, type IngredientItem, type IngredientType,
-  type Item, type PlateItem, type PlayerInput, type PotItem, type SimEvent, type SimState,
-  type Modifiers, type SliderGroup, type Tile, type Ware,
+  CHOPPED_INGREDIENTS, FACING_VECTORS, FRIED_INGREDIENTS, INGREDIENT_TYPES, NO_INPUT, SOUP_INGREDIENTS,
+  type Chef, type ChefAction, type Dish, type DirtyPlateItem, type FlyingItem, type IngredientItem, type IngredientType,
+  type Item, type Order, type PlateItem, type PlayerInput, type PotItem, type Recipe, type Restock, type SimEvent,
+  type SimState, type Modifiers, type SliderGroup, type Tile, type TrayItem, type TrayLoad, type Ware,
 } from './types';
 
 export * from './constants';
@@ -74,6 +75,8 @@ interface PedLane {
   fromX: number; fromY: number; toX: number; toY: number;
   speed: number; intervalSec: number; timer: number;
 }
+/** A tray lift or set-down in its wind-up: what happens when the timer runs out, if still valid. */
+interface Windup { kind: 'lift' | 'set'; tile: number; trayId: number; }
 
 // ─── Pure helpers ───────────────────────────────────────────────────────────
 function clamp(v: number, lo: number, hi: number): number {
@@ -86,9 +89,38 @@ function isStaticSolid(type: Tile['type']): boolean {
   return SOLID_TILES.has(type) && type !== 'slider';
 }
 
-/** Counters a chef may set an item down on. Sliders are counters that move. */
+/** Counters a chef may set an item down on. Sliders are counters that move; the tray rack is a
+ *  counter that starts with the tray. The shelf joins them only while its mechanic is on, so
+ *  the Sim checks it through canPlaceOn(). */
 function isPlaceableCounter(type: Tile['type']): boolean {
-  return type === 'counter' || type === 'slider';
+  return type === 'counter' || type === 'slider' || type === 'trayRack';
+}
+
+/** What a tray takes off a tile: an ingredient in any state, or a plate (one off a stack). */
+function isTrayLoadable(item: Item): item is TrayLoad {
+  return item.kind === 'ingredient' || item.kind === 'plate';
+}
+
+function isTray(item: Item | null): item is TrayItem {
+  return item !== null && item.kind === 'tray';
+}
+
+/** Two-plate carry: a chef with a stack of clean plates in hand. */
+function holdsTwoPlates(chef: Chef): boolean {
+  return chef.holding !== null && chef.holding.kind === 'plate' && (chef.holding.count ?? 1) > 1;
+}
+
+/** Multiset intersection size of two ingredient lists: how much prep carries over between recipes. */
+function sharedIngredients(a: readonly IngredientType[], b: readonly IngredientType[]): number {
+  const rest = [...b];
+  let n = 0;
+  for (const ing of a) {
+    const at = rest.indexOf(ing);
+    if (at < 0) continue;
+    rest.splice(at, 1);
+    n += 1;
+  }
+  return n;
 }
 
 /** Ground a thrown item can come to rest on. Open gates count; the caller checks the gate. */
@@ -189,9 +221,11 @@ export class Sim {
   private nextOrderId = 1;
   private nextPedId = 1;
   private nextFlightId = 1;
+  private nextRestockId = 1;
 
   private orderTimer = 0;
   private warned = false;
+  private stepCount = 0;
 
   // Precomputed level geometry.
   private staticSolid: boolean[] = [];
@@ -203,8 +237,16 @@ export class Sim {
   private pedTargets: Record<number, { x: number; y: number }> = {};
   private plateReturnTiles: number[] = [];
   private plateStackTiles: number[] = [];
+  private crateTiles: number[] = [];
+  private trayRackTiles: number[] = [];
+  private deliveryTile = -1;
   // Tiles a chef can stand next to, so a fire on them can be sprayed. Same indexing as tiles.
   private fightable: boolean[] = [];
+  // Chop assist: which step each station was last worked in and by how many chefs so far.
+  private claimAt: number[] = [];
+  private claimN: number[] = [];
+  // 86 system: which scripted shortages have fired.
+  private scriptedFired: boolean[] = [];
 
   // Per-chef scratch that does not belong in the snapshot.
   private prevActions: ChefAction[] = [];
@@ -215,6 +257,11 @@ export class Sim {
   private bumpedAt: number[][] = [];
   // Clean plates waiting on a sink with no adjacent drying tile, keyed by sink tile index.
   private sinkClean: Record<number, number> = {};
+  // The tray lift or set-down each chef is winding up, if any.
+  private windups: (Windup | null)[] = [];
+  // True while a tray's top item is being offered to a tile through handlePickup, so the
+  // two-plate rule does not pull a second plate onto a tray plate.
+  private offering = false;
   // Reused [minX, minY, ...] buffer of 1x1 solid boxes, so collision allocates nothing.
   private boxBuf: number[] = [];
   // Reused candidate list for fire spread.
@@ -229,6 +276,10 @@ export class Sim {
     // parseGrid ids come from a module-global counter shared by every Sim in the process.
     // Renumber from 1 so two Sims built from the same level and seed match exactly.
     for (const item of parsed.items) if (item) item.id = this.nextItemId++;
+    // The tray is level content that only exists while its mechanic is on: off, the rack is bare.
+    if (!this.settings.tray) {
+      for (let i = 0; i < parsed.items.length; i++) if (isTray(parsed.items[i])) parsed.items[i] = null;
+    }
 
     const playerCount = clamp(Math.floor(opts.players), 1, level.spawns.length || 1);
     const chefs: Chef[] = [];
@@ -243,6 +294,7 @@ export class Sim {
       this.sprayTickAt.push(Number.NEGATIVE_INFINITY);
       this.dashCount.push(0);
       this.bumpedAt.push([]);
+      this.windups.push(null);
     }
 
     this.state = {
@@ -269,6 +321,7 @@ export class Sim {
     };
 
     this.indexLevel();
+    this.setupStock();
     this.orderTimer = Math.max(this.settings.orders.intervalSec, SIM_DT);
     for (let i = 0; i < this.settings.orders.initial; i++) this.spawnOrder(null);
     this.recomputeStars();
@@ -286,8 +339,14 @@ export class Sim {
       if (tile.type === 'gate') this.gateTiles.push({ index: i, x: tile.x, y: tile.y, group: tile.group ?? '' });
       if (tile.type === 'plateReturn') this.plateReturnTiles.push(i);
       if (tile.type === 'plateStack') this.plateStackTiles.push(i);
+      if (tile.type === 'crate') this.crateTiles.push(i);
+      if (tile.type === 'trayRack') this.trayRackTiles.push(i);
+      if (tile.type === 'delivery' && this.deliveryTile < 0) this.deliveryTile = i;
+      this.claimAt.push(-1);
+      this.claimN.push(0);
     }
     for (let i = 0; i < st.tiles.length; i++) this.fightable.push(this.hasWalkableNeighbour(st.tiles[i]));
+    for (const _ of this.level.eightySix?.scripted ?? []) this.scriptedFired.push(false);
     for (const dyn of this.level.dynamics ?? []) {
       if (dyn.type === 'sliders') {
         this.sliderSpecs.push({
@@ -313,6 +372,29 @@ export class Sim {
           });
         }
       }
+    }
+  }
+
+  /** 86 system: gives every non-exempt crate its stock. Exempt are the level's `exempt` list and
+   *  any ingredient every recipe needs (the level's "bread"), unless a stations override sets that
+   *  crate's size, which parseGrid leaves in `capacity`. Off: crates keep no stock and never run out. */
+  private setupStock(): void {
+    if (!this.settings.eightySix) return;
+    const cfg = this.level.eightySix;
+    const exempt = new Set<IngredientType>(cfg?.exempt ?? []);
+    const recipes: Recipe[] = [];
+    for (const id of this.level.recipes) if (RECIPES[id]) recipes.push(RECIPES[id]);
+    if (recipes.length > 0) {
+      for (const ing of INGREDIENT_TYPES) if (recipes.every((r) => r.ingredients.includes(ing))) exempt.add(ing);
+    }
+    const size = cfg?.crateSize ?? CRATE_SIZE;
+    for (const i of this.crateTiles) {
+      const tile = this.state.tiles[i];
+      if (tile.capacity === undefined) {
+        if (!tile.ingredient || exempt.has(tile.ingredient)) continue;
+        tile.capacity = size;
+      }
+      tile.stock = tile.capacity;
     }
   }
 
@@ -376,6 +458,60 @@ export class Sim {
     return g ? { x: g.offsetX, y: g.offsetY } : { x: 0, y: 0 };
   }
 
+  /** 86 system: true while every crate of the ingredient is empty. An ingredient with a crate that
+   *  never runs out (no stock) is never out; one with no crate at all is not "out" either. */
+  ingredientOut(type: IngredientType): boolean {
+    let finite = false;
+    for (const i of this.crateTiles) {
+      const tile = this.state.tiles[i];
+      if (tile.ingredient !== type) continue;
+      if (tile.stock === undefined || tile.stock > 0) return false;
+      finite = true;
+    }
+    return finite;
+  }
+
+  /** 86 system: the delivery waiting at the door (arrived, not yet unloaded), oldest first, or null. */
+  deliveryDue(): Restock | null {
+    const list = this.state.restocks;
+    if (!list) return null;
+    for (const r of list) if (r.arrivesIn <= 0) return r;
+    return null;
+  }
+
+  /** Whether an item can be set down on this tile type: counters, sliders, the tray rack, and
+   *  the shelf while its mechanic is on. */
+  private canPlaceOn(type: Tile['type']): boolean {
+    return isPlaceableCounter(type) || (type === 'shelf' && this.settings.passThroughShelf);
+  }
+
+  /** How many ingredients are out right now, for the MAX_SIMULTANEOUS_86 cap. */
+  private outCount(): number {
+    let n = 0;
+    for (const ing of INGREDIENT_TYPES) if (this.ingredientOut(ing)) n += 1;
+    return n;
+  }
+
+  /** Chop assist: the chef's rank at station `i` this step (1 = first pair of hands, 2 = second). */
+  private claim(i: number): number {
+    if (this.claimAt[i] !== this.stepCount) {
+      this.claimAt[i] = this.stepCount;
+      this.claimN[i] = 0;
+    }
+    this.claimN[i] += 1;
+    return this.claimN[i];
+  }
+
+  /** Chop assist gate for a station: false when this chef's hands do not count. Off, one chef
+   *  works a station; on, ASSIST_RATE chefs do and the later one is marked as assisting. */
+  private handsCount(chef: Chef, i: number): boolean {
+    const rank = this.claim(i);
+    const max = this.settings.chopAssist ? ASSIST_RATE : 1;
+    if (rank > max) return false;
+    if (rank > 1) chef.assisting = true;
+    return true;
+  }
+
   // ─── Step ─────────────────────────────────────────────────────────────────
   step(inputs: readonly PlayerInput[], dt: number = SIM_DT): SimEvent[] {
     const events: SimEvent[] = [];
@@ -383,6 +519,7 @@ export class Sim {
     if (st.phase === 'ended') return events;
 
     st.elapsed += dt;
+    this.stepCount += 1;
     this.updateSliders();
     this.updateGates(events);
     this.updatePedestrians(dt);
@@ -392,7 +529,8 @@ export class Sim {
       const inp = inputs[i] ?? NO_INPUT;
       this.prevActions[i] = chef.action;
       this.prevProgress[i] = chef.actionProgress;
-      this.tickChefTimers(chef, i, dt);
+      delete chef.assisting;
+      this.tickChefTimers(chef, i, dt, events);
       this.startDash(chef, i, inp, events);
       this.moveChef(chef, inp, dt);
       if (isDashing(chef)) this.dashBump(chef, i, events);
@@ -412,17 +550,31 @@ export class Sim {
     this.updateCooking(dt, events);
     this.updateFires(dt, events);
     this.updatePlateReturns(dt, events);
+    this.updateRestocks(dt, events);
+    this.updateScripted(events);
     this.updateOrders(dt, events);
     this.updateTimer(dt, events);
     return events;
   }
 
   // ─── Movement ─────────────────────────────────────────────────────────────
-  /** Dash cooldown and the fall penalty count down here; a fallen chef comes back at its spawn. */
-  private tickChefTimers(chef: Chef, idx: number, dt: number): void {
+  /** Dash cooldown, the tray wobble window, the tray wind-up and the fall penalty count down
+   *  here; a finished wind-up lifts or sets the tray, a fallen chef comes back at its spawn. */
+  private tickChefTimers(chef: Chef, idx: number, dt: number, events: SimEvent[]): void {
     if (chef.dashCooldown !== undefined) {
       chef.dashCooldown -= dt;
       if (chef.dashCooldown <= 0) delete chef.dashCooldown;
+    }
+    if (chef.wobble !== undefined) {
+      chef.wobble -= dt;
+      if (chef.wobble <= 0) delete chef.wobble;
+    }
+    if (chef.windupLeft !== undefined) {
+      chef.windupLeft -= dt;
+      if (chef.windupLeft <= 0) {
+        delete chef.windupLeft;
+        this.finishWindup(chef, idx, events);
+      }
     }
     if (chef.respawnIn !== undefined) {
       chef.respawnIn -= dt;
@@ -439,9 +591,11 @@ export class Sim {
   }
 
   /** A dash starts on the rising edge when the chef is on the floor and off cooldown. It wins
-   *  over a chop or wash in progress: the chef leaves the board. */
+   *  over a chop or wash in progress: the chef leaves the board. No dash while carrying two
+   *  plates or the tray (docs/MECHANICS.md sections 1 and 3), nor mid wind-up. */
   private startDash(chef: Chef, idx: number, inp: PlayerInput, events: SimEvent[]): void {
     if (inp.dashPressed !== true || isFalling(chef) || isDashing(chef) || chef.dashCooldown !== undefined) return;
+    if (holdsTwoPlates(chef) || isTray(chef.holding) || chef.windupLeft !== undefined) return;
     chef.dashTimeLeft = DASH_TIME;
     chef.dashCooldown = DASH_COOLDOWN;
     this.dashCount[idx] += 1;
@@ -465,8 +619,13 @@ export class Sim {
       if (chef.dashTimeLeft <= 0) delete chef.dashTimeLeft;
       return;
     }
-    // Chopping and washing pin the chef until the action finishes or interact is released.
-    const locked = (chef.action === 'chopping' || chef.action === 'washing') && inp.interactHeld;
+    if (chef.windupLeft !== undefined) { // lifting or setting down the tray: committed until it lands
+      chef.action = 'lifting';
+      chef.actionProgress = 1 - chef.windupLeft / TRAY_WINDUP_SEC;
+      return;
+    }
+    // Chopping, washing and unloading pin the chef until the action finishes or interact is released.
+    const locked = (chef.action === 'chopping' || chef.action === 'washing' || chef.action === 'unloading') && inp.interactHeld;
     chef.action = 'idle';
     chef.actionProgress = 0;
     if (locked) return;
@@ -479,7 +638,7 @@ export class Sim {
 
     chef.facing = Math.abs(mx) > Math.abs(my) ? (mx > 0 ? 'right' : 'left') : (my > 0 ? 'down' : 'up');
     chef.action = 'walking';
-    const dist = this.settings.chefSpeed * dt;
+    const dist = this.settings.chefSpeed * (isTray(chef.holding) ? TRAY_SPEED_SCALE : 1) * dt;
     if (mx !== 0) chef.x = this.resolveX(chef, chef.x + mx * dist);
     if (my !== 0) chef.y = this.resolveY(chef, chef.y + my * dist);
   }
@@ -655,9 +814,29 @@ export class Sim {
       this.bumpedAt[idx][b] = this.dashCount[idx];
       if (v.dx !== 0) other.x = this.resolveX(other, other.x + v.dx * DASH_BUMP_PUSH);
       if (v.dy !== 0) other.y = this.resolveY(other, other.y + v.dy * DASH_BUMP_PUSH);
-      if (other.holding) this.dropLoose(other, events);
+      if (isTray(other.holding)) this.wobbleTray(other, events);
+      else if (other.holding) this.dropLoose(other, events);
       events.push({ type: 'dashBump', chef: idx, x: Math.floor(other.x), y: Math.floor(other.y), value: b });
     }
+  }
+
+  /** A bumped tray carrier keeps the tray: the first bump starts the wobble window, a second
+   *  bump inside it knocks the top item onto the floor (docs/MECHANICS.md section 3). */
+  private wobbleTray(chef: Chef, events: SimEvent[]): void {
+    const tray = chef.holding;
+    if (!isTray(tray)) return;
+    if (chef.wobble === undefined) {
+      chef.wobble = TRAY_WOBBLE_SEC;
+      events.push({ type: 'trayWobble', chef: chef.index, x: Math.floor(chef.x), y: Math.floor(chef.y) });
+      return;
+    }
+    delete chef.wobble;
+    const top = tray.items.pop();
+    if (!top) return;
+    const tx = Math.floor(chef.x);
+    const ty = Math.floor(chef.y);
+    const landed = this.landOnFloor(top, tx, ty);
+    events.push({ type: 'drop', chef: chef.index, x: landed ? landed.x : tx, y: landed ? landed.y : ty });
   }
 
   /** What a bumped chef held lands on the floor under it, or the nearest free floor, or is lost. */
@@ -679,12 +858,25 @@ export class Sim {
       if (isFalling(chef)) continue;
       const tile = this.tileAt(Math.floor(chef.x), Math.floor(chef.y));
       if (!tile || tile.type !== 'gap') continue;
+      if (isTray(chef.holding)) this.returnTray(chef.holding); // the one tray goes back to its rack, if free
       chef.holding = null;
       chef.respawnIn = FALL_PENALTY_SEC;
       chef.action = 'falling';
       chef.actionProgress = 0;
       delete chef.dashTimeLeft;
+      delete chef.windupLeft;
+      delete chef.wobble;
+      this.windups[chef.index] = null;
       events.push({ type: 'chefFell', chef: chef.index, x: tile.x, y: tile.y });
+    }
+  }
+
+  /** A tray lost in a hole reappears on the first empty tray rack; with none free it is gone. */
+  private returnTray(tray: TrayItem): void {
+    for (const i of this.trayRackTiles) {
+      if (this.state.tileItems[i]) continue;
+      this.state.tileItems[i] = tray;
+      return;
     }
   }
 
@@ -838,7 +1030,7 @@ export class Sim {
 
   // ─── Chef actions ─────────────────────────────────────────────────────────
   private updateChefActions(chef: Chef, idx: number, inp: PlayerInput, dt: number, events: SimEvent[]): void {
-    if (isFalling(chef)) return;
+    if (isFalling(chef) || chef.windupLeft !== undefined) return; // a wind-up commits the hands
     // Spraying needs no target tile and leaves the chef free to walk.
     if (chef.holding && chef.holding.kind === 'extinguisher' && inp.interactHeld) {
       this.spray(chef, idx, dt, events);
@@ -848,7 +1040,98 @@ export class Sim {
     if (!target) return;
     if (this.fireAt(target.x, target.y)) return; // burning tiles refuse everything but spray
     if (inp.pickupPressed) this.handlePickup(chef, idx, target.x, target.y, events);
+    if (inp.interactPressed) this.handleTrayInteract(chef, idx, target.x, target.y);
     if (!chef.holding && inp.interactHeld) this.handleWork(chef, idx, target.x, target.y, dt, events);
+  }
+
+  // ─── The tray ─────────────────────────────────────────────────────────────
+  /** The work button on the tray: with empty hands facing a tray it starts the lift whatever the
+   *  load; holding the tray and facing an empty counter it starts the set-down. */
+  private handleTrayInteract(chef: Chef, idx: number, tx: number, ty: number): void {
+    if (!this.settings.tray) return;
+    const st = this.state;
+    const i = ty * st.width + tx;
+    const item = st.tileItems[i];
+    if (!chef.holding) {
+      if (isTray(item)) this.startWindup(chef, idx, 'lift', i, item);
+      return;
+    }
+    if (isTray(chef.holding) && !item && this.canPlaceOn(st.tiles[i].type)) {
+      this.startWindup(chef, idx, 'set', i, chef.holding);
+    }
+  }
+
+  private startWindup(chef: Chef, idx: number, kind: Windup['kind'], tile: number, tray: TrayItem): void {
+    if (chef.windupLeft !== undefined) return;
+    chef.windupLeft = TRAY_WINDUP_SEC;
+    chef.action = 'lifting';
+    chef.actionProgress = 0;
+    this.windups[idx] = { kind, tile, trayId: tray.id };
+  }
+
+  /** The wind-up ran out: lift the tray if it is still there and the hands are still free, or
+   *  set it down if the tile is still an empty counter. Anything else and nothing happens. */
+  private finishWindup(chef: Chef, idx: number, events: SimEvent[]): void {
+    const pending = this.windups[idx];
+    this.windups[idx] = null;
+    if (!pending) return;
+    const st = this.state;
+    const tile = st.tiles[pending.tile];
+    const item = st.tileItems[pending.tile];
+    if (pending.kind === 'lift') {
+      if (chef.holding || !isTray(item) || item.id !== pending.trayId) return;
+      st.tileItems[pending.tile] = null;
+      chef.holding = item;
+      events.push({ type: 'trayLift', chef: idx, x: tile.x, y: tile.y });
+      return;
+    }
+    const tray = chef.holding;
+    if (!isTray(tray) || tray.id !== pending.trayId || item || !this.canPlaceOn(tile.type)) return;
+    st.tileItems[pending.tile] = tray;
+    chef.holding = null;
+    events.push({ type: 'traySet', chef: idx, x: tile.x, y: tile.y });
+  }
+
+  /** The pick-up button while carrying the tray: load from a crate or off a tile, else offer the
+   *  top item to the tile as if held (a counter or board takes it, a pot an accepted ingredient,
+   *  a plate a ready part, the serve a dish, the bin anything, a rack a clean plate). An empty
+   *  tray facing an empty counter starts the set-down. Never a tray on a tray. */
+  private handleTrayPickup(chef: Chef, tray: TrayItem, idx: number, i: number, tx: number, ty: number, events: SimEvent[]): void {
+    const st = this.state;
+    const tile = st.tiles[i];
+    const item = st.tileItems[i];
+    const room = tray.items.length < TRAY_CAPACITY;
+    if (tile.type === 'crate') {
+      if (!room) return;
+      const taken = this.takeFromCrate(tile, idx, events);
+      if (!taken) return;
+      tray.items.push(taken);
+      events.push({ type: 'pickup', chef: idx, x: tx, y: ty });
+      return;
+    }
+    if (isTray(item)) return;
+    if (item && isTrayLoadable(item) && room && !this.fireAt(tx, ty)) {
+      if (item.kind === 'plate' && (item.count ?? 1) > 1) {
+        item.count = (item.count ?? 1) - 1; // one clean plate off the stack
+        tray.items.push(this.newPlate());
+      } else {
+        tray.items.push(item);
+        st.tileItems[i] = null;
+      }
+      events.push({ type: 'pickup', chef: idx, x: tx, y: ty });
+      return;
+    }
+    if (tray.items.length > 0) {
+      const top = tray.items[tray.items.length - 1];
+      chef.holding = top;
+      this.offering = true;
+      this.handlePickup(chef, idx, tx, ty, events);
+      this.offering = false;
+      if (chef.holding === null) tray.items.pop(); // the tile took it
+      chef.holding = tray;
+      return;
+    }
+    if (!item && this.canPlaceOn(tile.type)) this.startWindup(chef, idx, 'set', i, tray);
   }
 
   private spray(chef: Chef, idx: number, dt: number, events: SimEvent[]): void {
@@ -965,6 +1248,10 @@ export class Sim {
     const tile = st.tiles[index];
     const resting = st.tileItems[index];
     const item = f.item;
+    if (tile.type === 'shelf') { // a hatch in a wall: the wall above it stops the throw, open or not
+      this.endFlight(f, f.floorX, f.floorY, events);
+      return;
+    }
     if (tile.type === 'trash') {
       events.push({ type: 'throwLand', chef: f.thrower, x: tile.x, y: tile.y, value: f.id });
       events.push({ type: 'trash', chef: f.thrower, x: tile.x, y: tile.y });
@@ -980,7 +1267,7 @@ export class Sim {
       events.push({ type: 'potAdd', chef: f.thrower, x: tile.x, y: tile.y });
       return;
     }
-    if (!resting && (isPlaceableCounter(tile.type) || tile.type === 'board') && !this.fireAt(tile.x, tile.y)) {
+    if (!resting && (this.canPlaceOn(tile.type) || tile.type === 'board') && !this.fireAt(tile.x, tile.y)) {
       st.tileItems[index] = item;
       events.push({ type: 'throwLand', chef: f.thrower, x: tile.x, y: tile.y, value: f.id });
       return;
@@ -1045,6 +1332,7 @@ export class Sim {
     // one just holds it.
     if (tile.type === 'board' && item && item.kind === 'ingredient' && !item.chopped
         && CHOPPED_INGREDIENTS.includes(item.type)) {
+      if (!this.handsCount(chef, i)) return; // one chef per board, or two with chop assist
       const chopTime = this.settings.chopTime;
       const before = item.chopProgress;
       const after = Math.min(1, before + dt / chopTime);
@@ -1059,6 +1347,25 @@ export class Sim {
         chef.action = 'idle';
         chef.actionProgress = 0;
         events.push({ type: 'chopDone', chef: idx, x: tx, y: ty });
+      }
+      return;
+    }
+
+    if (tile.type === 'delivery' && this.settings.eightySix) {
+      const restock = this.deliveryDue();
+      if (!restock || !this.handsCount(chef, i)) return;
+      const before = restock.unloaded;
+      const after = Math.min(1, before + dt / RESTOCK_UNLOAD_SEC);
+      restock.unloaded = after; // progress lives on the delivery, so a second chef adds to it
+      chef.action = 'unloading';
+      chef.actionProgress = after;
+      if (Math.floor(after * RESTOCK_UNLOAD_SEC * TICK_EVENT_HZ) > Math.floor(before * RESTOCK_UNLOAD_SEC * TICK_EVENT_HZ)) {
+        events.push({ type: 'restockTick', chef: idx, x: tx, y: ty });
+      }
+      if (after >= 1) {
+        chef.action = 'idle';
+        chef.actionProgress = 0;
+        this.applyRestock(restock, tx, ty, events);
       }
       return;
     }
@@ -1137,11 +1444,23 @@ export class Sim {
 
     if (!held) {
       if (tile.type === 'crate') {
-        chef.holding = this.newIngredient(tile.ingredient ?? 'onion'); // crates never run out
+        const taken = this.takeFromCrate(tile, idx, events); // null when the 86 system has emptied it
+        if (!taken) return;
+        chef.holding = taken;
         events.push({ type: 'pickup', chef: idx, x: tx, y: ty });
         return;
       }
       if (!item) return;
+      if (isTray(item)) { // the top item comes off; an empty tray is lifted
+        const top = item.items.pop();
+        if (top) {
+          chef.holding = top;
+          events.push({ type: 'pickup', chef: idx, x: tx, y: ty });
+        } else if (this.settings.tray) {
+          this.startWindup(chef, idx, 'lift', i, item);
+        }
+        return;
+      }
       if (item.kind === 'plate' && (item.count ?? 1) > 1) {
         item.count = (item.count ?? 1) - 1; // take one plate off the stack
         chef.holding = this.newPlate();
@@ -1154,6 +1473,11 @@ export class Sim {
     }
 
     switch (held.kind) {
+      case 'tray': {
+        this.handleTrayPickup(chef, held, idx, i, tx, ty, events);
+        return;
+      }
+
       case 'ingredient': {
         if (tile.type === 'trash') {
           chef.holding = null;
@@ -1180,7 +1504,7 @@ export class Sim {
           events.push({ type: 'plateAdd', chef: idx, x: tx, y: ty });
           return;
         }
-        if (!item && (isPlaceableCounter(tile.type) || tile.type === 'board')) {
+        if (!item && (this.canPlaceOn(tile.type) || tile.type === 'board')) {
           this.place(chef, i, idx, tx, ty, events);
         }
         return;
@@ -1200,7 +1524,7 @@ export class Sim {
           this.emptyOnto(item, held, idx, tx, ty, events);
           return;
         }
-        if (!item && (isPlaceableCounter(tile.type) || tile.type === 'stove')) {
+        if (!item && (this.canPlaceOn(tile.type) || tile.type === 'stove')) {
           this.place(chef, i, idx, tx, ty, events);
         }
         return;
@@ -1226,31 +1550,27 @@ export class Sim {
         // Burger assembly the other way round: the plate collects a prepped ingredient off a
         // counter or a board.
         if (item && item.kind === 'ingredient') {
-          if (!isPlaceableCounter(tile.type) && tile.type !== 'board') return;
+          if (!this.canPlaceOn(tile.type) && tile.type !== 'board') return;
           if (!readyForPlate(item) || !this.addToPlate(held, item.type)) return;
           st.tileItems[i] = null;
           events.push({ type: 'plateAdd', chef: idx, x: tx, y: ty });
           return;
         }
         if (held.dish) {
-          if (!item && isPlaceableCounter(tile.type)) this.place(chef, i, idx, tx, ty, events);
+          if (!item && this.canPlaceOn(tile.type)) this.place(chef, i, idx, tx, ty, events);
           return;
         }
         if (tile.type === 'plateStack' || tile.type === 'drying') {
-          if (!item) this.place(chef, i, idx, tx, ty, events);
-          else if (item.kind === 'plate' && item.dish === null) {
-            item.count = (item.count ?? 1) + (held.count ?? 1);
-            chef.holding = null;
-            events.push({ type: 'drop', chef: idx, x: tx, y: ty });
-          }
+          if (!item) this.placePlate(chef, held, i, idx, tx, ty, events);
+          else if (item.kind === 'plate' && item.dish === null) this.stackAtRack(chef, held, item, i, idx, tx, ty, events);
           return;
         }
-        if (!item && isPlaceableCounter(tile.type)) this.place(chef, i, idx, tx, ty, events);
+        if (!item && this.canPlaceOn(tile.type)) this.placePlate(chef, held, i, idx, tx, ty, events);
         return;
       }
 
       case 'dirtyPlate': {
-        if (tile.type !== 'sink' && tile.type !== 'plateReturn' && !isPlaceableCounter(tile.type)) return;
+        if (tile.type !== 'sink' && tile.type !== 'plateReturn' && !this.canPlaceOn(tile.type)) return;
         if (!item) this.place(chef, i, idx, tx, ty, events);
         else if (item.kind === 'dirtyPlate') {
           item.count += held.count;
@@ -1261,7 +1581,7 @@ export class Sim {
       }
 
       case 'extinguisher': {
-        if (!item && isPlaceableCounter(tile.type)) this.place(chef, i, idx, tx, ty, events);
+        if (!item && this.canPlaceOn(tile.type)) this.place(chef, i, idx, tx, ty, events);
         return;
       }
     }
@@ -1271,6 +1591,185 @@ export class Sim {
     this.state.tileItems[i] = chef.holding;
     chef.holding = null;
     events.push({ type: 'drop', chef: idx, x: tx, y: ty });
+  }
+
+  /** A clean plate goes down on an empty tile. Two-plate carry: the top plate of a held stack
+   *  goes down first and the other stays in hand (docs/MECHANICS.md section 1). */
+  private placePlate(chef: Chef, held: PlateItem, i: number, idx: number, tx: number, ty: number, events: SimEvent[]): void {
+    const count = held.count ?? 1;
+    if (count <= 1) {
+      this.place(chef, i, idx, tx, ty, events);
+      return;
+    }
+    this.state.tileItems[i] = this.newPlate();
+    if (count - 1 > 1) held.count = count - 1;
+    else delete held.count;
+    events.push({ type: 'drop', chef: idx, x: tx, y: ty });
+  }
+
+  /** A held clean plate meets clean plates on a drying rack or plate stack. Two-plate carry on:
+   *  one plate in hand takes a second off the rack, two in hand put one back. Off: the held
+   *  plates join the rack's stack, as they always did. */
+  private stackAtRack(chef: Chef, held: PlateItem, rack: PlateItem, i: number, idx: number, tx: number, ty: number, events: SimEvent[]): void {
+    const st = this.state;
+    const heldCount = held.count ?? 1;
+    if (!this.settings.twoPlateCarry || this.offering) {
+      rack.count = (rack.count ?? 1) + heldCount;
+      chef.holding = null;
+      events.push({ type: 'drop', chef: idx, x: tx, y: ty });
+      return;
+    }
+    if (heldCount < TWO_PLATE_MAX) {
+      if ((rack.count ?? 1) > 1) rack.count = (rack.count ?? 1) - 1;
+      else st.tileItems[i] = null;
+      held.count = heldCount + 1;
+      events.push({ type: 'pickup', chef: idx, x: tx, y: ty });
+      return;
+    }
+    rack.count = (rack.count ?? 1) + 1;
+    if (heldCount - 1 > 1) held.count = heldCount - 1;
+    else delete held.count;
+    events.push({ type: 'drop', chef: idx, x: tx, y: ty });
+  }
+
+  // ─── The 86 system ────────────────────────────────────────────────────────
+  /** A new ingredient out of a crate: always, when the crate has no stock; otherwise one off the
+   *  count, null when the crate is empty or is keeping its last item because MAX_SIMULTANEOUS_86
+   *  ingredients are already out. Emptying the crate posts the 86 and, when no crate of the
+   *  ingredient is left with stock, runs the shortage. */
+  private takeFromCrate(tile: Tile, idx: number, events: SimEvent[]): IngredientItem | null {
+    const type = tile.ingredient ?? 'onion';
+    if (tile.stock === undefined) return this.newIngredient(type);
+    if (tile.stock <= 0) return null;
+    if (tile.stock === 1 && this.outCount() >= MAX_SIMULTANEOUS_86) return null;
+    tile.stock -= 1;
+    const item = this.newIngredient(type);
+    if (tile.stock === 0) {
+      events.push({ type: 'crateEmpty', chef: idx, x: tile.x, y: tile.y });
+      if (this.ingredientOut(type)) this.shortage(type, events);
+    }
+    return item;
+  }
+
+  /** An ingredient is out: every pending ticket that needs it is rewritten to the nearest recipe
+   *  that does not (never voided; a ticket with no substitute is left as it is), and a delivery
+   *  is queued. The first rewrite keeps the original recipe so a dish built for it still serves. */
+  private shortage(type: IngredientType, events: SimEvent[]): void {
+    const st = this.state;
+    for (const order of st.orders) {
+      const recipe = RECIPES[order.recipeId];
+      if (!recipe || !recipe.ingredients.includes(type)) continue;
+      const sub = this.substituteFor(recipe);
+      if (!sub) continue;
+      order.originalRecipeId ??= order.recipeId;
+      order.recipeId = sub.id;
+      order.rewrittenAt = st.elapsed;
+      events.push({ type: 'orderRewritten', value: order.id });
+    }
+    (st.restocks ??= []).push({
+      id: this.nextRestockId++,
+      ingredient: type,
+      arrivesIn: this.level.eightySix?.restockDelaySec ?? RESTOCK_DELAY_SEC,
+      unloaded: 0,
+    });
+  }
+
+  /** The level recipe that needs nothing that is out, preferring the same dish type, then the most
+   *  shared ingredients (chopped stays chopped, cooked stays cooked), then the earliest in the list. */
+  private substituteFor(recipe: Recipe): Recipe | null {
+    const dish = recipeDishType(recipe);
+    let best: Recipe | null = null;
+    let bestSame = -1;
+    let bestShared = -1;
+    for (const id of this.level.recipes) {
+      const r = RECIPES[id];
+      if (!r || r.ingredients.some((ing) => this.ingredientOut(ing))) continue;
+      const same = recipeDishType(r) === dish ? 1 : 0;
+      const shared = sharedIngredients(r.ingredients, recipe.ingredients);
+      if (same > bestSame || (same === bestSame && shared > bestShared)) {
+        best = r;
+        bestSame = same;
+        bestShared = shared;
+      }
+    }
+    return best;
+  }
+
+  /** The recipe a dish satisfies on this ticket: the current one, or the one it asked for before a
+   *  shortage rewrote it (grandfathering), or null. */
+  private recipeServed(dish: Dish, order: Order): Recipe | null {
+    const current = RECIPES[order.recipeId];
+    if (current && dishMatchesRecipe(dish, current)) return current;
+    const original = order.originalRecipeId ? RECIPES[order.originalRecipeId] : undefined;
+    if (original && dishMatchesRecipe(dish, original)) return original;
+    return null;
+  }
+
+  /** Deliveries count down; one that arrives waits at the delivery door to be unloaded, or on a
+   *  level without a door restocks by itself. */
+  private updateRestocks(dt: number, events: SimEvent[]): void {
+    const st = this.state;
+    const list = st.restocks;
+    if (!list || list.length === 0) return;
+    for (let i = list.length - 1; i >= 0; i--) {
+      const r = list[i];
+      if (r.arrivesIn <= 0) continue; // waiting at the door
+      r.arrivesIn -= dt;
+      if (r.arrivesIn > 0) continue;
+      r.arrivesIn = 0;
+      if (this.deliveryTile >= 0) {
+        const door = st.tiles[this.deliveryTile];
+        events.push({ type: 'restockDue', x: door.x, y: door.y });
+        continue;
+      }
+      const crate = this.firstCrateOf(r.ingredient);
+      events.push({ type: 'restockDue', x: crate ? crate.x : 0, y: crate ? crate.y : 0 });
+      this.applyRestock(r, crate ? crate.x : 0, crate ? crate.y : 0, events);
+    }
+  }
+
+  /** Every crate of the delivery's ingredient is full again and the delivery is gone. */
+  private applyRestock(restock: Restock, x: number, y: number, events: SimEvent[]): void {
+    const st = this.state;
+    for (const i of this.crateTiles) {
+      const tile = st.tiles[i];
+      if (tile.ingredient === restock.ingredient && tile.capacity !== undefined) tile.stock = tile.capacity;
+    }
+    const list = st.restocks;
+    if (list) {
+      const at = list.indexOf(restock);
+      if (at >= 0) list.splice(at, 1);
+    }
+    events.push({ type: 'restocked', x, y });
+  }
+
+  /** Scripted shortages: at their second, every crate of the ingredient empties (a crate that had
+   *  no stock gets the level's size so the delivery has something to refill). */
+  private updateScripted(events: SimEvent[]): void {
+    const scripted = this.level.eightySix?.scripted;
+    if (!scripted || !this.settings.eightySix) return;
+    const st = this.state;
+    for (let k = 0; k < scripted.length; k++) {
+      if (this.scriptedFired[k] || st.elapsed < scripted[k].atSec) continue;
+      this.scriptedFired[k] = true;
+      const type = scripted[k].ingredient;
+      let emptied = false;
+      for (const i of this.crateTiles) {
+        const tile = st.tiles[i];
+        if (tile.ingredient !== type) continue;
+        tile.capacity ??= this.level.eightySix?.crateSize ?? CRATE_SIZE;
+        if (tile.stock === 0) continue;
+        tile.stock = 0;
+        emptied = true;
+        events.push({ type: 'crateEmpty', x: tile.x, y: tile.y });
+      }
+      if (emptied && this.ingredientOut(type)) this.shortage(type, events);
+    }
+  }
+
+  private firstCrateOf(type: IngredientType): Tile | null {
+    for (const i of this.crateTiles) if (this.state.tiles[i].ingredient === type) return this.state.tiles[i];
+    return null;
   }
 
   /** Empties cooked cookware onto a plate: a pot pours a soup, a pan drops its patty on a
@@ -1327,18 +1826,18 @@ export class Sim {
     chef.holding = null; // matched or not, the plate leaves the chef's hands
 
     let matched = -1;
+    let recipe: Recipe | null = null;
     if (dish) {
       for (let i = 0; i < st.orders.length; i++) {
-        const recipe = RECIPES[st.orders[i].recipeId];
-        if (recipe && dishMatchesRecipe(dish, recipe)) { matched = i; break; } // orders are oldest first
+        recipe = this.recipeServed(dish, st.orders[i]); // the ticket, or what it asked for before a rewrite
+        if (recipe) { matched = i; break; } // orders are oldest first
       }
     }
     if (matched >= 0) {
       // Combo rule (wiki: Combos): the tip streak only continues when the dish matches the
       // OLDEST live order. Serving a later ticket still scores, but breaks the streak.
       // Tip on an in-order serve is TIP_BASE per prior consecutive serve, so the first pays base only.
-      const order = st.orders.splice(matched, 1)[0];
-      const recipe = RECIPES[order.recipeId];
+      st.orders.splice(matched, 1);
       const inOrder = matched === 0;
       const tip = inOrder ? Math.min(TIP_MAX, TIP_BASE * st.tipStreak) : 0;
       const points = (recipe ? recipe.score : 0) + tip;
@@ -1485,10 +1984,17 @@ export class Sim {
   }
 
   private spawnOrder(events: SimEvent[] | null): void {
-    const list = this.level.recipes;
+    let list = this.level.recipes;
     if (!list.length) return;
+    if (this.settings.eightySix) { // 86: no new ticket for something that is out, while there is a choice
+      const available = list.filter((id) => {
+        const r = RECIPES[id];
+        return !r || !r.ingredients.some((ing) => this.ingredientOut(ing));
+      });
+      if (available.length > 0) list = available;
+    }
     const cfg = this.settings.orders;
-    const order = {
+    const order: Order = {
       id: this.nextOrderId++,
       recipeId: list[this.rng.int(list.length)],
       timeLeft: cfg.timeSec,
