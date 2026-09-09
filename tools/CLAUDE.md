@@ -31,7 +31,7 @@ Dev builds expose `window.__oc = { sim, level, scene }` once a level is running 
 Start the server first: `npx vite --host --port 5173` in the background. The harness helpers below fetch files from the project root, which only the Vite dev server serves; `npm start` serves `dist/` and would 404 them.
 
 ## Scripted scenarios (`playtests/`)
-Twenty-six scripts, `00-smoke` to `25-level-oc2-1-1`, one per shipped feature, each with a header comment saying what it proves. Two libraries are fetched and evaluated by scripts:
+Twenty-eight scripts, `00-smoke` to `27-tutorials`, one per shipped feature, each with a header comment saying what it proves. Two libraries are fetched and evaluated by scripts:
 - `qa-lib.txt` installs `window.__qa` (a stamped `SimEvent` log with `of`, `count`, `times`, `last`, `mark`, chef and tile helpers, `sim(seed, players, mods)`, `findSeed`) by shadowing `step()` on the live `Sim`, so call `window.__qaInstall()` again after every scene change. It also installs `window.__ui`, which reaches the Phaser game through the canvas pool and works on every scene: `scene(key)`, `levels`, `status`, `options`, `stars`, `menu`, `texts`, `settings`, `progress`.
 - `monitor.txt` samples collision invariants every 16 ms (chef inside a solid tile, inside a slider at its live offset, chef-pedestrian and chef-chef overlap) into `window.__mon`; `__monReset()`, `__monStop()`.
 `gen_1_2.py` and `gen_1_3.py` generate scripts 03 and 04 (repetitive route blocks); run from the repo root. When a feature ships, add a script; when a bug is fixed, the note's context has the seed to reproduce it.

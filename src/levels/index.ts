@@ -3,9 +3,10 @@ import type { LevelDef } from './schema';
 export type { LevelDef } from './schema';
 export { validateLevel, parseGrid, LEGEND } from './schema';
 
-/** The order games appear in the level list: the campaigns first, then the clone's own kitchens.
- *  An explicit rank, because 'custom' sorts before 'oc1' alphabetically. */
-const GAME_ORDER: readonly LevelDef['game'][] = ['oc1', 'oc2', 'custom'];
+/** The order games appear in the level list: the campaigns first, then the clone's own kitchens,
+ *  then the tutorials (the title hides those; the Tutorials page lists them). An explicit rank,
+ *  because 'custom' sorts before 'oc1' alphabetically. */
+const GAME_ORDER: readonly LevelDef['game'][] = ['oc1', 'oc2', 'custom', 'tutorial'];
 function gameRank(game: LevelDef['game']): number {
   const at = GAME_ORDER.indexOf(game);
   return at < 0 ? GAME_ORDER.length : at;

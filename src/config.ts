@@ -15,6 +15,7 @@ export const SCENE = {
   SETTINGS: 'Settings',
   CUSTOM_DIFFICULTY: 'CustomDifficulty',
   CHEFS: 'Chefs',
+  TUTORIALS: 'Tutorials',
   GAME: 'Game',
   RESULTS: 'Results',
 } as const;

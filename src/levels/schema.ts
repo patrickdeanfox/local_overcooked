@@ -1,7 +1,10 @@
 // ─── Level definition contract ──────────────────────────────────────────────
 // Levels are JSON files in src/levels/<game>/<name>.json matching LevelDef.
 // Human-readable ASCII grid + fixed legend. See docs/LEVEL_SCHEMA.md.
-import { CHOPPED_INGREDIENTS, FRIED_INGREDIENTS, SOUP_INGREDIENTS, type IngredientType, type Item, type ItemKind, type Tile, type TileType, type Ware } from '../sim/types';
+import {
+  CHOPPED_INGREDIENTS, FRIED_INGREDIENTS, SOUP_INGREDIENTS,
+  type IngredientType, type Item, type ItemKind, type SimEventType, type Tile, type TileType, type Ware,
+} from '../sim/types';
 import { RECIPES, recipeDishType } from '../sim/recipes';
 
 export interface LevelStars { 1: [number, number, number]; 2: [number, number, number]; } // 1-star, 2-star, 3-star score
@@ -11,6 +14,7 @@ export interface OrderSettings {
   intervalSec: number; // seconds between new orders (when below max)
   max: number;         // max concurrent orders
   timeSec: number;     // seconds each order stays before expiring
+  first?: string[];    // recipes of the first tickets, in order, before the seed takes over; tutorials pin what the board shows
 }
 
 export interface PlateSettings {
@@ -37,6 +41,41 @@ export interface EightySixSettings {
 }
 
 export interface ItemPlacement { x: number; y: number; item: ItemKind; count?: number; ware?: Ware; }
+
+// ─── Tutorials ──────────────────────────────────────────────────────────────
+/** The five mechanics switches (docs/MECHANICS.md), named as Modifiers names them. */
+export type MechanicKey = 'twoPlateCarry' | 'chopAssist' | 'tray' | 'passThroughShelf' | 'eightySix';
+export const MECHANIC_KEYS: readonly MechanicKey[] = ['twoPlateCarry', 'chopAssist', 'tray', 'passThroughShelf', 'eightySix'];
+/** Mechanics a level always plays with, whatever the Settings switches say. A tutorial kitchen needs its own. */
+export type LevelMechanics = Partial<Record<MechanicKey, boolean>>;
+
+/** A block of tiles: x..x+w-1 by y..y+h-1. */
+export interface TileRect { x: number; y: number; w: number; h: number; }
+
+/** What finishes a tutorial step. Checked against the SimState and that frame's events after every stepped frame. */
+export type TutorialGoal =
+  | { type: 'event'; event: SimEventType; count?: number }  // `count` (1) events of the type since the step began
+  | { type: 'holding'; kind: ItemKind; count?: number; load?: number; zone?: TileRect } // a chef holds the item: exactly `count` plates in the stack, at least `load` items on the tray, standing inside `zone`
+  | { type: 'tileItem'; x: number; y: number; w?: number; h?: number; kind: ItemKind } // an item of the kind rests on the tile, or on any tile of the w by h block
+  | { type: 'stock'; x: number; y: number; max: number }        // the crate holds at most `max` items (0: it is 86'd)
+  | { type: 'served'; count: number }                           // servedCount reaches `count`
+  | { type: 'assisting' }                                       // a chef is the second pair of hands at a station
+  | { type: 'wait'; sec: number };                              // sim seconds; for a step that only explains
+
+export interface TutorialStep {
+  text: string;                  // what to do; {pickup} {interact} {throw} {dash} become the player's own button labels
+  goal: TutorialGoal;
+  at?: { x: number; y: number }; // a tile the pointer hangs over
+  minPlayers?: number;           // the step is skipped in a run with fewer players
+}
+
+/** A guided walkthrough at the start of a level: the rules on a panel first, then one step at a time. */
+export interface TutorialDef {
+  title: string;     // the panel heading, e.g. 'The tray'
+  intro: string[];   // the rules, one line each; the same placeholders as the steps
+  steps: TutorialStep[];
+  outro?: string;    // the banner after the last step; a stock line when absent
+}
 
 export type Dynamic =
   | {
@@ -65,7 +104,7 @@ export type Dynamic =
 export interface LevelDef {
   id: string;            // 'oc1-1-1'
   name: string;          // '1-1'
-  game: 'oc1' | 'oc2' | 'custom';
+  game: 'oc1' | 'oc2' | 'custom' | 'tutorial'; // 'tutorial': listed on the Tutorials page, not the title
   world: number;
   index: number;
   theme: string;         // e.g. 'treacle-town', 'savoury-seas'
@@ -83,6 +122,8 @@ export interface LevelDef {
   items?: ItemPlacement[];
   dynamics?: Dynamic[];
   eightySix?: EightySixSettings; // 86 system tuning; the mechanic works without it using the constants
+  mechanics?: LevelMechanics;    // switches this level always plays with, on top of the Settings
+  tutorial?: TutorialDef;        // the guided walkthrough shown when the level starts
 }
 
 export interface LegendEntry { type: TileType; ingredient?: IngredientType; group?: string; item?: ItemKind; ware?: Ware; }
@@ -262,5 +303,29 @@ export function validateLevel(level: LevelDef): string[] {
   parsed.items.forEach((item, i) => {
     if (item?.kind === 'tray' && parsed.tiles[i].type !== 'trayRack') errors.push(`tray at (${parsed.tiles[i].x},${parsed.tiles[i].y}) is not on a trayRack tile`);
   });
+  // Tutorials: forced switches must be real, pinned tickets must be on the menu, goals and pointers on the grid.
+  for (const key of Object.keys(level.mechanics ?? {})) {
+    if (!MECHANIC_KEYS.includes(key as MechanicKey)) errors.push(`mechanics names unknown switch '${key}'`);
+  }
+  for (const id of level.orders?.first ?? []) {
+    if (!level.recipes?.includes(id)) errors.push(`orders.first names '${id}', which is not on the menu`);
+  }
+  const tutorial = level.tutorial;
+  if (tutorial) {
+    if (!tutorial.title) errors.push('tutorial has no title');
+    if (!tutorial.steps?.length) errors.push('tutorial has no steps');
+    const onGrid = (x: number, y: number): boolean => x >= 0 && y >= 0 && x < parsed.width && y < parsed.height;
+    tutorial.steps?.forEach((step, i) => {
+      if (!step.text) errors.push(`tutorial step ${i} has no text`);
+      if (step.at && !onGrid(step.at.x, step.at.y)) errors.push(`tutorial step ${i} points off the grid`);
+      const goal = step.goal;
+      if (!goal) { errors.push(`tutorial step ${i} has no goal`); return; }
+      if (goal.type === 'tileItem' && !(onGrid(goal.x, goal.y) && onGrid(goal.x + (goal.w ?? 1) - 1, goal.y + (goal.h ?? 1) - 1))) errors.push(`tutorial step ${i} goal is off the grid`);
+      if (goal.type === 'stock' && !onGrid(goal.x, goal.y)) errors.push(`tutorial step ${i} goal is off the grid`);
+      if (goal.type === 'stock' && parsed.tiles[goal.y * parsed.width + goal.x]?.type !== 'crate') errors.push(`tutorial step ${i} stock goal is not on a crate`);
+      if (goal.type === 'wait' && !(goal.sec > 0)) errors.push(`tutorial step ${i} wait must be > 0`);
+      if (goal.type === 'served' && !(goal.count >= 1)) errors.push(`tutorial step ${i} served count must be >= 1`);
+    });
+  }
   return errors;
 }

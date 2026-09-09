@@ -643,6 +643,100 @@ plates across saves a round trip each time; the dirty plates come back beside th
 the other way. The scripted shortages hit a soup and the sashimi in turn, each with three
 substitutes on the board; with four-item crates the play-driven shortages arrive between them.
 
+## Tutorial kitchens
+
+Five levels under `src/levels/tutorial/`, `game: 'tutorial'`, one per mechanic in the order the
+Settings page lists them. Each forces its own switch on through `mechanics`, so it plays the
+same whatever the player has toggled, and carries a `tutorial` block: the rules on a panel
+before play, then one step at a time in a banner with a pointer over the tile it names. The
+walkthroughs are in the JSON, not in code; `docs/LEVEL_SCHEMA.md` has the goal vocabulary.
+
+Shared shape: two minutes, one soup recipe (two for the 86 system), one ticket at a time (at
+most two or three up), `timerStartsOnFirstServe: true` so the clock waits while the player
+reads and practises, and a `served` goal as the last step so finishing the walkthrough starts
+the clock. Plates come off stacks (no sink) so nothing but the mechanic needs explaining.
+Stars 1P 20 / 40 / 60, 2P 20 / 40 / 80, saved like any level but never counted toward unlocks.
+The title screen keeps them off its list; the Tutorials page lists them with their rules.
+
+### Pass-through shelf (`tutorial-1-1`)
+
+```
+#O#####S#PP#
+#....h.....V
+#....h.....#
+#....h.....#
+#..........#
+####X##B#E##
+```
+
+12 x 6. An onion crate and the bin on the left, the board, pot, two plate stacks and the serve
+on the right, a wall of three hatches down column 5 with a one-tile gap at the bottom. Steps:
+take an onion, put it on a hatch (any of the three), take it from the right-hand room (a `zone`
+on the holding goal, so taking it straight back does not count), then cook and serve.
+
+### Chop assist (`tutorial-1-2`)
+
+```
+#O###S#P##
+#........V
+#........#
+#........#
+#........#
+#X#BB###E#
+```
+
+10 x 6. One room, two boards side by side. Steps: an onion onto a board, both chefs at that
+board until the sim marks one `assisting` (this step carries `minPlayers: 2` and is dropped
+from a solo run, which the page and the intro say), finish the chop, then cook and serve.
+
+### Two-plate carry (`tutorial-1-3`)
+
+```
+#O##B#SSE##
+P.........V
+P.........#
+#.........#
+#.........X
+###########
+```
+
+11 x 6. Two plate stacks on the left wall, the serve on the right. Steps: a plate from one
+stack, a second from the other (`count` on the holding goal is exact, so the step reads two in
+hand), one put down on a counter (back to exactly one), then cook and serve.
+
+### The 86 system (`tutorial-1-4`)
+
+```
+#OT#d#SS#E#
+#.........V
+#.........#
+P.........#
+#.........X
+###BB######
+```
+
+11 x 6. Onion and tomato crates, the delivery door beside them. `orders.first` pins a tomato
+soup then an onion soup so the tomato ticket is up when the crate runs dry; a `stations`
+override gives the tomato crate three items (one soup's worth) and `eightySix` sets nine-item
+crates otherwise with a 12 s delivery. Steps: empty the tomato crate (a `stock` goal), a six
+second beat to read the rewritten ticket, unload the delivery at the door (`restocked`), then
+serve either soup: the rewritten ticket still pays for the tomato soup it used to ask for.
+
+### The tray (`tutorial-1-5`)
+
+```
+#O#######B#S#
+#...........V
+#...........#
+#...........#
+#X###t##PP#E#
+```
+
+13 x 5. The onion crate at the far left, the board and pot at the far right, the rack on the
+bottom wall halfway along. Steps: lift the tray at the rack, load three onions at the crate
+(`load` on the holding goal), unload the top one onto the board (`tileItem`), set the tray
+down on a counter (`traySet`), then cook and serve.
+
 ## Unlock thresholds
 
 `unlockStars` is the total star count the campaign needs before a level opens. Numbers come

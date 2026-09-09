@@ -144,8 +144,9 @@ export class KitchenRenderer {
   get gridSize(): { width: number; height: number } { return { width: this.gridW, height: this.gridH }; }
 
   /** Screen position of a tile's top-left floor corner. */
-  tileToScreen(tx: number, ty: number): TilePos {
-    return this.stage.project(tx, 0, ty, { x: 0, y: 0 });
+  /** Screen position of a tile coordinate, `lift` world units above the floor. */
+  tileToScreen(tx: number, ty: number, lift = 0): TilePos {
+    return this.stage.project(tx, lift, ty, { x: 0, y: 0 });
   }
 
   draw(state: Readonly<SimState>, targets: readonly (TilePos | null)[], dtSec: number): void {

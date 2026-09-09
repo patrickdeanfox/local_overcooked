@@ -131,6 +131,11 @@ The five additions specified in `docs/MECHANICS.md`, each behind a switch on the
 
 Left to play: the spec's open questions (does two-plate carry trivialise plate-starved levels; should tray items swap in place; is the chalk mark readable at TV distance), and the custom levels' star thresholds are estimates. A `Recipe` prep-class table would sharpen substitution once pizza and pasta arrive (item 5 step 6); today it prefers the same dish type, then shared ingredients.
 
+## 15. Tutorials for the mechanics — shipped 2026-09-09
+Five tutorial kitchens under `src/levels/tutorial/` (`game: 'tutorial'`), one per mechanic in the Settings page's order, each forcing its own switch on through the new `LevelDef.mechanics` block and carrying a `LevelDef.tutorial` walkthrough: the rules on a panel before play, then one step at a time in a banner with a pointer over the tile it names, driven by a data-only goal vocabulary (`event`, `holding`, `tileItem`, `stock`, `served`, `assisting`, `wait`; `docs/LEVEL_SCHEMA.md`). The clock waits for the first serve, which is every walkthrough's last step. `orders.first` pins the first tickets so the 86 tutorial's rewrite is guaranteed. Presentation: `src/game/tutorial.ts` (the pure runner, unit-tested and walked through the real Sim for every kitchen in `tests/game.tutorial.test.ts`), `ui/TutorialOverlay.ts`, `scenes/TutorialsScene.ts` (a Tutorials row on the title opens it; the title's list leaves tutorial levels out), results with "Next tutorial" and "Back to tutorials"; tutorial stars never count toward unlocks (`levelCountsTowardUnlock`). Harness script `27-tutorials.txt`.
+
+Left to do: a rules card for a normal level that starts with mechanics switched on (the panel is built for it: the intro lines would come from the mechanic, not the level), tutorials for the base game's own verbs (throw, dash, the sink, fires) for a first-time player, and the star thresholds are guesses.
+
 ## Known gaps in the current build
 - Order cadence, timeout and tip amounts are estimates; the wiki publishes none (`docs/research/sim-constants-recommendations.md`). Tune by play.
 - 1-3's 1-star and 2-star thresholds are derived, not published (`docs/LEVELS.md`).

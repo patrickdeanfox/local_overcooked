@@ -60,7 +60,7 @@ eval JSON.stringify(['stored mechanics', JSON.parse(localStorage.getItem('local-
 shot 26-01-settings-mechanics-on.png
 tap Escape
 wait 700
-eval JSON.stringify(['title settings row', __ui.options()[3]])
+eval JSON.stringify(['title settings row', __ui.options()[4]])
 
 # -- Start a level with the switches on, then swap in the QA kitchen ---------------------------
 eval (__ui.scene('Title').scene.start('Game', { levelId: 'oc1-1-1', seed: 7 }), 'started')

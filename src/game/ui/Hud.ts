@@ -143,6 +143,7 @@ export class Hud {
   private readonly rewrittenIds = new Set<number>(); // orderRewritten events waiting for their card's next sync
   private blinkMs = 0;
   private pulseMs = 0;
+  private prepHintSuppressed = false; // a tutorial banner is using the spot
 
   /** `meta` is the small line under the level name: the run's seed and difficulty. */
   constructor(private readonly scene: Phaser.Scene, levelName: string, meta = '') {
@@ -181,6 +182,11 @@ export class Hud {
     this.drawScore(state);
     this.drawTimer(state, deltaMs);
     this.drawPrepHint(state, deltaMs);
+  }
+
+  /** Hides "serve a dish to start the clock" while something else (the tutorial banner) says it. */
+  setPrepHintSuppressed(suppressed: boolean): void {
+    this.prepHintSuppressed = suppressed;
   }
 
   destroy(): void {
@@ -444,7 +450,7 @@ export class Hud {
   }
 
   private drawPrepHint(state: Readonly<SimState>, deltaMs: number): void {
-    const show = state.phase === 'prep';
+    const show = state.phase === 'prep' && !this.prepHintSuppressed;
     this.prepText.setVisible(show);
     if (!show) return;
     this.pulseMs += deltaMs;

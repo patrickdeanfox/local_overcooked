@@ -9,7 +9,7 @@ import type { InputManager } from '../../input/types';
 import { log } from '../../log';
 import { getAudioBus, installAudioGestureResume, installMuteToggle } from '../audioBus';
 import { currentLevels } from '../levelHotReload';
-import { isUnlocked, levelProgress, loadProgress, recordRun, saveProgress } from '../progress';
+import { isUnlocked, levelCountsTowardUnlock, levelProgress, loadProgress, recordRun, saveProgress } from '../progress';
 import { countsTowardUnlock, isAssisted, loadSettings, presetName } from '../settings';
 import { MenuList, type MenuItemSpec } from '../ui/MenuList';
 import { KeyboardNav, MenuInput, mergeNav } from '../ui/menuInput';
@@ -114,6 +114,15 @@ export class ResultsScene extends Phaser.Scene {
           textStyle(RESULTS.noteFontPx, TEXT_COLOR.dim),
         )
         .setOrigin(0.5);
+    } else if (!levelCountsTowardUnlock(result.levelId)) {
+      this.add
+        .text(
+          GAME_WIDTH / 2,
+          RESULTS.noteY,
+          'Tutorial stars are saved but never count toward unlocks',
+          textStyle(RESULTS.noteFontPx, TEXT_COLOR.dim),
+        )
+        .setOrigin(0.5);
     } else if (!countsTowardUnlock(preset)) {
       this.add
         .text(
@@ -131,8 +140,12 @@ export class ResultsScene extends Phaser.Scene {
     this.disposers.push(installAudioGestureResume(this), installMuteToggle(this));
     getAudioBus().stopMusic();
 
-    const index = order.indexOf(result.levelId);
-    const nextId = index >= 0 && index + 1 < order.length ? order[index + 1] : null;
+    // "Next" walks the tutorials among themselves and every other kitchen among the rest.
+    const tutorial = levels[result.levelId]?.game === 'tutorial';
+    const pool = order.filter((id) => (levels[id]?.game === 'tutorial') === tutorial);
+    const index = pool.indexOf(result.levelId);
+    const nextId = index >= 0 && index + 1 < pool.length ? pool[index + 1] : null;
+    const nextWord = tutorial ? 'Next tutorial' : 'Next level';
     const items: MenuItemSpec[] = [
       { label: () => 'Retry (same seed)', onSelect: () => this.retry(result) },
     ];
@@ -141,12 +154,13 @@ export class ResultsScene extends Phaser.Scene {
       const nextName = nextLevel?.name ?? nextId;
       // A locked next level stays on the menu as a dim label with nothing to select.
       if (nextLevel && !isUnlocked(nextLevel, recorded.progress, settings)) {
-        items.push({ label: () => `Next level (${nextName}) · needs ${nextLevel.unlockStars ?? 0} stars` });
+        items.push({ label: () => `${nextWord} (${nextName}) · needs ${nextLevel.unlockStars ?? 0} stars` });
       } else {
-        items.push({ label: () => `Next level (${nextName})`, onSelect: () => this.startNext(nextId, result.players) });
+        items.push({ label: () => `${nextWord} (${nextName})`, onSelect: () => this.startNext(nextId, result.players) });
       }
     }
-    items.push({ label: () => 'Back to title', onSelect: () => this.goToTitle() });
+    if (tutorial) items.push({ label: () => 'Back to tutorials', onSelect: () => this.goToPage(SCENE.TUTORIALS) });
+    items.push({ label: () => 'Back to title', onSelect: () => this.goToPage(SCENE.TITLE) });
     this.menu = new MenuList(this, GAME_WIDTH / 2, RESULTS.menuY, items, { spacing: RESULTS.menuSpacing });
 
     const labels = menuLabels((action) => this.inputMgr.labelFor(0, action));
@@ -225,9 +239,9 @@ export class ResultsScene extends Phaser.Scene {
     this.scene.start(SCENE.GAME, { levelId, players } satisfies GameSceneData);
   }
 
-  private goToTitle(): void {
+  private goToPage(key: string): void {
     this.ready = false;
-    this.scene.start(SCENE.TITLE);
+    this.scene.start(key);
   }
 
   private cleanup(): void {

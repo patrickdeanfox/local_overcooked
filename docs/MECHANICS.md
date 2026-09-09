@@ -163,5 +163,8 @@ Settings page rows for the five switches (after the assists, so the playtest scr
 ### Art and audio
 Roles in `src/art/models.json`: `shelf`, `trayRack`, `delivery`, `deliveryCrate`, `tray`. Texture keys: `TEX.tray`, `TEX.deliveryCrate`, `TEX.shelfClosed`, `TEX.chalk86`, plus `TEX.tile()` for the three tiles. Sounds: `crateEmpty`, `orderRewritten` (distinct from `orderNew`), `restockDue`, `restockTick`, `restocked`, `trayLift`, `traySet`, `trayWobble`.
 
+### Tutorials
+One tutorial kitchen per mechanic under `src/levels/tutorial/` (`game: 'tutorial'`, reached from the Tutorials row on the title), each forcing its switch on through `LevelDef.mechanics` and carrying a `LevelDef.tutorial` walkthrough (rules panel, then steps with goals the sim state satisfies). The format is in `docs/LEVEL_SCHEMA.md`, the kitchens in `docs/LEVELS.md`, the runner in `src/game/tutorial.ts`.
+
 ### Levels
 Existing levels keep their layouts; where one adopts a mechanic it does so with `stations` overrides or the `eightySix` block, so the grid text stays the transcription. New levels live under `src/levels/custom/`. `validateLevel` checks that `stock` overrides sit on crates, that `eightySix` names real crates and sane numbers, that there is at most one `delivery` tile, and that a tray only ever starts on a `trayRack`.

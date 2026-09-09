@@ -1,6 +1,6 @@
 // ─── Title scene ────────────────────────────────────────────────────────────
 // Level select over the saved progress, the two settings changed most (players, difficulty
-// preset), and the doors to the Chefs, Settings and Controllers pages. One cursor runs
+// preset), and the doors to the Tutorials, Chefs, Settings and Controllers pages. One cursor runs
 // through the level rows and then the option rows; left / right edits the row it is on.
 // Navigable with the keyboard and with any device the input manager reports.
 import Phaser from 'phaser';
@@ -58,7 +58,8 @@ const TAGLINE = 'Two chefs, one kitchen, not enough time';
 const FIRST_RUN_HINT = 'First time? Controllers walks you through every button';
 
 /** Option rows, in the order the cursor walks through them. */
-const OPTION = { players: 0, difficulty: 1, chefs: 2, settings: 3, controllers: 4 } as const;
+const OPTION = { tutorials: 0, players: 1, difficulty: 2, chefs: 3, settings: 4, controllers: 5 } as const;
+const TUTORIALS_NOTE = 'Learn the five mechanics one at a time; stars earned there never count toward unlocks';
 
 // Remembered between visits to the title within a session.
 let selectedIndex = 0;
@@ -137,7 +138,9 @@ export class TitleScene extends Phaser.Scene {
     this.levelList?.destroy();
     const { levels, order } = currentLevels();
     if (order.length === 0) log.warn('no levels found for the title menu');
-    const entries: LevelEntry[] = order.map((levelId) => {
+    // The tutorial kitchens have their own page, so the list here stays short.
+    const listed = order.filter((levelId) => levels[levelId]?.game !== 'tutorial');
+    const entries: LevelEntry[] = listed.map((levelId) => {
       const level = levels[levelId];
       const saved = levelProgress(this.progress, levelId);
       return {
@@ -211,6 +214,10 @@ export class TitleScene extends Phaser.Scene {
   private buildOptions(): void {
     this.menu?.destroy();
     const items: MenuItemSpec[] = [];
+    items[OPTION.tutorials] = {
+      label: () => `Tutorials: ${this.tutorialSummary()}`,
+      onSelect: () => this.openPage(SCENE.TUTORIALS),
+    };
     items[OPTION.players] = {
       label: () => `Players: ${this.settings.players}`,
       onSelect: () => this.changePlayers(1),
@@ -238,6 +245,15 @@ export class TitleScene extends Phaser.Scene {
       width: TITLE.optionsWidth,
       fontSize: TITLE.optionsFontPx,
     });
+  }
+
+  /** How many tutorial kitchens there are and how many have been played. */
+  private tutorialSummary(): string {
+    const { levels, order } = currentLevels();
+    const ids = order.filter((levelId) => levels[levelId]?.game === 'tutorial');
+    const played = ids.filter((levelId) => levelProgress(this.progress, levelId).plays > 0).length;
+    if (played === 0) return `${ids.length} short kitchens, one mechanic each`;
+    return `${played} of ${ids.length} played`;
   }
 
   private changePlayers(delta: number): void {
@@ -292,7 +308,9 @@ export class TitleScene extends Phaser.Scene {
   private statusForRow(): string {
     const entry = this.levelList?.entryAt(this.index);
     if (!entry) {
-      const onControllers = this.index - this.levelCount() === OPTION.controllers;
+      const option = this.index - this.levelCount();
+      if (option === OPTION.tutorials) return TUTORIALS_NOTE;
+      const onControllers = option === OPTION.controllers;
       return onControllers && !this.inputMgr.hasSavedBindings() ? FIRST_RUN_HINT : 'Left / right changes a setting';
     }
     if (entry.locked) return `Locked · needs ${entry.unlockStars} stars from ${presetName(DEFAULT_PRESET)} or harder`;

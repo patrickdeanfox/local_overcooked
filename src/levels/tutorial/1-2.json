@@ -1,0 +1,58 @@
+{
+  "id": "tutorial-1-2",
+  "name": "Chop assist",
+  "game": "tutorial",
+  "world": 1,
+  "index": 2,
+  "theme": "treacle-town",
+  "timeLimitSec": 120,
+  "timerStartsOnFirstServe": true,
+  "recipes": ["onion_soup"],
+  "orders": { "initial": 1, "intervalSec": 30, "max": 2, "timeSec": 120 },
+  "stars": { "1": [20, 40, 60], "2": [20, 40, 80] },
+  "plates": { "mode": "stack", "count": 1 },
+  "grid": [
+    "#O###S#P##",
+    "#........V",
+    "#........#",
+    "#........#",
+    "#........#",
+    "#X#BB###E#"
+  ],
+  "spawns": [{ "x": 3, "y": 2 }, { "x": 6, "y": 2 }],
+  "mechanics": { "chopAssist": true },
+  "tutorial": {
+    "title": "Two chefs, one board",
+    "intro": [
+      "A second chef at the same chopping board halves the time left on the chop. Two chefs, one board, a knife each.",
+      "It works on what is left, not the whole job: joining late still helps, just less. A third chef adds nothing.",
+      "Pots and pans never speed up. Cooking is unattended by design, and the burn timers stay honest.",
+      "With the switch off, a board is one chef's work and the second chef just waits.",
+      "Alone, the assist step is skipped; everything else still plays."
+    ],
+    "steps": [
+      {
+        "text": "Take an onion and put it on a chopping board.",
+        "goal": { "type": "tileItem", "x": 3, "y": 5, "w": 2, "h": 1, "kind": "ingredient" },
+        "at": { "x": 3, "y": 5 }
+      },
+      {
+        "text": "Both chefs stand at that board and hold {interact} together. The second pair of hands halves the time left, and an x2 badge shows by the bar.",
+        "goal": { "type": "assisting" },
+        "at": { "x": 3, "y": 5 },
+        "minPlayers": 2
+      },
+      {
+        "text": "Finish the chop: hold {interact} until the onion is diced.",
+        "goal": { "type": "event", "event": "chopDone" },
+        "at": { "x": 3, "y": 5 }
+      },
+      {
+        "text": "Chop two more, cook all three in the pot, plate the soup and serve it.",
+        "goal": { "type": "served", "count": 1 },
+        "at": { "x": 5, "y": 0 }
+      }
+    ],
+    "outro": "Chop assist works on any timed prep station, and on unloading a delivery. Pots and pans never speed up."
+  }
+}
