@@ -7,6 +7,7 @@
 // Stick, d-pad and deadzone rows belong to the pad the player holds and are remembered by
 // pad id. Everything is saved at once. Owned by the input arm.
 import Phaser from 'phaser';
+import { FONT_FAMILY } from '../ui/theme';
 import { GAME_HEIGHT, GAME_WIDTH, MAX_PLAYERS, SCENE } from '../../config';
 import { TEX } from '../../art/keys';
 import {
@@ -67,7 +68,7 @@ const TEXT = {
   dark: '#241d1a',
 } as const;
 
-const FONT = 'system-ui, "Segoe UI", Arial, sans-serif';
+const FONT = FONT_FAMILY; // the shared body face (src/game/ui/theme.ts)
 const INSECURE_WARNING_COLOR = '#ff7b6b';
 const UNBOUND = '—';
 

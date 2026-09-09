@@ -157,6 +157,9 @@ export const PALETTE = {
   uiPanelBg: '#2a2438',
   uiPanelBgAlt: '#3a3350',
   uiPanelBorder: '#e8dcc0',
+  uiBackdropTop: '#143f47',    // the enamel wall behind the menus, lit at the top
+  uiBackdropBottom: '#0a1f23',
+  uiBackdropGlow: '#2f7a86',   // the warm-ish glow in its top-left corner
   textDark: '#3a2b1c',
   textLight: '#fdf7e6',
   textMuted: '#b9ac95',

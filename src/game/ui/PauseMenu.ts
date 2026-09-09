@@ -6,19 +6,22 @@ import { GAME_HEIGHT, GAME_WIDTH } from '../../config';
 import { getAudioBus, setMusicEnabled, setSfxEnabled } from '../audioBus';
 import { MenuList } from './MenuList';
 import type { MenuNav } from './menuInput';
-import { COLOR, TEXT_COLOR, textStyle } from './theme';
+import { roundedPanel } from './panel';
+import { COLOR, displayStyle, TEXT_COLOR, textStyle } from './theme';
 
 const PAUSE = {
   dimAlpha: 0.7,
   panelWidth: 460,
-  panelHeight: 400,
+  panelHeight: 424,
   panelAlpha: 0.98,
   panelEdgePx: 3,
   titleOffsetY: -150,
   titleFontPx: 34,
   menuOffsetY: -66,
   menuSpacing: 46,
-  hintOffsetY: 158,
+  controlsOffsetY: 150,
+  controlsFontPx: 15,
+  hintOffsetY: 176,
   hintFontPx: 14,
   depth: 2000,
 } as const;
@@ -27,7 +30,8 @@ export interface PauseActions {
   onResume: () => void;
   onRestart: () => void;
   onQuit: () => void;
-  hint?: string; // the hint line in the player's own labels; a generic one when absent
+  hint?: string;     // the hint line in the player's own labels; a generic one when absent
+  controls?: string; // the kitchen's own buttons (pick up, work, throw, dash), shown above the hint
 }
 
 const DEFAULT_HINT = 'Move to choose · Pickup to confirm · left / right toggles';
@@ -43,17 +47,19 @@ export class PauseMenu {
     this.root = scene.add.container(0, 0).setDepth(PAUSE.depth).setVisible(false);
 
     const dim = scene.add.rectangle(cx, cy, GAME_WIDTH, GAME_HEIGHT, COLOR.bg, PAUSE.dimAlpha).setOrigin(0.5);
-    const panel = scene.add
-      .rectangle(cx, cy, PAUSE.panelWidth, PAUSE.panelHeight, COLOR.panel, PAUSE.panelAlpha)
-      .setOrigin(0.5)
-      .setStrokeStyle(PAUSE.panelEdgePx, COLOR.panelEdge);
+    const panel = roundedPanel(scene, PAUSE.panelWidth, PAUSE.panelHeight, {
+      fill: COLOR.panel, alpha: PAUSE.panelAlpha, edge: COLOR.panelEdge, edgePx: PAUSE.panelEdgePx,
+    }).setPosition(cx, cy);
     const title = scene.add
-      .text(cx, cy + PAUSE.titleOffsetY, 'Paused', textStyle(PAUSE.titleFontPx, TEXT_COLOR.accent))
+      .text(cx, cy + PAUSE.titleOffsetY, 'Paused', displayStyle(PAUSE.titleFontPx, TEXT_COLOR.accent))
       .setOrigin(0.5);
     const hint = scene.add
       .text(cx, cy + PAUSE.hintOffsetY, actions.hint ?? DEFAULT_HINT, textStyle(PAUSE.hintFontPx, TEXT_COLOR.dim))
       .setOrigin(0.5);
     this.root.add([dim, panel, title, hint]);
+    if (actions.controls) {
+      this.root.add(scene.add.text(cx, cy + PAUSE.controlsOffsetY, actions.controls, textStyle(PAUSE.controlsFontPx, TEXT_COLOR.accent)).setOrigin(0.5));
+    }
 
     const audio = getAudioBus();
     const toggleMusic = (): void => { setMusicEnabled(!audio.isMusicEnabled()); };

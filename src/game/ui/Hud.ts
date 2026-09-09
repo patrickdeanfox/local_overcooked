@@ -12,7 +12,7 @@ import { GAME_HEIGHT, GAME_WIDTH } from '../../config';
 import { ORDER_REWRITE_FLASH_SEC, TIMER_WARNING_AT } from '../../sim/constants';
 import { recipeDishType, RECIPES } from '../../sim/recipes';
 import type { IngredientType, Order, SimEvent, SimState } from '../../sim/types';
-import { COLOR, TEXT_COLOR, textStyle } from './theme';
+import { COLOR, displayStyle, TEXT_COLOR, textStyle } from './theme';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 const CARD = {
@@ -151,17 +151,17 @@ export class Hud {
 
     const coin = scene.add.image(SCORE.x, SCORE.y, TEX.iconCoin).setOrigin(0, 0.5);
     this.scoreText = scene.add
-      .text(SCORE.x + coin.displayWidth + SCORE.iconGap, SCORE.y, '0', textStyle(SCORE.fontPx))
+      .text(SCORE.x + coin.displayWidth + SCORE.iconGap, SCORE.y, '0', displayStyle(SCORE.fontPx))
       .setOrigin(0, 0.5);
     this.streakText = scene.add
-      .text(SCORE.x, SCORE.y - SCORE.streakGap, '', textStyle(SCORE.streakFontPx, TEXT_COLOR.accent))
+      .text(SCORE.x, SCORE.y - SCORE.streakGap, '', displayStyle(SCORE.streakFontPx, TEXT_COLOR.accent))
       .setOrigin(0, 0.5);
 
     this.timerIcon = scene.add.image(TIMER.x, TIMER.y, TEX.iconClock).setOrigin(1, 0.5);
-    this.timerText = scene.add.text(TIMER.x, TIMER.y, '0:00', textStyle(TIMER.fontPx)).setOrigin(1, 0.5);
+    this.timerText = scene.add.text(TIMER.x, TIMER.y, '0:00', displayStyle(TIMER.fontPx)).setOrigin(1, 0.5);
 
     const levelText = scene.add
-      .text(LEVEL_LABEL.x, LEVEL_LABEL.y, levelName, textStyle(LEVEL_LABEL.fontPx, TEXT_COLOR.dim))
+      .text(LEVEL_LABEL.x, LEVEL_LABEL.y, levelName, displayStyle(LEVEL_LABEL.fontPx, TEXT_COLOR.bright))
       .setOrigin(1, 0);
     const metaText = scene.add
       .text(LEVEL_LABEL.x, LEVEL_LABEL.y + LEVEL_LABEL.metaOffsetY, meta, textStyle(LEVEL_LABEL.metaFontPx, TEXT_COLOR.dim))

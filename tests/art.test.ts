@@ -109,6 +109,7 @@ describe('generateTextures', () => {
     }
     expect(made.get(TEX.orderCard)!.width).toBe(TEXTURE_SIZES.orderCardW);
     expect(made.get(TEX.panel)!.height).toBe(TEXTURE_SIZES.panelH);
+    expect([made.get(TEX.uiBackdrop)!.width, made.get(TEX.uiBackdrop)!.height]).toEqual([TEXTURE_SIZES.backdropW, TEXTURE_SIZES.backdropH]);
     expect(made.get(TEX.fire)!.width).toBe(TEXTURE_SIZES.fire);
   });
 

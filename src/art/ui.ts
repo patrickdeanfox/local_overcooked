@@ -25,6 +25,18 @@ const PANEL_H = TEXTURE_SIZES.panelH;     // 160
 const PROMPT_W = TEXTURE_SIZES.promptW;   // 48
 const PROMPT_H = TEXTURE_SIZES.promptH;   // 32
 const PROMPT_R = 13;                      // face-button radius
+const BACKDROP_W = TEXTURE_SIZES.backdropW; // 1280
+const BACKDROP_H = TEXTURE_SIZES.backdropH; // 800
+const BACKDROP = {
+  tile: 72,             // the faint checker, like the kitchen floor seen through paint
+  tiltRad: -0.16,
+  tileAlpha: 0.045,
+  glowAlpha: 0.35,
+  vignetteAlpha: 0.6,
+  grainAlpha: 0.05,
+  grainCount: 9000,
+  grainSeed: 1234567,   // a fixed seed, so every boot draws the same wall
+} as const;
 
 const XBOX_COLORS: Record<string, string> = {
   A: PALETTE.xboxA, B: PALETTE.xboxB, X: PALETTE.xboxX, Y: PALETTE.xboxY,
@@ -191,6 +203,46 @@ function drawPanel(ctx: CanvasRenderingContext2D): void {
   withAlpha(ctx, 0.12, () => fillRound(ctx, 10, 10, PANEL_W - 20, 26, 10, '#ffffff'));
 }
 
+/** The enamel wall behind every menu page: a teal gradient, a faint tilted checker, a glow
+ *  in the top-left corner, a vignette and a little grain. Presentation lays text over it. */
+function drawBackdrop(ctx: CanvasRenderingContext2D): void {
+  ctx.fillStyle = vGradient(ctx, 0, BACKDROP_H, [[0, PALETTE.uiBackdropTop], [1, PALETTE.uiBackdropBottom]]);
+  ctx.fillRect(0, 0, BACKDROP_W, BACKDROP_H);
+  withAlpha(ctx, BACKDROP.tileAlpha, () => {
+    ctx.save();
+    ctx.translate(BACKDROP_W / 2, BACKDROP_H / 2);
+    ctx.rotate(BACKDROP.tiltRad);
+    ctx.fillStyle = '#ffffff';
+    const n = Math.ceil(Math.max(BACKDROP_W, BACKDROP_H) / BACKDROP.tile) + 2;
+    for (let j = -n; j <= n; j++) {
+      for (let i = -n; i <= n; i++) {
+        if ((i + j) % 2 !== 0) continue;
+        ctx.fillRect(i * BACKDROP.tile, j * BACKDROP.tile, BACKDROP.tile, BACKDROP.tile);
+      }
+    }
+    ctx.restore();
+  });
+  withAlpha(ctx, BACKDROP.glowAlpha, () => {
+    ctx.fillStyle = radial(ctx, BACKDROP_W * 0.18, BACKDROP_H * 0.1, 10, BACKDROP_H * 0.9, [[0, PALETTE.uiBackdropGlow], [1, 'rgba(0,0,0,0)']]);
+    ctx.fillRect(0, 0, BACKDROP_W, BACKDROP_H);
+  });
+  ctx.fillStyle = radial(ctx, BACKDROP_W * 0.5, BACKDROP_H * 0.45, BACKDROP_H * 0.35, BACKDROP_H * 1.05, [
+    [0, 'rgba(0,0,0,0)'], [1, `rgba(0,0,0,${BACKDROP.vignetteAlpha})`],
+  ]);
+  ctx.fillRect(0, 0, BACKDROP_W, BACKDROP_H);
+  let seed = BACKDROP.grainSeed;
+  const next = (): number => {
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+    return seed / 0x100000000;
+  };
+  withAlpha(ctx, BACKDROP.grainAlpha, () => {
+    for (let k = 0; k < BACKDROP.grainCount; k++) {
+      ctx.fillStyle = next() > 0.5 ? '#ffffff' : '#000000';
+      ctx.fillRect(Math.floor(next() * BACKDROP_W), Math.floor(next() * BACKDROP_H), 2, 2);
+    }
+  });
+}
+
 // ─── Button prompts ─────────────────────────────────────────────────────────
 
 function drawFaceButton(ctx: CanvasRenderingContext2D, cx: number, cy: number, fill: string): void {
@@ -291,6 +343,7 @@ export function generateUiTextures(scene: Phaser.Scene): void {
 
   makeTexture(scene, TEX.orderCard, CARD_W, CARD_H, drawOrderCard);
   makeTexture(scene, TEX.panel, PANEL_W, PANEL_H, drawPanel);
+  makeTexture(scene, TEX.uiBackdrop, BACKDROP_W, BACKDROP_H, drawBackdrop);
 
   for (const label of PROMPT_LABELS) {
     makeTexture(scene, TEX.buttonPrompt(label), PROMPT_W, PROMPT_H, (ctx) => drawPrompt(ctx, label));

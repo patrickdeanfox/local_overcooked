@@ -15,6 +15,7 @@ import {
 } from '../settings';
 import { MenuList, type MenuItemSpec } from '../ui/MenuList';
 import { KeyboardNav, MenuInput, mergeNav } from '../ui/menuInput';
+import { installBackdrop, pageHeading } from '../ui/panel';
 import { COLOR, TEXT_COLOR, textStyle } from '../ui/theme';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -88,7 +89,8 @@ export class SettingsScene extends Phaser.Scene {
     this.settings = loadSettings();
 
     this.cameras.main.setBackgroundColor(COLOR.bg);
-    this.add.text(GAME_WIDTH / 2, SETTINGS.headingY, HEADING, textStyle(SETTINGS.headingFontPx, TEXT_COLOR.accent)).setOrigin(0.5);
+    installBackdrop(this);
+    pageHeading(this, HEADING);
 
     this.inputMgr = createInputManager(this, MAX_PLAYERS);
     this.add.text(GAME_WIDTH / 2, SETTINGS.hintY, hintLine(this.inputMgr), textStyle(SETTINGS.hintFontPx, TEXT_COLOR.dim)).setOrigin(0.5);

@@ -1,7 +1,7 @@
 // ─── Texture key contract ───────────────────────────────────────────────────
 // Presentation looks textures up through TEX.*; the art module must generate every key
 // that ALL_TEXTURE_KEYS() lists. Sizes are in native pixels at TILE = 64.
-import { TILE } from '../config';
+import { GAME_HEIGHT, GAME_WIDTH, TILE } from '../config';
 import {
   FRIED_INGREDIENTS, INGREDIENT_TYPES, SOUP_INGREDIENTS,
   type Facing, type IngredientType, type TileType,
@@ -61,6 +61,7 @@ export const TEX = {
   iconLock: 'icon.lock',
   orderCard: 'ui.orderCard',   // 96x120 panel background for one order
   panel: 'ui.panel',           // rounded panel background
+  uiBackdrop: 'ui.backdrop',   // 1280x800 enamel wall behind every menu page (gradient, faint tiles, vignette, grain)
   buttonPrompt: (label: string): string => `ui.prompt.${label}`, // see PROMPT_LABELS
 } as const;
 
@@ -79,7 +80,7 @@ export function ALL_TEXTURE_KEYS(): string[] {
   keys.push(TEX.pot, TEX.potBurnt, TEX.pan, TEX.plate, TEX.dirtyPlate, TEX.extinguisher, TEX.fire, TEX.spray, TEX.smoke);
   keys.push(TEX.tray, TEX.deliveryCrate, TEX.shelfClosed, TEX.chalk86);
   for (let c = 0; c < CHEF_COUNT; c++) for (const f of FACINGS) keys.push(TEX.chef(c, f));
-  keys.push(TEX.iconBurger, TEX.iconPlate, TEX.iconClock, TEX.iconCoin, TEX.iconStar, TEX.iconStarEmpty, TEX.iconLock, TEX.orderCard, TEX.panel);
+  keys.push(TEX.iconBurger, TEX.iconPlate, TEX.iconClock, TEX.iconCoin, TEX.iconStar, TEX.iconStarEmpty, TEX.iconLock, TEX.orderCard, TEX.panel, TEX.uiBackdrop);
   for (const l of PROMPT_LABELS) keys.push(TEX.buttonPrompt(l));
   return keys;
 }
@@ -88,6 +89,7 @@ export const TEXTURE_SIZES = {
   tile: TILE, item: 40, chefW: TILE, chefH: 80, icon: 32, orderCardW: 96, orderCardH: 120,
   // Added by the art module (additive): sizes of the remaining generated textures.
   fire: TILE, fx: 40, panelW: 256, panelH: 160, promptW: 48, promptH: 32,
+  backdropW: GAME_WIDTH, backdropH: GAME_HEIGHT,
 } as const;
 /** Burger layers are item-sized (40x40) sprites with the layer centred; presentation stacks
  *  them on a plate, each BURGER_LAYER_STEP_PX above the previous one. */

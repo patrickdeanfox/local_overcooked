@@ -34,6 +34,21 @@ const LIGHT = {
   ambientIntensity: 0.35,
 } as const;
 
+/** How a kitchen is framed: the part of Phaser's logical screen it must fill and the camera's turn.
+ *  The HUD band and the front view when absent; menus frame a diorama off to one side. */
+export interface Framing {
+  band?: { left: number; top: number; right: number; bottom: number }; // logical pixels
+  yawRad?: number;   // the camera turned about the kitchen's centre: 0 is the front view, positive looks from the right
+  pitchDeg?: number; // angle below horizontal; the kitchen camera's when absent
+}
+
+interface Fit { target: THREE.Vector3; distance: number; pitch: number; yaw: number; }
+
+/** Unit vector from a target towards a camera pitched `pitch` below horizontal and turned by `yaw`. */
+function viewDirection(pitch: number, yaw: number): THREE.Vector3 {
+  return new THREE.Vector3(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), Math.cos(yaw) * Math.cos(pitch));
+}
+
 const MAX_PIXEL_RATIO = 2;
 /** Under browser automation (the headless playtest harness renders in software) drop shadows
  *  and resolution so the sim keeps its frame budget; a real GPU never takes this path. */
@@ -50,6 +65,7 @@ export class Stage {
   private readonly hemisphere: THREE.HemisphereLight;
   private readonly ambient: THREE.AmbientLight;
   private readonly target = new THREE.Vector3();
+  private lastFit: Fit | null = null;
   private cssWidth = 0;
   private cssHeight = 0;
 
@@ -96,13 +112,14 @@ export class Stage {
 
   /** Places the camera so a `width` x `height` tile kitchen fills the band between the HUDs.
    *  `dressingHeight` is the tallest scenery behind the top row (a back wall), in tiles. */
-  fitToGrid(width: number, height: number, dressingHeight = 0): void {
+  fitToGrid(width: number, height: number, dressingHeight = 0, framing: Framing = {}): void {
     const top = Math.max(CAMERA.kitchenHeight, dressingHeight);
     const box = new THREE.Box3(new THREE.Vector3(0, 0, 0), new THREE.Vector3(width, top, height));
     this.target.copy(box.getCenter(new THREE.Vector3()));
-    const pitch = THREE.MathUtils.degToRad(CAMERA.pitchDeg);
-    const direction = new THREE.Vector3(0, Math.sin(pitch), Math.cos(pitch)); // from the target towards the camera
-    const band = this.usableBand();
+    const pitch = THREE.MathUtils.degToRad(framing.pitchDeg ?? CAMERA.pitchDeg);
+    const yaw = framing.yawRad ?? 0;
+    const direction = viewDirection(pitch, yaw); // from the target towards the camera
+    const band = framing.band ? this.bandFromPixels(framing.band) : this.usableBand();
 
     let distance = Math.max(width, height) * 2;
     for (let i = 0; i < CAMERA.fitIterations; i++) {
@@ -127,6 +144,18 @@ export class Stage {
     this.camera.lookAt(this.target);
     this.camera.updateMatrixWorld();
     this.placeSun(box);
+    this.lastFit = { target: this.target.clone(), distance, pitch, yaw };
+  }
+
+  /** Turns the last fit's camera about its target by `yawOffsetRad`, keeping the distance and
+   *  pitch: a menu diorama sways with this every frame. */
+  orbit(yawOffsetRad: number): void {
+    const fit = this.lastFit;
+    if (!fit) return;
+    const direction = viewDirection(fit.pitch, fit.yaw + yawOffsetRad);
+    this.camera.position.copy(fit.target).addScaledVector(direction, fit.distance);
+    this.camera.lookAt(fit.target);
+    this.camera.updateMatrixWorld();
   }
 
   /** Copies Phaser's canvas placement so both canvases overlap exactly. */
@@ -164,6 +193,16 @@ export class Stage {
   }
 
   // ─── Camera fit helpers ───────────────────────────────────────────────────
+  /** A band given in Phaser's logical pixels, as the NDC box the fit works in. */
+  private bandFromPixels(px: { left: number; top: number; right: number; bottom: number }): { minX: number; maxX: number; minY: number; maxY: number } {
+    return {
+      minX: (px.left / GAME_WIDTH) * 2 - 1,
+      maxX: (px.right / GAME_WIDTH) * 2 - 1,
+      minY: 1 - (px.bottom / GAME_HEIGHT) * 2,
+      maxY: 1 - (px.top / GAME_HEIGHT) * 2,
+    };
+  }
+
   private usableBand(): { minX: number; maxX: number; minY: number; maxY: number } {
     const m = CAMERA.marginNdc;
     return {
