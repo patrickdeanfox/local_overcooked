@@ -1,0 +1,172 @@
+{
+  "id": "oc2-1-2",
+  "game": "oc2",
+  "world": 1,
+  "index": 2,
+  "name": "1-2",
+  "theme": "Sushi City",
+  "wiki": "https://overcooked.fandom.com/wiki/1-2_(Overcooked!_2)",
+  "screenshots": [
+    "oc2/1-2.jpg"
+  ],
+  "timeLimitSec": 150,
+  "timerStartsOnFirstServe": true,
+  "unlockStars": 2,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "fish_sushi"
+  ],
+  "orderVariants": 1,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 22,
+    "max": 4,
+    "timeSec": 80
+  },
+  "stars": {
+    "1": [
+      60,
+      180,
+      300,
+      1350
+    ],
+    "2": [
+      60,
+      220,
+      420,
+      2200
+    ],
+    "3": [
+      60,
+      300,
+      460,
+      3100
+    ],
+    "4": [
+      60,
+      300,
+      460,
+      2800
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "return-clean",
+    "count": 4
+  },
+  "grid": {
+    "cols": 12,
+    "rows": 8,
+    "confidence": "med",
+    "ascii": [
+      " #BBBppRV## ",
+      " .......... ",
+      " .......... ",
+      " ....IJ!... ",
+      " ~~~~~~~~~~ ",
+      " .......... ",
+      " .......... ",
+      " ###XpSSSp# "
+    ]
+  },
+  "legendExtensions": {
+    "I": "rice crate",
+    "J": "fish crate",
+    "!": "other crate — nori at (7,3)",
+    "~": "pedestrian lane (base legend `road`); the lane row is an estimate"
+  },
+  "stations": {
+    "board": 3,
+    "potBurner": 3,
+    "panBurner": 0,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 0,
+    "drying": 0,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 0,
+    "plateStack": 0,
+    "plate": 4,
+    "counter": 7,
+    "crates": {
+      "rice": 1,
+      "fish": 1,
+      "nori": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 3,
+      "y": 5
+    },
+    {
+      "x": 7,
+      "y": 5
+    }
+  ],
+  "zones": [
+    {
+      "name": "courtyard",
+      "stations": [
+        "3 boards",
+        "rice/fish/nori crates",
+        "3 pot burners",
+        "serve",
+        "plate return",
+        "trash",
+        "4 plates"
+      ],
+      "links": []
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "pedestrians",
+      "detail": "townspeople cross the kitchen through gaps in the side walls and block chefs; the wiki names the obstacle but gives no lane, spacing or speed. Lane row and cadence are estimates.",
+      "periodSec": null
+    }
+  ],
+  "hazards": [
+    "pedestrian collisions: a chef walked into is stopped/shoved (no damage)"
+  ],
+  "features": {
+    "splitKitchen": false,
+    "throwRequired": false,
+    "movingPlatforms": false,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 57,
+    "counterTiles": 23,
+    "stationTiles": 16,
+    "longestWalkTiles": 4,
+    "chokepointWidth": 3,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "nori",
+    "rice",
+    "sushi recipe",
+    "clean plate return without a sink"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "spawns",
+    "grid.cols",
+    "grid.rows",
+    "features.chokepointWidth",
+    "dynamics[0] lane row and cadence",
+    "stations.extinguisher"
+  ]
+}

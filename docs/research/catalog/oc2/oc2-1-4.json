@@ -1,0 +1,184 @@
+{
+  "id": "oc2-1-4",
+  "game": "oc2",
+  "world": 1,
+  "index": 4,
+  "name": "1-4",
+  "theme": "Sushi City",
+  "wiki": "https://overcooked.fandom.com/wiki/1-4_(Overcooked!_2)",
+  "screenshots": [
+    "oc2/1-4.jpg"
+  ],
+  "timeLimitSec": 210,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 4,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "fish_sushi",
+    "cucumber_sushi"
+  ],
+  "orderVariants": 2,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 22,
+    "max": 4,
+    "timeSec": 80
+  },
+  "stars": {
+    "1": [
+      80,
+      180,
+      340,
+      950
+    ],
+    "2": [
+      120,
+      260,
+      400,
+      1100
+    ],
+    "3": [
+      140,
+      280,
+      460,
+      1500
+    ],
+    "4": [
+      140,
+      280,
+      460,
+      1600
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 4
+  },
+  "grid": {
+    "cols": 13,
+    "rows": 8,
+    "confidence": "low",
+    "ascii": [
+      "#!I##J!#BB###",
+      "X>>>>>>>>>>>S",
+      "W...........S",
+      "D..##pp##...#",
+      "#..##pp##...S",
+      "#...........#",
+      "#<<<<<<<<<<<#",
+      "#####RV######"
+    ]
+  },
+  "legendExtensions": {
+    "I": "rice crate",
+    "J": "fish crate",
+    "!": "other crate — nori at (1,0), cucumber at (6,0)",
+    ">": "conveyor belt running right (top belt)",
+    "<": "conveyor belt running left (bottom belt)"
+  },
+  "stations": {
+    "board": 2,
+    "potBurner": 3,
+    "panBurner": 0,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 1,
+    "drying": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 0,
+    "plateStack": 0,
+    "plate": 4,
+    "counter": 32,
+    "crates": {
+      "nori": 1,
+      "rice": 1,
+      "fish": 1,
+      "cucumber": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 2,
+      "y": 5
+    },
+    {
+      "x": 10,
+      "y": 5
+    }
+  ],
+  "zones": [
+    {
+      "name": "kitchen floor",
+      "stations": [
+        "4 crates",
+        "2 boards",
+        "3 pot burners",
+        "sink",
+        "drying",
+        "trash",
+        "serve",
+        "plate return",
+        "4 plates"
+      ],
+      "links": [
+        {
+          "to": "itself",
+          "via": "the two belts carry chefs and dropped items sideways"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "conveyors",
+      "detail": "two full-width horizontal belts, the upper one carrying right and the lower one carrying left. Belt speed is not on the wiki.",
+      "periodSec": null
+    }
+  ],
+  "hazards": [
+    "burnt rice: pots left too long catch fire (no extinguisher is mentioned on the wiki page)"
+  ],
+  "features": {
+    "splitKitchen": false,
+    "throwRequired": false,
+    "movingPlatforms": false,
+    "conveyors": true,
+    "portals": false,
+    "floorTiles": 54,
+    "counterTiles": 50,
+    "stationTiles": 18,
+    "longestWalkTiles": 12,
+    "chokepointWidth": 2,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "conveyor belts",
+    "nori",
+    "rice",
+    "cucumber",
+    "fish",
+    "sushi recipe"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "spawns",
+    "grid.cols",
+    "grid.rows",
+    "features.chokepointWidth",
+    "belt speed",
+    "stations.extinguisher"
+  ]
+}

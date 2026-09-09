@@ -1,0 +1,197 @@
+{
+  "id": "oc2-3-5",
+  "game": "oc2",
+  "world": 3,
+  "index": 5,
+  "name": "3-5",
+  "theme": "Ravenous Rapids",
+  "wiki": "https://overcooked.fandom.com/wiki/3-5_(Overcooked!_2)",
+  "screenshots": [
+    "oc2/3-5.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 24,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "chips",
+    "nuggets",
+    "nuggets_and_chips"
+  ],
+  "orderVariants": 3,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 24,
+    "max": 4,
+    "timeSec": 90
+  },
+  "stars": {
+    "1": [
+      140,
+      180,
+      240,
+      830
+    ],
+    "2": [
+      240,
+      300,
+      420,
+      850
+    ],
+    "3": [
+      240,
+      320,
+      440,
+      950
+    ],
+    "4": [
+      240,
+      320,
+      440,
+      950
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 2
+  },
+  "grid": {
+    "cols": 15,
+    "rows": 6,
+    "confidence": "med",
+    "ascii": [
+      "###VR##_#B###B#",
+      "#.....#_E.....#",
+      "#.....#_p.....p",
+      "#.....#_#.....#",
+      "#.....#_#.....#",
+      "#Y%CY##_###WDX#"
+    ]
+  },
+  "legendExtensions": {
+    "Y": "deep fryer",
+    "%": "potato crate",
+    "C": "chicken crate",
+    "_": "river — a chef who walks in falls and respawns"
+  },
+  "stations": {
+    "board": 2,
+    "potBurner": 0,
+    "panBurner": 0,
+    "fryer": 2,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 1,
+    "drying": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plateStack": 0,
+    "plate": 2,
+    "counter": 30,
+    "crates": {
+      "potato": 1,
+      "chicken": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 3,
+      "y": 3
+    },
+    {
+      "x": 11,
+      "y": 3
+    }
+  ],
+  "zones": [
+    {
+      "name": "left raft",
+      "stations": [
+        "serve",
+        "plate return",
+        "2 deep fryers",
+        "potato crate",
+        "chicken crate"
+      ],
+      "links": [
+        {
+          "to": "right raft",
+          "via": "throw"
+        },
+        {
+          "to": "right raft",
+          "via": "walk-when-close"
+        }
+      ]
+    },
+    {
+      "name": "right raft",
+      "stations": [
+        "2 chopping boards",
+        "sink",
+        "drying",
+        "trash",
+        "extinguisher",
+        "2 plates"
+      ],
+      "links": [
+        {
+          "to": "left raft",
+          "via": "throw or walk-when-close"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "moving-platforms",
+      "detail": "both rafts drift; the wiki states outright that they are sometimes too far apart to walk between. No period given.",
+      "periodSec": null
+    }
+  ],
+  "hazards": [
+    "fall in the river: chef respawns (delay not on the wiki)",
+    "fryer fire"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": true,
+    "movingPlatforms": true,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 40,
+    "counterTiles": 44,
+    "stationTiles": 14,
+    "longestWalkTiles": 4,
+    "chokepointWidth": 1,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "deep fryer",
+    "throwing",
+    "moving platforms",
+    "chicken",
+    "potato",
+    "fast food recipes"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "spawns",
+    "grid.cols",
+    "grid.rows",
+    "features.chokepointWidth",
+    "dynamics[0].periodSec"
+  ]
+}

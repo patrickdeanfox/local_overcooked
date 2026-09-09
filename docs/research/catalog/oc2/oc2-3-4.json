@@ -1,0 +1,224 @@
+{
+  "id": "oc2-3-4",
+  "game": "oc2",
+  "world": 3,
+  "index": 4,
+  "name": "3-4",
+  "theme": "Conjurer's Kitchen",
+  "wiki": "https://overcooked.fandom.com/wiki/3-4_(Overcooked!_2)",
+  "screenshots": [
+    "oc2/3-4.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 22,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "meat_burger",
+    "cheese_burger",
+    "lettuce_cheese_burger",
+    "tomato_lettuce_burger"
+  ],
+  "orderVariants": 4,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 22,
+    "max": 4,
+    "timeSec": 90
+  },
+  "stars": {
+    "1": [
+      160,
+      240,
+      300,
+      600
+    ],
+    "2": [
+      260,
+      320,
+      440,
+      950
+    ],
+    "3": [
+      280,
+      400,
+      540,
+      1100
+    ],
+    "4": [
+      280,
+      400,
+      540,
+      1400
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 4
+  },
+  "grid": {
+    "cols": 15,
+    "rows": 10,
+    "confidence": "med",
+    "ascii": [
+      "     #RV##     ",
+      "     @...@     ",
+      "     #####     ",
+      "######___######",
+      "@....#___#....@",
+      "#BB..#___#....X",
+      "p....#___#....W",
+      "p....#___#....D",
+      "E....#___p....p",
+      "#FFF##___THAUL#"
+    ]
+  },
+  "legendExtensions": {
+    "H": "cheese crate",
+    "@": "portal; (5,1) ↔ (0,4) joins the middle to the left side and (9,1) ↔ (14,4) joins it to the right",
+    "_": "the rift — not walkable, not fallable, and the only way across is a throw"
+  },
+  "stations": {
+    "board": 2,
+    "potBurner": 0,
+    "panBurner": 3,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 1,
+    "drying": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plateStack": 0,
+    "plate": 4,
+    "counter": 34,
+    "crates": {
+      "tomato": 1,
+      "cheese": 1,
+      "beef": 1,
+      "bun": 1,
+      "lettuce": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 3,
+      "y": 6
+    },
+    {
+      "x": 11,
+      "y": 6
+    }
+  ],
+  "zones": [
+    {
+      "name": "raised middle",
+      "stations": [
+        "serve",
+        "plate return",
+        "2 portal tiles"
+      ],
+      "links": [
+        {
+          "to": "left side",
+          "via": "portal"
+        },
+        {
+          "to": "right side",
+          "via": "portal"
+        }
+      ]
+    },
+    {
+      "name": "left side",
+      "stations": [
+        "2 chopping boards",
+        "3 pan burners",
+        "extinguisher",
+        "2 plates",
+        "1 portal tile"
+      ],
+      "links": [
+        {
+          "to": "raised middle",
+          "via": "portal"
+        },
+        {
+          "to": "right side",
+          "via": "throw across the rift"
+        }
+      ]
+    },
+    {
+      "name": "right side",
+      "stations": [
+        "sink",
+        "drying",
+        "trash",
+        "5 crates (tomato, cheese, beef, bun, lettuce)",
+        "2 plates",
+        "1 portal tile"
+      ],
+      "links": [
+        {
+          "to": "raised middle",
+          "via": "portal"
+        },
+        {
+          "to": "left side",
+          "via": "throw across the rift"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "portals",
+      "detail": "two fixed portal pairs joining the raised middle to each side. No timing; they are always on.",
+      "periodSec": null
+    }
+  ],
+  "hazards": [
+    "pan fire — the extinguisher is on the left side only"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": true,
+    "movingPlatforms": false,
+    "conveyors": false,
+    "portals": true,
+    "floorTiles": 45,
+    "counterTiles": 54,
+    "stationTiles": 20,
+    "longestWalkTiles": 15,
+    "chokepointWidth": 1,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "portals",
+    "rift terrain",
+    "throwing",
+    "cheese",
+    "burger variants"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "spawns",
+    "grid.cols",
+    "grid.rows",
+    "features.chokepointWidth",
+    "features.longestWalkTiles"
+  ]
+}

@@ -1,0 +1,200 @@
+{
+  "id": "oc2-1-5",
+  "game": "oc2",
+  "world": 1,
+  "index": 5,
+  "name": "1-5",
+  "theme": "Buffet Balloons",
+  "wiki": "https://overcooked.fandom.com/wiki/1-5_(Overcooked!_2)",
+  "screenshots": [
+    "oc2/1-5.jpg"
+  ],
+  "timeLimitSec": 180,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 5,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "tomato_pasta"
+  ],
+  "orderVariants": 1,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 26,
+    "max": 4,
+    "timeSec": 100
+  },
+  "stars": {
+    "1": [
+      40,
+      100,
+      200,
+      700
+    ],
+    "2": [
+      80,
+      180,
+      260,
+      900
+    ],
+    "3": [
+      100,
+      240,
+      360,
+      1100
+    ],
+    "4": [
+      100,
+      240,
+      360,
+      1200
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 2
+  },
+  "grid": {
+    "cols": 15,
+    "rows": 9,
+    "confidence": "low",
+    "ascii": [
+      "#########      ",
+      "#...FF..#      ",
+      "#.......# ##WD#",
+      "#XBBB#pp# #...T",
+      "#.......# #...R",
+      "#........=....!",
+      "#..S#S..# #...#",
+      "#.......# #...#",
+      "######### ##V##"
+    ]
+  },
+  "legendExtensions": {
+    "!": "other crate — pasta at (14,5)",
+    "=": "the crossing between the two balloons; walkable only while the balloons drift close"
+  },
+  "stations": {
+    "board": 3,
+    "potBurner": 2,
+    "panBurner": 2,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 1,
+    "drying": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 0,
+    "plateStack": 0,
+    "plate": 2,
+    "counter": 46,
+    "crates": {
+      "tomato": 1,
+      "pasta": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 3,
+      "y": 4
+    },
+    {
+      "x": 12,
+      "y": 4
+    }
+  ],
+  "zones": [
+    {
+      "name": "big balloon (left)",
+      "stations": [
+        "2 pan burners",
+        "2 pot burners",
+        "3 sliding boards",
+        "trash",
+        "2 plates"
+      ],
+      "links": [
+        {
+          "to": "small balloon",
+          "via": "walk-when-close"
+        },
+        {
+          "to": "small balloon",
+          "via": "throw"
+        }
+      ]
+    },
+    {
+      "name": "small balloon (right)",
+      "stations": [
+        "sink",
+        "drying",
+        "tomato crate",
+        "pasta crate",
+        "plate return",
+        "serve"
+      ],
+      "links": [
+        {
+          "to": "big balloon",
+          "via": "walk-when-close or throw"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "sliders",
+      "detail": "the three-board counter on the big balloon slides up and down across the deck; the wiki gives no period.",
+      "periodSec": null
+    },
+    {
+      "type": "moving-platforms",
+      "detail": "the two balloons drift, opening and closing the crossing in the middle of the level; no period on the wiki.",
+      "periodSec": null
+    }
+  ],
+  "hazards": [
+    "fall off a balloon: chef respawns after a short delay (duration not on the wiki)"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": true,
+    "movingPlatforms": true,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 55,
+    "counterTiles": 62,
+    "stationTiles": 16,
+    "longestWalkTiles": 5,
+    "chokepointWidth": 1,
+    "recipeSteps": 5
+  },
+  "missingMechanics": [
+    "moving platforms",
+    "throwing",
+    "pasta",
+    "pasta recipe"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "spawns",
+    "grid.cols",
+    "grid.rows",
+    "features.chokepointWidth",
+    "dynamics[0].periodSec",
+    "dynamics[1].periodSec",
+    "stations.extinguisher"
+  ]
+}

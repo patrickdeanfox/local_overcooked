@@ -1,0 +1,212 @@
+{
+  "id": "oc2-2-6",
+  "game": "oc2",
+  "world": 2,
+  "index": 6,
+  "name": "2-6",
+  "theme": "Moreish Mines",
+  "wiki": "https://overcooked.fandom.com/wiki/2-6_(Overcooked!_2)",
+  "screenshots": [
+    "oc2/2-6.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": true,
+  "unlockStars": 14,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "meat_burger",
+    "cheese_burger"
+  ],
+  "orderVariants": 2,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 22,
+    "max": 4,
+    "timeSec": 80
+  },
+  "stars": {
+    "1": [
+      260,
+      340,
+      460,
+      1180
+    ],
+    "2": [
+      400,
+      540,
+      740,
+      1600
+    ],
+    "3": [
+      480,
+      660,
+      880,
+      1900
+    ],
+    "4": [
+      480,
+      660,
+      880,
+      2200
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 4
+  },
+  "grid": {
+    "cols": 13,
+    "rows": 10,
+    "confidence": "med",
+    "ascii": [
+      "#UAH####X####",
+      "#.....F.B...#",
+      "#.....p.B...#",
+      "W.....p.....#",
+      "D.....F.....E",
+      "#.....p.....#",
+      "#.....p.....#",
+      "#.....F.....#",
+      "#.....#.....#",
+      "____######RV#"
+    ]
+  },
+  "legendExtensions": {
+    "_": "mine pit off the bottom-left of the platform — not walkable"
+  },
+  "stations": {
+    "board": 2,
+    "potBurner": 0,
+    "panBurner": 3,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 1,
+    "drying": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plateStack": 0,
+    "plate": 4,
+    "counter": 30,
+    "crates": {
+      "bun": 1,
+      "beef": 1,
+      "cheese": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 3,
+      "y": 5
+    },
+    {
+      "x": 9,
+      "y": 5
+    }
+  ],
+  "zones": [
+    {
+      "name": "left half (while the counter is vertical)",
+      "stations": [
+        "bun crate",
+        "beef crate",
+        "cheese crate",
+        "sink",
+        "drying"
+      ],
+      "links": [
+        {
+          "to": "right half (while the counter is vertical)",
+          "via": "none while the counter is vertical; the rotation reopens it"
+        },
+        {
+          "to": "right half (while the counter is vertical)",
+          "via": "throw"
+        }
+      ]
+    },
+    {
+      "name": "right half (while the counter is vertical)",
+      "stations": [
+        "2 chopping boards",
+        "trash",
+        "extinguisher",
+        "serve",
+        "plate return"
+      ],
+      "links": [
+        {
+          "to": "left half (while the counter is vertical)",
+          "via": "none while the counter is vertical; throw across otherwise"
+        }
+      ]
+    },
+    {
+      "name": "rotating centre counter",
+      "stations": [
+        "3 pan burners",
+        "4 plates"
+      ],
+      "links": [
+        {
+          "to": "left half (while the counter is vertical)",
+          "via": "rotation"
+        },
+        {
+          "to": "right half (while the counter is vertical)",
+          "via": "rotation"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "rotating-counter",
+      "detail": "the seven-tile centre counter rotates counter-clockwise 90° about its middle tile (6,4) every 30 seconds, so the wall between the halves swings from vertical to horizontal and back. It carries the three pans and the four plates with it.",
+      "periodSec": 30
+    }
+  ],
+  "hazards": [
+    "fall into the pit at the bottom left",
+    "pan fire — the extinguisher is on the right half only"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": true,
+    "movingPlatforms": true,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 78,
+    "counterTiles": 48,
+    "stationTiles": 18,
+    "longestWalkTiles": 19,
+    "chokepointWidth": 1,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "rotating counter group",
+    "throwing",
+    "cheese",
+    "cheese burger recipe"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "spawns",
+    "grid.cols",
+    "grid.rows",
+    "features.chokepointWidth",
+    "features.longestWalkTiles"
+  ]
+}

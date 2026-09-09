@@ -1,0 +1,206 @@
+{
+  "id": "oc2-2-5",
+  "game": "oc2",
+  "world": 2,
+  "index": 5,
+  "name": "2-5",
+  "theme": "Moreish Mines",
+  "wiki": "https://overcooked.fandom.com/wiki/2-5_(Overcooked!_2)",
+  "screenshots": [
+    "oc2/2-5.jpg"
+  ],
+  "timeLimitSec": 210,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 12,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "beef_burrito",
+    "chicken_burrito"
+  ],
+  "orderVariants": 2,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 26,
+    "max": 4,
+    "timeSec": 100
+  },
+  "stars": {
+    "1": [
+      220,
+      300,
+      400,
+      800
+    ],
+    "2": [
+      240,
+      340,
+      460,
+      1000
+    ],
+    "3": [
+      320,
+      440,
+      600,
+      1400
+    ],
+    "4": [
+      320,
+      440,
+      600,
+      1400
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 4
+  },
+  "grid": {
+    "cols": 15,
+    "rows": 9,
+    "confidence": "low",
+    "ascii": [
+      "#SS####__##V#R#",
+      "W.....#__#....p",
+      "D.....#__#....p",
+      "#.....#__#....#",
+      "#!ACI..==.....#",
+      "#.....#__#....#",
+      "p.....#__#....#",
+      "p.....#__#....X",
+      "#BBBE##__#FFFF#"
+    ]
+  },
+  "legendExtensions": {
+    "I": "rice crate",
+    "C": "chicken crate",
+    "!": "other crate — tortilla at (1,4)",
+    "_": "mine chasm — a fall hazard, not walkable",
+    "=": "the middle rail, the only walkable link between the halves"
+  },
+  "stations": {
+    "board": 3,
+    "potBurner": 2,
+    "panBurner": 4,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 1,
+    "drying": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plateStack": 0,
+    "plate": 4,
+    "counter": 33,
+    "crates": {
+      "tortilla": 1,
+      "beef": 1,
+      "chicken": 1,
+      "rice": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 3,
+      "y": 2
+    },
+    {
+      "x": 12,
+      "y": 6
+    }
+  ],
+  "zones": [
+    {
+      "name": "left side",
+      "stations": [
+        "2 pot burners",
+        "sink",
+        "drying",
+        "3 chopping boards",
+        "extinguisher",
+        "2 plates",
+        "the 4 sliding crates when they are on this side"
+      ],
+      "links": [
+        {
+          "to": "right side",
+          "via": "walk (middle rail)"
+        },
+        {
+          "to": "right side",
+          "via": "throw"
+        }
+      ]
+    },
+    {
+      "name": "right side",
+      "stations": [
+        "serve",
+        "plate return",
+        "trash",
+        "4 pan burners",
+        "2 plates",
+        "the 4 sliding crates when they are on this side"
+      ],
+      "links": [
+        {
+          "to": "left side",
+          "via": "walk (middle rail) or throw"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "sliders",
+      "detail": "the four-crate counter slides left and right along the middle rail, so which ingredient a chef can reach changes constantly. Period not on the wiki.",
+      "periodSec": null
+    }
+  ],
+  "hazards": [
+    "fall into the chasm: chef respawns (delay not on the wiki)",
+    "pan fire"
+  ],
+  "features": {
+    "splitKitchen": false,
+    "throwRequired": true,
+    "movingPlatforms": false,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 63,
+    "counterTiles": 56,
+    "stationTiles": 23,
+    "longestWalkTiles": 14,
+    "chokepointWidth": 1,
+    "recipeSteps": 5
+  },
+  "missingMechanics": [
+    "crates on a sliding counter",
+    "throwing",
+    "tortilla",
+    "rice",
+    "chicken",
+    "burrito recipe",
+    "fall hazard"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "spawns",
+    "grid.cols",
+    "grid.rows",
+    "features.chokepointWidth",
+    "dynamics[0].periodSec",
+    "chasm width"
+  ]
+}

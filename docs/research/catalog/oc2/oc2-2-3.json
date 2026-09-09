@@ -1,0 +1,217 @@
+{
+  "id": "oc2-2-3",
+  "game": "oc2",
+  "world": 2,
+  "index": 3,
+  "name": "2-3",
+  "theme": "Buffet Balloons",
+  "wiki": "https://overcooked.fandom.com/wiki/2-3_(Overcooked!_2)",
+  "screenshots": [
+    "oc2/2-3.jpg"
+  ],
+  "timeLimitSec": 210,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 9,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "beef_pasta",
+    "mushroom_pasta"
+  ],
+  "orderVariants": 2,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 26,
+    "max": 4,
+    "timeSec": 100
+  },
+  "stars": {
+    "1": [
+      120,
+      180,
+      260,
+      700
+    ],
+    "2": [
+      220,
+      300,
+      400,
+      750
+    ],
+    "3": [
+      260,
+      360,
+      480,
+      700
+    ],
+    "4": [
+      260,
+      360,
+      480,
+      700
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 4
+  },
+  "grid": {
+    "cols": 17,
+    "rows": 8,
+    "confidence": "low",
+    "ascii": [
+      "#!MA#B#   #SSFF##",
+      "V.....#   p.....B",
+      "R.....#   p.....p",
+      "#.....#   #.....p",
+      "#.....#   E.....X",
+      "##DW#.#   #.#####",
+      "     =======     ",
+      "      1111       "
+    ]
+  },
+  "legendExtensions": {
+    "!": "other crate — pasta at (1,0)",
+    "=": "the drifting ferry balloon's deck (walkable moving platform)",
+    "1": "the ferry balloon's four countertops (slider group 1); they drift left and right under the two main balloons"
+  },
+  "stations": {
+    "board": 2,
+    "potBurner": 2,
+    "panBurner": 2,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 1,
+    "drying": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plateStack": 0,
+    "plate": 4,
+    "counter": 23,
+    "crates": {
+      "pasta": 1,
+      "mushroom": 1,
+      "beef": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 3,
+      "y": 3
+    },
+    {
+      "x": 13,
+      "y": 3
+    }
+  ],
+  "zones": [
+    {
+      "name": "left balloon",
+      "stations": [
+        "sink",
+        "drying",
+        "plate return",
+        "serve",
+        "1 chopping board",
+        "pasta/mushroom/beef crates"
+      ],
+      "links": [
+        {
+          "to": "ferry balloon",
+          "via": "walk-when-close"
+        },
+        {
+          "to": "right balloon",
+          "via": "throw"
+        }
+      ]
+    },
+    {
+      "name": "right balloon",
+      "stations": [
+        "1 chopping board",
+        "trash",
+        "4 plates",
+        "2 pan burners",
+        "2 pot burners",
+        "extinguisher"
+      ],
+      "links": [
+        {
+          "to": "ferry balloon",
+          "via": "walk-when-close"
+        },
+        {
+          "to": "left balloon",
+          "via": "throw"
+        }
+      ]
+    },
+    {
+      "name": "ferry balloon",
+      "stations": [
+        "4 countertops"
+      ],
+      "links": [
+        {
+          "to": "left balloon",
+          "via": "moving platform"
+        },
+        {
+          "to": "right balloon",
+          "via": "moving platform"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "moving-platforms",
+      "detail": "the fourth balloon, carrying four countertops, drifts back and forth beneath the two main balloons. Period not on the wiki.",
+      "periodSec": null
+    }
+  ],
+  "hazards": [
+    "fall off a balloon: chef respawns (delay not on the wiki)",
+    "pan/pot fire"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": true,
+    "movingPlatforms": true,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 49,
+    "counterTiles": 46,
+    "stationTiles": 23,
+    "longestWalkTiles": 2,
+    "chokepointWidth": 1,
+    "recipeSteps": 5
+  },
+  "missingMechanics": [
+    "moving platform ferry",
+    "throwing",
+    "pasta",
+    "pasta recipe"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "spawns",
+    "grid.cols",
+    "grid.rows",
+    "features.chokepointWidth",
+    "dynamics[0].periodSec"
+  ]
+}

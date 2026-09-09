@@ -1,0 +1,233 @@
+{
+  "id": "oc2-3-6",
+  "game": "oc2",
+  "world": 3,
+  "index": 6,
+  "name": "3-6",
+  "theme": "Moreish Mines → Ravenous Rapids",
+  "wiki": "https://overcooked.fandom.com/wiki/3-6_(Overcooked!_2)",
+  "screenshots": [
+    "oc2/3-6.jpg"
+  ],
+  "timeLimitSec": 250,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 26,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "beef_burrito",
+    "chicken_burrito"
+  ],
+  "orderVariants": 2,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 26,
+    "max": 4,
+    "timeSec": 100
+  },
+  "stars": {
+    "1": [
+      240,
+      300,
+      400,
+      1050
+    ],
+    "2": [
+      320,
+      420,
+      560,
+      1600
+    ],
+    "3": [
+      400,
+      540,
+      740,
+      1800
+    ],
+    "4": [
+      400,
+      540,
+      740,
+      2100
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "return-clean",
+    "count": 2
+  },
+  "grid": {
+    "cols": 15,
+    "rows": 11,
+    "confidence": "low",
+    "ascii": [
+      "##F#FV##       ",
+      "#......#       ",
+      "#......#       ",
+      "#B##B#E# #IC#  ",
+      "         #==#  ",
+      "         #==#  ",
+      "         #A!#  ",
+      "               ",
+      "    #pp###R##  ",
+      "    #.......#  ",
+      "    #X###SS##  "
+    ]
+  },
+  "legendExtensions": {
+    "I": "rice crate",
+    "C": "chicken crate",
+    "!": "other crate — tortilla at (11,6)",
+    "=": "the swinging middle platform's deck (walkable moving platform)"
+  },
+  "stations": {
+    "board": 2,
+    "potBurner": 2,
+    "panBurner": 2,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 0,
+    "drying": 0,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plateStack": 0,
+    "plate": 2,
+    "counter": 36,
+    "crates": {
+      "rice": 1,
+      "chicken": 1,
+      "beef": 1,
+      "tortilla": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 3,
+      "y": 2
+    },
+    {
+      "x": 8,
+      "y": 9
+    }
+  ],
+  "zones": [
+    {
+      "name": "top platform",
+      "stations": [
+        "2 chopping boards",
+        "2 pan burners",
+        "extinguisher",
+        "serve"
+      ],
+      "links": [
+        {
+          "to": "middle platform (swinging)",
+          "via": "moving platform"
+        },
+        {
+          "to": "bottom platform",
+          "via": "throw"
+        }
+      ]
+    },
+    {
+      "name": "middle platform (swinging)",
+      "stations": [
+        "rice crate",
+        "chicken crate",
+        "beef crate",
+        "tortilla crate"
+      ],
+      "links": [
+        {
+          "to": "top platform",
+          "via": "moving platform"
+        },
+        {
+          "to": "bottom platform",
+          "via": "moving platform"
+        }
+      ]
+    },
+    {
+      "name": "bottom platform",
+      "stations": [
+        "2 pot burners",
+        "trash",
+        "plate return",
+        "2 plates"
+      ],
+      "links": [
+        {
+          "to": "middle platform (swinging)",
+          "via": "moving platform"
+        },
+        {
+          "to": "top platform",
+          "via": "throw"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "moving-platforms",
+      "detail": "the middle platform swings across the gap between the top and bottom platforms, and is the only walkable link to either. Period not on the wiki.",
+      "periodSec": null
+    },
+    {
+      "type": "phase-change",
+      "detail": "at 2:20 elapsed (1:50 remaining) the mine floods; the three platforms become rafts on the river. The middle raft vanishes briefly during the change and the three then drift while staying mostly connected.",
+      "periodSec": null
+    }
+  ],
+  "hazards": [
+    "fall into the mine (and later the river): chef respawns (delay not on the wiki)",
+    "pan and pot fire — the extinguisher is on the top platform only"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": true,
+    "movingPlatforms": true,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 23,
+    "counterTiles": 52,
+    "stationTiles": 16,
+    "longestWalkTiles": 12,
+    "chokepointWidth": 1,
+    "recipeSteps": 5
+  },
+  "missingMechanics": [
+    "swinging platform",
+    "mid-level phase change",
+    "throwing",
+    "tortilla",
+    "rice",
+    "chicken",
+    "burrito recipe",
+    "clean plate return without a sink"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "spawns",
+    "grid.cols",
+    "grid.rows",
+    "features.chokepointWidth",
+    "dynamics[0].periodSec",
+    "plates.count",
+    "platform spacing",
+    "features.longestWalkTiles"
+  ]
+}
