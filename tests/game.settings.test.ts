@@ -4,9 +4,10 @@ import { CHEF_SKINS } from '../src/art/models';
 import {
   assistSummary, chefSummary, countsTowardUnlock, CUSTOM_FIELDS, customModifiers, customSummary, cycleChef,
   cyclePlayers, cyclePreset, cycleSeedMode, dailySeed, DEFAULT_CUSTOM, defaultSettings, describeModifiers,
-  difficultySummary, formatCustomValue, isAssisted, loadSettings, normaliseSeed, PRESETS, PRESET_IDS, presetModifiers,
-  presetName, presetSummary, saveSettings, SEED_LIMIT, seedFor, SETTINGS_VERSION, settingsSummary, stepCustom,
-  type CustomDifficulty, type Settings,
+  difficultySummary, formatCustomValue, isAssisted, loadSettings, MECHANIC_IDS, MECHANIC_NAMES, mechanicModifiers,
+  mechanicSummary, NO_MECHANICS, normaliseSeed, PRESETS, PRESET_IDS, presetModifiers, presetName, presetSummary,
+  saveSettings, SEED_LIMIT, seedFor, SETTINGS_VERSION, settingsSummary, stepCustom,
+  type CustomDifficulty, type Mechanics, type Settings,
 } from '../src/game/settings';
 import type { StorageLike } from '../src/game/storage';
 
@@ -177,6 +178,65 @@ describe('assists', () => {
   });
 });
 
+// ─── Mechanics ──────────────────────────────────────────────────────────────
+describe('mechanics', () => {
+  const twoOn: Mechanics = { ...NO_MECHANICS, eightySix: true, twoPlateCarry: true };
+
+  it('default to off, one row per switch, and add nothing to the preset modifiers', () => {
+    expect(defaultSettings().mechanics).toEqual(NO_MECHANICS);
+    expect(Object.values(defaultSettings().mechanics).every((on) => on === false)).toBe(true);
+    expect([...MECHANIC_IDS].sort()).toEqual(Object.keys(NO_MECHANICS).sort());
+    expect(new Set(MECHANIC_IDS).size).toBe(5);
+    for (const id of MECHANIC_IDS) expect(MECHANIC_NAMES[id].length).toBeGreaterThan(0);
+    expect(mechanicModifiers(NO_MECHANICS)).toEqual({});
+    expect(presetModifiers(defaultSettings())).toEqual({});
+  });
+
+  it('fold the switched-on mechanics into the run modifiers without making the run assisted', () => {
+    expect(mechanicModifiers(twoOn)).toEqual({ eightySix: true, twoPlateCarry: true });
+    const settings: Settings = {
+      ...defaultSettings(),
+      preset: 'hard',
+      assists: { instantCooking: false, ordersNeverExpire: true, noBurning: false },
+      mechanics: twoOn,
+    };
+    const mods = presetModifiers(settings);
+    expect(mods).toEqual({ ...PRESETS.hard.modifiers, ordersNeverExpire: true, eightySix: true, twoPlateCarry: true });
+    expect(isAssisted({ eightySix: true, twoPlateCarry: true, tray: true, chopAssist: true, passThroughShelf: true })).toBe(false);
+    expect(isAssisted(mods)).toBe(true); // the assist, not the mechanics
+  });
+
+  it('describe themselves on the title and difficulty rows', () => {
+    expect(mechanicSummary(NO_MECHANICS)).toBe('off');
+    expect(mechanicSummary(twoOn)).toBe('two-plate carry · the 86 system');
+    expect(settingsSummary({ ...defaultSettings(), mechanics: twoOn })).toBe('2 mechanics');
+    expect(settingsSummary({ ...defaultSettings(), mechanics: { ...NO_MECHANICS, tray: true } })).toBe('1 mechanic');
+    expect(describeModifiers({ chopAssist: true, passThroughShelf: true })).toBe('pass-through shelf · chop assist');
+    expect(describeModifiers({ ...PRESETS.hard.modifiers, tray: true }))
+      .toBe('order gap x0.8 · patience x0.85 · tickets +1 · the tray');
+  });
+
+  it('read a save from before the switches existed, or a malformed one, as off', () => {
+    const old = fakeStorage({
+      [STORAGE_KEYS.SETTINGS]: JSON.stringify({ version: SETTINGS_VERSION, players: 2, preset: 'normal' }),
+    });
+    expect(loadSettings(old).mechanics).toEqual(NO_MECHANICS);
+    const partial = fakeStorage({
+      [STORAGE_KEYS.SETTINGS]: JSON.stringify({ version: SETTINGS_VERSION, mechanics: { tray: true, eightySix: 'yes', bogus: true } }),
+    });
+    expect(loadSettings(partial).mechanics).toEqual({ ...NO_MECHANICS, tray: true });
+    expect(loadSettings(fakeStorage({ [STORAGE_KEYS.SETTINGS]: JSON.stringify({ version: SETTINGS_VERSION, mechanics: 'all' }) })).mechanics)
+      .toEqual(NO_MECHANICS);
+  });
+
+  it('round-trip through storage with the other settings', () => {
+    const storage = fakeStorage();
+    const settings: Settings = { ...defaultSettings(), mechanics: twoOn };
+    expect(saveSettings(settings, storage)).toBe(true);
+    expect(loadSettings(storage).mechanics).toEqual(twoOn);
+  });
+});
+
 // ─── Chefs and audio ────────────────────────────────────────────────────────
 describe('chefs and audio', () => {
   it('default to blue and red aprons with everything audible', () => {
@@ -269,6 +329,7 @@ describe('settings persistence', () => {
       players: 1, preset: 'chaos', custom: { ...DEFAULT_CUSTOM, washTimeScale: 0.5, maxOrdersDelta: 2 },
       seedMode: 'fixed', fixedSeed: 99, freePlay: true,
       assists: { instantCooking: true, ordersNeverExpire: false, noBurning: true },
+      mechanics: { twoPlateCarry: true, chopAssist: false, tray: true, passThroughShelf: false, eightySix: true },
       audio: { music: false, sfx: true },
       chefs: [4, 2],
     };

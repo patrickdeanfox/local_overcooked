@@ -23,5 +23,11 @@
     "#............#",
     "#B#B####S#S#S#"
   ],
-  "spawns": [{ "x": 5, "y": 1 }, { "x": 7, "y": 1 }]
+  "spawns": [{ "x": 5, "y": 1 }, { "x": 7, "y": 1 }],
+  "stations": [
+    { "x": 4, "y": 0, "type": "delivery" },
+    { "x": 11, "y": 3, "type": "trayRack" }
+  ],
+  "items": [{ "x": 11, "y": 3, "item": "tray" }],
+  "eightySix": { "crateSize": 6, "restockDelaySec": 30 }
 }

@@ -1,6 +1,7 @@
 // ─── Settings scene ─────────────────────────────────────────────────────────
-// The settings page: seed, free play, the assists, the door to the Custom difficulty page and
-// the audio switches, one row each with a line of explanation under the list. Opened from the
+// The settings page: seed, free play, the assists, the five mechanics switches
+// (docs/MECHANICS.md), the door to the Custom difficulty page and the audio switches, one row
+// each with a line of explanation under the list. Opened from the
 // title's Settings row; Esc, B or Back return. Every edit saves at once. Players, difficulty
 // and the chefs stay on the title and the Chefs page, where they change most often.
 import Phaser from 'phaser';
@@ -9,8 +10,8 @@ import { createInputManager, menuLabels } from '../../input';
 import type { InputManager } from '../../input/types';
 import { getAudioBus, installAudioGestureResume, installMuteToggle } from '../audioBus';
 import {
-  ASSIST_IDS, ASSIST_NAMES, CUSTOM_PRESET, customSummary, cycleSeedMode, dailySeed, loadSettings, saveSettings,
-  SEED_LIMIT, type AssistId, type Settings,
+  ASSIST_IDS, ASSIST_NAMES, CUSTOM_PRESET, customSummary, cycleSeedMode, dailySeed, loadSettings, MECHANIC_IDS,
+  MECHANIC_NAMES, saveSettings, SEED_LIMIT, type AssistId, type MechanicId, type Settings,
 } from '../settings';
 import { MenuList, type MenuItemSpec } from '../ui/MenuList';
 import { KeyboardNav, MenuInput, mergeNav } from '../ui/menuInput';
@@ -20,12 +21,16 @@ import { COLOR, TEXT_COLOR, textStyle } from '../ui/theme';
 const SETTINGS = {
   headingY: 72,
   headingFontPx: 40,
-  menuY: 160,
+  menuY: 150,
   menuSpacing: 46,
   menuWidth: 720,
   menuFontPx: 22,
+  // The list packs tighter once the rows would push the description into the hint line.
+  menuSpacingDense: 36,
+  menuFontDensePx: 19,
   descriptionGapPx: 44,   // below the last row
   descriptionFontPx: 16,
+  descriptionMaxY: GAME_HEIGHT - 100, // keeps the description clear of the hint line
   hintY: GAME_HEIGHT - 56,
   hintFontPx: 15,
 } as const;
@@ -37,10 +42,15 @@ function hintLine(mgr: InputManager): string {
   return `${labels.choose} choose · ${labels.change} change · ${labels.back} back · M mutes everything`;
 }
 const ASSIST_NOTE = 'A run with any assist on is not saved and earns no stars';
+const MECHANIC_NOTE = 'A run with mechanics on is saved and earns stars';
 
-type RowId = 'seedMode' | 'seedValue' | 'freePlay' | AssistId | 'customDifficulty' | 'music' | 'sfx' | 'back';
-/** The rows, top to bottom. */
-const ROWS: readonly RowId[] = ['seedMode', 'seedValue', 'freePlay', ...ASSIST_IDS, 'customDifficulty', 'music', 'sfx', 'back'];
+type RowId = 'seedMode' | 'seedValue' | 'freePlay' | AssistId | MechanicId | 'customDifficulty' | 'music' | 'sfx' | 'back';
+/** The rows, top to bottom. The mechanics sit after the assists so the playtest scripts' cursor counts to the assists hold. */
+const ROWS: readonly RowId[] = ['seedMode', 'seedValue', 'freePlay', ...ASSIST_IDS, ...MECHANIC_IDS, 'customDifficulty', 'music', 'sfx', 'back'];
+
+function isMechanicRow(id: RowId): id is MechanicId {
+  return (MECHANIC_IDS as readonly string[]).includes(id);
+}
 
 const DESCRIPTIONS: Readonly<Record<RowId, string>> = Object.freeze({
   seedMode: 'Random deals new tickets every run, daily gives everyone the same run today, fixed replays a number',
@@ -49,6 +59,11 @@ const DESCRIPTIONS: Readonly<Record<RowId, string>> = Object.freeze({
   instantCooking: `Pots and pans are ready the moment they start cooking. ${ASSIST_NOTE}`,
   ordersNeverExpire: `Tickets keep their full timer, no expiry, no fail penalty. ${ASSIST_NOTE}`,
   noBurning: `Cooked food never burns, so stoves never catch fire. ${ASSIST_NOTE}`,
+  passThroughShelf: `Shelf tiles open into hatches a chef on either side can use; off, they are solid wall. ${MECHANIC_NOTE}`,
+  chopAssist: `A second chef at the same board halves the time left on the chop; off, a board is one chef's work. ${MECHANIC_NOTE}`,
+  twoPlateCarry: `Take a second clean plate off the rack and carry two; no dashing with both. ${MECHANIC_NOTE}`,
+  eightySix: `Crates run out, tickets rewrite to what is left, and deliveries at the door restock them. ${MECHANIC_NOTE}`,
+  tray: `The tray on its rack carries three items at a slower walk, no dashing, and takes a moment to lift or set down. ${MECHANIC_NOTE}`,
   customDifficulty: 'Set every timer and ticket number yourself; played when the difficulty is Custom',
   music: 'The background loop. Sound effects keep playing',
   sfx: 'Kitchen and menu sounds. The music keeps playing',
@@ -82,12 +97,14 @@ export class SettingsScene extends Phaser.Scene {
     this.disposers.push(installAudioGestureResume(this), installMuteToggle(this));
     getAudioBus().stopMusic();
 
+    const roomy = SETTINGS.menuY + (ROWS.length - 1) * SETTINGS.menuSpacing + SETTINGS.descriptionGapPx <= SETTINGS.descriptionMaxY;
+    const spacing = roomy ? SETTINGS.menuSpacing : SETTINGS.menuSpacingDense;
     this.menu = new MenuList(this, GAME_WIDTH / 2, SETTINGS.menuY, ROWS.map((id) => this.item(id)), {
-      spacing: SETTINGS.menuSpacing,
+      spacing,
       width: SETTINGS.menuWidth,
-      fontSize: SETTINGS.menuFontPx,
+      fontSize: roomy ? SETTINGS.menuFontPx : SETTINGS.menuFontDensePx,
     });
-    const descriptionY = SETTINGS.menuY + (ROWS.length - 1) * SETTINGS.menuSpacing + SETTINGS.descriptionGapPx;
+    const descriptionY = SETTINGS.menuY + (ROWS.length - 1) * spacing + SETTINGS.descriptionGapPx;
     this.description = this.add
       .text(GAME_WIDTH / 2, descriptionY, '', textStyle(SETTINGS.descriptionFontPx, TEXT_COLOR.dim))
       .setOrigin(0.5);
@@ -163,6 +180,12 @@ export class SettingsScene extends Phaser.Scene {
       case 'back':
         return { label: () => 'Back', onSelect: () => this.back() };
       default:
+        if (isMechanicRow(id)) {
+          return this.toggleRow(
+            () => `${MECHANIC_NAMES[id]}: ${this.settings.mechanics[id] ? 'on' : 'off'}`,
+            () => { this.settings.mechanics[id] = !this.settings.mechanics[id]; },
+          );
+        }
         return this.toggleRow(
           () => `${ASSIST_NAMES[id]}: ${this.settings.assists[id] ? 'on' : 'off'}`,
           () => { this.settings.assists[id] = !this.settings.assists[id]; },

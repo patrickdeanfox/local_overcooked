@@ -24,5 +24,9 @@
     "#BB####BB#"
   ],
   "spawns": [{ "x": 2, "y": 6 }, { "x": 7, "y": 6 }],
-  "stations": [{ "x": 9, "y": 2, "type": "plateStack" }]
+  "stations": [
+    { "x": 9, "y": 2, "type": "plateStack" },
+    { "x": 0, "y": 5, "type": "delivery" }
+  ],
+  "eightySix": { "crateSize": 6, "restockDelaySec": 25 }
 }

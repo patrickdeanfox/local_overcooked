@@ -9,6 +9,7 @@ import {
 
 export const TILE_TYPES: readonly TileType[] = [
   'void', 'floor', 'road', 'counter', 'crate', 'board', 'stove', 'sink', 'drying', 'plateReturn', 'serve', 'trash', 'plateStack', 'slider', 'gate', 'gap',
+  'shelf', 'trayRack', 'delivery',
 ];
 export const FACINGS: readonly Facing[] = ['up', 'down', 'left', 'right'];
 export const CHEF_COUNT = 2;
@@ -38,6 +39,11 @@ export const TEX = {
   burgerLayer: (layer: BurgerLayer): string => `item.burger.${layer}`,
   dirtyPlate: 'item.dirtyPlate',
   extinguisher: 'item.extinguisher',
+  // Mechanics spec (docs/MECHANICS.md)
+  tray: 'item.tray',                   // 40x40 empty tray, seen from above
+  deliveryCrate: 'item.deliveryCrate', // 40x40 closed delivery box waiting at the door
+  shelfClosed: 'tile.shelf.closed',    // 64x64 shelf tile while the mechanic is off (a plain wall)
+  chalk86: 'fx.chalk86',               // 40x40 chalk "86" mark hung over an empty crate
   fire: 'fx.fire',           // 64x64, one frame; presentation animates scale/alpha
   spray: 'fx.spray',
   smoke: 'fx.smoke',
@@ -71,6 +77,7 @@ export function ALL_TEXTURE_KEYS(): string[] {
   for (const s of PAN_CONTENT_STATES) keys.push(TEX.panMeat(s));
   for (const l of BURGER_LAYERS) keys.push(TEX.burgerLayer(l));
   keys.push(TEX.pot, TEX.potBurnt, TEX.pan, TEX.plate, TEX.dirtyPlate, TEX.extinguisher, TEX.fire, TEX.spray, TEX.smoke);
+  keys.push(TEX.tray, TEX.deliveryCrate, TEX.shelfClosed, TEX.chalk86);
   for (let c = 0; c < CHEF_COUNT; c++) for (const f of FACINGS) keys.push(TEX.chef(c, f));
   keys.push(TEX.iconBurger, TEX.iconPlate, TEX.iconClock, TEX.iconCoin, TEX.iconStar, TEX.iconStarEmpty, TEX.iconLock, TEX.orderCard, TEX.panel);
   for (const l of PROMPT_LABELS) keys.push(TEX.buttonPrompt(l));

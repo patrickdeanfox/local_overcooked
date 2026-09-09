@@ -1,0 +1,25 @@
+{
+  "id": "custom-1-1",
+  "name": "Hatch Row",
+  "game": "custom",
+  "world": 1,
+  "index": 1,
+  "theme": "default",
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "recipes": ["onion_soup", "tomato_soup", "mushroom_soup"],
+  "orders": { "initial": 2, "intervalSec": 22, "max": 4, "timeSec": 90 },
+  "stars": { "1": [30, 70, 120], "2": [40, 90, 160] },
+  "plates": { "mode": "sink", "count": 3 },
+  "grid": [
+    "#OTM####SSS#E##",
+    "#...... ......#",
+    "#......h......#",
+    "#......h......V",
+    "#......h......R",
+    "X...... ......W",
+    "#.............D",
+    "##B#B#####ppp##"
+  ],
+  "spawns": [{ "x": 3, "y": 3 }, { "x": 11, "y": 3 }]
+}

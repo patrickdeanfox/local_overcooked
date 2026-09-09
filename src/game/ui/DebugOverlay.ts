@@ -58,6 +58,8 @@ function describeItem(item: Item | null): string {
       return `dirtyPlate x${item.count}`;
     case 'extinguisher':
       return 'extinguisher';
+    case 'tray':
+      return `tray[${item.items.map((load) => describeItem(load)).join(' | ')}]`;
   }
 }
 
@@ -146,8 +148,15 @@ export class DebugOverlay {
     lines.push(
       state.orders.length === 0
         ? 'orders: none'
-        : `orders: ${state.orders.map((o) => `#${o.id} ${o.recipeId} ${o.timeLeft.toFixed(1)}/${o.timeTotal}`).join('  ')}`,
+        : `orders: ${state.orders.map((o) => `#${o.id} ${o.recipeId}${o.originalRecipeId ? `(was ${o.originalRecipeId})` : ''} ${o.timeLeft.toFixed(1)}/${o.timeTotal}`).join('  ')}`,
     );
+    const stocked = state.tiles.filter((t) => t.type === 'crate' && t.stock !== undefined);
+    if (stocked.length > 0) {
+      lines.push(`stock: ${stocked.map((t) => `${t.ingredient ?? '?'}@${t.x},${t.y} ${t.stock}/${t.capacity ?? '?'}`).join('  ')}`);
+    }
+    if (state.restocks && state.restocks.length > 0) {
+      lines.push(`restocks: ${state.restocks.map((r) => `${r.ingredient} ${r.arrivesIn > 0 ? `in ${r.arrivesIn.toFixed(1)}s` : `unloading ${r.unloaded.toFixed(2)}`}`).join('  ')}`);
+    }
     lines.push('events:');
     for (const entry of this.recentEvents) lines.push(`  ${entry}`);
 

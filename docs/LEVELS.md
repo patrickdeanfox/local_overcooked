@@ -509,6 +509,140 @@ Uncertainties, and how they were settled:
 
 Tuning knobs: orders; whether the wiki's 4-player crowd at the islands matters with two chefs.
 
+## The mechanics additions in shipped levels
+
+`docs/MECHANICS.md` adds five switchable mechanics. Three shipped kitchens adopt the ones that
+need level content, each through `stations`, `items` and an `eightySix` block so the grid text
+stays the transcription. With the switches off every change is inert: the door is a solid tile,
+the rack a plain counter, the crates bottomless.
+
+| Level | Change | Why there |
+| --- | --- | --- |
+| 1-4 | `delivery` door at (0,5), a plain `#` on the left wall under the crates; `eightySix` crateSize 6, restock 30 s | The crates are on the left wall, so the delivery comes in beside them. Bun and meat are in every burger and exempt themselves; lettuce and tomato run out and rewrite Salad Burger to Lettuce Burger to Burger |
+| 1-5 | `trayRack` at (11,3) on the island's right face, halfway round the ring from the crates, with the tray; `delivery` door at (4,0), the `#` between the tomato crate and the plate return; `eightySix` crateSize 6, restock 30 s | Three chopped ingredients per soup and a one-tile ring is the tray's case; the rack sits on the far side so fetching it is a decision, not a default. The door is beside the crates |
+| OC2 1-1 | `delivery` door at (0,5) on the left wall; `eightySix` crateSize 6, restock 25 s | Fish and prawn each feed one sashimi, so a shortage swaps the ticket to the other |
+
+1-1 to 1-3 and 1-6 are untouched: 1-1 has one recipe, so its onion is exempt and the 86 system
+would never fire; the rest wait for play to say where a door or a rack helps. Two-plate carry
+and chop assist need no level content and apply everywhere.
+
+## Custom kitchens for the mechanics
+
+Three levels under `src/levels/custom/`, `game: 'custom'`, one per layout-dependent mechanic.
+They carry a title instead of a world-index and have no wiki source. Each must also play with
+every mechanic off (a shelf becomes a wall, the rack a counter, the crates never run out), so
+none of the layouts depends on a hatch or a tray for its route. Star thresholds and order numbers
+are estimates from the nearest shipped level and have not been playtested.
+
+### Hatch Row (`custom-1-1`)
+
+```
+#OTM####SSS#E##
+#...... ......#
+#......h......#
+#......h......V
+#......h......R
+X...... ......W
+#.............D
+##B#B#####ppp##
+```
+
+15 x 8. A near-split soup kitchen: prep on the left, cooking on the right, a wall of void down
+column 7 with three hatches (`h` at (7,2), (7,3), (7,4)) and a one-tile floor gap at the bottom
+end (7,6). The hatches are the short way across; the gap is the long way round.
+
+| Tile | Station |
+| --- | --- |
+| `O` (1,0), `T` (2,0), `M` (3,0) | The three soup crates, left room |
+| `B` (2,7), (4,7) | Chopping boards, left room |
+| `X` (0,5) | Bin, left room |
+| `S` (8,0), (9,0), (10,0) | Three pots on burners, right room |
+| `E` (12,0) | Counter with the fire extinguisher, right room |
+| `V` (14,3) / `R` (14,4) | Serving hatch and plate return, right wall |
+| `W` (14,5) / `D` (14,6) | Sink and draining board, right wall |
+| `p` (10,7), (11,7), (12,7) | The three clean plates |
+| ` ` (7,1), (7,5) | The wall itself: void, solid, a hole in the ground as the renderer draws interior void today |
+
+Spawns (3,3) and (11,3), one per room. Orders as 1-5 (initial 2, every 22 s, at most 4, 90 s):
+three soups with the walk as the bottleneck. Stars 1P 30 / 70 / 120, 2P 40 / 90 / 160.
+
+Design notes: a chopped ingredient goes across a hatch in one step instead of a 12-tile walk
+through the gap, so the hatches are worth about ten seconds per soup; with the shelf switch off
+the level is the walk. Chop assist reads here too: the two boards are two tiles apart on one
+wall. No `eightySix` block, so the 86 switch uses the constants (eight-item crates, 30 s restock,
+no door: the crates refill by themselves).
+
+### Long Haul (`custom-1-2`)
+
+```
+#dAULT######FFE#
+#..............V
+#..............R
+#X#BB###t#pppWD#
+```
+
+16 x 4. A two-tile corridor the full width of the budget, for the tray. Everything an
+ingredient needs is at the left end and everything a dish needs at the right, with the rack
+in the middle.
+
+| Tile | Station |
+| --- | --- |
+| `d` (1,0) | Delivery door, far left |
+| `A` (2,0), `U` (3,0), `L` (4,0), `T` (5,0) | Meat, bun, lettuce and tomato crates |
+| `X` (1,3) | Bin |
+| `B` (3,3), (4,3) | Chopping boards, mid-left |
+| `t` (8,3) | Tray rack, the middle of the run, with the tray |
+| `p` (10,3), (11,3), (12,3) | The three clean plates |
+| `W` (13,3) / `D` (14,3) | Sink and draining board, near the right end |
+| `F` (12,0), (13,0) | Two pans on burners, far right |
+| `E` (14,0) | Counter with the fire extinguisher |
+| `V` (15,1) / `R` (15,2) | Serving hatch and plate return, right wall |
+
+Spawns (6,1) and (9,2). Burgers, so shortages rewrite (bun and meat exempt themselves).
+`eightySix` crateSize 5, restock 25 s. Orders initial 2, every 24 s, at most 4, 110 s, from
+1-6's drip. Stars 1P 40 / 90 / 160, 2P 70 / 160 / 280, from 1-4.
+
+Design notes: crate to pan is at least seven tiles, so a tray of three parts saves two round
+trips per burger; the rack is three tiles from the nearest board and six from the crates, so
+fetching it costs a trip too. The corridor is two tiles wide so two chefs pass, and bump.
+
+### Short Order (`custom-1-3`)
+
+```
+#OTMJ#d#SSE#
+W..........#
+D..........V
+#..........V
+#..........R
+X..........#
+#..........#
+###BB###ppp#
+```
+
+12 x 8. A compact room for the 86 system and two-plate carry: four crates, two of them
+scripted to run out, and a sink on the opposite wall from the serve.
+
+| Tile | Station |
+| --- | --- |
+| `O` (1,0), `T` (2,0), `M` (3,0), `J` (4,0) | Onion, tomato, mushroom and fish crates |
+| `d` (6,0) | Delivery door, top wall |
+| `S` (8,0), (9,0) | Two pots on burners |
+| `E` (10,0) | Counter with the fire extinguisher |
+| `W` (0,1) / `D` (0,2) | Sink and draining board, left wall |
+| `X` (0,5) | Bin |
+| `V` (11,2), (11,3) / `R` (11,4) | Serving hatch and plate return, right wall |
+| `B` (3,7), (4,7) | Chopping boards side by side |
+| `p` (8,7), (9,7), (10,7) | The three clean plates |
+
+Spawns (3,3) and (8,3). Recipes: the three soups and fish sashimi. `eightySix` crateSize 4,
+restock 35 s, scripted shortages onion at 40 s and fish at 90 s. Orders initial 2, every 18 s,
+at most 4, 80 s (one-chop sashimi keeps the drip quick). Stars 1P 30 / 70 / 120, 2P 40 / 100 / 170.
+
+Design notes: the drying rack is eleven tiles from the serve, so a chef who carries two clean
+plates across saves a round trip each time; the dirty plates come back beside the serve and go
+the other way. The scripted shortages hit a soup and the sashimi in turn, each with three
+substitutes on the board; with four-item crates the play-driven shortages arrive between them.
+
 ## Unlock thresholds
 
 `unlockStars` is the total star count the campaign needs before a level opens. Numbers come

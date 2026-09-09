@@ -4,7 +4,7 @@
 #
 # Title rows, in cursor order: six levels, Players, Difficulty, Chefs, Settings, Controllers - so
 # Settings is index 9. The Settings page lists Seed, Seed number, Free play, the three assists,
-# Custom difficulty (index 6), Music, Sound effects, Back. The Custom difficulty page lists
+# the five mechanics switches, Custom difficulty (index 11), Music, Sound effects, Back. The Custom difficulty page lists
 # Difficulty, then Level time, Tickets at start, Extra tickets on screen, Seconds between tickets,
 # Ticket patience, Cook time (index 6), Burn time, Chop time, Wash time, Chef speed, Reset, Back.
 until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
@@ -47,7 +47,17 @@ tap ArrowDown
 wait 150
 tap ArrowDown
 wait 150
-eval JSON.stringify(['settings cursor row', __ui.menu('Settings')[6], __ui.texts('Settings')])
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+eval JSON.stringify(['settings cursor row', __ui.menu('Settings')[11], __ui.texts('Settings')])
 tap Enter
 wait 700
 eval JSON.stringify(['scenes', __ui.scenes()])

@@ -8,14 +8,17 @@
 // World space: one tile is one unit, x runs right, z runs down the screen (tile y), y is up.
 import Phaser from 'phaser';
 import * as THREE from 'three';
+import { TEX } from '../../art/keys';
 import { CHEF_SKINS, PEDESTRIAN_SKIN_URLS, type ChefSkin } from '../../art/models';
+import { TRAY_WOBBLE_SEC } from '../../sim/constants';
 import { FACING_VECTORS, type Chef, type GateGroup, type Item, type SimState, type Tile } from '../../sim/types';
 import { COLOR } from '../ui/theme';
 import { ChefRig } from './three/chefs';
 import { FxPool } from './three/fx';
 import { buildItemView, itemSignature } from './three/items';
+import { modelInstance } from './three/loader';
 import { acquireStage, type Stage } from './three/stage';
-import { TileSet, themeSceneHeight } from './three/tiles';
+import { DEFAULT_TILE_FLAGS, TileSet, themeSceneHeight, type TileFlags } from './three/tiles';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 const HELD = { scale: 0.9 } as const;
@@ -47,6 +50,13 @@ const FLIGHT = { lift: 0.45, arcHeight: 0.55, scale: 0.9 } as const;
 const DASH_FX = { everySec: 0.05, behind: 0.2 } as const;
 const FALL_FX = { puffs: 5 } as const;
 
+// Mechanics spec (docs/MECHANICS.md)
+const CHALK = { lift: 1.0, alpha: 0.95 } as const;                 // the "86" mark hung above an empty crate
+const STOCK = { halfFraction: 0.5, lowFraction: 0.25 } as const;   // fill level colour steps on a crate's bar
+const ASSIST_BADGE = { gapPx: 8, fontPx: 12, label: 'x2', lingerSec: 0.6 } as const; // the sim clears `assisting` the step the hands leave, so the badge fades out over lingerSec
+const WOBBLE = { hz: 14, rad: 0.16 } as const;                     // held tray shake after a bump
+const DELIVERY_CRATE = { scale: 0.7 } as const;
+
 const BADGE_STYLE: Phaser.Types.GameObjects.Text.TextStyle = {
   fontFamily: 'monospace',
   fontSize: `${BADGE.fontPx}px`,
@@ -55,6 +65,7 @@ const BADGE_STYLE: Phaser.Types.GameObjects.Text.TextStyle = {
   padding: { x: 3, y: 1 },
 };
 
+export type { TileFlags } from './three/tiles';
 export interface TilePos { x: number; y: number; }
 
 interface ItemView { signature: string; view: THREE.Group; }
@@ -97,17 +108,25 @@ export class KitchenRenderer {
   private readonly sprayTimer: number[] = [];
   private readonly sliderOffsets = new Map<string, { x: number; y: number }>();
   private readonly screen = { x: 0, y: 0 };
+  // Mechanics spec: chalk marks by crate tile, one assist badge per chef, the crate waiting at the door.
+  private readonly chalks = new Map<number, Phaser.GameObjects.Image>();
+  private readonly assistBadges: Phaser.GameObjects.Text[] = [];
+  private readonly assistLinger: number[] = []; // seconds of badge left per chef, and the tile it sits on
+  private readonly assistTile: number[] = [];
+  private deliveryView: THREE.Group | null = null;
+  private deliveryIndex = -1;
   private gridW = 0;
   private gridH = 0;
   private elapsed = 0;
 
   /** `skins` is the apron (CHEF_SKINS index) each chef wears, by chef index; missing entries fall
-   *  back to the default order. */
+   *  back to the default order. `flags` are the run's mechanics the static kitchen depends on. */
   constructor(
     private readonly scene: Phaser.Scene,
     state: Readonly<SimState>,
     private readonly theme?: string,
     private readonly skins: readonly number[] = [],
+    private readonly flags: Readonly<TileFlags> = DEFAULT_TILE_FLAGS,
   ) {
     this.stage = acquireStage(scene.game.canvas);
     this.stage.resetScene();
@@ -136,6 +155,7 @@ export class KitchenRenderer {
     this.drawSliders(state);
     this.drawGates(state);
     this.drawTileItems(state);
+    this.drawDelivery(state);
     this.drawFlying(state);
     this.drawHighlights(state, targets);
     this.drawChopping(state, targets);
@@ -148,8 +168,9 @@ export class KitchenRenderer {
     this.fx.update(dtSec);
     this.stage.syncToPhaser();
     this.stage.render();
-    this.drawBars(state, targets);
+    this.drawBars(state, targets, dtSec);
     this.drawBadges(state);
+    this.drawChalk(state);
   }
 
   destroy(): void {
@@ -169,6 +190,12 @@ export class KitchenRenderer {
     this.highlights.length = 0;
     for (const badge of this.badges.values()) badge.destroy();
     this.badges.clear();
+    for (const chalk of this.chalks.values()) chalk.destroy();
+    this.chalks.clear();
+    for (const badge of this.assistBadges) badge.destroy();
+    this.assistBadges.length = 0;
+    this.deliveryView?.removeFromParent();
+    this.deliveryView = null;
     this.container.destroy(true);
     this.stage.resetScene();
     this.stage.hide();
@@ -181,9 +208,14 @@ export class KitchenRenderer {
     this.tileItems.clear();
     for (const badge of this.badges.values()) badge.destroy();
     this.badges.clear();
+    for (const chalk of this.chalks.values()) chalk.destroy();
+    this.chalks.clear();
+    this.deliveryView?.removeFromParent();
+    this.deliveryView = null;
+    this.deliveryIndex = state.tiles.findIndex((tile) => tile.type === 'delivery');
     this.gridW = state.width;
     this.gridH = state.height;
-    this.tiles = new TileSet(this.scene, this.stage.scene, state, this.theme);
+    this.tiles = new TileSet(this.scene, this.stage.scene, state, this.theme, this.flags);
     this.stage.fitToGrid(state.width, state.height, themeSceneHeight(this.theme));
   }
 
@@ -259,6 +291,23 @@ export class KitchenRenderer {
       view.position.copy(this.slotPosition(state, i, position));
       view.visible = true;
     }
+  }
+
+  /** The delivery crate sits at the door while a restock has arrived and waits to be unloaded. */
+  private drawDelivery(state: Readonly<SimState>): void {
+    if (this.deliveryIndex < 0) return;
+    const waiting = (state.restocks ?? []).some((restock) => restock.arrivesIn <= 0);
+    if (!waiting) {
+      if (this.deliveryView) this.deliveryView.visible = false;
+      return;
+    }
+    if (!this.deliveryView) {
+      this.deliveryView = modelInstance('deliveryCrate');
+      this.deliveryView.scale.setScalar(DELIVERY_CRATE.scale);
+      this.stage.scene.add(this.deliveryView);
+    }
+    this.deliveryView.position.copy(this.slotPosition(state, this.deliveryIndex, new THREE.Vector3()));
+    this.deliveryView.visible = true;
   }
 
   /** Thrown items, pooled by flight id: an arc from hand height back down over the range. */
@@ -382,6 +431,9 @@ export class KitchenRenderer {
       this.held.set(chef.index, { signature: itemSignature(item), view: built });
     });
     view.visible = true;
+    // A bumped tray shakes for the rest of its wobble window, hardest right after the bump.
+    const wobble = item.kind === 'tray' && chef.wobble !== undefined ? chef.wobble / TRAY_WOBBLE_SEC : 0;
+    view.rotation.z = wobble > 0 ? Math.sin(this.elapsed * WOBBLE.hz * Math.PI * 2) * WOBBLE.rad * wobble : 0;
   }
 
   private drawPedestrians(state: Readonly<SimState>, dtSec: number): void {
@@ -444,12 +496,23 @@ export class KitchenRenderer {
   }
 
   // ─── Overlay: progress bars and badges ────────────────────────────────────
-  private drawBars(state: Readonly<SimState>, targets: readonly (TilePos | null)[]): void {
+  private drawBars(state: Readonly<SimState>, targets: readonly (TilePos | null)[], dtSec: number): void {
     const g = this.barsGfx;
     g.clear();
+    // 86 system: unloading progress lives on the delivery, so the bar stays while the hands rest.
+    const due = (state.restocks ?? []).find((restock) => restock.arrivesIn <= 0);
     for (let i = 0; i < state.tiles.length; i++) {
       const tile = state.tiles[i];
       const item = state.tileItems[i];
+      // A crate with finite stock (86 system) shows its fill level; the chalk mark takes over at empty.
+      if (tile.type === 'crate' && tile.stock !== undefined && tile.capacity !== undefined && tile.capacity > 0) {
+        const fraction = tile.stock / tile.capacity;
+        const color = fraction > STOCK.halfFraction ? COLOR.barGood : fraction > STOCK.lowFraction ? COLOR.barWarn : COLOR.barDanger;
+        this.bar(state, i, fraction, color, 1);
+      }
+      if (tile.type === 'delivery' && due && due.unloaded > 0 && due.unloaded < 1) {
+        this.bar(state, i, due.unloaded, COLOR.barGood, 1);
+      }
       if (!item) continue;
       if (tile.type === 'board' && item.kind === 'ingredient' && item.chopProgress > 0 && item.chopProgress < 1) {
         this.bar(state, i, item.chopProgress, COLOR.barWarn, 1);
@@ -464,14 +527,38 @@ export class KitchenRenderer {
       }
     }
     for (const chef of state.chefs) {
-      if (chef.action !== 'washing') continue;
       const target = targets[chef.index];
-      if (!target) continue;
-      const index = target.y * state.width + target.x;
-      const tile = state.tiles[index];
-      if (!tile || tile.type !== 'sink') continue;
-      this.bar(state, index, chef.actionProgress, COLOR.barWash, 1);
+      const index = target ? target.y * state.width + target.x : -1;
+      const tile = index >= 0 ? state.tiles[index] : undefined;
+      if (chef.action === 'washing' && tile && tile.type === 'sink') {
+        this.bar(state, index, chef.actionProgress, COLOR.barWash, 1);
+      } else if (chef.action === 'lifting' && tile) {
+        this.bar(state, index, chef.actionProgress, COLOR.barWash, 1);    // tray wind-up, lifting or setting down
+      }
+      this.assistBadge(state, chef, tile ? index : -1, dtSec);
     }
+  }
+
+  /** "x2" beside the bar while this chef is the second pair of hands at a station (chop assist),
+   *  held for ASSIST_BADGE.lingerSec after the hands leave so a short assist still reads. */
+  private assistBadge(state: Readonly<SimState>, chef: Chef, index: number, dtSec: number): void {
+    const badge = this.assistBadges[chef.index] ?? this.makeAssistBadge(chef.index);
+    if (chef.assisting === true && index >= 0) {
+      this.assistLinger[chef.index] = ASSIST_BADGE.lingerSec;
+      this.assistTile[chef.index] = index;
+    } else {
+      this.assistLinger[chef.index] = Math.max(0, (this.assistLinger[chef.index] ?? 0) - dtSec);
+    }
+    const left = this.assistLinger[chef.index] ?? 0;
+    const at = this.assistTile[chef.index] ?? -1;
+    if (left <= 0 || at < 0 || !state.tiles[at]) {
+      badge.setVisible(false);
+      return;
+    }
+    const anchor = this.barAnchor(state, at);
+    badge.setPosition(anchor.x + BAR.widthPx / 2 + BAR.borderPx + ASSIST_BADGE.gapPx, anchor.y);
+    badge.setAlpha(Math.min(1, left / (ASSIST_BADGE.lingerSec / 2)));
+    badge.setVisible(true);
   }
 
   /** Screen anchor above a tile's working surface. */
@@ -519,6 +606,25 @@ export class KitchenRenderer {
     }
   }
 
+  /** The chalk "86" over every crate that has run dry; it stays until the restock. */
+  private drawChalk(state: Readonly<SimState>): void {
+    const position = new THREE.Vector3();
+    for (let i = 0; i < state.tiles.length; i++) {
+      const tile = state.tiles[i];
+      const empty = tile.type === 'crate' && tile.stock === 0;
+      const chalk = this.chalks.get(i);
+      if (!empty) {
+        chalk?.setVisible(false);
+        continue;
+      }
+      this.slotPosition(state, i, position);
+      const anchor = this.stage.project(position.x, position.y + CHALK.lift, position.z, this.screen);
+      const mark = chalk ?? this.makeChalk(i);
+      mark.setPosition(anchor.x, anchor.y);
+      mark.setVisible(true);
+    }
+  }
+
   // ─── Pools ────────────────────────────────────────────────────────────────
   private skinFor(chefIndex: number): ChefSkin {
     return CHEF_SKINS[this.skins[chefIndex] ?? chefIndex] ?? CHEF_SKINS[chefIndex % CHEF_SKINS.length];
@@ -555,6 +661,23 @@ export class KitchenRenderer {
     const badge = this.scene.add.text(0, 0, '', BADGE_STYLE).setOrigin(0.5, 0.5);
     this.container.add(badge);
     this.badges.set(index, badge);
+    return badge;
+  }
+
+  private makeChalk(index: number): Phaser.GameObjects.Image {
+    const chalk = this.scene.add.image(0, 0, TEX.chalk86).setOrigin(0.5, 1).setAlpha(CHALK.alpha);
+    this.container.add(chalk);
+    this.chalks.set(index, chalk);
+    return chalk;
+  }
+
+  private makeAssistBadge(chefIndex: number): Phaser.GameObjects.Text {
+    const badge = this.scene.add
+      .text(0, 0, ASSIST_BADGE.label, { ...BADGE_STYLE, fontSize: `${ASSIST_BADGE.fontPx}px` })
+      .setOrigin(0, 0.5)
+      .setVisible(false);
+    this.container.add(badge);
+    this.assistBadges[chefIndex] = badge;
     return badge;
   }
 }

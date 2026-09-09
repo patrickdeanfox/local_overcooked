@@ -9,6 +9,7 @@ import { parseGrid, type LevelDef } from '../../levels/schema';
 import { RECIPES } from '../../sim/recipes';
 import type {
   Chef,
+  IngredientItem,
   IngredientType,
   Item,
   Order,
@@ -36,6 +37,9 @@ const FAKE = {
   fireHealth: 1,
   idBase: 900_000,
   pedestrianSpeed: 1.4,
+  crateCapacity: 8,      // 86 system: the first crate is empty (chalk mark), the rest part-full
+  crateStock: 3,
+  restockUnloaded: 0.3,
 } as const;
 
 const FAKE_INGREDIENTS: readonly IngredientType[] = ['onion', 'tomato', 'mushroom'];
@@ -126,7 +130,7 @@ export function buildFakeState(base?: Readonly<SimState>): SimState {
     state.tileItems[index] = item;
   };
 
-  const ingredient = (type: IngredientType, chopped: boolean, chopProgress: number): Item => ({
+  const ingredient = (type: IngredientType, chopped: boolean, chopProgress: number): IngredientItem => ({
     kind: 'ingredient', id: id(), type, chopped, chopProgress,
   });
 
@@ -159,6 +163,19 @@ export function buildFakeState(base?: Readonly<SimState>): SimState {
 
   put(indicesOf(state.tiles, 'plateReturn')[0], { kind: 'dirtyPlate', id: id(), count: FAKE.plateReturnStack });
   put(indicesOf(state.tiles, 'drying')[0], { kind: 'plate', id: id(), dish: null });
+
+  // Mechanics spec: crate fill levels with one crate run dry, a loaded tray on its rack, a delivery waiting.
+  indicesOf(state.tiles, 'crate').forEach((index, i) => {
+    state.tiles[index].capacity = FAKE.crateCapacity;
+    state.tiles[index].stock = i === 0 ? 0 : FAKE.crateStock;
+  });
+  const rack = indicesOf(state.tiles, 'trayRack')[0];
+  if (rack !== undefined) {
+    put(rack, { kind: 'tray', id: id(), items: [ingredient(FAKE_INGREDIENTS[1], false, 0), ingredient(FAKE_INGREDIENTS[2], true, 1)] });
+  }
+  if (indicesOf(state.tiles, 'delivery').length > 0) {
+    state.restocks = [{ id: id(), ingredient: FAKE_INGREDIENTS[0], arrivesIn: 0, unloaded: FAKE.restockUnloaded }];
+  }
 
   // Chefs: one carrying a chopped ingredient, one spraying an extinguisher.
   const walker = state.chefs[0];

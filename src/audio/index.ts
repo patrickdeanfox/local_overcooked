@@ -195,6 +195,14 @@ export function sfxForEvent(event: SimEvent): SfxName | null {
     case 'dash': return 'dash';
     case 'dashBump': return 'dashBump';
     case 'chefFell': return 'chefFell';
+    case 'crateEmpty': return 'crateEmpty';
+    case 'orderRewritten': return 'orderRewritten';
+    case 'restockDue': return 'restockDue';
+    case 'restockTick': return 'restockTick';
+    case 'restocked': return 'restocked';
+    case 'trayLift': return 'trayLift';
+    case 'traySet': return 'traySet';
+    case 'trayWobble': return 'trayWobble';
     default: return null;
   }
 }

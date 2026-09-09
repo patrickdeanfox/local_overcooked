@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import { BURGER_LAYERS, type BurgerLayer } from '../../../art/keys';
 import { soupColor } from '../../../art/items';
 import type { ModelRole } from '../../../art/models';
-import type { Dish, IngredientType, Item, PotItem } from '../../../sim/types';
+import type { Dish, IngredientType, Item, PotItem, TrayItem } from '../../../sim/types';
 import { modelInstance, modelSize, tintObject } from './loader';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -17,6 +17,8 @@ const BURNT_TINT = 0x4a3a30;
 const DIRTY_TINT = 0xb9a88f;
 const STACK = { maxShown: 5, plateGap: 0.045, dirtyGap: 0.05, burgerGap: 0.005 } as const;
 const EXTINGUISHER = { radius: 0.075, height: 0.34, bodyColor: 0xd9342b, capColor: 0x2a2a2a, hoseColor: 0x1c1c1c, segments: 16 } as const;
+/** The tray (docs/MECHANICS.md section 3): its load laid along it, smaller, the top item last. */
+const TRAY = { spread: 0.2, itemScale: 0.62, lift: 0.004 } as const;
 
 const INGREDIENT_ROLE: Readonly<Record<IngredientType, { raw: ModelRole; chopped: ModelRole; cooked?: ModelRole }>> = {
   onion: { raw: 'onion', chopped: 'onionChopped' },
@@ -52,6 +54,8 @@ export function itemSignature(item: Item): string {
       return `dirtyPlate:${item.count}`;
     case 'extinguisher':
       return 'extinguisher';
+    case 'tray':
+      return `tray:${item.items.map((load) => itemSignature(load)).join('|')}`;
   }
 }
 
@@ -202,6 +206,21 @@ function extinguisherView(): THREE.Group {
   return root;
 }
 
+/** The tray with its load laid along it: one item centred, two or three spaced across. */
+function trayView(tray: TrayItem): THREE.Group {
+  const root = new THREE.Group();
+  root.add(modelInstance('tray'));
+  const top = modelSize('tray').y + TRAY.lift;
+  const count = tray.items.length;
+  tray.items.forEach((load, i) => {
+    const view = buildItemView(load);
+    view.scale.setScalar(TRAY.itemScale);
+    view.position.set(count === 1 ? 0 : (i - (count - 1) / 2) * TRAY.spread, top, 0);
+    root.add(view);
+  });
+  return root;
+}
+
 /** A fresh group for the item, resting on y = 0 and centred on the item slot. */
 export function buildItemView(item: Item): THREE.Group {
   switch (item.kind) {
@@ -215,5 +234,7 @@ export function buildItemView(item: Item): THREE.Group {
       return dirtyPlateView(item.count);
     case 'extinguisher':
       return extinguisherView();
+    case 'tray':
+      return trayView(item);
   }
 }
