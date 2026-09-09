@@ -699,6 +699,40 @@ describe('oc1-3-2', () => {
   });
 });
 
+// ─── Overcooked 2 1-1, Sushi City ───────────────────────────────────────────
+
+describe('oc2-1-1', () => {
+  const l = level('oc2-1-1');
+  const p = parseGrid(l);
+
+  it('is sashimi only, with prep time and four clean plates', () => {
+    expect(l.recipes).toEqual(['fish_sashimi', 'prawn_sashimi']);
+    expect(l.timerStartsOnFirstServe).toBe(true);
+    expect(l.timeLimitSec).toBe(150);
+    expect(l.unlockStars).toBe(1);
+    expect(l.plates).toEqual({ mode: 'stack', count: 4 });
+    expect(countType(p, 'sink')).toBe(0);
+    expect(countType(p, 'stove')).toBe(0);
+    expect(tileAt(p, 9, 2)?.type).toBe('plateStack');
+    expect(p.items[2 * p.width + 9]).toBeNull(); // the return starts empty; the plates are on the islands
+    expect(tileAt(p, 9, 1)?.type).toBe('serve');
+  });
+
+  it('keeps the crates on opposite walls and the boards in the bottom corners', () => {
+    expect(tileAt(p, 0, 3)).toMatchObject({ type: 'crate', ingredient: 'fish' });
+    expect(tileAt(p, 9, 3)).toMatchObject({ type: 'crate', ingredient: 'prawn' });
+    expect(countCrate(p, 'fish')).toBe(1);
+    expect(countCrate(p, 'prawn')).toBe(1);
+    expect(p.tiles.filter((t) => t.type === 'board').map((t) => [t.x, t.y])).toEqual([[1, 7], [2, 7], [7, 7], [8, 7]]);
+    expect(p.tiles.filter((t) => p.items[t.y * p.width + t.x]?.kind === 'plate').map((t) => [t.x, t.y]))
+      .toEqual([[2, 3], [3, 3], [6, 3], [7, 3]]);
+  });
+
+  it('sorts after every Overcooked 1 level', () => {
+    expect(LEVEL_ORDER.indexOf('oc2-1-1')).toBe(LEVEL_ORDER.length - 1);
+  });
+});
+
 describe('order tuning', () => {
   const expected: Record<string, { initial: number; intervalSec: number; max: number; timeSec: number }> = {
     'oc1-1-1': { initial: 2, intervalSec: 18, max: 4, timeSec: 60 },
@@ -713,6 +747,8 @@ describe('order tuning', () => {
     'oc1-1-6': { initial: 2, intervalSec: 24, max: 4, timeSec: 100 },
     // 3-2 is the 1-3 deck again with the same soups; the catalog's estimate, untested.
     'oc1-3-2': { initial: 2, intervalSec: 22, max: 4, timeSec: 95 },
+    // Overcooked 2's first level: one chop per dish, so a quick drip; the catalog's estimate, untested.
+    'oc2-1-1': { initial: 2, intervalSec: 18, max: 4, timeSec: 60 },
   };
 
   for (const [id, orders] of Object.entries(expected)) {

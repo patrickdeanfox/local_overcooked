@@ -465,6 +465,50 @@ ingredients travel over the divider; the port chef has the only plates.
 
 Tuning knobs: orders; the plate count; which side the second bin sits on.
 
+## Overcooked 2 1-1 — Sushi City
+
+```
+##########
+#........V
+X........#
+J.pp..pp.Ø
+#........#
+#........#
+#........#
+#BB####BB#
+```
+
+10 x 8.
+
+| Tile | Station |
+| --- | --- |
+| `V` (9,1) | Serving hatch |
+| `#` (9,2) → `plateStack` | The plate return, overridden in `stations`: plates come back clean here, beside the hatch |
+| `X` (0,2) | Bin |
+| `J` (0,3), `Ø` (9,3) | Fish and prawn crates, on opposite walls |
+| `p` (2,3), (3,3), (6,3), (7,3) | The four clean plates on the two centre islands |
+| `B` (1,7), (2,7), (7,7), (8,7) | Chopping boards, two per bottom corner |
+
+Wiki facts used: Fish Sashimi and Prawn Sashimi, one chop and no heat; 2:30 with the clock
+starting on the first serve; 1 star to unlock; no sink, plates return clean beside the serving
+counter; star thresholds 1P 20 / 60 / 240 and 2P 20 / 160 / 300 (the 4-star column, 1300 and
+2650, is dropped: the clone scores three stars).
+
+Uncertainties, and how they were settled:
+
+- **The grid** is the catalog's medium-confidence count (`docs/research/catalog/oc2/oc2-1-1.md`):
+  counter seams along the top row and the left column, single-tile stations as the ruler,
+  each island two plates wide.
+- **The plate return.** Dirty plates come back clean with no sink, which is `plates.mode: 'stack'`;
+  the return tile is a `#` overridden to `plateStack` so it starts empty, and the four plates sit
+  on the islands as `p`.
+- **Orders.** No cadence on the wiki. The catalog's estimate: initial 2, every 18 s, at most 4,
+  60 s each. One chop per dish, so a quick drip. Untested.
+- **Spawns** (2,6) and (7,6) are the catalog's best guess.
+- **Theme** `sushi-city` has no dressing yet and draws with the default kitchen.
+
+Tuning knobs: orders; whether the wiki's 4-player crowd at the islands matters with two chefs.
+
 ## Unlock thresholds
 
 `unlockStars` is the total star count the campaign needs before a level opens. Numbers come

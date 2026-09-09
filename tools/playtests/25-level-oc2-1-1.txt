@@ -1,0 +1,71 @@
+# -- Overcooked 2 1-1, the sashimi bar: the level lists last, a fish is taken from its crate,
+#    chopped on a corner board, laid on an island plate and served on the hatch, which starts the
+#    clock and brings a clean plate back beside the hatch ----------------------------------------
+#
+# Title rows, in cursor order: eight levels (OC2 1-1 is index 7), then the option rows. Free play
+# is switched on through the stored settings so the unlock does not matter.
+eval localStorage.setItem('local-overcooked.settings.v1', JSON.stringify({ version: 1, players: 2, preset: 'normal', seedMode: 'fixed', fixedSeed: 5, freePlay: true }))
+eval location.reload()
+wait 1500
+until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
+wait 600
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval JSON.stringify(['levels', __ui.levels().map((l) => l.name)])
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+tap ArrowDown
+wait 150
+eval JSON.stringify(['cursor on', __ui.index()])
+tap Enter
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.level.id === 'oc2-1-1'
+wait 800
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval JSON.stringify(['level', __oc.level.id, 'phase', __oc.sim.getState().phase, 'orders', __qa.orders(), 'crates', __oc.sim.getState().tiles.filter((t) => t.type === 'crate').map((t) => [t.x, t.y, t.ingredient]), 'plates', __oc.sim.getState().tileItems.filter((i) => i && i.kind === 'plate').length])
+shot 25-00-sushi-bar.png
+
+# -- Fish from the crate at (0,3), chopped on the board at (1,7) --------------------------------
+eval ((c) => (c.x = 1.5, c.y = 3.5, c.facing = 'left', 'at the crate'))(__oc.sim.getState().chefs[0])
+wait 100
+tap Space
+wait 150
+eval JSON.stringify(['holding', __oc.sim.getState().chefs[0].holding])
+eval ((c) => (c.x = 1.5, c.y = 6.5, c.facing = 'down', 'at the board'))(__oc.sim.getState().chefs[0])
+wait 100
+tap Space
+wait 150
+hold ShiftLeft 3300
+wait 150
+eval JSON.stringify(['on the board', __oc.sim.itemAt(1, 7)])
+shot 25-01-chopped-fish.png
+tap Space
+wait 150
+
+# -- Onto the island plate at (2,3), then to the hatch at (9,1) ----------------------------------
+eval ((c) => (c.x = 2.5, c.y = 2.5, c.facing = 'down', 'at the plate'))(__oc.sim.getState().chefs[0])
+wait 100
+tap Space
+wait 150
+eval JSON.stringify(['plated', __oc.sim.itemAt(2, 3)])
+tap Space
+wait 150
+shot 25-02-sashimi-plate.png
+eval ((st) => (st.orders.length = 0, st.orders.push({ id: 900, recipeId: 'fish_sashimi', timeLeft: 60, timeTotal: 60 }), 'fish ticket up'))(__oc.sim.getState())
+eval ((c) => (c.x = 8.5, c.y = 1.5, c.facing = 'right', 'at the hatch'))(__oc.sim.getState().chefs[0])
+wait 100
+tap Space
+wait 300
+eval JSON.stringify(['served', __qa.score(), 'phase', __oc.sim.getState().phase, 'timer running', __oc.sim.getState().timerRunning])
+until 10000 __oc.sim.itemAt(9, 2) !== null
+eval JSON.stringify(['plate back beside the hatch', __oc.sim.itemAt(9, 2)])
+shot 25-03-served.png
+errors
