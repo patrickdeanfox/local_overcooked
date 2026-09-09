@@ -19,12 +19,16 @@ const CARD = {
   gap: 8,
   width: 96,
   height: 120,
-  iconY: 40,
-  iconScale: 1.1,
+  iconY: 28,
+  iconScale: 1.0,
+  ingredientsY: 54,       // the row of ingredient icons under the dish, like an Overcooked ticket
+  ingredientGapPx: 18,
+  ingredientScale: 0.55,  // 32 px icons at about half size: four across fit the card's recess
+  ingredientMax: 4,       // the most ingredients a recipe lists (the salad burger)
   nameY: 78,
-  nameFontPx: 13,
+  nameFontPx: 12,
   nameWrapPx: 70,         // the card art's recess is x 9..83; a name centred on 48 fits in 70
-  barY: 100,
+  barY: 103,
   barWidth: 74,
   barHeight: 9,
   dangerFraction: 0.25,   // time bar turns red below this share of the order's time
@@ -38,13 +42,7 @@ const CARD = {
   servedRisePx: 44,
   servedRiseMs: 320,
   expireGraceSec: 0.75,   // a card gone with less time than this counts as expired
-  toppingOffsetXPx: 28,   // topping icons sit right of the burger icon, stacked
-  toppingGapPx: 20,
-  toppingScale: 0.5,
 } as const;
-
-/** Burger toppings a card shows as small icons, so the variants read apart. */
-const TOPPINGS: readonly IngredientType[] = ['lettuce', 'tomato'];
 
 const SCORE = {
   x: 26,
@@ -98,11 +96,9 @@ function recipeIconKey(recipeId: string): string {
   return first ? TEX.iconSoup(first) : TEX.iconPlate;
 }
 
-/** Toppings the recipe puts on a burger. Soups have none. */
-function recipeHasTopping(recipeId: string, topping: IngredientType): boolean {
-  const recipe = RECIPES[recipeId];
-  if (!recipe || recipeDishType(recipe) !== 'burger') return false;
-  return recipe.ingredients.includes(topping);
+/** Everything the dish takes, one entry per item: three onions for an onion soup, bun, lettuce, meat, tomato for a salad burger. */
+function recipeIngredients(recipeId: string): readonly IngredientType[] {
+  return RECIPES[recipeId]?.ingredients ?? [];
 }
 
 interface OrderCard {
@@ -110,7 +106,7 @@ interface OrderCard {
   recipeId: string;
   root: Phaser.GameObjects.Container;
   icon: Phaser.GameObjects.Image;
-  toppings: Phaser.GameObjects.Image[]; // one per TOPPINGS entry, hidden when unused
+  ingredients: Phaser.GameObjects.Image[]; // CARD.ingredientMax icons in a row, hidden when unused
   barFill: Phaser.GameObjects.Rectangle;
   slot: number;
   leaving: boolean;
@@ -237,13 +233,12 @@ export class Hud {
     const root = scene.add.container(this.slotX(slot), CARD.y - CARD.slideInPx).setAlpha(0);
     const background = scene.add.image(0, 0, TEX.orderCard).setOrigin(0, 0).setDisplaySize(CARD.width, CARD.height);
     const icon = scene.add.image(CARD.width / 2, CARD.iconY, recipeIconKey(order.recipeId)).setOrigin(0.5, 0.5).setScale(CARD.iconScale);
-    const toppings = TOPPINGS.map((topping) =>
-      scene.add
-        .image(CARD.width / 2 + CARD.toppingOffsetXPx, CARD.iconY, TEX.icon(topping))
-        .setOrigin(0.5, 0.5)
-        .setScale(CARD.toppingScale)
-        .setVisible(false),
-    );
+    const ingredients: Phaser.GameObjects.Image[] = [];
+    for (let i = 0; i < CARD.ingredientMax; i++) {
+      ingredients.push(
+        scene.add.image(CARD.width / 2, CARD.ingredientsY, TEX.iconPlate).setOrigin(0.5, 0.5).setScale(CARD.ingredientScale).setVisible(false),
+      );
+    }
     const name = scene.add
       .text(CARD.width / 2, CARD.nameY, recipeName(order.recipeId), textStyle(CARD.nameFontPx, TEXT_COLOR.bright, {
         align: 'center',
@@ -256,14 +251,14 @@ export class Hud {
     const barFill = scene.add
       .rectangle((CARD.width - CARD.barWidth) / 2, CARD.barY, CARD.barWidth, CARD.barHeight, COLOR.barGood)
       .setOrigin(0, 0.5);
-    root.add([background, icon, ...toppings, name, barTrack, barFill]);
+    root.add([background, icon, ...ingredients, name, barTrack, barFill]);
     this.root.add(root);
 
     const card: OrderCard = {
-      id: order.id, recipeId: order.recipeId, root, icon, toppings, barFill,
+      id: order.id, recipeId: order.recipeId, root, icon, ingredients, barFill,
       slot, leaving: false, lastTimeLeft: order.timeLeft,
     };
-    this.drawToppings(card);
+    this.drawIngredients(card);
     this.cards.set(order.id, card);
     this.track(
       scene.tweens.add({
@@ -291,24 +286,21 @@ export class Hud {
     if (card.recipeId !== order.recipeId) {
       card.recipeId = order.recipeId;
       card.icon.setTexture(recipeIconKey(order.recipeId));
-      this.drawToppings(card);
+      this.drawIngredients(card);
     }
     card.lastTimeLeft = order.timeLeft;
   }
 
-  /** Small lettuce / tomato icons beside a burger icon, stacked and centred on it. */
-  private drawToppings(card: OrderCard): void {
-    let present = 0;
-    for (const topping of TOPPINGS) if (recipeHasTopping(card.recipeId, topping)) present++;
-    let drawn = 0;
-    TOPPINGS.forEach((topping, i) => {
-      const sprite = card.toppings[i];
-      if (!sprite) return;
-      const show = recipeHasTopping(card.recipeId, topping);
-      sprite.setVisible(show);
-      if (!show) return;
-      sprite.setY(CARD.iconY + (drawn - (present - 1) / 2) * CARD.toppingGapPx);
-      drawn++;
+  /** The recipe's ingredients as a centred row of small icons under the dish, one icon per item. */
+  private drawIngredients(card: OrderCard): void {
+    const list = recipeIngredients(card.recipeId).slice(0, CARD.ingredientMax);
+    card.ingredients.forEach((sprite, i) => {
+      const ingredient = list[i];
+      if (ingredient === undefined) {
+        sprite.setVisible(false);
+        return;
+      }
+      sprite.setTexture(TEX.icon(ingredient)).setX(CARD.width / 2 + (i - (list.length - 1) / 2) * CARD.ingredientGapPx).setVisible(true);
     });
   }
 
