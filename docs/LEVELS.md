@@ -405,6 +405,66 @@ Tuning knobs: the gate (`periodSec`, `openSec`, `phase`), and `orders` (initial 
 24 s, at most 4, 100 s each — the same starting point as 1-4, since it is the same recipe
 set). If the gate proves punishing, lengthen `openSec` before touching the orders.
 
+## 3-2 — Savoury Seas, the split deck
+
+```
+#EV#####XV####
+S..  ..M....S.
+X..  ..O....S.
+S.####.T......
+.......#.  ...
+.......#.  ...
+.......#......
+pppB#B##......
+.......#......
+```
+
+14 x 9.
+
+| Tile | Station |
+| --- | --- |
+| `E` (1,0) | Counter with the fire extinguisher |
+| `V` (2,0), (9,0) | The two serving hatches, one per half |
+| `#` (5,0) → `plateStack` | The plate return, overridden in `stations`: plates come back clean here |
+| `X` (8,0), (0,2) | Bins, one per half |
+| `S` (0,1), (0,3), (12,1), (12,2) | The four burners with pots, two per half |
+| `M` (7,1), `O` (7,2), `T` (7,3) | The crates, on the divider so both chefs reach them |
+| `#` (2,3)-(5,3) | The mid-deck counter run |
+| `p` (0,7), (1,7), (2,7) | The three clean plates |
+| `B` (3,7), (5,7) | Chopping boards, port side only |
+| ` ` (3,1)-(4,2), (9,4)-(10,5) | The two open cargo grates: solid holes, drawn as void |
+
+Wiki facts used: onion, tomato and mushroom soup; 4:00, no prep time; plates "No", so
+`plates.mode` is `stack`; 23 stars to unlock from the stars-to-unlock table (the infobox says
+14; the table is the better source); the overview's rotation of roles between "handing
+Ingredients, serving and cooking" and "Chopping and bringing plates from the Plate Return"; and
+the strategy tip to keep the plates where every chef can reach them.
+
+Uncertainties, and how they were settled:
+
+- **The grid is a schematic.** The catalog record (`docs/research/catalog/oc1/oc1-3-2.md`) rates
+  its own grid low confidence: the deck has no tile-aligned texture and the railings give no
+  usable vanishing point, so station families and sides are right and exact tiles are not.
+  Taken as is; walk it and move stations by feel.
+- **The plate return.** The wiki's plate return hands plates back clean and there is no sink,
+  which is `plates.mode: 'stack'`: plates respawn on a `plateStack` tile after a serve. The
+  return tile at (5,0) is a `#` overridden to `plateStack` so it starts empty, and the three
+  starting plates sit on the south counter as `p`, matching `plates.count: 3`.
+- **Star thresholds.** Only the 3-star values are published: 100 for one player, 160 for two.
+  The 1- and 2-star values follow 1-3's 30% / 60% rule: 1P `[30, 60, 100]`, 2P `[50, 100, 160]`.
+- **Orders.** No cadence on the wiki. The catalog's estimate, initial 2, every 22 s, at most 4,
+  95 s each, close to 1-3's numbers on the same deck with the same recipes. Untested.
+- **The grates.** Obstacles with no penalty in Overcooked 1, so they are void (solid, drawn as
+  a hole), not the clone's `gap` tile, which a chef falls into.
+- **The unlock.** 23 stars is more than world 1 can give (18), so until worlds 2 and 3 land the
+  level opens through free play only.
+
+The two halves never touch: everything crosses over the divider, and the strip of deck below
+the south counter (row 8, port side) is a dead end. The starboard chef has no board, so chopped
+ingredients travel over the divider; the port chef has the only plates.
+
+Tuning knobs: orders; the plate count; which side the second bin sits on.
+
 ## Unlock thresholds
 
 `unlockStars` is the total star count the campaign needs before a level opens. Numbers come
