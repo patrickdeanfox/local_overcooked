@@ -1,0 +1,214 @@
+{
+  "id": "oc2-6-4",
+  "game": "oc2",
+  "world": 6,
+  "index": 4,
+  "name": "6-4",
+  "theme": "Buffet Balloons",
+  "wiki": "https://overcooked.fandom.com/wiki/6-4_(Overcooked!_2)",
+  "screenshots": [
+    "oc2/6-4.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 79,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "meat_burger",
+    "lettuce_cheese_burger",
+    "tomato_lettuce_burger",
+    "pizza",
+    "chicken_pizza",
+    "pepperoni_pizza"
+  ],
+  "orderVariants": 6,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 20,
+    "max": 5,
+    "timeSec": 80
+  },
+  "stars": {
+    "1": [
+      140,
+      180,
+      260
+    ],
+    "2": [
+      260,
+      320,
+      440
+    ],
+    "3": [
+      340,
+      420,
+      580
+    ],
+    "4": [
+      340,
+      420,
+      580
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 2
+  },
+  "grid": {
+    "cols": 15,
+    "rows": 8,
+    "confidence": "med",
+    "ascii": [
+      "####11#VR#22###",
+      "#...11....22..#",
+      "p............X#",
+      "#..#BNBNB#...p#",
+      "E.............W",
+      "#.............#",
+      "#?###F#F####?##",
+      "###############"
+    ]
+  },
+  "legendExtensions": {
+    "N": "oven",
+    "1": "the left 2x2 ingredient-box island: cheese, buns, beef and dough. A control stick drives it around the kitchen",
+    "2": "the right 2x2 ingredient-box island: lettuce, tomatoes, pepperoni and chicken",
+    "?": "one of the two control sticks"
+  },
+  "stations": {
+    "board": 3,
+    "potBurner": 0,
+    "panBurner": 2,
+    "fryer": 0,
+    "oven": 2,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plate": 2,
+    "counter": 44,
+    "crates": {
+      "beef": 1,
+      "bun": 1,
+      "cheese": 1,
+      "chicken": 1,
+      "dough": 1,
+      "lettuce": 1,
+      "pepperoni": 1,
+      "tomato": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 4,
+      "y": 4
+    },
+    {
+      "x": 10,
+      "y": 4
+    }
+  ],
+  "zones": [
+    {
+      "name": "balloon deck",
+      "stations": [
+        "board x3",
+        "oven x2",
+        "panBurner x2",
+        "serve",
+        "plateReturn",
+        "sink",
+        "trash",
+        "extinguisher",
+        "plate x2"
+      ],
+      "links": [
+        {
+          "to": "left crate island",
+          "via": "drive it with the left stick"
+        },
+        {
+          "to": "right crate island",
+          "via": "drive it with the right stick"
+        }
+      ]
+    },
+    {
+      "name": "left crate island",
+      "stations": [
+        "cheese",
+        "bun",
+        "beef",
+        "dough"
+      ],
+      "links": [
+        {
+          "to": "balloon deck",
+          "via": "moving platform"
+        }
+      ]
+    },
+    {
+      "name": "right crate island",
+      "stations": [
+        "lettuce",
+        "tomato",
+        "pepperoni",
+        "chicken"
+      ],
+      "links": [
+        {
+          "to": "balloon deck",
+          "via": "moving platform"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "driven-crate-islands",
+      "detail": "two control sticks drive two 2x2 ingredient-box islands around the deck; only the two boxes on the far side of an island face the kitchen, so the islands have to be flipped top-to-bottom to reach the other two",
+      "periodSec": null
+    }
+  ],
+  "hazards": [],
+  "features": {
+    "splitKitchen": false,
+    "throwRequired": false,
+    "movingPlatforms": true,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 54,
+    "counterTiles": 66,
+    "stationTiles": 22,
+    "longestWalkTiles": null,
+    "chokepointWidth": 2,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "driveable crate islands",
+    "control stick station",
+    "oven",
+    "cheese / dough / pepperoni / chicken",
+    "pizza recipe"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "plates.count",
+    "spawns",
+    "grid.ascii",
+    "features.chokepointWidth"
+  ]
+}

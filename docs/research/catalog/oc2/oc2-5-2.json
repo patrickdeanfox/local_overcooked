@@ -1,0 +1,212 @@
+{
+  "id": "oc2-5-2",
+  "game": "oc2",
+  "world": 5,
+  "index": 2,
+  "name": "5-2",
+  "theme": "Buffet Balloons",
+  "wiki": "https://overcooked.fandom.com/wiki/5-2_(Overcooked!_2)",
+  "screenshots": [
+    "oc2/5-2.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 47,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "meat_burger",
+    "cheese_burger",
+    "lettuce_cheese_burger",
+    "tomato_lettuce_burger"
+  ],
+  "orderVariants": 4,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 20,
+    "max": 5,
+    "timeSec": 80
+  },
+  "stars": {
+    "1": [
+      180,
+      220,
+      300
+    ],
+    "2": [
+      240,
+      300,
+      420
+    ],
+    "3": [
+      200,
+      240,
+      340
+    ],
+    "4": [
+      200,
+      240,
+      340
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 4
+  },
+  "grid": {
+    "cols": 15,
+    "rows": 10,
+    "confidence": "med",
+    "ascii": [
+      "###############",
+      "#.............#",
+      "#.##B##U##B##.#",
+      "V.#....#....E.#",
+      "#.F...H#L...F.#",
+      "#.#...T#A...F.#",
+      "#.X....W....R.#",
+      "#.###########.#",
+      "#.............#",
+      "##p#p#####p#p##"
+    ]
+  },
+  "legendExtensions": {
+    "H": "cheese crate"
+  },
+  "stations": {
+    "board": 2,
+    "potBurner": 0,
+    "panBurner": 3,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plate": 4,
+    "counter": 65,
+    "crates": {
+      "beef": 1,
+      "bun": 1,
+      "cheese": 1,
+      "lettuce": 1,
+      "tomato": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 4,
+      "y": 4
+    },
+    {
+      "x": 10,
+      "y": 4
+    }
+  ],
+  "zones": [
+    {
+      "name": "left station",
+      "stations": [
+        "panBurner",
+        "board",
+        "trash",
+        "cheese crate",
+        "tomato crate"
+      ],
+      "links": [
+        {
+          "to": "ring corridor",
+          "via": "walk (three exits)"
+        },
+        {
+          "to": "right station",
+          "via": "shared sink and bun crate on the dividing wall"
+        }
+      ]
+    },
+    {
+      "name": "right station",
+      "stations": [
+        "panBurner x2",
+        "board",
+        "lettuce crate",
+        "beef crate",
+        "plateReturn",
+        "extinguisher"
+      ],
+      "links": [
+        {
+          "to": "ring corridor",
+          "via": "walk"
+        },
+        {
+          "to": "left station",
+          "via": "shared sink and bun crate"
+        }
+      ]
+    },
+    {
+      "name": "ring corridor",
+      "stations": [
+        "serve",
+        "plate x4"
+      ],
+      "links": [
+        {
+          "to": "left station",
+          "via": "walk"
+        },
+        {
+          "to": "right station",
+          "via": "walk"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "fire",
+      "detail": "floor fires start at random points and block the corridors; a chef can be cornered by one",
+      "periodSec": null
+    }
+  ],
+  "hazards": [
+    "random floor fire"
+  ],
+  "features": {
+    "splitKitchen": false,
+    "throwRequired": false,
+    "movingPlatforms": false,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 66,
+    "counterTiles": 84,
+    "stationTiles": 19,
+    "longestWalkTiles": 8,
+    "chokepointWidth": 1,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "random floor fires that block movement",
+    "cheese",
+    "cheese / lettuce / tomato burger variants"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "plates.count",
+    "spawns",
+    "grid.ascii",
+    "dynamics[0].periodSec"
+  ]
+}

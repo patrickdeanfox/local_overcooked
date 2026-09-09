@@ -1,0 +1,227 @@
+{
+  "id": "oc2-6-1",
+  "game": "oc2",
+  "world": 6,
+  "index": 1,
+  "name": "6-1",
+  "theme": "Buffet Balloons",
+  "wiki": "https://overcooked.fandom.com/wiki/6-1_(Overcooked!_2)",
+  "screenshots": [
+    "oc2/6-1.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": true,
+  "unlockStars": 66,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "cake",
+    "carrot_cake",
+    "chocolate_cake"
+  ],
+  "orderVariants": 3,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 20,
+    "max": 5,
+    "timeSec": 100
+  },
+  "stars": {
+    "1": [
+      360,
+      460,
+      620
+    ],
+    "2": [
+      420,
+      520,
+      700
+    ],
+    "3": [
+      580,
+      720,
+      980
+    ],
+    "4": [
+      580,
+      720,
+      980
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 3
+  },
+  "grid": {
+    "cols": 15,
+    "rows": 11,
+    "confidence": "med",
+    "ascii": [
+      "##&!#NN##R#X###",
+      "#v............#",
+      "#v............#",
+      "#v###########.#",
+      "#v............#",
+      "#v#B#B#E#ppp#.V",
+      "#v............#",
+      "#v###########.#",
+      "#v............#",
+      "#v............#",
+      "##KK#$!!#W#####"
+    ]
+  },
+  "legendExtensions": {
+    "N": "oven",
+    "K": "mixer",
+    "&": "flour crate",
+    "$": "egg crate",
+    "!": "chocolate crate (3,0), carrot crate (6,10), honey crate (7,10)",
+    "v": "counter-height conveyor belt down the left wall; it is how ingredients move between the three bands because the walls are too high to throw over"
+  },
+  "stations": {
+    "board": 2,
+    "potBurner": 0,
+    "panBurner": 0,
+    "fryer": 0,
+    "oven": 2,
+    "mixer": 2,
+    "steamer": 0,
+    "sink": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plate": 3,
+    "counter": 62,
+    "crates": {
+      "carrot": 1,
+      "chocolate": 1,
+      "egg": 1,
+      "flour": 1,
+      "honey": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 6,
+      "y": 5
+    },
+    {
+      "x": 6,
+      "y": 9
+    }
+  ],
+  "zones": [
+    {
+      "name": "top band",
+      "stations": [
+        "oven x2",
+        "plateReturn",
+        "trash",
+        "flour crate",
+        "chocolate crate"
+      ],
+      "links": [
+        {
+          "to": "middle band",
+          "via": "conveyor"
+        },
+        {
+          "to": "middle band",
+          "via": "walk (right corridor)"
+        }
+      ]
+    },
+    {
+      "name": "middle band",
+      "stations": [
+        "board x2",
+        "extinguisher",
+        "plate x3"
+      ],
+      "links": [
+        {
+          "to": "top band",
+          "via": "conveyor / corridor"
+        },
+        {
+          "to": "bottom band",
+          "via": "conveyor / corridor"
+        },
+        {
+          "to": "serve",
+          "via": "walk"
+        }
+      ]
+    },
+    {
+      "name": "bottom band",
+      "stations": [
+        "mixer x2",
+        "sink",
+        "egg crate",
+        "carrot crate",
+        "honey crate"
+      ],
+      "links": [
+        {
+          "to": "middle band",
+          "via": "conveyor / corridor"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "conveyors",
+      "detail": "belts down the left wall carry ingredients between the three bands; the walls are too high to throw over, so the belts and the right-hand corridor are the only routes",
+      "periodSec": null
+    },
+    {
+      "type": "fire",
+      "detail": "floor fires start at random points and block access",
+      "periodSec": null
+    }
+  ],
+  "hazards": [
+    "random floor fire"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": false,
+    "movingPlatforms": false,
+    "conveyors": true,
+    "portals": false,
+    "floorTiles": 75,
+    "counterTiles": 90,
+    "stationTiles": 28,
+    "longestWalkTiles": 15,
+    "chokepointWidth": 1,
+    "recipeSteps": 5
+  },
+  "missingMechanics": [
+    "oven",
+    "mixer",
+    "conveyor belts",
+    "random floor fires",
+    "walls too high to throw over",
+    "flour / egg / honey / carrot / chocolate",
+    "cake recipe",
+    "a cap on how many baked dishes can wait"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "spawns",
+    "grid.ascii",
+    "dynamics[0].periodSec",
+    "dynamics[1].periodSec"
+  ]
+}

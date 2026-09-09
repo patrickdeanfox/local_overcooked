@@ -1,0 +1,219 @@
+{
+  "id": "oc2-5-1",
+  "game": "oc2",
+  "world": 5,
+  "index": 1,
+  "name": "5-1",
+  "theme": "Sushi City",
+  "wiki": "https://overcooked.fandom.com/wiki/5-1_(Overcooked!_2)",
+  "screenshots": [
+    "oc2/5-1.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 44,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "meat_burger",
+    "cucumber_sushi",
+    "fish_sushi",
+    "fish_cucumber_sushi"
+  ],
+  "orderVariants": 4,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 20,
+    "max": 5,
+    "timeSec": 80
+  },
+  "stars": {
+    "1": [
+      240,
+      300,
+      420
+    ],
+    "2": [
+      280,
+      360,
+      480
+    ],
+    "3": [
+      300,
+      380,
+      520
+    ],
+    "4": [
+      300,
+      380,
+      520
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 3
+  },
+  "grid": {
+    "cols": 15,
+    "rows": 8,
+    "confidence": "med",
+    "ascii": [
+      "##SS#__#__#BBW#",
+      "F...._=p=_....V",
+      "F...._=#=_....#",
+      "#...._=p=_....R",
+      "#...._=?=_....#",
+      "#...._=p=_....E",
+      "U...._=#=_....#",
+      "#!IX#__#__#!AJ#"
+    ]
+  },
+  "legendExtensions": {
+    "_": "the river",
+    "=": "the deck of the player-steered bridge platform (it slides left and right across the river); the counter column down its middle carries the three plates and the joystick",
+    "?": "the joystick that drives the bridge platform",
+    "I": "rice crate",
+    "J": "fish crate",
+    "!": "nori crate (1,7), cucumber crate (11,7)"
+  },
+  "stations": {
+    "board": 2,
+    "potBurner": 2,
+    "panBurner": 2,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plate": 3,
+    "counter": 19,
+    "crates": {
+      "beef": 1,
+      "bun": 1,
+      "cucumber": 1,
+      "fish": 1,
+      "nori": 1,
+      "rice": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 3,
+      "y": 4
+    },
+    {
+      "x": 11,
+      "y": 4
+    }
+  ],
+  "zones": [
+    {
+      "name": "left bank",
+      "stations": [
+        "potBurner x2",
+        "panBurner x2",
+        "trash",
+        "bun crate",
+        "nori crate",
+        "rice crate"
+      ],
+      "links": [
+        {
+          "to": "bridge platform",
+          "via": "moving platform"
+        },
+        {
+          "to": "right bank",
+          "via": "throw"
+        }
+      ]
+    },
+    {
+      "name": "bridge platform",
+      "stations": [
+        "plate x3",
+        "joystick"
+      ],
+      "links": [
+        {
+          "to": "left bank",
+          "via": "moving platform"
+        },
+        {
+          "to": "right bank",
+          "via": "moving platform"
+        }
+      ]
+    },
+    {
+      "name": "right bank",
+      "stations": [
+        "serve",
+        "plateReturn",
+        "sink",
+        "board x2",
+        "extinguisher",
+        "cucumber crate",
+        "beef crate",
+        "fish crate"
+      ],
+      "links": [
+        {
+          "to": "bridge platform",
+          "via": "moving platform"
+        },
+        {
+          "to": "left bank",
+          "via": "throw"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "steerable-platform",
+      "detail": "a chef standing at the joystick drives the middle platform left and right; it is the only walkable link between the banks and it carries the clean plates",
+      "periodSec": null
+    }
+  ],
+  "hazards": [
+    "river: fall in and respawn"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": true,
+    "movingPlatforms": true,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 61,
+    "counterTiles": 39,
+    "stationTiles": 20,
+    "longestWalkTiles": 7,
+    "chokepointWidth": 1,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "player-steered moving platform",
+    "joystick / control switch station",
+    "rice / nori / fish / cucumber",
+    "sushi recipe"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "spawns",
+    "grid.ascii",
+    "dynamics[0].periodSec"
+  ]
+}

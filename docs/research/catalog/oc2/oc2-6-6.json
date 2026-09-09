@@ -1,0 +1,254 @@
+{
+  "id": "oc2-6-6",
+  "game": "oc2",
+  "world": 6,
+  "index": 6,
+  "name": "6-6",
+  "theme": "Gourmet Galaxy",
+  "wiki": "https://overcooked.fandom.com/wiki/6-6_(Overcooked!_2)",
+  "screenshots": [
+    "oc2/6-6.jpg"
+  ],
+  "timeLimitSec": 900,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 92,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "tomato_salad",
+    "cucumber_tomato_salad",
+    "prawn_sashimi",
+    "cucumber_sushi",
+    "fish_sashimi",
+    "fish_sushi",
+    "nuggets",
+    "tomato_pasta",
+    "nuggets_and_chips",
+    "fish_prawn_pasta",
+    "cheese_burger",
+    "lettuce_cheese_burger",
+    "tomato_lettuce_burger",
+    "beef_burrito",
+    "mushroom_burrito",
+    "steamed_beef",
+    "steamed_carrot",
+    "pizza",
+    "pepperoni_pizza",
+    "pancake",
+    "chocolate_cake",
+    "chocolate_pancake",
+    "carrot_cake"
+  ],
+  "orderVariants": 23,
+  "orders": {
+    "initial": 2,
+    "intervalSec": null,
+    "max": 5,
+    "timeSec": null
+  },
+  "stars": {
+    "1": [
+      500,
+      1000,
+      1500
+    ],
+    "2": [
+      500,
+      1000,
+      1500
+    ],
+    "3": [
+      500,
+      1000,
+      1500
+    ],
+    "4": [
+      500,
+      1000,
+      1500
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 4
+  },
+  "grid": {
+    "cols": 17,
+    "rows": 11,
+    "confidence": "low",
+    "ascii": [
+      "#!S#S#!#!#HYUY&##",
+      "T...............#",
+      "L...............#",
+      "!..#pp####......#",
+      "J..#pp####......#",
+      "Ø...............#",
+      "I...............#",
+      "A...............#",
+      "M...............#",
+      "#BBB#FF#C%#?##W##",
+      "#X#E#######G..?VR"
+    ]
+  },
+  "legendExtensions": {
+    "Y": "deep fryer",
+    "!": "nori crate (1,0), pasta crate (6,0), tortilla crate (8,0), cucumber crate (0,3)",
+    "&": "dough crate (14,0)",
+    "Ø": "prawn crate",
+    "I": "rice crate",
+    "J": "fish crate",
+    "H": "cheese crate",
+    "C": "chicken crate",
+    "%": "potato crate",
+    "G": "the gate in front of the serve counter; a button on either side opens it",
+    "?": "one of the two gate buttons"
+  },
+  "stations": {
+    "board": 3,
+    "potBurner": 2,
+    "panBurner": 2,
+    "fryer": 2,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plate": 4,
+    "counter": 42,
+    "crates": {
+      "beef": 1,
+      "bun": 1,
+      "cheese": 1,
+      "chicken": 1,
+      "cucumber": 1,
+      "dough": 1,
+      "fish": 1,
+      "lettuce": 1,
+      "mushroom": 1,
+      "nori": 1,
+      "pasta": 1,
+      "potato": 1,
+      "prawn": 1,
+      "rice": 1,
+      "tomato": 1,
+      "tortilla": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 5,
+      "y": 5
+    },
+    {
+      "x": 10,
+      "y": 5
+    }
+  ],
+  "zones": [
+    {
+      "name": "main kitchen (phase 1)",
+      "stations": [
+        "potBurner x2",
+        "fryer x2",
+        "board x3",
+        "panBurner x2",
+        "sink",
+        "trash",
+        "extinguisher",
+        "plate x4",
+        "16 crates"
+      ],
+      "links": [
+        {
+          "to": "serve pocket",
+          "via": "gate opened by either button"
+        }
+      ]
+    },
+    {
+      "name": "serve pocket",
+      "stations": [
+        "serve",
+        "plateReturn"
+      ],
+      "links": [
+        {
+          "to": "main kitchen",
+          "via": "gate"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "phases",
+      "detail": "progress-driven, not clock-driven: the layout changes once the burgers have been delivered, into a portal-and-conveyor kitchen with mixers and ovens; the ground breaks after the last burger",
+      "periodSec": null
+    },
+    {
+      "type": "gate",
+      "detail": "the serve counter and plate return start behind a gate; a button on either side opens it",
+      "periodSec": null
+    },
+    {
+      "type": "portals",
+      "detail": "phase 2 only; items can be thrown through them",
+      "periodSec": null
+    },
+    {
+      "type": "conveyors",
+      "detail": "phase 2 only",
+      "periodSec": null
+    },
+    {
+      "type": "sliders",
+      "detail": "moving tables are listed in the obstacles field",
+      "periodSec": null
+    }
+  ],
+  "hazards": [
+    "the ground breaking after the last burger"
+  ],
+  "features": {
+    "splitKitchen": false,
+    "throwRequired": true,
+    "movingPlatforms": true,
+    "conveyors": true,
+    "portals": true,
+    "floorTiles": 111,
+    "counterTiles": 76,
+    "stationTiles": 34,
+    "longestWalkTiles": 22,
+    "chokepointWidth": 1,
+    "recipeSteps": 5
+  },
+  "missingMechanics": [
+    "a fixed scripted order list instead of random tickets",
+    "progress-driven layout change",
+    "portals",
+    "conveyor belts",
+    "moving tables",
+    "deep fryer",
+    "oven",
+    "mixer",
+    "steamer",
+    "most of the OC2 ingredient set",
+    "nine recipe families the clone does not have"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.max",
+    "plates.count",
+    "spawns",
+    "grid.ascii",
+    "features.chokepointWidth"
+  ]
+}

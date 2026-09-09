@@ -1,0 +1,202 @@
+{
+  "id": "oc2-4-4",
+  "game": "oc2",
+  "world": 4,
+  "index": 4,
+  "name": "4-4",
+  "theme": "Moreish Mines",
+  "wiki": "https://overcooked.fandom.com/wiki/4-4_(Overcooked!_2)",
+  "screenshots": [
+    "oc2/4-4.jpg"
+  ],
+  "timeLimitSec": 210,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 35,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "chips",
+    "nuggets",
+    "nuggets_and_chips"
+  ],
+  "orderVariants": 3,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 20,
+    "max": 5,
+    "timeSec": 80
+  },
+  "stars": {
+    "1": [
+      220,
+      280,
+      380
+    ],
+    "2": [
+      300,
+      380,
+      520
+    ],
+    "3": [
+      300,
+      380,
+      520
+    ],
+    "4": [
+      300,
+      380,
+      520
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 3
+  },
+  "grid": {
+    "cols": 15,
+    "rows": 8,
+    "confidence": "low",
+    "ascii": [
+      "##XYB#####%YB##",
+      "#.....#_#.....#",
+      "1......=......2",
+      "1.....#_#.....2",
+      "W.....#_#.....R",
+      "#......=......E",
+      "#.....#_#.....#",
+      "##C#pp#_##p#V##"
+    ]
+  },
+  "legendExtensions": {
+    "Y": "deep fryer",
+    "%": "potato crate",
+    "C": "chicken crate",
+    "_": "the acid pit between the halves",
+    "=": "one of the two bridges; a gust of wind blows along it",
+    "1 2": "the short counters on the far left and far right walls that slide up and down in time with the wind"
+  },
+  "stations": {
+    "board": 2,
+    "potBurner": 0,
+    "panBurner": 0,
+    "fryer": 2,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 1,
+    "extinguisher": 1,
+    "plate": 3,
+    "counter": 31,
+    "crates": {
+      "chicken": 1,
+      "potato": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 3,
+      "y": 4
+    },
+    {
+      "x": 11,
+      "y": 4
+    }
+  ],
+  "zones": [
+    {
+      "name": "left room",
+      "stations": [
+        "board",
+        "sink",
+        "fryer",
+        "chicken crate",
+        "trash",
+        "plate x2"
+      ],
+      "links": [
+        {
+          "to": "right room",
+          "via": "walk (two wind bridges)"
+        },
+        {
+          "to": "right room",
+          "via": "throw"
+        }
+      ]
+    },
+    {
+      "name": "right room",
+      "stations": [
+        "board",
+        "fryer",
+        "potato crate",
+        "serve",
+        "plateReturn",
+        "extinguisher",
+        "plate"
+      ],
+      "links": [
+        {
+          "to": "left room",
+          "via": "walk (two wind bridges)"
+        },
+        {
+          "to": "left room",
+          "via": "throw"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "wind",
+      "detail": "gusts along the top and bottom bridges flip direction every ~13 s and always oppose each other, so one bridge is always a headwind",
+      "periodSec": 13
+    },
+    {
+      "type": "sliders",
+      "detail": "short counters on the far left and right walls move up and down at roughly the wind tempo",
+      "periodSec": 13
+    }
+  ],
+  "hazards": [
+    "acid pit between the halves"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": true,
+    "movingPlatforms": false,
+    "conveyors": false,
+    "portals": false,
+    "floorTiles": 66,
+    "counterTiles": 49,
+    "stationTiles": 18,
+    "longestWalkTiles": 12,
+    "chokepointWidth": 1,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "wind that pushes chefs and items along a bridge",
+    "deep fryer",
+    "potato / chicken",
+    "fast food recipes"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "plates.count",
+    "spawns",
+    "grid.ascii",
+    "dynamics[1].periodSec"
+  ]
+}

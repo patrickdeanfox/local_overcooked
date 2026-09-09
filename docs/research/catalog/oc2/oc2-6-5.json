@@ -1,0 +1,203 @@
+{
+  "id": "oc2-6-5",
+  "game": "oc2",
+  "world": 6,
+  "index": 5,
+  "name": "6-5",
+  "theme": "Gourmet Galaxy",
+  "wiki": "https://overcooked.fandom.com/wiki/6-5_(Overcooked!_2)",
+  "screenshots": [
+    "oc2/6-5.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 86,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "meat_burger",
+    "cheese_burger",
+    "lettuce_cheese_burger"
+  ],
+  "orderVariants": 3,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 20,
+    "max": 5,
+    "timeSec": 80
+  },
+  "stars": {
+    "1": [
+      180,
+      220,
+      300
+    ],
+    "2": [
+      240,
+      300,
+      400
+    ],
+    "3": [
+      240,
+      300,
+      420
+    ],
+    "4": [
+      240,
+      300,
+      420
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 3
+  },
+  "grid": {
+    "cols": 13,
+    "rows": 12,
+    "confidence": "low",
+    "ascii": [
+      "#FF##VR######",
+      "UGGGG..GGGGB#",
+      "HGGGG..GGGGB#",
+      "AGGGG..GGGGX#",
+      "LGGGG..GGGGG#",
+      "_____>v______",
+      "_____^<______",
+      "UGGGG..GGGGB#",
+      "HGGGG..GGGGB#",
+      "AGGGG..GGGGX#",
+      "LGGGG..GGGGG#",
+      "#FF#WEppp####"
+    ]
+  },
+  "legendExtensions": {
+    "H": "cheese crate",
+    "G": "a section that sinks: the left sections (group 1) and the right sections (group 2) of both halves sink alternately every 45 s",
+    "> < ^ v": "the circular conveyor belt in the middle — the only link between the top and bottom halves; chefs cannot ride it",
+    "_": "the water the middle belt sits in"
+  },
+  "stations": {
+    "board": 4,
+    "potBurner": 0,
+    "panBurner": 4,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 2,
+    "extinguisher": 1,
+    "plate": 3,
+    "counter": 23,
+    "crates": {
+      "beef": 2,
+      "bun": 2,
+      "cheese": 2,
+      "lettuce": 2
+    }
+  },
+  "spawns": [
+    {
+      "x": 5,
+      "y": 2
+    },
+    {
+      "x": 5,
+      "y": 9
+    }
+  ],
+  "zones": [
+    {
+      "name": "top half",
+      "stations": [
+        "panBurner x2",
+        "board x2",
+        "trash",
+        "serve",
+        "plateReturn",
+        "bun crate",
+        "cheese crate",
+        "beef crate",
+        "lettuce crate"
+      ],
+      "links": [
+        {
+          "to": "bottom half",
+          "via": "conveyor (ring in the middle)"
+        }
+      ]
+    },
+    {
+      "name": "bottom half",
+      "stations": [
+        "panBurner x2",
+        "board x2",
+        "trash",
+        "sink",
+        "extinguisher",
+        "plate x3",
+        "bun crate",
+        "cheese crate",
+        "beef crate",
+        "lettuce crate"
+      ],
+      "links": [
+        {
+          "to": "top half",
+          "via": "conveyor (ring in the middle)"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "sinking-sections",
+      "detail": "each half's left and right sections sink alternately every 45 s, telegraphed by a rumble; items left on a sinking section survive, pans keep burning, and fires go out underwater",
+      "periodSec": 90
+    },
+    {
+      "type": "conveyors",
+      "detail": "a circular belt in the middle is the only route between the halves",
+      "periodSec": null
+    }
+  ],
+  "hazards": [
+    "a section sinking under you"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": false,
+    "movingPlatforms": true,
+    "conveyors": true,
+    "portals": false,
+    "floorTiles": 82,
+    "counterTiles": 52,
+    "stationTiles": 29,
+    "longestWalkTiles": 7,
+    "chokepointWidth": 2,
+    "recipeSteps": 4
+  },
+  "missingMechanics": [
+    "sections that sink and rise on a timer",
+    "a conveyor ring as the only cross-half link",
+    "cheese",
+    "cheese/lettuce burger variants"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "spawns",
+    "grid.ascii",
+    "dynamics[0].periodSec"
+  ]
+}

@@ -1,0 +1,201 @@
+{
+  "id": "oc2-4-5",
+  "game": "oc2",
+  "world": 4,
+  "index": 5,
+  "name": "4-5",
+  "theme": "Sushi City",
+  "wiki": "https://overcooked.fandom.com/wiki/4-5_(Overcooked!_2)",
+  "screenshots": [
+    "oc2/4-5.jpg"
+  ],
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "unlockStars": 38,
+  "players": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "recipes": [
+    "fish_sashimi",
+    "cucumber_sushi",
+    "fish_sushi",
+    "fish_cucumber_sushi"
+  ],
+  "orderVariants": 4,
+  "orders": {
+    "initial": 2,
+    "intervalSec": 20,
+    "max": 5,
+    "timeSec": 60
+  },
+  "stars": {
+    "1": [
+      200,
+      260,
+      360
+    ],
+    "2": [
+      280,
+      360,
+      480
+    ],
+    "3": [
+      320,
+      420,
+      560
+    ],
+    "4": [
+      320,
+      420,
+      560
+    ]
+  },
+  "starsProvenance": "oc2",
+  "plates": {
+    "mode": "sink",
+    "count": 2
+  },
+  "grid": {
+    "cols": 13,
+    "rows": 11,
+    "confidence": "low",
+    "ascii": [
+      "#####V#R#####",
+      "#>>>>>>>>>>v#",
+      "#^....v....v#",
+      "#^....v....v#",
+      "#^!#!#?pS#Sv#",
+      "#X<<<<?>>>>X#",
+      "#^pB#B?####vW",
+      "#^....v....v#",
+      "#^....v....v#",
+      "#^<<<<<<<<<<#",
+      "###!#E#J#####"
+    ]
+  },
+  "legendExtensions": {
+    "> < ^ v": "conveyor belt; the perimeter ring joins the halves from the outside, the two middle Ls run into the bins at (1,5) and (11,5)",
+    "?": "button that redirects the middle belts toward the pressing chef's half",
+    "!": "nori crate (2,4), rice crate (4,4), cucumber crate (3,10)",
+    "J": "fish crate"
+  },
+  "stations": {
+    "board": 2,
+    "potBurner": 2,
+    "panBurner": 0,
+    "fryer": 0,
+    "oven": 0,
+    "mixer": 0,
+    "steamer": 0,
+    "sink": 1,
+    "serve": 1,
+    "plateReturn": 1,
+    "trash": 2,
+    "extinguisher": 1,
+    "plate": 2,
+    "counter": 46,
+    "crates": {
+      "cucumber": 1,
+      "fish": 1,
+      "nori": 1,
+      "rice": 1
+    }
+  },
+  "spawns": [
+    {
+      "x": 5,
+      "y": 3
+    },
+    {
+      "x": 5,
+      "y": 8
+    }
+  ],
+  "zones": [
+    {
+      "name": "top half",
+      "stations": [
+        "potBurner x2",
+        "serve",
+        "plateReturn",
+        "nori crate",
+        "rice crate",
+        "plate"
+      ],
+      "links": [
+        {
+          "to": "bottom half",
+          "via": "conveyor (middle L belts + button)"
+        },
+        {
+          "to": "bottom half",
+          "via": "conveyor (outer ring)"
+        }
+      ]
+    },
+    {
+      "name": "bottom half",
+      "stations": [
+        "board x2",
+        "sink",
+        "extinguisher",
+        "fish crate",
+        "cucumber crate",
+        "plate"
+      ],
+      "links": [
+        {
+          "to": "top half",
+          "via": "conveyor (middle L belts + button)"
+        },
+        {
+          "to": "top half",
+          "via": "conveyor (outer ring)"
+        }
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "type": "conveyors",
+      "detail": "a ring belt runs round the whole kitchen; two overlapping L belts in the middle end in bins, and a button on each side steers what is on them toward that side",
+      "periodSec": null
+    }
+  ],
+  "hazards": [
+    "items ride into a bin if nobody presses the button"
+  ],
+  "features": {
+    "splitKitchen": true,
+    "throwRequired": false,
+    "movingPlatforms": false,
+    "conveyors": true,
+    "portals": false,
+    "floorTiles": 81,
+    "counterTiles": 62,
+    "stationTiles": 16,
+    "longestWalkTiles": 12,
+    "chokepointWidth": 1,
+    "recipeSteps": 3
+  },
+  "missingMechanics": [
+    "conveyor belts",
+    "buttons that steer a belt",
+    "belts that feed bins",
+    "rice / nori / fish / cucumber",
+    "sashimi and sushi recipes",
+    "plates that cannot be thrown"
+  ],
+  "estimates": [
+    "orders.initial",
+    "orders.intervalSec",
+    "orders.max",
+    "orders.timeSec",
+    "spawns",
+    "grid.ascii",
+    "dynamics[0].periodSec"
+  ]
+}
