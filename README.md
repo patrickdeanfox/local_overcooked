@@ -2,7 +2,9 @@
 
 A two-player Overcooked clone that runs in a browser on your home network. One screen, two Bluetooth gamepads (or the keyboard). The kitchen is a real 3D scene (Three.js) built from CC0 low-poly kits by Kenney and KayKit; Phaser 3 draws the menus and HUD on top, and every sound is synthesised.
 
-**Status: Overcooked 1 world 1 complete.** Levels 1-1 to 1-6 are transcribed 1:1 from the wiki: soups (pots), burgers (frying pans, bun, lettuce, tomato), chopping, burning and fire, extinguisher, sink washing with dirty-plate return, plate stacks on the no-sink ship level, orders with tips and the exact-order combo rule, star thresholds and unlocks, the 1-2 pedestrian crosswalk, the 1-3 sliding counters, the 1-5 one-tile ring corridor and the 1-6 earthquake seam. Level select remembers your best scores and stars; difficulty presets and seeded order sequences add replay value.
+**Status: Overcooked 1 world 1 complete.** Levels 1-1 to 1-6 are transcribed 1:1 from the wiki: soups (pots), burgers (frying pans, bun, lettuce, tomato), chopping, burning and fire, extinguisher, sink washing with dirty-plate return, plate stacks on the no-sink ship level, orders with tips and the exact-order combo rule, star thresholds and unlocks, the 1-2 pedestrian crosswalk, the 1-3 sliding counters, the 1-5 one-tile ring corridor and the 1-6 earthquake seam. Level select remembers your best scores and stars; difficulty presets and seeded order sequences add replay value. Around the kitchen: a Chefs page with 15 characters previewed in 3D, a Settings page with assists and separate music and effects switches, level themes with steam and a chopping animation, an F8 note reporter for bugs and ideas, and a research catalog of all 74 Overcooked 1 and 2 levels ready to transcribe (`docs/research/catalog/`).
+
+Working on the code: `docs/DESIGN.md` explains how the pieces fit, `docs/WORKFLOW.md` explains how to work on several parts at once, and each part of `src/` carries its own `CLAUDE.md` with the rules for that part. What comes next is in `docs/ROADMAP.md`.
 
 ## Quick start
 
@@ -86,6 +88,11 @@ Other keys: **M** mute, **F3** or backtick debug overlay, **F4** (held, dev only
 | `npm test` | vitest: simulation rules, level validation and reachability, input mapping, art keys, audio map |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run playtest -- "…"` | headless playtest harness (below) |
+| `npm run notes` | print the F8 play notes (`-- --json` for raw JSON) |
+| `npm run models` | copy the glTF files named in `src/art/models.json` from `assets/` into `public/models/` |
+| `npm run skins` | paint the six apron skins from a stock Kenney skin (needs Pillow) |
+| `npm run chef` | bake the Kenney character rig and clips into `public/models/chef/chef.glb` (needs Blender) |
+| `npm run install-launcher` | Linux desktop launcher (above) |
 
 ## Headless playtests
 `tools/playtest.mjs` drives the game in a headless Chromium over the DevTools protocol with real key holds, screenshots, console capture and page evaluation. No dependencies; it finds Playwright's cached Chromium or a system Chrome (`CHROME=/path` to override).
@@ -100,22 +107,24 @@ In dev builds the page exposes `window.__oc = { sim, level, scene }`, so `eval` 
 ```
 src/sim/        pure TypeScript kitchen simulation (deterministic, no Phaser)  → types.ts is the contract
 src/levels/     level JSON (ASCII grid + legend) and the schema/validator      → docs/LEVEL_SCHEMA.md
-src/game/       Phaser scenes, renderer, HUD, pause, results, debug overlay, hot reload
+src/game/       Phaser scenes, renderer, HUD, pause, results, settings, progress, play notes, hot reload
 src/input/      keyboard + Gamepad API manager, bindings, controller screen
 src/art/        3D model manifest (models.json → models.ts) and code-drawn HUD textures → keys.ts and models.ts are the contracts
 src/game/render/ KitchenRenderer (state → Three.js scene) and three/ (stage, loader, tiles, items, chef rigs, effects)
-assets/         CC0 source kits (Kenney Food Kit, Furniture Kit, Animated Characters; KayKit Restaurant Bits)
+assets/         CC0 source kits (Kenney Food, Furniture, Car and Platformer kits, Animated Characters; KayKit Restaurant Bits)
 public/models/  the glTF files the game loads, synced from assets/ by `npm run models`
 src/audio/      Web Audio synth SFX and music loop
-tools/          playtest harness
-docs/           PLAN, ROADMAP, LEVELS (the three transcriptions), CONTROLS, research/ (wiki research)
+tools/          playtest harness and scripted scenarios, play-note store, model sync, chef export and skins, cert, launcher
+playnotes/      F8 notes and screenshots written by the server (not committed)
+docs/           DESIGN, WORKFLOW, ROADMAP, PLAN, LEVELS (the six transcriptions), LEVEL_SCHEMA, CONTROLS, research/ (wiki research and the level catalog)
 ```
+Each `src/` part has a `CLAUDE.md` with its rules, boundaries, tests and how-to-add recipes.
 
 ## Adding a level
-1. Fetch the wiki page and screenshot: `python3 docs/research/tools/fetch_wiki.py page-images "1-4 (Overcooked!)"`.
-2. Write `src/levels/oc1/2-1.json` following `docs/LEVEL_SCHEMA.md` (fixed legend: `#` counter, `O`/`T`/`M` soup crates, `A`/`U`/`L` meat, bun and lettuce crates, `B` board, `S` stove with pot, `F` stove with pan, `W` sink, `D` drying, `R` plate return, `V` serve, `X` trash, `E` extinguisher, `P` plate stack, `p` plate, `1`-`4` sliders, `G` earthquake gate, `~` road, `.` floor, space void). Add `unlockStars` from the wiki infobox.
+1. Start from the catalog record: `docs/research/catalog/oc1/oc1-2-1.md` already has the ASCII grid, station counts, timers, star thresholds and a list of the mechanics the clone still lacks for that level. If its grid confidence is low, fetch a better screenshot: `python3 docs/research/tools/fetch_wiki.py page-images "2-1 (Overcooked!)"`.
+2. Write `src/levels/oc1/2-1.json` following `docs/LEVEL_SCHEMA.md` (fixed legend: `#` counter, `O`/`T`/`M` soup crates, `A`/`U`/`L` meat, bun and lettuce crates, `B` board, `S` stove with pot, `F` stove with pan, `W` sink, `D` drying, `R` plate return, `V` serve, `X` trash, `E` extinguisher, `P` plate stack, `p` plate, `1`-`4` sliders, `G` earthquake gate, `~` road, `.` floor, space void). The catalog's extension characters (fryer, oven, belts and so on) have no legend entry yet; those levels wait on the mechanic. Add `unlockStars` from the wiki infobox.
 3. `npm test` validates the grid and checks every station is reachable; `npm run dev` lets you walk it.
 4. Timers and star thresholds come from the level page infobox and star chart; `docs/research/oc1-levels.md` has every OC1 level tabulated.
 
 ## What is not in this build
-Overcooked 1 worlds 2 to 6 (moving trucks, fish and chips, pizza, burritos), throwing and dashing (Overcooked 2), playing from two devices, recorded sound, and Tiled import. The order in which those land, with the files each one touches, is in `docs/ROADMAP.md`.
+Custom difficulty numbers, a guided controller setup, Overcooked 1 worlds 2 to 6 and all of Overcooked 2 (moving trucks, conveyor belts, fish and chips, pizza, burritos, mixers), throwing and dashing, more Kenney kits for the world themes, a character maker and custom models, procedurally generated kitchens, playing from two devices, recorded sound, and Tiled import. The order in which those land, with the files each one touches, is in `docs/ROADMAP.md`.

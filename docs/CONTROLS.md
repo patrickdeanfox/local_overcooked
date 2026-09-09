@@ -19,7 +19,7 @@ the page see it.
 2. **Open the game, then press a button on the pad.** The Gamepad API hides a pad until
    the page has seen input from it, so Chrome lists nothing until you press something.
    One press of A / Cross is enough.
-3. **Check it on the controller screen.** Press `C` on the title screen. Each player gets
+3. **Check it on the controller screen.** Open **Controllers** from the title menu. Each player gets
    a column with the device name and a live view of the stick, d-pad, face buttons and
    keyboard keys. Move the stick and the dot moves with it.
 
@@ -69,7 +69,7 @@ so a bad binding can never strand you on a screen.
 
 ## Remapping
 
-Everything happens on the controller screen (`C` from the title).
+Everything happens on the controller screen (the **Controllers** entry on the title menu).
 
 - **Move the highlight** with up/down on any device; left/right switches between the
   player 1 and player 2 columns.
