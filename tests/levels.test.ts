@@ -41,10 +41,17 @@ function reachableFrom(p: ParsedGrid, sx: number, sy: number, gatesClosed = fals
   const seen = new Set<number>();
   const start = tileAt(p, sx, sy);
   if (!start || !open(start)) return seen;
+  // Portals join their pair: stepping on one is standing on the other.
+  const byGroup = new Map<string, number[]>();
+  p.tiles.forEach((t, i) => { if (t.type === 'portal' && t.group) byGroup.set(t.group, [...(byGroup.get(t.group) ?? []), i]); });
   const queue: number[] = [sy * p.width + sx];
   seen.add(queue[0]);
   while (queue.length) {
     const i = queue.pop() as number;
+    const here = p.tiles[i];
+    if (here.type === 'portal' && here.group) {
+      for (const j of byGroup.get(here.group) ?? []) if (!seen.has(j)) { seen.add(j); queue.push(j); }
+    }
     const x = i % p.width;
     const y = (i - x) / p.width;
     for (const [dx, dy] of NEIGHBOURS) {
@@ -206,6 +213,7 @@ describe('levels', () => {
           expect(reachesType(p, reached, 'conveyor'), `no belt from spawn (${s.x},${s.y})`).toBe(true);
           continue;
         }
+        if (countType(p, 'rift') > 0) continue; // a rift kitchen (OC2 3-4) shares the work by throwing over it
         if (lanes.length > 0) {
           const bank = [...reached].some((i) => {
             const x = i % p.width;
@@ -1114,6 +1122,9 @@ describe('order tuning', () => {
     'oc1-4-1': { initial: 2, intervalSec: 22, max: 4, timeSec: 90 },
     'oc2-3-1': { initial: 2, intervalSec: 26, max: 4, timeSec: 100 },
     'oc2-3-3': { initial: 2, intervalSec: 26, max: 4, timeSec: 100 },
+    // Portals: cheese burgers; the catalog's estimates, untested.
+    'oc2-3-2': { initial: 2, intervalSec: 22, max: 4, timeSec: 90 },
+    'oc2-3-4': { initial: 2, intervalSec: 22, max: 4, timeSec: 90 },
     // The dark kitchen: a lit kitchen's soup cadence; the catalog's estimate, untested.
     'oc1-4-2': { initial: 2, intervalSec: 18, max: 4, timeSec: 60 },
     // The mechanics kitchens (docs/MECHANICS.md): estimates from the nearest shipped level, untested.

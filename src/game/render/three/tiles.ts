@@ -80,7 +80,7 @@ const GROUND_TEXTURE: Readonly<Partial<Record<TileType, string>>> = {
   sink: TEX.tile('floor'), drying: TEX.tile('floor'), plateReturn: TEX.tile('floor'), serve: TEX.tile('floor'),
   trash: TEX.tile('floor'), plateStack: TEX.tile('floor'),
   shelf: TEX.tile('floor'), trayRack: TEX.tile('floor'), delivery: TEX.tile('floor'), conveyor: TEX.tile('floor'),
-  fryer: TEX.tile('floor'), ice: TEX.tile('ice'), oven: TEX.tile('floor'),
+  fryer: TEX.tile('floor'), ice: TEX.tile('ice'), oven: TEX.tile('floor'), portal: TEX.tile('portal'), rift: TEX.tile('rift'),
 };
 /** Walkable belts lie a hair above the floor so their rubber hides the floor tile under them. */
 const FLOOR_BELT = { lift: 0.003 } as const;
@@ -125,7 +125,7 @@ function oneTileWide(model: THREE.Group, role: ModelRole): THREE.Group {
   return model;
 }
 
-const WALKABLE: ReadonlySet<TileType> = new Set<TileType>(['floor', 'road', 'gate', 'ice', 'conveyorFloor']);
+const WALKABLE: ReadonlySet<TileType> = new Set<TileType>(['floor', 'road', 'gate', 'ice', 'conveyorFloor', 'portal']);
 /** Neighbour directions in preference order: face the camera when there is a choice. */
 const FRONT_CHOICES: readonly { dx: number; dy: number; yaw: number }[] = [
   { dx: 0, dy: 1, yaw: 0 },              // down (+z, towards the camera)
@@ -486,7 +486,8 @@ export class TileSet {
         : tile.type === 'shelf' && !flags.passThroughShelf ? TEX.shelfClosed
         : GROUND_TEXTURE[tile.type];
       if (textureKey) {
-        const flat = dressing.floorColor !== null && tile.type !== 'road' && tile.type !== 'gate' && tile.type !== 'ice';
+        const flat = dressing.floorColor !== null && tile.type !== 'road' && tile.type !== 'gate' && tile.type !== 'ice'
+          && tile.type !== 'portal' && tile.type !== 'rift';
         const material = flat
           ? new THREE.MeshStandardMaterial({ color: dressing.floorColor ?? 0xffffff, roughness: 0.9 })
           : new THREE.MeshStandardMaterial({ map: groundTexture(phaserScene, textureKey, this.textures), color: GROUND.roadTint });

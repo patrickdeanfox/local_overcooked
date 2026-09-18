@@ -34,6 +34,8 @@ One JSON file per level under `src/levels/<game>/`. Type: `LevelDef` in `src/lev
 | `d` | delivery | delivery door (section 5): restocks arrive here and are unloaded with held interact. At most one per level. With the mechanic off it is a solid tile that does nothing |
 | `Y` | fryer | deep fryer holding a frying basket (`ware: 'basket'`): deep-fries one chopped fish or potato. The basket only goes back in a fryer, pots and pans only on a burner |
 | `%` | crate | potato source (chips) |
+| `@` | portal | walkable; a chef or a thrown item entering it comes out of the other portal of its group. Pair two with a `stations` override giving them the same `group`; the validator wants exactly two per group |
+| `z` | rift | solid for chefs, flown over by throws, never catches fire, nobody falls in (OC2 3-4) |
 | `N` | oven | bakes a pizza base set on it (the catalog's letter) |
 | `&` `e` | crate | dough (the catalog's) / pepperoni source. Chopping dough turns it into a pizza base on the board: chopped toppings go on it, it bakes in an oven, and a baked pizza slides onto a plate whole |
 | `r` `k` `H` `a` | crate | tortilla / chicken / cheese / pasta source (burritos, nuggets, cheese burgers, pasta). `H` is the catalog's cheese |

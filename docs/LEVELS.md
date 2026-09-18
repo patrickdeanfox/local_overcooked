@@ -736,6 +736,43 @@ Wiki facts used: pizza only; 3:30 with the clock waiting for the first pizza; th
 
 Wiki facts used: pizza and pepperoni pizza; 4:00; three plates on the middle counters; every quarter missing something; 20 stars; stars 1P 200 / 280 / 380, 2P 380 / 480 / 640. Orders the catalog's estimate, untested.
 
+## Overcooked 2 3-2 — Conjurer's Kitchen, the tiers
+
+```
+##### ###### ###
+@...# #pppp# ..@
+U...# F....F X.#
+L...# #....# ..#
+#....G......G..#
+#...# #....# ..#
+#...# F....F V.#
+@...# #....# R.@
+#BBB# #HA### #E#
+```
+
+16 x 9: the catalog's 17 x 9 (low confidence) with one floor column of the right tier dropped for the budget, which moved the bin up the tier's inner edge to (13,2). The moving staircase is two wall gates, `1` at (5,4) on the left and `2` at (12,4) on the right, each open 35 s of 70 and out of phase (the wiki: it swaps sides every 35 s). Two portal pairs join the outer tiers, `upper` (0,1)-(15,1) and `lower` (0,7)-(15,7); here both carry chefs and throws alike. No sink: the return at (13,7) is a `plateStack`.
+
+Wiki facts used: meat, cheese and lettuce-cheese burgers; 4:00; four plates on the middle's top counter; moving staircases and portals (infobox); 18 stars; stars 1P 160 / 240 / 320, 2P 300 / 360 / 500. Orders the catalog's estimate (2, every 22 s, at most 4, 90 s), untested.
+
+## Overcooked 2 3-4 — Conjurer's Kitchen, the rift
+
+```
+     #RV##
+     @...@
+     #####
+######zzzp#####
+@.....zzz.....@
+#BB...zzz.....X
+p.....zzz.....W
+p.....zzz.....D
+E.....zzz.....p
+#FFF##zzzTHAUL#
+```
+
+15 x 10. The catalog's rift `_` is a `rift` here (`z`), because the wiki's rift is neither walkable nor fallable, and only throws cross it. As catalogued, counters lined both banks and would have stopped every throw, so the banks are open floor; a throw from the edge of either bank clears the three-tile rift, and a dash-throw clears it easily. Portals: `left` (5,1)-(0,4) and `right` (9,1)-(14,4) join each side to the raised middle with the serve and the return. One right-hand plate moved from the bank to the counter at (9,3) to keep the bank open.
+
+Wiki facts used: the four burgers; 4:00; four plates, two each side; sink; the rift and the portals; the right chef owns the crates and the sink, the left the boards and pans; 22 stars; stars 1P 160 / 240 / 300, 2P 260 / 320 / 440. Orders the catalog's estimate, untested.
+
 ## 3-2 — Savoury Seas, the split deck
 
 ```

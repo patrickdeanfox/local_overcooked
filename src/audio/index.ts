@@ -192,7 +192,7 @@ export function sfxForEvent(event: SimEvent): SfxName | null {
     case 'throw': return 'throw';
     case 'catch': return 'catch';
     case 'throwLand': return 'throwLand';
-    case 'dash': return 'dash';
+    case 'dash': case 'portal': return 'dash';
     case 'dashBump': return 'dashBump';
     case 'chefFell': return 'chefFell';
     case 'crateEmpty': return 'crateEmpty';

@@ -144,6 +144,10 @@ export const PALETTE = {
   pepperoniDark: '#7e2019',
   ovenBody: '#3a3a40',
   ovenGlow: '#ff8a3c',
+  // Portals and the rift (Overcooked 2 world 3).
+  portal: '#7b4fd6',
+  portalLight: '#c7a8ff',
+  rift: '#1a1030',
   iceDark: '#a9cde8',
   lettuce: '#7ec850',
   lettuceDark: '#4b9231',

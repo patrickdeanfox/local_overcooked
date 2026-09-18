@@ -1,0 +1,40 @@
+{
+  "id": "oc2-3-2",
+  "name": "3-2",
+  "game": "oc2",
+  "world": 3,
+  "index": 2,
+  "theme": "conjurers-kitchen",
+  "description": "Cheese burgers on three tiers, and the first portals. The pans and plates are in the sunken middle, reached by a staircase that swaps sides every thirty-five seconds; two pairs of portals join the outer tiers.",
+  "strategy": "Keep buns on plates in the middle. One chef chops on the left and throws everything down; the other stays in the middle frying patties. The portals always join left and right, so they are the reliable way round; the stairs are the shortcut.",
+  "source": "https://overcooked.fandom.com/wiki/3-2_(Overcooked!_2)",
+  "unlockStars": 18,
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "recipes": ["oc2_meat_burger", "cheese_burger", "lettuce_cheese_burger"],
+  "orders": { "initial": 2, "intervalSec": 22, "max": 4, "timeSec": 90 },
+  "stars": { "1": [160, 240, 320], "2": [300, 360, 500] },
+  "plates": { "mode": "stack", "count": 4 },
+  "grid": [
+    "##### ###### ###",
+    "@...# #pppp# ..@",
+    "U...# F....F X.#",
+    "L...# #....# ..#",
+    "#....G......G..#",
+    "#...# #....# ..#",
+    "#...# F....F V.#",
+    "@...# #....# R.@",
+    "#BBB# #HA### #E#"
+  ],
+  "spawns": [{ "x": 2, "y": 5 }, { "x": 8, "y": 5 }],
+  "stations": [
+    { "x": 0, "y": 1, "group": "upper" }, { "x": 15, "y": 1, "group": "upper" },
+    { "x": 0, "y": 7, "group": "lower" }, { "x": 15, "y": 7, "group": "lower" },
+    { "x": 12, "y": 4, "group": "2" },
+    { "x": 13, "y": 7, "type": "plateStack" }
+  ],
+  "dynamics": [
+    { "type": "gate", "group": "1", "periodSec": 70, "openSec": 35 },
+    { "type": "gate", "group": "2", "periodSec": 70, "openSec": 35, "phase": 0.5 }
+  ]
+}

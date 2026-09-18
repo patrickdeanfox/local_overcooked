@@ -191,7 +191,9 @@ export const LEGEND: Readonly<Record<string, LegendEntry>> = Object.freeze({
   'd': { type: 'delivery' },               // delivery door for restocks
   // Level mechanics (roadmap item 5). The catalog's extension characters, so catalog grids drop straight in.
   'Y': { type: 'fryer', item: 'pot', ware: 'basket' }, // deep fryer with its frying basket
-  'N': { type: 'oven' },                                 // the catalog's oven: bakes a pizza base set on it
+  'N': { type: 'oven' },
+  '@': { type: 'portal' },                               // the catalog's portal; a stations override pairs it (group)
+  'z': { type: 'rift' },                                 // throws cross it, chefs cannot                                 // the catalog's oven: bakes a pizza base set on it
   '&': { type: 'crate', ingredient: 'dough' },           // the catalog's dough crate
   'e': { type: 'crate', ingredient: 'pepperoni' },
   '%': { type: 'crate', ingredient: 'potato' },
@@ -217,7 +219,7 @@ export const LEGEND: Readonly<Record<string, LegendEntry>> = Object.freeze({
  *  'gap' is not listed either: it has no wall, a chef walks straight in and falls. */
 export const SOLID_TILES: ReadonlySet<TileType> = new Set<TileType>([
   'void', 'counter', 'crate', 'board', 'stove', 'sink', 'drying', 'plateReturn', 'serve', 'trash', 'plateStack', 'slider',
-  'shelf', 'trayRack', 'delivery', 'conveyor', 'fryer', 'oven',
+  'shelf', 'trayRack', 'delivery', 'conveyor', 'fryer', 'oven', 'rift',
 ]);
 /** Tiles a chef can stand on: not solid, and not a hole. Spawns and paths need this. */
 export function isWalkable(type: TileType): boolean { return !SOLID_TILES.has(type) && type !== 'gap'; }
@@ -365,6 +367,13 @@ export function validateLevel(level: LevelDef): string[] {
     }
   }
   if (count('delivery') > 1) errors.push('at most one delivery tile');
+  const portalGroups = new Map<string, number>();
+  for (const t of parsed.tiles) {
+    if (t.type !== 'portal') continue;
+    if (!t.group) errors.push(`portal (${t.x},${t.y}) has no group: pair it with a stations override`);
+    else portalGroups.set(t.group, (portalGroups.get(t.group) ?? 0) + 1);
+  }
+  for (const [group, n] of portalGroups) if (n !== 2) errors.push(`portal group '${group}' has ${n} portals, not 2`);
   parsed.tiles.forEach((t, i) => {
     if ((t.type === 'conveyor' || t.type === 'conveyorFloor') && !t.dir) errors.push(`conveyor (${t.x},${t.y}) has no direction`);
     const item = parsed.items[i];
