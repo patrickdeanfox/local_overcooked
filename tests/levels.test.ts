@@ -34,8 +34,10 @@ function countCrate(p: ParsedGrid, ingredient: IngredientType): number {
  * `isWalkable` reports them, so the default fill is the gate-open kitchen. Pass
  * `gatesClosed` to fill the kitchen at the moment the two halves are apart.
  */
-function reachableFrom(p: ParsedGrid, sx: number, sy: number, gatesClosed = false): Set<number> {
-  const open = (t: { type: TileType }) => isWalkable(t.type) && !(gatesClosed && t.type === 'gate');
+function reachableFrom(p: ParsedGrid, sx: number, sy: number, gatesClosed = false, moving: ReadonlySet<string> = new Set()): Set<number> {
+  // A tile riding a slider group (a moving wall, OC2 3-1) is not in the way for good: it counts as open.
+  const open = (t: { type: TileType; group?: string }) =>
+    (isWalkable(t.type) || (t.group !== undefined && t.type !== 'gate' && moving.has(t.group))) && !(gatesClosed && t.type === 'gate');
   const seen = new Set<number>();
   const start = tileAt(p, sx, sy);
   if (!start || !open(start)) return seen;
@@ -195,9 +197,10 @@ describe('levels', () => {
       const p = parseGrid(l);
       const belted = countType(p, 'conveyor') > 0;
       const lanes = (l.dynamics ?? []).flatMap((d) => (d.type === 'floes' ? [d] : []));
+      const moving = new Set((l.dynamics ?? []).flatMap((d) => (d.type === 'sliders' ? [d.group] : [])));
       const union = new Set<number>();
       for (const s of l.spawns) {
-        const reached = reachableFrom(p, s.x, s.y);
+        const reached = reachableFrom(p, s.x, s.y, false, moving);
         for (const i of reached) union.add(i);
         if (belted) {
           expect(reachesType(p, reached, 'conveyor'), `no belt from spawn (${s.x},${s.y})`).toBe(true);
@@ -1106,6 +1109,11 @@ describe('order tuning', () => {
     'oc2-2-4': { initial: 2, intervalSec: 26, max: 4, timeSec: 100 },
     'oc2-4-3': { initial: 2, intervalSec: 20, max: 5, timeSec: 80 },
     'oc2-5-2': { initial: 2, intervalSec: 20, max: 5, timeSec: 80 },
+    // Pizza: three chops and a bake per dish. 4-1's ticket is longer than the catalog's 60 s estimate,
+    // which a pizza does not fit; all untested.
+    'oc1-4-1': { initial: 2, intervalSec: 22, max: 4, timeSec: 90 },
+    'oc2-3-1': { initial: 2, intervalSec: 26, max: 4, timeSec: 100 },
+    'oc2-3-3': { initial: 2, intervalSec: 26, max: 4, timeSec: 100 },
     // The dark kitchen: a lit kitchen's soup cadence; the catalog's estimate, untested.
     'oc1-4-2': { initial: 2, intervalSec: 18, max: 4, timeSec: 60 },
     // The mechanics kitchens (docs/MECHANICS.md): estimates from the nearest shipped level, untested.

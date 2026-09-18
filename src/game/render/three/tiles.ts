@@ -34,6 +34,7 @@ const THEMES: Readonly<Record<string, ThemeDressing>> = {
   'buffet-balloons': { backdropColor: 0x8cc6e8, floorColor: 0xc9955e, backWall: false }, // sky under the wicker decks
   'moreish-mines': { backdropColor: 0x241d18, floorColor: null, backWall: false }, // the dark of the mine and its chasms
   'munch-mansion': { backdropColor: 0x1d1622, floorColor: null, backWall: true }, // the haunted house
+  'conjurers-kitchen': { backdropColor: 0x2b2040, floorColor: 0x6b5a86, backWall: false }, // the wizards' school
 };
 const WALL = { span: 2, height: 2, depth: 0.25, windowEvery: 3 } as const; // tiles, at the manifest scale
 /** A road that reaches the grid edge continues as asphalt into the backdrop, with parked cars up the street. */
@@ -69,8 +70,9 @@ const BELT_YAW: Readonly<Record<Facing, number>> = { right: 0, down: -Math.PI / 
 const DRYING = { rackOffset: new THREE.Vector3(0, 0, -0.28), itemOffset: new THREE.Vector3(0, 0, 0.12) } as const;
 const CRATE_ROLE: Readonly<Record<IngredientType, ModelRole | null>> = {
   tomato: 'crateTomatoes', onion: 'crateOnions', lettuce: 'crateLettuce', bun: 'crateBuns', meat: 'crateSteak',
-  mushroom: null, fish: null, prawn: null, potato: null, cucumber: null, rice: null, nori: null,
-  tortilla: null, chicken: null, cheese: null, pasta: null,
+  potato: 'cratePotatoes', cheese: 'crateCheese',
+  mushroom: null, fish: null, prawn: null, cucumber: null, rice: null, nori: null,
+  tortilla: null, chicken: null, pasta: null, dough: null, pepperoni: null,
 };
 const GROUND_TEXTURE: Readonly<Partial<Record<TileType, string>>> = {
   floor: TEX.tile('floor'), road: TEX.tile('road'), gate: TEX.tile('gate'), slider: TEX.tile('floor'),
@@ -78,7 +80,7 @@ const GROUND_TEXTURE: Readonly<Partial<Record<TileType, string>>> = {
   sink: TEX.tile('floor'), drying: TEX.tile('floor'), plateReturn: TEX.tile('floor'), serve: TEX.tile('floor'),
   trash: TEX.tile('floor'), plateStack: TEX.tile('floor'),
   shelf: TEX.tile('floor'), trayRack: TEX.tile('floor'), delivery: TEX.tile('floor'), conveyor: TEX.tile('floor'),
-  fryer: TEX.tile('floor'), ice: TEX.tile('ice'),
+  fryer: TEX.tile('floor'), ice: TEX.tile('ice'), oven: TEX.tile('floor'),
 };
 /** Walkable belts lie a hair above the floor so their rubber hides the floor tile under them. */
 const FLOOR_BELT = { lift: 0.003 } as const;
@@ -279,7 +281,7 @@ function streetDressing(state: Readonly<SimState>): THREE.Group {
 
 const SOLID_FOR_WALL: ReadonlySet<TileType> = new Set<TileType>([
   'counter', 'crate', 'board', 'stove', 'sink', 'drying', 'plateReturn', 'serve', 'trash', 'plateStack',
-  'shelf', 'trayRack', 'delivery', 'conveyor', 'fryer',
+  'shelf', 'trayRack', 'delivery', 'conveyor', 'fryer', 'oven',
 ]);
 
 /** Wall pieces behind the top row, only where the tiles they cover are stations (never over a road or a gap). */
@@ -409,6 +411,10 @@ function buildStation(tile: Tile, flags: Readonly<TileFlags>, belt: THREE.Textur
       return belt ? floorBelt(belt) : { root: new THREE.Group(), surfaceY: 0, itemOffset: offset, solid: false };
     case 'fryer':
       return fryerStation();
+    case 'oven': {
+      const root = oneTileWide(modelInstance('oven'), 'oven');
+      return { root, surfaceY: topOf(root), itemOffset: offset, solid: true };
+    }
     case 'conveyor':
       return belt ? beltStation(belt) : { root: new THREE.Group(), surfaceY: 0, itemOffset: offset, solid: true };
     case 'shelf':

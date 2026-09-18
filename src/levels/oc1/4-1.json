@@ -1,0 +1,48 @@
+{
+  "id": "oc1-4-1",
+  "name": "4-1",
+  "game": "oc1",
+  "world": 4,
+  "index": 1,
+  "theme": "munch-mansion",
+  "description": "Pizzas in a haunted house whose counters will not keep still. Three ovens line the north corridor, the crates the south one, and the counters carrying the boards, the plates and the wall between the rooms drift about, opening and closing the way through.",
+  "strategy": "Split top and bottom: one chef feeds dough, cheese and tomato up from the south crates, the other bakes at the ovens. The drifting counters decide who can reach the sink and the serving counter, so both of you should be ready to do either.",
+  "source": "https://overcooked.fandom.com/wiki/4-1_(Overcooked!)",
+  "unlockStars": 29,
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "recipes": ["pizza", "pepperoni_pizza", "mushroom_pizza"],
+  "orders": { "initial": 2, "intervalSec": 22, "max": 4, "timeSec": 90 },
+  "stars": { "1": [40, 80, 120], "2": [65, 130, 200] },
+  "plates": { "mode": "sink", "count": 3 },
+  "grid": [
+    "  #E#N#N#N#X#   ",
+    " ............#  ",
+    "###.....#ppp####",
+    "W.......#......V",
+    "D.......#......V",
+    "#.......#......R",
+    "#..............#",
+    "####B#B##...####",
+    "............#   ",
+    "####&THMe###    "
+  ],
+  "spawns": [{ "x": 4, "y": 4 }, { "x": 11, "y": 4 }],
+  "stations": [
+    { "x": 8, "y": 2, "group": "divider" },
+    { "x": 8, "y": 3, "group": "divider" },
+    { "x": 8, "y": 4, "group": "divider" },
+    { "x": 8, "y": 5, "group": "divider" },
+    { "x": 4, "y": 7, "group": "boards" },
+    { "x": 5, "y": 7, "group": "boards" },
+    { "x": 6, "y": 7, "group": "boards" },
+    { "x": 9, "y": 2, "group": "plates" },
+    { "x": 10, "y": 2, "group": "plates" },
+    { "x": 11, "y": 2, "group": "plates" }
+  ],
+  "dynamics": [
+    { "type": "sliders", "group": "divider", "axis": "y", "amplitude": 1, "periodSec": 24 },
+    { "type": "sliders", "group": "boards", "axis": "x", "amplitude": 1, "periodSec": 18 },
+    { "type": "sliders", "group": "plates", "axis": "x", "amplitude": 1, "periodSec": 20, "phase": 0.5 }
+  ]
+}

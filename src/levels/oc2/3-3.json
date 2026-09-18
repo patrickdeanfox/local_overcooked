@@ -1,0 +1,46 @@
+{
+  "id": "oc2-3-3",
+  "name": "3-3",
+  "game": "oc2",
+  "world": 3,
+  "index": 3,
+  "theme": "conjurers-kitchen",
+  "description": "Pizza and pepperoni pizza in a room the walls keep cutting in four. The crates sit in a cross in the middle; after ten seconds a wall closes down the middle, then one across it, taking turns, and every quarter is missing something.",
+  "strategy": "Keep a clean plate on the middle counter so both chefs can finish a pizza whichever way the walls fall. Over-prepare dough and tomato while you can reach them, and do not forget the right-hand oven.",
+  "source": "https://overcooked.fandom.com/wiki/3-3_(Overcooked!_2)",
+  "unlockStars": 20,
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "recipes": ["oc2_pizza", "oc2_pepperoni_pizza"],
+  "orders": { "initial": 2, "intervalSec": 26, "max": 4, "timeSec": 100 },
+  "stars": { "1": [200, 280, 380], "2": [380, 480, 640] },
+  "plates": { "mode": "sink", "count": 3 },
+  "grid": [
+    "##X#B###BE###",
+    "#.....G.....#",
+    "#.....G.....V",
+    "#.....G.....#",
+    "#.....&.....#",
+    "#G#pHGpGTp#G#",
+    "#.....e.....#",
+    "#.....G.....#",
+    "#.....G.....#",
+    "#NWD#####NR##"
+  ],
+  "spawns": [{ "x": 3, "y": 8 }, { "x": 9, "y": 8 }],
+  "stations": [
+    { "x": 6, "y": 1, "group": "v" },
+    { "x": 6, "y": 2, "group": "v" },
+    { "x": 6, "y": 3, "group": "v" },
+    { "x": 6, "y": 7, "group": "v" },
+    { "x": 6, "y": 8, "group": "v" },
+    { "x": 1, "y": 5, "group": "h" },
+    { "x": 5, "y": 5, "group": "h" },
+    { "x": 7, "y": 5, "group": "h" },
+    { "x": 11, "y": 5, "group": "h" }
+  ],
+  "dynamics": [
+    { "type": "gate", "group": "v", "periodSec": 70, "openSec": 35, "phase": 0.357 },
+    { "type": "gate", "group": "h", "periodSec": 70, "openSec": 45 }
+  ]
+}

@@ -379,6 +379,14 @@ function drawBurritoIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number, 
   ctx.restore();
 }
 
+/** A pizza from above: crust, sauce, cheese and three slices of pepperoni. */
+function drawPizzaIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  fillCircle(ctx, cx, cy, r * 0.95, PALETTE.crust);
+  fillCircle(ctx, cx, cy, r * 0.8, PALETTE.soupTomato);
+  fillCircle(ctx, cx, cy, r * 0.68, PALETTE.cheese);
+  for (const [dx, dy] of [[-0.3, -0.2], [0.3, -0.1], [0, 0.35]] as const) fillCircle(ctx, cx + dx * r, cy + dy * r, r * 0.15, PALETTE.pepperoni);
+}
+
 // ─── Texture generation ─────────────────────────────────────────────────────
 
 export function generateUiTextures(scene: Phaser.Scene): void {
@@ -393,6 +401,7 @@ export function generateUiTextures(scene: Phaser.Scene): void {
   makeTexture(scene, TEX.iconDish('salad'), ICON, ICON, (ctx) => drawSaladIcon(ctx, ICON_C, ICON_C, ICON_R));
   makeTexture(scene, TEX.iconDish('pasta'), ICON, ICON, (ctx) => drawPastaIcon(ctx, ICON_C, ICON_C, ICON_R));
   makeTexture(scene, TEX.iconDish('burrito'), ICON, ICON, (ctx) => drawBurritoIcon(ctx, ICON_C, ICON_C, ICON_R));
+  makeTexture(scene, TEX.iconDish('pizza'), ICON, ICON, (ctx) => drawPizzaIcon(ctx, ICON_C, ICON_C, ICON_R));
   makeTexture(scene, TEX.iconLock, ICON, ICON, drawLock);
   makeTexture(scene, TEX.iconPlate, ICON, ICON, (ctx) => drawPlate(ctx, ICON_C, ICON_C, ICON_R + 1, null));
   makeTexture(scene, TEX.iconClock, ICON, ICON, drawClock);

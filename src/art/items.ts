@@ -44,6 +44,8 @@ const SOUP_COLORS: Record<IngredientType, string> = {
   chicken: PALETTE.chicken,
   cheese: PALETTE.cheese,
   pasta: PALETTE.pasta,
+  dough: PALETTE.dough,
+  pepperoni: PALETTE.pepperoni,
 };
 
 /** Sesame seeds on a bun dome: [dx, dy] as fractions of the shape radius. */
@@ -591,6 +593,7 @@ const RAW_SHAPES: Record<IngredientType, ShapeFn> = {
   potato: drawPotatoRaw,
   cucumber: drawCucumberRaw, rice: drawRiceRaw, nori: drawNori,
   tortilla: drawTortilla, chicken: drawChickenRaw, cheese: drawCheeseRaw, pasta: drawPastaRaw,
+  dough: drawDoughRaw, pepperoni: drawPepperoniRaw,
 };
 const CHOPPED_SHAPES: Record<IngredientType, ShapeFn> = {
   onion: drawOnionChopped, tomato: drawTomatoChopped, mushroom: drawMushroomChopped,
@@ -598,6 +601,7 @@ const CHOPPED_SHAPES: Record<IngredientType, ShapeFn> = {
   potato: drawChipsRaw,
   cucumber: drawCucumberChopped, rice: drawRiceRaw, nori: drawNori,
   tortilla: drawTortilla, chicken: drawChickenChopped, cheese: drawCheeseChopped, pasta: drawPastaRaw,
+  dough: drawDoughFlat, pepperoni: drawPepperoniSlices,
 };
 /** Fried ingredients after the pan or the basket; anything else falls back to its chopped shape. */
 const COOKED_SHAPES: Partial<Record<IngredientType, ShapeFn>> = {
@@ -891,6 +895,41 @@ function drawPastaCooked(ctx: CanvasRenderingContext2D, cx: number, cy: number, 
     ctx.beginPath();
     ctx.ellipse(cx, cy, r * rx, r * ry, 0.3, 0, Math.PI * 2);
     ctx.stroke();
+  }
+}
+
+// ─── Pizza ──────────────────────────────────────────────────────────────────
+
+/** A ball of dough. */
+function drawDoughRaw(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  ctx.beginPath();
+  ctx.ellipse(cx, cy + r * 0.1, r * 0.72, r * 0.55, 0, 0, Math.PI * 2);
+  ctx.fillStyle = vGradient(ctx, cy - r * 0.5, cy + r * 0.6, [[0, '#fbf2dc'], [1, PALETTE.doughDark]]);
+  ctx.fill();
+  withAlpha(ctx, 0.5, () => fillEllipse(ctx, cx - r * 0.2, cy - r * 0.15, r * 0.22, r * 0.1, '#ffffff'));
+}
+
+/** Dough rolled flat: a pizza base with a crust rim. */
+function drawDoughFlat(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  fillEllipse(ctx, cx, cy, r * 0.88, r * 0.62, PALETTE.doughDark);
+  fillEllipse(ctx, cx, cy, r * 0.76, r * 0.52, PALETTE.dough);
+}
+
+/** A stick of pepperoni. */
+function drawPepperoniRaw(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(-0.5);
+  fillRound(ctx, -r * 0.85, -r * 0.24, r * 1.7, r * 0.48, r * 0.24, PALETTE.pepperoni);
+  strokeRound(ctx, -r * 0.85, -r * 0.24, r * 1.7, r * 0.48, r * 0.24, PALETTE.pepperoniDark, Math.max(1, r * 0.06));
+  ctx.restore();
+}
+
+/** Pepperoni slices. */
+function drawPepperoniSlices(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  for (const [dx, dy] of [[-0.35, 0.15], [0.3, 0.2], [0, -0.25]] as const) {
+    fillCircle(ctx, cx + dx * r, cy + dy * r, r * 0.34, PALETTE.pepperoni);
+    withAlpha(ctx, 0.5, () => fillCircle(ctx, cx + dx * r + r * 0.08, cy + dy * r - r * 0.06, r * 0.06, '#f4d0c0'));
   }
 }
 

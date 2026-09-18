@@ -45,6 +45,8 @@ const INGREDIENT_ROLE: Readonly<Record<IngredientType, { raw: ModelRole; chopped
   chicken: { raw: 'chicken', chopped: 'chickenChopped', cooked: 'chickenCooked' },
   cheese: { raw: 'cheese', chopped: 'cheeseChopped' },
   pasta: { raw: 'riceBag', chopped: 'riceBag' },                  // drawn as sticks or a nest, never this model
+  dough: { raw: 'riceBag', chopped: 'riceBag' },                  // drawn as a ball; chopped it is a pizza base
+  pepperoni: { raw: 'pepperoni', chopped: 'pepperoniChopped' },
 };
 /** Kit models tinted to stand in for an ingredient the kit lacks. */
 const INGREDIENT_TINT: Readonly<Partial<Record<IngredientType, { raw?: number; chopped?: number }>>> = {
@@ -60,6 +62,14 @@ const SAUCE_COLOR: Readonly<Partial<Record<IngredientType, number>>> = {
   tomato: 0xc8331f, meat: 0x6e3b22, mushroom: 0x8a6444, fish: 0xf1a07f, prawn: 0xf2896b,
 };
 const CHEESE_LAYER = { size: 0.3, thickness: 0.02, color: 0xf6c945 } as const;
+/** A pizza, raw on its base or baked on a plate: dough disc, then sauce, cheese and toppings in rings. */
+const PIZZA = {
+  radius: 0.2, thickness: 0.025, rawDough: 0xf1dfb4, baked: 0xd99a4e, burnt: 0x3b2c22, sauce: 0xc8331f, cheese: 0xf6c945,
+  toppingRadius: 0.035, toppingRing: 0.1, toppingCount: 5, segments: 24, doughBall: 0.11,
+} as const;
+const TOPPING_COLOR: Readonly<Partial<Record<IngredientType, number>>> = {
+  pepperoni: 0xb8352a, mushroom: 0x9a6b45, chicken: 0xe8b98e,
+};
 /** A sheet of nori: a thin dark-green square. */
 const NORI = { size: 0.26, thickness: 0.012, color: 0x23382a } as const;
 /** A finished roll of sushi: maki slices, one kind per filling, side by side. */
@@ -127,6 +137,7 @@ function ingredientView(type: IngredientType, chopped: boolean, cooked: boolean)
   if (type === 'nori') return noriSheet();
   if (type === 'tortilla') return tortillaDisc();
   if (type === 'pasta') return cooked ? pastaNest() : pastaSticks();
+  if (type === 'dough') return chopped ? pizzaView([], 'raw') : doughBall();
   const roles = INGREDIENT_ROLE[type];
   const role = cooked && roles.cooked ? roles.cooked : chopped ? roles.chopped : roles.raw;
   const view = modelInstance(role);
@@ -214,6 +225,56 @@ function burritoDish(dish: Dish): THREE.Group | null {
   return root;
 }
 
+function doughBall(): THREE.Group {
+  const root = new THREE.Group();
+  const ball = new THREE.Mesh(
+    new THREE.SphereGeometry(PIZZA.doughBall, 16, 12),
+    new THREE.MeshStandardMaterial({ color: PIZZA.rawDough, roughness: 0.8 }),
+  );
+  ball.scale.y = 0.7;
+  ball.position.y = PIZZA.doughBall * 0.7;
+  ball.castShadow = true;
+  root.add(ball);
+  return root;
+}
+
+/** A pizza: its base, raw, baked or burnt, with sauce, cheese and each other topping on it. */
+function pizzaView(toppings: readonly IngredientType[], state: 'raw' | 'baked' | 'burnt'): THREE.Group {
+  const root = new THREE.Group();
+  const baseColor = state === 'burnt' ? PIZZA.burnt : state === 'baked' ? PIZZA.baked : PIZZA.rawDough;
+  const base = new THREE.Mesh(
+    new THREE.CylinderGeometry(PIZZA.radius, PIZZA.radius, PIZZA.thickness, PIZZA.segments),
+    new THREE.MeshStandardMaterial({ color: baseColor, roughness: 0.8 }),
+  );
+  base.position.y = PIZZA.thickness / 2;
+  base.castShadow = true;
+  root.add(base);
+  if (state === 'burnt') return root;
+  let level = PIZZA.thickness;
+  if (toppings.includes('tomato')) {
+    root.add(soupDisc(PIZZA.sauce, PIZZA.radius * 0.85, level + 0.002));
+    level += 0.004;
+  }
+  if (toppings.includes('cheese')) {
+    root.add(soupDisc(PIZZA.cheese, PIZZA.radius * 0.75, level + 0.002));
+    level += 0.004;
+  }
+  const extras = toppings.filter((t) => TOPPING_COLOR[t] !== undefined);
+  extras.forEach((topping, k) => {
+    for (let i = 0; i < PIZZA.toppingCount; i++) {
+      const angle = ((i + k * 0.5) / PIZZA.toppingCount) * Math.PI * 2;
+      const piece = new THREE.Mesh(
+        new THREE.CylinderGeometry(PIZZA.toppingRadius, PIZZA.toppingRadius, 0.01, 10),
+        new THREE.MeshStandardMaterial({ color: TOPPING_COLOR[topping] ?? PIZZA.sauce, roughness: 0.6 }),
+      );
+      const ring = PIZZA.toppingRing * (k % 2 === 0 ? 1 : 0.5);
+      piece.position.set(Math.cos(angle) * ring, level + 0.006, Math.sin(angle) * ring);
+      root.add(piece);
+    }
+  });
+  return root;
+}
+
 function noriSheet(): THREE.Group {
   const root = new THREE.Group();
   const sheet = new THREE.Mesh(
@@ -283,6 +344,7 @@ function basketView(pot: PotItem): THREE.Group {
 
 function potView(pot: PotItem): THREE.Group {
   if (pot.ware === 'basket') return basketView(pot);
+  if (pot.ware === 'dough') return pizzaView(pot.contents, pot.state === 'burnt' ? 'burnt' : pot.state === 'cooked' ? 'baked' : 'raw');
   const root = new THREE.Group();
   const pan = (pot.ware ?? 'pot') === 'pan';
   const ware = modelInstance(pan ? 'pan' : 'pot');
@@ -350,6 +412,10 @@ function plateView(count: number, dish: Dish | null): THREE.Group {
       const stack = burgerStack(dish);
       stack.position.y = top + plateHeight;
       root.add(stack);
+    } else if (dish.type === 'pizza') {
+      const pizza = pizzaView(dish.ingredients.filter((ing) => ing !== 'dough'), 'baked');
+      pizza.position.y = top + plateHeight;
+      root.add(pizza);
     } else if (DISH_FAMILIES[dish.type]) {
       const whole = dish.type === 'sushi' ? makiView(dish) : dish.type === 'pasta' ? pastaDish(dish) : dish.type === 'burrito' ? burritoDish(dish) : null;
       const pieces = whole ?? platedPieces(dish);

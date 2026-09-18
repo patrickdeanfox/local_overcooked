@@ -73,6 +73,14 @@ export const RECIPES: Record<string, Recipe> = {
   cheese_burger:              { id: 'cheese_burger',              name: 'Cheese Burger',        dish: 'burger', ingredients: ['bun', 'cheese', 'meat'],           score: 60 },
   lettuce_cheese_burger:      { id: 'lettuce_cheese_burger',      name: 'Cheese Salad Burger',  dish: 'burger', ingredients: ['bun', 'cheese', 'lettuce', 'meat'], score: 80 },
   oc2_tomato_lettuce_burger:  { id: 'oc2_tomato_lettuce_burger',  name: 'Salad Burger',         dish: 'burger', ingredients: ['bun', 'lettuce', 'meat', 'tomato'], score: 80 },
+  // Pizza: dough chopped flat, cheese and tomato (and one more) on it, baked. Overcooked 1's scores are the
+  // research's estimates (docs/research/oc1-recipes.md); Overcooked 2's follow its 20-per-step table.
+  pizza:               { id: 'pizza',               name: 'Pizza',           dish: 'pizza', ingredients: ['cheese', 'dough', 'tomato'],              score: 25 },
+  pepperoni_pizza:     { id: 'pepperoni_pizza',     name: 'Pepperoni Pizza', dish: 'pizza', ingredients: ['cheese', 'dough', 'pepperoni', 'tomato'], score: 30 },
+  mushroom_pizza:      { id: 'mushroom_pizza',      name: 'Mushroom Pizza',  dish: 'pizza', ingredients: ['cheese', 'dough', 'mushroom', 'tomato'],  score: 30 },
+  oc2_pizza:           { id: 'oc2_pizza',           name: 'Pizza',           dish: 'pizza', ingredients: ['cheese', 'dough', 'tomato'],              score: 80 },
+  oc2_pepperoni_pizza: { id: 'oc2_pepperoni_pizza', name: 'Pepperoni Pizza', dish: 'pizza', ingredients: ['cheese', 'dough', 'pepperoni', 'tomato'], score: 100 },
+  chicken_pizza:       { id: 'chicken_pizza',       name: 'Chicken Pizza',   dish: 'pizza', ingredients: ['cheese', 'chicken', 'dough', 'tomato'],   score: 100 },
 };
 
 export function recipeDishType(recipe: Recipe): DishType {
