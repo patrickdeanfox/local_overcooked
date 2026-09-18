@@ -46,6 +46,8 @@ const SOUP_COLORS: Record<IngredientType, string> = {
   pasta: PALETTE.pasta,
   dough: PALETTE.dough,
   pepperoni: PALETTE.pepperoni,
+  flour: PALETTE.flour,
+  carrot: PALETTE.carrot,
 };
 
 /** Sesame seeds on a bun dome: [dx, dy] as fractions of the shape radius. */
@@ -593,7 +595,7 @@ const RAW_SHAPES: Record<IngredientType, ShapeFn> = {
   potato: drawPotatoRaw,
   cucumber: drawCucumberRaw, rice: drawRiceRaw, nori: drawNori,
   tortilla: drawTortilla, chicken: drawChickenRaw, cheese: drawCheeseRaw, pasta: drawPastaRaw,
-  dough: drawDoughRaw, pepperoni: drawPepperoniRaw,
+  dough: drawDoughRaw, pepperoni: drawPepperoniRaw, flour: drawFlour, carrot: drawCarrotRaw,
 };
 const CHOPPED_SHAPES: Record<IngredientType, ShapeFn> = {
   onion: drawOnionChopped, tomato: drawTomatoChopped, mushroom: drawMushroomChopped,
@@ -601,7 +603,7 @@ const CHOPPED_SHAPES: Record<IngredientType, ShapeFn> = {
   potato: drawChipsRaw,
   cucumber: drawCucumberChopped, rice: drawRiceRaw, nori: drawNori,
   tortilla: drawTortilla, chicken: drawChickenChopped, cheese: drawCheeseChopped, pasta: drawPastaRaw,
-  dough: drawDoughFlat, pepperoni: drawPepperoniSlices,
+  dough: drawDoughFlat, pepperoni: drawPepperoniSlices, flour: drawFlour, carrot: drawCarrotChopped,
 };
 /** Fried ingredients after the pan or the basket; anything else falls back to its chopped shape. */
 const COOKED_SHAPES: Partial<Record<IngredientType, ShapeFn>> = {
@@ -930,6 +932,34 @@ function drawPepperoniSlices(ctx: CanvasRenderingContext2D, cx: number, cy: numb
   for (const [dx, dy] of [[-0.35, 0.15], [0.3, 0.2], [0, -0.25]] as const) {
     fillCircle(ctx, cx + dx * r, cy + dy * r, r * 0.34, PALETTE.pepperoni);
     withAlpha(ctx, 0.5, () => fillCircle(ctx, cx + dx * r + r * 0.08, cy + dy * r - r * 0.06, r * 0.06, '#f4d0c0'));
+  }
+}
+
+// ─── Steamed food (Overcooked 2 Kevin levels) ───────────────────────────────
+
+/** A sack of flour with a puff of it at the neck. */
+function drawFlour(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  fillRound(ctx, cx - r * 0.6, cy - r * 0.45, r * 1.2, r * 1.1, r * 0.3, PALETTE.flour);
+  strokeRound(ctx, cx - r * 0.6, cy - r * 0.45, r * 1.2, r * 1.1, r * 0.3, PALETTE.flourShade, Math.max(1, r * 0.07));
+  line(ctx, cx - r * 0.35, cy - r * 0.3, cx + r * 0.35, cy - r * 0.3, PALETTE.flourShade, Math.max(1, r * 0.08));
+  withAlpha(ctx, 0.7, () => fillCircle(ctx, cx + r * 0.1, cy - r * 0.6, r * 0.18, '#ffffff'));
+}
+
+/** A carrot with its leafy top. */
+function drawCarrotRaw(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  fillPolygon(ctx, [[cx - r * 0.3, cy - r * 0.5], [cx + r * 0.3, cy - r * 0.5], [cx, cy + r * 0.85]], PALETTE.carrot);
+  for (const dx of [-0.18, 0, 0.18]) line(ctx, cx, cy - r * 0.5, cx + dx * r * 2, cy - r * 0.9, PALETTE.carrotTop, Math.max(1.5, r * 0.1));
+  withAlpha(ctx, 0.5, () => {
+    line(ctx, cx - r * 0.18, cy - r * 0.1, cx + r * 0.05, cy - r * 0.1, PALETTE.carrotDark, 1);
+    line(ctx, cx - r * 0.1, cy + r * 0.3, cx + r * 0.1, cy + r * 0.3, PALETTE.carrotDark, 1);
+  });
+}
+
+/** Carrot coins. */
+function drawCarrotChopped(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  for (const [dx, dy] of [[-0.35, 0.15], [0.3, 0.2], [0, -0.25]] as const) {
+    fillCircle(ctx, cx + dx * r, cy + dy * r, r * 0.32, PALETTE.carrot);
+    withAlpha(ctx, 0.6, () => fillCircle(ctx, cx + dx * r, cy + dy * r, r * 0.12, PALETTE.carrotDark));
   }
 }
 

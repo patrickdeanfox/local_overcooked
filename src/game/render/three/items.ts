@@ -47,6 +47,8 @@ const INGREDIENT_ROLE: Readonly<Record<IngredientType, { raw: ModelRole; chopped
   pasta: { raw: 'riceBag', chopped: 'riceBag' },                  // drawn as sticks or a nest, never this model
   dough: { raw: 'riceBag', chopped: 'riceBag' },                  // drawn as a ball; chopped it is a pizza base
   pepperoni: { raw: 'pepperoni', chopped: 'pepperoniChopped' },
+  flour: { raw: 'flourBag', chopped: 'flourBag' },
+  carrot: { raw: 'carrot', chopped: 'carrotChopped' },
 };
 /** Kit models tinted to stand in for an ingredient the kit lacks. */
 const INGREDIENT_TINT: Readonly<Partial<Record<IngredientType, { raw?: number; chopped?: number }>>> = {
@@ -62,6 +64,9 @@ const SAUCE_COLOR: Readonly<Partial<Record<IngredientType, number>>> = {
   tomato: 0xc8331f, meat: 0x6e3b22, mushroom: 0x8a6444, fish: 0xf1a07f, prawn: 0xf2896b,
 };
 const CHEESE_LAYER = { size: 0.3, thickness: 0.02, color: 0xf6c945 } as const;
+/** The mixing bowl with its mix, and the steamer with its dumplings. */
+const MIX = { radius: 0.13, level: 0.08, raw: 0xefe4c8, mixed: 0xf6efdd, burnt: 0x3b2c22 } as const;
+const STEAMED = { lift: 0.06, rawTint: 0xd9cfb8 } as const;
 /** A pizza, raw on its base or baked on a plate: dough disc, then sauce, cheese and toppings in rings. */
 const PIZZA = {
   radius: 0.2, thickness: 0.025, rawDough: 0xf1dfb4, baked: 0xd99a4e, burnt: 0x3b2c22, sauce: 0xc8331f, cheese: 0xf6c945,
@@ -275,6 +280,29 @@ function pizzaView(toppings: readonly IngredientType[], state: 'raw' | 'baked' |
   return root;
 }
 
+/** The mixing bowl: the kit's bowl, and a disc of mix in it once anything is in. */
+function bowlView(pot: PotItem): THREE.Group {
+  const root = new THREE.Group();
+  root.add(modelInstance('mixingBowl'));
+  if (pot.contents.length === 0) return root;
+  const colour = pot.state === 'burnt' ? MIX.burnt : pot.state === 'cooked' ? MIX.mixed : MIX.raw;
+  root.add(soupDisc(colour, MIX.radius, MIX.level));
+  return root;
+}
+
+/** The bamboo steamer, with dumplings in it once it holds a mix or a fish. */
+function steamerView(pot: PotItem): THREE.Group {
+  const root = new THREE.Group();
+  root.add(modelInstance('steamer'));
+  if (pot.contents.length === 0) return root;
+  const dumplings = modelInstance('dimSum');
+  dumplings.position.y = STEAMED.lift;
+  if (pot.state === 'burnt') tintObject(dumplings, BURNT_TINT);
+  else if (pot.state !== 'cooked') tintObject(dumplings, STEAMED.rawTint);
+  root.add(dumplings);
+  return root;
+}
+
 function noriSheet(): THREE.Group {
   const root = new THREE.Group();
   const sheet = new THREE.Mesh(
@@ -345,6 +373,8 @@ function basketView(pot: PotItem): THREE.Group {
 function potView(pot: PotItem): THREE.Group {
   if (pot.ware === 'basket') return basketView(pot);
   if (pot.ware === 'dough') return pizzaView(pot.contents, pot.state === 'burnt' ? 'burnt' : pot.state === 'cooked' ? 'baked' : 'raw');
+  if (pot.ware === 'bowl') return bowlView(pot);
+  if (pot.ware === 'steamer') return steamerView(pot);
   const root = new THREE.Group();
   const pan = (pot.ware ?? 'pot') === 'pan';
   const ware = modelInstance(pan ? 'pan' : 'pot');
@@ -412,6 +442,10 @@ function plateView(count: number, dish: Dish | null): THREE.Group {
       const stack = burgerStack(dish);
       stack.position.y = top + plateHeight;
       root.add(stack);
+    } else if (dish.type === 'steamed') {
+      const dumplings = modelInstance('dimSum');
+      dumplings.position.y = top + plateHeight;
+      root.add(dumplings);
     } else if (dish.type === 'pizza') {
       const pizza = pizzaView(dish.ingredients.filter((ing) => ing !== 'dough'), 'baked');
       pizza.position.y = top + plateHeight;

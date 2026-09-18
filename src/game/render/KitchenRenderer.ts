@@ -22,7 +22,7 @@ import { DEFAULT_TILE_FLAGS, TileSet, themeSceneHeight, type TileFlags } from '.
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 /** Stations that cook what sits on them: burners for pots and pans, fryers for the frying basket. */
-const COOK_SITES: ReadonlySet<Tile['type']> = new Set<Tile['type']>(['stove', 'fryer', 'oven']);
+const COOK_SITES: ReadonlySet<Tile['type']> = new Set<Tile['type']>(['stove', 'fryer', 'oven', 'mixer']);
 const HELD = { scale: 0.9 } as const;
 /** Darkness (OC1 4-2): the stage's lights at a sliver, a warm lamp cone ahead of each chef and a small
  *  glow round it. The wiki gives no cone: about 90 degrees and 3 tiles, the catalog's estimate. */

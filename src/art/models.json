@@ -78,5 +78,12 @@
   "pepperoniChopped": {"src": "kenney_food-kit/Models/GLB format/sausage-half.glb", "url": "models/kenney-food/sausage-half.glb", "fit": 0.24},
   "oven": {"src": "KayKit_Restaurant_Bits_1.0_FREE/Assets/gltf/oven.gltf", "url": "models/kaykit/oven.gltf", "scale": 0.5},
   "crateCheese": {"src": "KayKit_Restaurant_Bits_1.0_FREE/Assets/gltf/crate_cheese.gltf", "url": "models/kaykit/crate_cheese.gltf", "scale": 0.5},
-  "cratePotatoes": {"src": "KayKit_Restaurant_Bits_1.0_FREE/Assets/gltf/crate_potatoes.gltf", "url": "models/kaykit/crate_potatoes.gltf", "scale": 0.5}
+  "cratePotatoes": {"src": "KayKit_Restaurant_Bits_1.0_FREE/Assets/gltf/crate_potatoes.gltf", "url": "models/kaykit/crate_potatoes.gltf", "scale": 0.5},
+  "crateCarrots": {"src": "KayKit_Restaurant_Bits_1.0_FREE/Assets/gltf/crate_carrots.gltf", "url": "models/kaykit/crate_carrots.gltf", "scale": 0.5},
+  "carrot": {"src": "KayKit_Restaurant_Bits_1.0_FREE/Assets/gltf/food_ingredient_carrot.gltf", "url": "models/kaykit/food_ingredient_carrot.gltf", "scale": 0.5},
+  "carrotChopped": {"src": "KayKit_Restaurant_Bits_1.0_FREE/Assets/gltf/food_ingredient_carrot_chopped.gltf", "url": "models/kaykit/food_ingredient_carrot_chopped.gltf", "scale": 0.5},
+  "flourBag": {"src": "kenney_food-kit/Models/GLB format/bag-flat.glb", "url": "models/kenney-food/bag-flat.glb", "fit": 0.3},
+  "mixingBowl": {"src": "kenney_food-kit/Models/GLB format/bowl.glb", "url": "models/kenney-food/bowl.glb", "fit": 0.36},
+  "steamer": {"src": "kenney_food-kit/Models/GLB format/steamer.glb", "url": "models/kenney-food/steamer.glb", "fit": 0.4},
+  "dimSum": {"src": "kenney_food-kit/Models/GLB format/dim-sum.glb", "url": "models/kenney-food/dim-sum.glb", "fit": 0.24}
 }

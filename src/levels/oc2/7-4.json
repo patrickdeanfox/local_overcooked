@@ -1,0 +1,32 @@
+{
+  "id": "oc2-7-4",
+  "name": "Kevin 4",
+  "game": "oc2",
+  "world": 7,
+  "index": 4,
+  "theme": "kevin",
+  "description": "All four dumplings round a long fireplace: the mixers and steamers down both sides, the boards and serving hatch along the top, every crate in a row along the bottom. The fireplace throws fire onto the floor, and a fire blocks the way until it is put out.",
+  "strategy": "One chef owns the mixers and one the steamers. Keep whoever is nearer the extinguisher on fires and dishes, and fish needs no mixer, so steam one whenever the mixers are busy.",
+  "source": "https://overcooked.fandom.com/wiki/Kevin_4",
+  "unlockStars": 16,
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "recipes": ["steamed_fish", "steamed_beef", "steamed_carrot", "steamed_prawn"],
+  "orders": { "initial": 2, "intervalSec": 20, "max": 5, "timeSec": 90 },
+  "stars": { "1": [220, 280, 380], "2": [340, 420, 580] },
+  "plates": { "mode": "sink", "count": 4 },
+  "grid": [
+    "###RBBBV#######",
+    ".............E.",
+    ".K#.........#K.",
+    ".#.....#.....#.",
+    ".Z.....#.....Z.",
+    ".#.....#.....#.",
+    ".Z.....#.....Z.",
+    ".#.....#.....#.",
+    ".X...........W.",
+    "###JpfpqpØpA###"
+  ],
+  "spawns": [{ "x": 4, "y": 5 }, { "x": 10, "y": 5 }],
+  "dynamics": [{ "type": "floorFires", "intervalSec": 25, "max": 2, "firstDelaySec": 30 }]
+}

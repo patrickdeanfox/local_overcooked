@@ -36,6 +36,9 @@ One JSON file per level under `src/levels/<game>/`. Type: `LevelDef` in `src/lev
 | `%` | crate | potato source (chips) |
 | `@` | portal | walkable; a chef or a thrown item entering it comes out of the other portal of its group. Pair two with a `stations` override giving them the same `group`; the validator wants exactly two per group |
 | `z` | rift | solid for chefs, flown over by throws, never catches fire, nobody falls in (OC2 3-4) |
+| `K` | mixer | the catalog's mixer, with its mixing bowl: flour and one chopped filling (beef, carrot, prawn) mix in `MIX_TIME`; left too long the mixer breaks for good (no fire) |
+| `Z` | stove | the catalog's steamer: a burner with a bamboo steamer. A mixed bowl is poured into it; a chopped fish goes straight in |
+| `f` `q` | crate | flour / carrot source (steamed dumplings) |
 | `N` | oven | bakes a pizza base set on it (the catalog's letter) |
 | `&` `e` | crate | dough (the catalog's) / pepperoni source. Chopping dough turns it into a pizza base on the board: chopped toppings go on it, it bakes in an oven, and a baked pizza slides onto a plate whole |
 | `r` `k` `H` `a` | crate | tortilla / chicken / cheese / pasta source (burritos, nuggets, cheese burgers, pasta). `H` is the catalog's cheese |

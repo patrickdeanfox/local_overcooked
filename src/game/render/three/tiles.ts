@@ -65,14 +65,16 @@ const BELT = {
 } as const;
 /** Deep fryer: a steel block at counter height with a well of oil in its top. */
 const FRYER = { steel: 0x8d939c, oil: 0xc98f2a, wellInset: 0.14, wellDepth: 0.03, roughness: 0.5 } as const;
+/** Mixer: a steel block with a round stand the bowl sits on. */
+const MIXER = { body: 0x6d7580, stand: 0xd6dae0, standRadius: 0.24, standHeight: 0.04 } as const;
 /** Yaw that turns the belt's local +x (the chevrons' way) to its direction. */
 const BELT_YAW: Readonly<Record<Facing, number>> = { right: 0, down: -Math.PI / 2, left: Math.PI, up: Math.PI / 2 };
 const DRYING = { rackOffset: new THREE.Vector3(0, 0, -0.28), itemOffset: new THREE.Vector3(0, 0, 0.12) } as const;
 const CRATE_ROLE: Readonly<Record<IngredientType, ModelRole | null>> = {
   tomato: 'crateTomatoes', onion: 'crateOnions', lettuce: 'crateLettuce', bun: 'crateBuns', meat: 'crateSteak',
-  potato: 'cratePotatoes', cheese: 'crateCheese',
+  potato: 'cratePotatoes', cheese: 'crateCheese', carrot: 'crateCarrots',
   mushroom: null, fish: null, prawn: null, cucumber: null, rice: null, nori: null,
-  tortilla: null, chicken: null, pasta: null, dough: null, pepperoni: null,
+  tortilla: null, chicken: null, pasta: null, dough: null, pepperoni: null, flour: null,
 };
 const GROUND_TEXTURE: Readonly<Partial<Record<TileType, string>>> = {
   floor: TEX.tile('floor'), road: TEX.tile('road'), gate: TEX.tile('gate'), slider: TEX.tile('floor'),
@@ -81,6 +83,7 @@ const GROUND_TEXTURE: Readonly<Partial<Record<TileType, string>>> = {
   trash: TEX.tile('floor'), plateStack: TEX.tile('floor'),
   shelf: TEX.tile('floor'), trayRack: TEX.tile('floor'), delivery: TEX.tile('floor'), conveyor: TEX.tile('floor'),
   fryer: TEX.tile('floor'), ice: TEX.tile('ice'), oven: TEX.tile('floor'), portal: TEX.tile('portal'), rift: TEX.tile('rift'),
+  mixer: TEX.tile('floor'),
 };
 /** Walkable belts lie a hair above the floor so their rubber hides the floor tile under them. */
 const FLOOR_BELT = { lift: 0.003 } as const;
@@ -281,7 +284,7 @@ function streetDressing(state: Readonly<SimState>): THREE.Group {
 
 const SOLID_FOR_WALL: ReadonlySet<TileType> = new Set<TileType>([
   'counter', 'crate', 'board', 'stove', 'sink', 'drying', 'plateReturn', 'serve', 'trash', 'plateStack',
-  'shelf', 'trayRack', 'delivery', 'conveyor', 'fryer', 'oven',
+  'shelf', 'trayRack', 'delivery', 'conveyor', 'fryer', 'oven', 'mixer',
 ]);
 
 /** Wall pieces behind the top row, only where the tiles they cover are stations (never over a road or a gap). */
@@ -404,6 +407,26 @@ function floorBelt(texture: THREE.Texture): Station {
   return { root, surfaceY: FLOOR_BELT.lift, itemOffset: new THREE.Vector3(), solid: false };
 }
 
+/** Mixer: a steel block with a pale stand on top for the bowl. */
+function mixerStation(): Station {
+  const height = modelSize('counter').y;
+  const root = new THREE.Group();
+  const body = new THREE.Mesh(
+    new THREE.BoxGeometry(1, height, 1),
+    new THREE.MeshStandardMaterial({ color: MIXER.body, roughness: 0.45, metalness: 0.35 }),
+  );
+  body.position.y = height / 2;
+  body.castShadow = true;
+  body.receiveShadow = true;
+  const stand = new THREE.Mesh(
+    new THREE.CylinderGeometry(MIXER.standRadius, MIXER.standRadius, MIXER.standHeight, 20),
+    new THREE.MeshStandardMaterial({ color: MIXER.stand, roughness: 0.4 }),
+  );
+  stand.position.y = height + MIXER.standHeight / 2;
+  root.add(body, stand);
+  return { root, surfaceY: height + MIXER.standHeight, itemOffset: new THREE.Vector3(), solid: true };
+}
+
 function buildStation(tile: Tile, flags: Readonly<TileFlags>, belt: THREE.Texture | null): Station {
   const offset = new THREE.Vector3();
   switch (tile.type) {
@@ -411,6 +434,8 @@ function buildStation(tile: Tile, flags: Readonly<TileFlags>, belt: THREE.Textur
       return belt ? floorBelt(belt) : { root: new THREE.Group(), surfaceY: 0, itemOffset: offset, solid: false };
     case 'fryer':
       return fryerStation();
+    case 'mixer':
+      return mixerStation();
     case 'oven': {
       const root = oneTileWide(modelInstance('oven'), 'oven');
       return { root, surfaceY: topOf(root), itemOffset: offset, solid: true };

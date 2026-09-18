@@ -81,6 +81,12 @@ export const RECIPES: Record<string, Recipe> = {
   oc2_pizza:           { id: 'oc2_pizza',           name: 'Pizza',           dish: 'pizza', ingredients: ['cheese', 'dough', 'tomato'],              score: 80 },
   oc2_pepperoni_pizza: { id: 'oc2_pepperoni_pizza', name: 'Pepperoni Pizza', dish: 'pizza', ingredients: ['cheese', 'dough', 'pepperoni', 'tomato'], score: 100 },
   chicken_pizza:       { id: 'chicken_pizza',       name: 'Chicken Pizza',   dish: 'pizza', ingredients: ['cheese', 'chicken', 'dough', 'tomato'],   score: 100 },
+  // Steamed food (Overcooked 2's Kevin levels): a fish chopped and steamed, or flour and a chopped
+  // filling mixed and steamed. The 20-per-step estimate.
+  steamed_fish:   { id: 'steamed_fish',   name: 'Steamed Fish',   dish: 'steamed', ingredients: ['fish'],            score: 40 },
+  steamed_beef:   { id: 'steamed_beef',   name: 'Steamed Beef',   dish: 'steamed', ingredients: ['flour', 'meat'],   score: 60 },
+  steamed_carrot: { id: 'steamed_carrot', name: 'Steamed Carrot', dish: 'steamed', ingredients: ['carrot', 'flour'], score: 60 },
+  steamed_prawn:  { id: 'steamed_prawn',  name: 'Steamed Prawn',  dish: 'steamed', ingredients: ['flour', 'prawn'],  score: 60 },
 };
 
 export function recipeDishType(recipe: Recipe): DishType {

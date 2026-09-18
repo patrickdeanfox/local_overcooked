@@ -171,7 +171,7 @@ export function sfxForEvent(event: SimEvent): SfxName | null {
     case 'potAdd': return 'potAdd';
     case 'cookStart': return 'sizzle';
     case 'cookDone': return 'cookDone';
-    case 'burnt': return 'burnAlarm';
+    case 'burnt': case 'mixerBroke': return 'burnAlarm';
     case 'potPour': return 'pour';
     case 'plateAdd': return 'plateAdd';
     case 'fireStart': case 'fireSpread': return 'fire';

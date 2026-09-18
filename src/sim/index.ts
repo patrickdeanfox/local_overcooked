@@ -7,7 +7,7 @@
 import type { LevelDef, OrderSettings } from '../levels/schema';
 import { isWalkable, parseGrid, SOLID_TILES } from '../levels/schema';
 import {
-  ASSIST_RATE, BAKE_TIME, BURN_TIME, CATCH_RADIUS, CHEF_HITBOX, CHEF_RADIUS, CHEF_SPEED, CHOP_TIME, CONVEYOR_HOLD, CONVEYOR_SPEED,
+  ASSIST_RATE, BAKE_TIME, BURN_TIME, MIX_TIME, STEAM_TIME, CATCH_RADIUS, CHEF_HITBOX, CHEF_RADIUS, CHEF_SPEED, CHOP_TIME, CONVEYOR_HOLD, CONVEYOR_SPEED,
   CONVEYOR_FLOOR_SPEED, COOK_TIME, CRATE_SIZE, DEEP_FRY_TIME, FLOOR_FIRE_CLEARANCE, ICE_ACCEL, ICE_DECEL,
   DASH_BUMP_PUSH, DASH_COOLDOWN, DASH_SPEED, DASH_THROW_BONUS, DASH_THROW_WINDOW, DASH_TIME, EXTINGUISH_RATE,
   FALL_PENALTY_SEC, FIRE_SPREAD_TIME, MAX_PUSH_ESCAPE, MAX_SIMULTANEOUS_86, MOVE_DEADZONE, ORDER_FAIL_PENALTY,
@@ -19,7 +19,7 @@ import {
 import { ASSEMBLY_ORDER, DISH_FAMILIES, dishMatchesRecipe, familyFits, RECIPES, recipeDishType, sortIngredients } from './recipes';
 import { mulberry32, type Rng } from './rng';
 import {
-  BASE_INGREDIENTS, BOILED_INGREDIENTS, CHOPPED_INGREDIENTS, PIZZA_TOPPINGS, DEEP_FRIED_INGREDIENTS, FACING_VECTORS, FRIED_INGREDIENTS, INGREDIENT_TYPES, NO_INPUT, SOUP_INGREDIENTS,
+  BASE_INGREDIENTS, BOILED_INGREDIENTS, CHOPPED_INGREDIENTS, MIXED_CHOPPED, MIXED_RAW, PIZZA_TOPPINGS, STEAMED_WHOLE, DEEP_FRIED_INGREDIENTS, FACING_VECTORS, FRIED_INGREDIENTS, INGREDIENT_TYPES, NO_INPUT, SOUP_INGREDIENTS,
   type Chef, type ChefAction, type Dish, type DishType, type Facing, type DirtyPlateItem, type Floe, type FlyingItem, type IngredientItem, type IngredientType,
   type Item, type Order, type PlateItem, type PlayerInput, type PotItem, type Prep, type Recipe, type Restock, type SimEvent,
   type SimState, type Modifiers, type SliderGroup, type Tile, type TrayItem, type TrayLoad, type Ware,
@@ -58,6 +58,8 @@ export interface EffectiveSettings {
   panCookTime: number;  // seconds for a patty, PAN_COOK_TIME scaled
   deepFryTime: number;  // seconds for a piece in the frying basket, DEEP_FRY_TIME scaled
   bakeTime: number;     // seconds for a pizza in the oven, BAKE_TIME scaled
+  mixTime: number;      // seconds for a bowl in the mixer, MIX_TIME scaled
+  steamTime: number;    // seconds for dumplings in the steamer, STEAM_TIME scaled
   burnTime: number;     // seconds from cooked to burnt, BURN_TIME scaled
   chopTime: number;     // seconds per ingredient, CHOP_TIME scaled
   washTime: number;     // seconds per plate, WASH_TIME scaled
@@ -177,6 +179,8 @@ function wareOf(pot: PotItem): Ware {
 
 function wareCapacity(pot: PotItem): number {
   if (wareOf(pot) === 'dough') return PIZZA_TOPPINGS.length; // one of each topping
+  if (wareOf(pot) === 'bowl') return MIXED_RAW.length + 1;     // flour and one filling
+  if (wareOf(pot) === 'steamer') return 2;                     // a poured mix, or one fish
   if (wareOf(pot) !== 'pot') return PAN_CAPACITY; // a pan and a frying basket take one piece
   return boilsWhole(pot) ? 1 : POT_CAPACITY;      // a pot of rice holds one portion
 }
@@ -189,6 +193,8 @@ function boilsWhole(pot: PotItem): boolean {
 function wareCookTime(pot: PotItem, settings: EffectiveSettings): number {
   const ware = wareOf(pot);
   if (ware === 'dough') return settings.bakeTime;
+  if (ware === 'bowl') return settings.mixTime;
+  if (ware === 'steamer') return settings.steamTime;
   return ware === 'pan' ? settings.panCookTime : ware === 'basket' ? settings.deepFryTime : settings.cookTime;
 }
 
@@ -196,7 +202,7 @@ function wareCookTime(pot: PotItem, settings: EffectiveSettings): number {
  *  pizza base in an oven. */
 function cookSite(pot: PotItem): Tile['type'] {
   const ware = wareOf(pot);
-  return ware === 'basket' ? 'fryer' : ware === 'dough' ? 'oven' : 'stove';
+  return ware === 'basket' ? 'fryer' : ware === 'dough' ? 'oven' : ware === 'bowl' ? 'mixer' : 'stove';
 }
 
 /** A pot boils soup ingredients, a pan fries the chopped ones that come out cooked, a basket
@@ -204,6 +210,14 @@ function cookSite(pot: PotItem): Tile['type'] {
  *  ingredient" is pushed away). */
 function wareAccepts(pot: PotItem, item: IngredientItem): boolean {
   const ware = wareOf(pot);
+  // A mixing bowl takes flour as it comes and one chopped filling, one of each.
+  if (ware === 'bowl') {
+    const fits = item.chopped ? MIXED_CHOPPED.includes(item.type) : MIXED_RAW.includes(item.type);
+    const oneFilling = !item.chopped || !pot.contents.some((c) => MIXED_CHOPPED.includes(c));
+    return fits && oneFilling && !pot.contents.includes(item.type) && pot.state !== 'burnt';
+  }
+  // A steamer takes a chopped fish straight in; everything else is poured in from a bowl.
+  if (ware === 'steamer') return item.chopped && STEAMED_WHOLE.includes(item.type) && pot.contents.length === 0;
   // A pizza base takes chopped toppings, one of each, until it goes in the oven.
   if (ware === 'dough') return item.chopped && PIZZA_TOPPINGS.includes(item.type) && !pot.contents.includes(item.type) && pot.state === 'empty';
   // Rice goes in whole, alone, into an empty pot; nothing joins it.
@@ -247,6 +261,8 @@ function effectiveSettings(level: LevelDef, mods: Modifiers | undefined): Effect
     panCookTime: PAN_COOK_TIME * (mods?.cookTimeScale ?? 1),
     deepFryTime: DEEP_FRY_TIME * (mods?.cookTimeScale ?? 1),
     bakeTime: BAKE_TIME * (mods?.cookTimeScale ?? 1),
+    mixTime: MIX_TIME * (mods?.cookTimeScale ?? 1),
+    steamTime: STEAM_TIME * (mods?.cookTimeScale ?? 1),
     burnTime: BURN_TIME * (mods?.burnTimeScale ?? 1),
     chopTime: CHOP_TIME * (mods?.chopTimeScale ?? 1),
     washTime: WASH_TIME * (mods?.washTimeScale ?? 1),
@@ -1741,6 +1757,10 @@ export class Sim {
           if (this.emptyOnto(item, held, idx, tx, ty, events) && wareOf(held) === 'dough') chef.holding = null; // the pizza is on the plate
           return;
         }
+        if (item && item.kind === 'pot' && this.pour(held, item)) { // a mixed bowl into an empty steamer
+          events.push({ type: 'potPour', chef: idx, x: tx, y: ty });
+          return;
+        }
         if (!item && (this.canPlaceOn(tile.type) || tile.type === cookSite(held))) {
           this.place(chef, i, idx, tx, ty, events);
         }
@@ -1992,7 +2012,28 @@ export class Sim {
   /** Empties cooked cookware onto a plate: a pot pours a soup, a pan drops its patty on a
    *  plate that is empty or already holds burger parts. Refuses when the plate cannot take it,
    *  leaving both the plate and the cookware untouched. */
+  /** A mixed bowl poured into an empty steamer: the steamer takes the whole mix and the bowl is empty
+   *  again. False, and nothing changes, for anything else. */
+  private pour(from: PotItem, into: PotItem): boolean {
+    if (wareOf(from) !== 'bowl' || from.state !== 'cooked' || from.contents.length === 0) return false;
+    if (wareOf(into) !== 'steamer' || into.contents.length > 0) return false;
+    into.contents = [...from.contents];
+    into.state = 'empty';
+    into.cookProgress = 0;
+    into.burnProgress = 0;
+    this.emptyPot(from);
+    return true;
+  }
+
   private emptyOnto(plate: PlateItem, ware: PotItem, idx: number, tx: number, ty: number, events: SimEvent[]): boolean {
+    if (wareOf(ware) === 'steamer') { // dumplings onto an empty plate; the steamer stays
+      if (plate.dish !== null || (plate.count ?? 1) !== 1) return false;
+      plate.dish = { type: 'steamed', ingredients: sortIngredients(ware.contents) };
+      this.emptyPot(ware);
+      events.push({ type: 'plateAdd', chef: idx, x: tx, y: ty });
+      return true;
+    }
+    if (wareOf(ware) === 'bowl') return false; // a mix is poured into a steamer, never served raw
     if (wareOf(ware) === 'dough') { // a baked pizza slides onto an empty plate whole; the caller takes the base away
       if (plate.dish !== null || (plate.count ?? 1) !== 1) return false;
       plate.dish = { type: 'pizza', ingredients: sortIngredients([...BASE_INGREDIENTS, ...ware.contents]) };
@@ -2108,6 +2149,7 @@ export class Sim {
       if (!item || item.kind !== 'pot') continue;
       const tile = st.tiles[i];
       if (tile.type !== cookSite(item)) continue; // cookware off its burner or fryer holds its progress
+      if (tile.broken) continue;                  // a broken mixer mixes nothing
       if (item.state === 'burnt' || item.contents.length === 0) continue;
       // wiki (Fire): "Any cooking device affected by tabletop fire cannot cook food until
       // the fire is extinguished." The burn clock stops with it, so a fire that reaches a
@@ -2134,6 +2176,11 @@ export class Sim {
         item.burnProgress = 1;
         item.state = 'burnt';
         events.push({ type: 'burnt', x: tile.x, y: tile.y });
+        if (tile.type === 'mixer') { // overmixed: no fire, the mixer is broken for the rest of the level (wiki Mixer)
+          tile.broken = true;
+          events.push({ type: 'mixerBroke', x: tile.x, y: tile.y });
+          continue;
+        }
         if (this.startFire(tile.x, tile.y)) events.push({ type: 'fireStart', x: tile.x, y: tile.y });
       }
     }
