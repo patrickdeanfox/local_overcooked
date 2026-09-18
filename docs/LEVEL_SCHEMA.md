@@ -40,6 +40,7 @@ One JSON file per level under `src/levels/<game>/`. Type: `LevelDef` in `src/lev
 | `Z` | stove | the catalog's steamer: a burner with a bamboo steamer. A mixed bowl is poured into it; a chopped fish goes straight in |
 | `f` `q` | crate | flour / carrot source (steamed dumplings) |
 | `$` `y` `b` | crate | egg (the catalog's) / honey / chocolate source (pancakes and cakes). A mixed bowl poured into a pan fries a pancake; poured onto an empty oven it becomes a cake tin that bakes |
+| `o` | pressurePlate | walkable pad; a `stations` override gives it its group, and a `door` dynamic opens a gate group while a chef stands on a pad of that group |
 | `N` | oven | bakes a pizza base set on it (the catalog's letter) |
 | `&` `e` | crate | dough (the catalog's) / pepperoni source. Chopping dough turns it into a pizza base on the board: chopped toppings go on it, it bakes in an oven, and a baked pizza slides onto a plate whole |
 | `r` `k` `H` `a` | crate | tortilla / chicken / cheese / pasta source (burritos, nuggets, cheese burgers, pasta). `H` is the catalog's cheese |
@@ -68,6 +69,7 @@ Shipped levels adopt a mechanic through `stations`, `items` and `eightySix`, nev
 - `dynamics` (optional):
   - `{type: 'pedestrians', lanes: [{from, to}], intervalSec, speed, firstDelaySec?}`
   - `{type: 'sliders', group, axis, amplitude, periodSec, phase?}`: moves every solid tile of the group, not only `1`-`4` counters: give a board, crate or stove the group with a `stations` override and it rides along (OC2 1-5's boards). A group cannot be both a slider and a gate group.
+  - `{type: 'door', group, plate}`: the group's `gate` tiles are a wall except while a chef stands on a `pressurePlate` of group `plate` (OC1 5-3 and 5-6, where each room's pad opens the other room's door). No timer, so no warning flash.
   - `{type: 'floorFires', intervalSec, max, firstDelaySec?}`: every `intervalSec` (first after `firstDelaySec`), while fewer than `max` floor tiles burn, a fire breaks out on a random empty floor, road or ice tile at least `FLOOR_FIRE_CLEARANCE` from every chef. A burning floor tile is solid until sprayed out, and spreads to counters like any fire (OC2 5-2).
   - `{type: 'beltReverse', periodSec, phase?}`: every belt, counter or walkable, runs against its arrow for `periodSec`, then with it again (OC2 4-3, 30 s). Items on a belt restart from their tile's centre when it turns.
   - `{type: 'gate', group, periodSec, openSec, phase?, closedAs?}`: the group's `gate` tiles are walkable for `openSec` of every `periodSec`, starting open. `closedAs: 'hole'` makes a closed gate a hole instead of a wall: a chef on it falls (`FALL_PENALTY_SEC`), nothing is shoved, and it draws as road. That is the seam between two trucks in 2-1 and 3-3, deck while they touch.

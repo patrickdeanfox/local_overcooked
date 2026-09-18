@@ -791,6 +791,14 @@ Both: steamed fish 40 and the mixed dumplings 60 (the 20-per-step estimate); ord
 
 Both: pancakes 40 / 60 and cakes 60 / 80 / 80 (the 20-per-step estimate); orders the catalog's estimates (2, every 20 s, at most 5; 80 s and 100 s), untested.
 
+## 5-3 and 5-6 — Cosmic Canteen, pressure-plate doors
+
+5-3, 15 x 9 (medium confidence): four rooms, the top and bottom halves split for good by a counter run, each half's right room behind a door. The upper pad at (6,2) opens the lower door (8,6), the lower pad at (6,6) the upper door (8,2), as the wiki's cycle describes; held, not timed. Two fixes to reachability: the extinguisher moved from the wall corner (0,4), where no floor touched it, to (0,5); the four burners shifted one column right so the corner one is reachable. No sink: the return at (0,2) is a `plateStack`. Burritos use the OC2 burrito ids (60 each).
+
+5-6, 16 x 10: the catalog's 17 x 10 (low confidence) with a right-room floor column dropped for the budget, the third plate moved beside the mushroom crate. Four sealed rooms; the lower-left pad (5,5) opens the upper door (8,2), the upper-right pad (12,1) the lower door (8,6); a belt carries down from the upper-left to the lower-left and one up from the lower-right to the upper-right, each ending at the seam where the receiving room can pick up.
+
+Stars: OC1 publishes none for either, so both carry the AYCE Switch numbers (5-3 1P 80 / 180 / 300, 2P 120 / 260 / 400; 5-6 1P 20 / 60 / 100, 2P 40 / 80 / 140), which the wiki calls generous for 5-6. Orders the catalog's estimates (2, every 24 s, at most 4, 90 s), untested. Unlocks 51 and 61 stars (the table).
+
 ## 3-2 — Savoury Seas, the split deck
 
 ```

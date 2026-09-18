@@ -103,6 +103,11 @@ export type Dynamic =
                                   // they fall into (the road between two trucks drawn apart, 2-1 and 3-3)
     }
   | {
+      type: 'door';          // OC1 5-3, 5-6: the group's gate tiles are open only while a chef stands on a pressure plate of `plate`
+      group: string;         // the gate group, closed as a wall
+      plate: string;         // the pressure plate group that holds it open
+    }
+  | {
       type: 'floorFires';    // 5-2: fires break out on the floor at random and block it until sprayed out
       intervalSec: number;   // seconds between outbreaks
       max: number;           // at most this many floor fires burn at once
@@ -200,7 +205,8 @@ export const LEGEND: Readonly<Record<string, LegendEntry>> = Object.freeze({
   'y': { type: 'crate', ingredient: 'honey' },
   'b': { type: 'crate', ingredient: 'chocolate' },
   '@': { type: 'portal' },                               // the catalog's portal; a stations override pairs it (group)
-  'z': { type: 'rift' },                                 // throws cross it, chefs cannot                                 // the catalog's oven: bakes a pizza base set on it
+  'z': { type: 'rift' },                                 // throws cross it, chefs cannot
+  'o': { type: 'pressurePlate' },                        // a stations override gives it its group                                 // the catalog's oven: bakes a pizza base set on it
   '&': { type: 'crate', ingredient: 'dough' },           // the catalog's dough crate
   'e': { type: 'crate', ingredient: 'pepperoni' },
   '%': { type: 'crate', ingredient: 'potato' },
@@ -351,6 +357,11 @@ export function validateLevel(level: LevelDef): string[] {
       if (!(d.w >= 1) || d.x < 0 || d.x + d.w > parsed.width) errors.push('floes lane is off the grid');
       if (!(d.speed > 0) || !(d.intervalSec > 0)) errors.push('floes need a positive speed and interval');
       if (!d.lengths?.length || d.lengths.some((n) => !(n >= 1))) errors.push('floes need lengths of at least 1');
+    }
+    if (d.type === 'door') {
+      if (!gateGroups.has(d.group)) errors.push(`door group '${d.group}' has no gate tiles`);
+      if (!parsed.tiles.some((t) => t.type === 'pressurePlate' && t.group === d.plate)) errors.push(`door group '${d.group}' names plate '${d.plate}', which has no pressure plates`);
+      gateGroups.delete(d.group);
     }
     if (d.type === 'gate') {
       if (!gateGroups.has(d.group)) errors.push(`gate group '${d.group}' has no gate tiles`);

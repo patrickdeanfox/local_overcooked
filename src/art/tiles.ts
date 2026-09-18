@@ -623,6 +623,15 @@ function drawMixer(ctx: CanvasRenderingContext2D): void {
   line(ctx, TOP_CX, TOP_CY, TOP_CX + 12, 6, '#5b6069', 4);
 }
 
+/** Pressure plate: a red pad in a steel ring, set in the floor. */
+function drawPressurePlate(ctx: CanvasRenderingContext2D): void {
+  drawFloor(ctx);
+  fillCircle(ctx, T / 2, T / 2, T * 0.4, PALETTE.plateRing);
+  fillCircle(ctx, T / 2, T / 2, T * 0.32, PALETTE.plateButtonDark);
+  fillCircle(ctx, T / 2, T / 2 - 2, T * 0.3, PALETTE.plateButton);
+  withAlpha(ctx, 0.4, () => fillCircle(ctx, T / 2 - 6, T / 2 - 8, T * 0.08, '#ffffff'));
+}
+
 /** The rift: a deep violet chasm. */
 function drawRift(ctx: CanvasRenderingContext2D): void {
   ctx.fillStyle = PALETTE.rift;
@@ -673,6 +682,7 @@ const TILE_DRAWERS: Record<Exclude<TileType, 'crate'>, TileDraw> = {
   portal: drawPortal,
   rift: drawRift,
   mixer: drawMixer,
+  pressurePlate: drawPressurePlate,
 };
 
 export function generateTileTextures(scene: Phaser.Scene): void {

@@ -1,0 +1,25 @@
+# -- Pressure plates: OC1 5-3 with the doors shut, then a chef on the upper pad and the lower door open,
+#    and OC1 5-6's four rooms with its two one-way belts
+eval localStorage.setItem('local-overcooked.settings.v1', JSON.stringify({ version: 1, players: 2, preset: 'normal', seedMode: 'fixed', fixedSeed: 5, freePlay: true }))
+eval location.reload()
+wait 1500
+until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
+wait 600
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval (__ui.scene('Title').scene.start('Game', { levelId: 'oc1-5-3', seed: 7 }), 'started')
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.level.id === 'oc1-5-3'
+wait 800
+shot 40-00-shut.png
+eval ((c) => (c.x = 6.5, c.y = 2.5, 'on the upper pad'))(__oc.sim.getState().chefs[0])
+wait 600
+eval JSON.stringify(['doors', __oc.sim.getState().gates])
+shot 40-01-open.png
+
+eval (__ui.scene('Game').scene.start('Game', { levelId: 'oc1-5-6', seed: 7 }), 'started')
+until 20000 __oc.level && __oc.level.id === 'oc1-5-6' && __oc.sim.getState().elapsed > 0.5
+wait 600
+eval ((st) => (st.tileItems[2 * 16 + 6] = { kind: 'ingredient', id: 9801, type: 'onion', chopped: true, chopProgress: 1 }, 'on the down belt'))(__oc.sim.getState())
+wait 2500
+eval JSON.stringify(['onion at row', Math.floor(__oc.sim.getState().tileItems.findIndex((i) => i && i.id === 9801) / 16)])
+shot 40-02-rooms.png
+errors

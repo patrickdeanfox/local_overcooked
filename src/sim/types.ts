@@ -85,6 +85,7 @@ export type TileType =
   | 'ice'         // walkable floor with momentum: a chef on it speeds up and slows down gradually (Glazed Glacier)
   | 'oven'        // solid; bakes the pizza base set on it, like a stove cooks a pot
   | 'mixer'       // solid; mixes the bowl set in it. Mixed too long, it breaks for good (tile.broken)
+  | 'pressurePlate' // walkable; while a chef stands on it, the doors bound to its group stay open (OC1 world 5)
   | 'portal'      // walkable; a chef or a thrown item that enters it comes out of the other portal of its group
   | 'rift'        // solid for chefs, but a throw flies over it (Overcooked 2 3-4's magic rift); nobody falls in
   | 'conveyorFloor'; // walkable belt: carries the chef standing on it, and items resting on it, along tile.dir (Overcooked 2 1-4)

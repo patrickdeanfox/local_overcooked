@@ -166,6 +166,10 @@ export const PALETTE = {
   chocolateLight: '#7c4b30',
   batter: '#f1d9a0',
   sponge: '#e2a95a',
+  // Pressure plates (Overcooked 1 world 5).
+  plateButton: '#e2574c',
+  plateButtonDark: '#9e2f27',
+  plateRing: '#c7ccd3',
   iceDark: '#a9cde8',
   lettuce: '#7ec850',
   lettuceDark: '#4b9231',

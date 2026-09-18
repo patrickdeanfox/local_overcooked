@@ -1,0 +1,41 @@
+{
+  "id": "oc1-5-6",
+  "name": "5-6",
+  "game": "oc1",
+  "world": 5,
+  "index": 6,
+  "theme": "cosmic-canteen",
+  "description": "Soups across four sealed rooms: the serving counter in one, the sink in another, the plates in a third and the boards in the fourth. Pressure-plate doors join the rooms side to side, and two one-way belts join top and bottom.",
+  "strategy": "Rather than sending ingredients down one at a time, send a pot down the belt, fill it with everything, and send it back. One chef minds the plates while the other cooks; the star targets are generous because the kitchen is so tangled.",
+  "source": "https://overcooked.fandom.com/wiki/5-6_(Overcooked!)",
+  "unlockStars": 61,
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "recipes": ["onion_soup", "tomato_soup", "mushroom_soup"],
+  "orders": { "initial": 2, "intervalSec": 24, "max": 4, "timeSec": 90 },
+  "stars": { "1": [20, 60, 100], "2": [40, 80, 140] },
+  "plates": { "mode": "sink", "count": 3 },
+  "grid": [
+    "##RV#X#####B#B##",
+    "#.......#...o..#",
+    "#.....v.G......#",
+    "######v###^#####",
+    "#WD#O#v###^#T###",
+    "#....o..#.^....#",
+    "#.......G......#",
+    "#.......#......#",
+    "#.......#......#",
+    "##S#S#E####Mppp#"
+  ],
+  "spawns": [{ "x": 11, "y": 2 }, { "x": 3, "y": 6 }],
+  "stations": [
+    { "x": 12, "y": 1, "group": "b" },
+    { "x": 5, "y": 5, "group": "a" },
+    { "x": 8, "y": 2, "group": "upperDoor" },
+    { "x": 8, "y": 6, "group": "lowerDoor" }
+  ],
+  "dynamics": [
+    { "type": "door", "group": "upperDoor", "plate": "a" },
+    { "type": "door", "group": "lowerDoor", "plate": "b" }
+  ]
+}
