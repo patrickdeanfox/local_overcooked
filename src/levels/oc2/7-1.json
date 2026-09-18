@@ -1,0 +1,31 @@
+{
+  "id": "oc2-7-1",
+  "name": "Kevin 1",
+  "game": "oc2",
+  "world": 7,
+  "index": 1,
+  "theme": "kevin",
+  "description": "The first hidden level, and the first dumplings: flour and a chopped filling mixed, then steamed, or a fish steamed as it is. A column of counters splits the room: mixers and beef on the left, steamers, flour and fish on the right.",
+  "strategy": "The left chef keeps beef and flour mixing and clean plates coming; the right chef throws flour across on every trip to the crates and steams in ticket order. Fish needs no mixer, so the right side can serve it alone.",
+  "source": "https://overcooked.fandom.com/wiki/Kevin_1",
+  "unlockStars": 3,
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": true,
+  "recipes": ["steamed_fish", "steamed_beef"],
+  "orders": { "initial": 2, "intervalSec": 20, "max": 5, "timeSec": 90 },
+  "stars": { "1": [300, 380, 520], "2": [480, 600, 820] },
+  "plates": { "mode": "sink", "count": 4 },
+  "grid": [
+    "###W########RV##",
+    "........X.......",
+    ".#K#K#..p..#Z#Z#",
+    ".....#..p..#....",
+    "........#.......",
+    "........#.......",
+    ".....#..p..#....",
+    ".#B#B#..p..#B#B#",
+    "........#.......",
+    "####A#######Jf##"
+  ],
+  "spawns": [{ "x": 3, "y": 4 }, { "x": 12, "y": 4 }]
+}

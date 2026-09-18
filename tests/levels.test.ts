@@ -91,6 +91,17 @@ function reachesType(p: ParsedGrid, reached: Set<number>, type: TileType): boole
   }));
 }
 
+/** True when a walkable neighbour of (x, y) is in the flood fill. */
+function touches(p: ParsedGrid, reached: Set<number>, x: number, y: number): boolean {
+  return NEIGHBOURS.some(([dx, dy]) => {
+    const n = tileAt(p, x + dx, y + dy);
+    return !!n && isWalkable(n.type) && reached.has((y + dy) * p.width + (x + dx));
+  });
+}
+
+/** Overcooked 2's world number for the hidden Kevin levels. */
+const KEVIN_WORLD = 7;
+
 /** Station tiles the flood fill never gets next to, as 'type (x,y)' strings. */
 function unreachableStations(p: ParsedGrid, reached: Set<number>): string[] {
   const bad: string[] = [];
@@ -178,7 +189,8 @@ describe('levels', () => {
         expect(l.name.length).toBeGreaterThan(0);
         expect(l.source).toBeUndefined();
       } else {
-        expect(l.name).toBe(`${l.world}-${l.index}`);
+        // Overcooked 2's hidden Kevin levels sit after its six worlds and keep their own names.
+        expect(l.name).toBe(l.game === 'oc2' && l.world === KEVIN_WORLD ? `Kevin ${l.index}` : `${l.world}-${l.index}`);
         expect(l.source).toMatch(/^https:\/\/overcooked\.fandom\.com\//);
       }
     });
@@ -206,6 +218,11 @@ describe('levels', () => {
       const lanes = (l.dynamics ?? []).flatMap((d) => (d.type === 'floes' ? [d] : []));
       const moving = new Set((l.dynamics ?? []).flatMap((d) => (d.type === 'sliders' ? [d.group] : [])));
       const union = new Set<number>();
+      // Two separate halves that share a counter (Kevin 1's middle column) pass food over it, so each
+      // chef needs only its own half's stations.
+      const regions = l.spawns.map((s) => reachableFrom(p, s.x, s.y, false, moving));
+      const counterSplit = regions.length === 2 && ![...regions[0]].some((i) => regions[1].has(i))
+        && p.tiles.some((t) => t.type === 'counter' && touches(p, regions[0], t.x, t.y) && touches(p, regions[1], t.x, t.y));
       for (const s of l.spawns) {
         const reached = reachableFrom(p, s.x, s.y, false, moving);
         for (const i of reached) union.add(i);
@@ -213,7 +230,7 @@ describe('levels', () => {
           expect(reachesType(p, reached, 'conveyor'), `no belt from spawn (${s.x},${s.y})`).toBe(true);
           continue;
         }
-        if (countType(p, 'rift') > 0) continue; // a rift kitchen (OC2 3-4) shares the work by throwing over it
+        if (countType(p, 'rift') > 0 || counterSplit) continue; // shared by throwing over a rift, or over a counter
         if (lanes.length > 0) {
           const bank = [...reached].some((i) => {
             const x = i % p.width;
@@ -1125,6 +1142,9 @@ describe('order tuning', () => {
     // Portals: cheese burgers; the catalog's estimates, untested.
     'oc2-3-2': { initial: 2, intervalSec: 22, max: 4, timeSec: 90 },
     'oc2-3-4': { initial: 2, intervalSec: 22, max: 4, timeSec: 90 },
+    // Kevin: steamed dumplings; the catalog's estimates, untested.
+    'oc2-7-1': { initial: 2, intervalSec: 20, max: 5, timeSec: 90 },
+    'oc2-7-4': { initial: 2, intervalSec: 20, max: 5, timeSec: 90 },
     // The dark kitchen: a lit kitchen's soup cadence; the catalog's estimate, untested.
     'oc1-4-2': { initial: 2, intervalSec: 18, max: 4, timeSec: 60 },
     // The mechanics kitchens (docs/MECHANICS.md): estimates from the nearest shipped level, untested.

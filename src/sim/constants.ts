@@ -67,6 +67,8 @@ export const TRASH_RESPAWN_SEC = 5;
 // Deep fryer and the slippery floor (OC1 world 3). The wiki gives neither a fry time nor a friction.
 export const DEEP_FRY_TIME = PAN_COOK_TIME;  // seconds in the basket for a piece of fish or potato, matched to the pan
 export const FLOOR_FIRE_CLEARANCE = 1.2;     // tiles: a floor fire never breaks out this close to a chef's centre
+export const MIX_TIME = 8;                   // seconds in the mixer for a bowl (the wiki gives none)
+export const STEAM_TIME = COOK_TIME;         // seconds in the steamer for dumplings, matched to the pot
 export const BAKE_TIME = 10;                 // seconds in the oven for a pizza (the wiki gives none; a little longer than the pan)
 export const ICE_ACCEL = 7;                  // tiles per second squared a chef on ice gains towards the stick's speed
 export const ICE_DECEL = 3.5;                // tiles per second squared a chef on ice loses with the stick released (a slide of about 2.5 tiles)        // plates and cookware a belt carries into a bin come back after this long, where they started (wiki Trash Bin)

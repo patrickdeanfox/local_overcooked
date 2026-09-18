@@ -615,6 +615,14 @@ function drawPortal(ctx: CanvasRenderingContext2D): void {
   }
 }
 
+/** Mixer: a steel block with a bowl on its stand. */
+function drawMixer(ctx: CanvasRenderingContext2D): void {
+  drawBlock(ctx, BELT_BLOCK);
+  fillCircle(ctx, TOP_CX, TOP_CY, 18, '#c9ced6');
+  fillCircle(ctx, TOP_CX, TOP_CY, 13, '#e6e9ee');
+  line(ctx, TOP_CX, TOP_CY, TOP_CX + 12, 6, '#5b6069', 4);
+}
+
 /** The rift: a deep violet chasm. */
 function drawRift(ctx: CanvasRenderingContext2D): void {
   ctx.fillStyle = PALETTE.rift;
@@ -664,6 +672,7 @@ const TILE_DRAWERS: Record<Exclude<TileType, 'crate'>, TileDraw> = {
   oven: drawOven,
   portal: drawPortal,
   rift: drawRift,
+  mixer: drawMixer,
 };
 
 export function generateTileTextures(scene: Phaser.Scene): void {

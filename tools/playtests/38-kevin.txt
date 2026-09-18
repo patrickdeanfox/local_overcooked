@@ -1,0 +1,21 @@
+# -- Steamed food: Kevin 1's split kitchen with a bowl mixing, a steamer steaming and a plate of
+#    dumplings on the middle column, and Kevin 4 round its fireplace
+eval localStorage.setItem('local-overcooked.settings.v1', JSON.stringify({ version: 1, players: 2, preset: 'normal', seedMode: 'fixed', fixedSeed: 5, freePlay: true }))
+eval location.reload()
+wait 1500
+until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
+wait 600
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval (__ui.scene('Title').scene.start('Game', { levelId: 'oc2-7-1', seed: 7 }), 'started')
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.level.id === 'oc2-7-1'
+wait 800
+eval ((st) => (st.tileItems[2 * 16 + 2].contents.push('flour', 'meat'), st.tileItems[2 * 16 + 12].contents.push('fish'), st.tileItems[2 * 16 + 8].dish = { type: 'steamed', ingredients: ['flour', 'meat'] }, 'set'))(__oc.sim.getState())
+wait 3000
+eval JSON.stringify(['bowl', __oc.sim.getState().tileItems[2 * 16 + 2].state, 'steamer', __oc.sim.getState().tileItems[2 * 16 + 12].state])
+shot 38-00-kevin1.png
+
+eval (__ui.scene('Game').scene.start('Game', { levelId: 'oc2-7-4', seed: 7 }), 'started')
+until 20000 __oc.level && __oc.level.id === 'oc2-7-4' && __oc.sim.getState().elapsed > 0.5
+wait 800
+shot 38-01-kevin4.png
+errors

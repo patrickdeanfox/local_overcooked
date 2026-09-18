@@ -7,18 +7,24 @@
 // chef's center, so a chef standing in the middle of tile (3,2) has x=3.5, y=2.5.
 
 export type IngredientType = 'onion' | 'tomato' | 'mushroom' | 'meat' | 'bun' | 'lettuce' | 'fish' | 'prawn' | 'potato'
-  | 'cucumber' | 'rice' | 'nori' | 'tortilla' | 'chicken' | 'cheese' | 'pasta' | 'dough' | 'pepperoni';
+  | 'cucumber' | 'rice' | 'nori' | 'tortilla' | 'chicken' | 'cheese' | 'pasta' | 'dough' | 'pepperoni'
+  | 'flour' | 'carrot';
 export const INGREDIENT_TYPES: readonly IngredientType[] = [
   'onion', 'tomato', 'mushroom', 'meat', 'bun', 'lettuce', 'fish', 'prawn', 'potato', 'cucumber', 'rice', 'nori',
-  'tortilla', 'chicken', 'cheese', 'pasta', 'dough', 'pepperoni',
+  'tortilla', 'chicken', 'cheese', 'pasta', 'dough', 'pepperoni', 'flour', 'carrot',
 ];
 /** Ingredients that go in a pot and make soup. */
 export const SOUP_INGREDIENTS: readonly IngredientType[] = ['onion', 'tomato', 'mushroom'];
 /** Ingredients that need the chopping board before use (buns never do). */
 export const CHOPPED_INGREDIENTS: readonly IngredientType[] = [
   'onion', 'tomato', 'mushroom', 'meat', 'lettuce', 'fish', 'prawn', 'potato', 'cucumber', 'chicken', 'cheese',
-  'dough', 'pepperoni',
+  'dough', 'pepperoni', 'carrot',
 ];
+/** What a mixing bowl takes: flour as it comes, and the chopped fillings of a steamed dumpling. */
+export const MIXED_RAW: readonly IngredientType[] = ['flour'];
+export const MIXED_CHOPPED: readonly IngredientType[] = ['meat', 'carrot', 'prawn'];
+/** Chopped pieces that go straight into a steamer, unmixed (the steamed fish). */
+export const STEAMED_WHOLE: readonly IngredientType[] = ['fish'];
 /** Chopping one of these (dough, flattened) turns it into a pizza base: cookware that takes the toppings. */
 export const BASE_INGREDIENTS: readonly IngredientType[] = ['dough'];
 /** Chopped toppings a pizza base takes, one of each. */
@@ -36,7 +42,9 @@ export const BOILED_INGREDIENTS: readonly IngredientType[] = ['rice', 'pasta'];
 export type Prep = 'raw' | 'chopped' | 'pan' | 'basket' | 'boiled';
 
 export type Ware = 'pot' | 'pan' | 'basket' // 'pot' and 'pan' sit on a stove, 'basket' (a frying basket) in a fryer
-  | 'dough'; // a pizza base: chopped dough carrying its toppings, baked in an oven and slid onto a plate whole
+  | 'dough'   // a pizza base: chopped dough carrying its toppings, baked in an oven and slid onto a plate whole
+  | 'bowl'    // a mixing bowl: sits in a mixer, mixes its contents, and is poured into a steamer
+  | 'steamer'; // a bamboo steamer on a burner: steams a poured mix, or a chopped fish, into dumplings
 /** 'plated': chopped ingredients assembled directly on the plate, no heat (Overcooked 2 sashimi, salad). */
 export type DishType = 'soup' | 'burger' | 'plated'
   | 'fried'  // deep-fried pieces out of a frying basket, laid on the plate (fish and chips)
@@ -44,7 +52,8 @@ export type DishType = 'soup' | 'burger' | 'plated'
   | 'salad'   // chopped lettuce, tomato and cucumber, no heat (Overcooked 2)
   | 'pasta'   // boiled pasta and a sauce piece out of a pan (Overcooked 2)
   | 'burrito' // a raw tortilla, boiled rice and a filling out of a pan (Overcooked 2)
-  | 'pizza';  // a baked pizza base and its toppings, off the oven onto the plate
+  | 'pizza'   // a baked pizza base and its toppings, off the oven onto the plate
+  | 'steamed'; // dumplings out of a steamer: a mix of flour and a filling, or a fish (Overcooked 2 Kevin levels)
 
 export type TileType =
   | 'void'        // outside the kitchen; not walkable, nothing placed
@@ -72,6 +81,7 @@ export type TileType =
   | 'fryer'       // solid; deep fryer: holds a frying basket and cooks it, like a stove holds a pot
   | 'ice'         // walkable floor with momentum: a chef on it speeds up and slows down gradually (Glazed Glacier)
   | 'oven'        // solid; bakes the pizza base set on it, like a stove cooks a pot
+  | 'mixer'       // solid; mixes the bowl set in it. Mixed too long, it breaks for good (tile.broken)
   | 'portal'      // walkable; a chef or a thrown item that enters it comes out of the other portal of its group
   | 'rift'        // solid for chefs, but a throw flies over it (Overcooked 2 3-4's magic rift); nobody falls in
   | 'conveyorFloor'; // walkable belt: carries the chef standing on it, and items resting on it, along tile.dir (Overcooked 2 1-4)
@@ -85,6 +95,7 @@ export interface Tile {
   stock?: number;              // crate, 86 system on: items left; 0 = empty ("86"). Absent = never runs out
   capacity?: number;           // crate: items a full crate holds (the fill level is stock / capacity)
   dir?: Facing;                // conveyor: the way the belt carries
+  broken?: boolean;            // mixer: overrun, and unusable for the rest of the level
 }
 
 export type Facing = 'up' | 'down' | 'left' | 'right';
@@ -307,7 +318,8 @@ export type SimEventType =
   | 'trayLift' | 'traySet'         // tray: the wind-up finished and the tray is in hand / on tile (x, y)
   | 'trayWobble'                   // tray: a bump made the load wobble; the drop that a second bump causes is a plain 'drop'
   | 'respawned'                    // a plate, cookware or extinguisher a belt carried into a bin is back on tile (x, y)
-  | 'portal';                      // a chef (chef set) or a thrown item came out of the portal at (x, y)
+  | 'portal'                       // a chef (chef set) or a thrown item came out of the portal at (x, y)
+  | 'mixerBroke';                  // the mixer at (x, y) ran too long and broke for good
 export interface SimEvent {
   type: SimEventType;
   chef?: number;   // chef index that caused it, if any

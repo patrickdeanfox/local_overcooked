@@ -773,6 +773,16 @@ E.....zzz.....p
 
 Wiki facts used: the four burgers; 4:00; four plates, two each side; sink; the rift and the portals; the right chef owns the crates and the sink, the left the boards and pans; 22 stars; stars 1P 160 / 240 / 300, 2P 260 / 320 / 440. Orders the catalog's estimate, untested.
 
+## Overcooked 2 Kevin 1 and Kevin 4 — the hidden kitchens
+
+The Kevin levels are world 7 here (`oc2-7-1`, `oc2-7-4`), named `Kevin 1` and `Kevin 4`; the level tests allow that one naming exception. Their unlock is the star count of the level they hang off (1-3 and 3-1); the real game unlocks them by a combo or score challenge on that level instead.
+
+Kevin 1, 16 x 10: the catalog's 17 x 10 (low confidence) with its last floor column dropped for the budget, `&` flour written `f`. Two mirrored halves split by a column of counters (bin at the top, four plates below): mixers and beef on the left, steamers, flour and fish on the right. The clock waits for the first serve (the first steamed-food level). Stars 1P 300 / 380 / 520, 2P 480 / 600 / 820.
+
+Kevin 4, 15 x 10: the catalog's 15 x 11 with its empty bottom floor row dropped for the budget, the central fireplace written as counters and its fire as a `floorFires` dynamic (every 25 s, at most two; the wiki gives no rate). Stars 1P 220 / 280 / 380, 2P 340 / 420 / 580.
+
+Both: steamed fish 40 and the mixed dumplings 60 (the 20-per-step estimate); orders the catalog's estimate (2, every 20 s, at most 5, 90 s), untested.
+
 ## 3-2 — Savoury Seas, the split deck
 
 ```

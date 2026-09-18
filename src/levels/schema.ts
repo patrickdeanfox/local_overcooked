@@ -192,6 +192,10 @@ export const LEGEND: Readonly<Record<string, LegendEntry>> = Object.freeze({
   // Level mechanics (roadmap item 5). The catalog's extension characters, so catalog grids drop straight in.
   'Y': { type: 'fryer', item: 'pot', ware: 'basket' }, // deep fryer with its frying basket
   'N': { type: 'oven' },
+  'K': { type: 'mixer', item: 'pot', ware: 'bowl' },     // the catalog's mixer, with its bowl
+  'Z': { type: 'stove', item: 'pot', ware: 'steamer' },  // the catalog's steamer: a burner with a bamboo steamer
+  'f': { type: 'crate', ingredient: 'flour' },
+  'q': { type: 'crate', ingredient: 'carrot' },
   '@': { type: 'portal' },                               // the catalog's portal; a stations override pairs it (group)
   'z': { type: 'rift' },                                 // throws cross it, chefs cannot                                 // the catalog's oven: bakes a pizza base set on it
   '&': { type: 'crate', ingredient: 'dough' },           // the catalog's dough crate
@@ -219,7 +223,7 @@ export const LEGEND: Readonly<Record<string, LegendEntry>> = Object.freeze({
  *  'gap' is not listed either: it has no wall, a chef walks straight in and falls. */
 export const SOLID_TILES: ReadonlySet<TileType> = new Set<TileType>([
   'void', 'counter', 'crate', 'board', 'stove', 'sink', 'drying', 'plateReturn', 'serve', 'trash', 'plateStack', 'slider',
-  'shelf', 'trayRack', 'delivery', 'conveyor', 'fryer', 'oven', 'rift',
+  'shelf', 'trayRack', 'delivery', 'conveyor', 'fryer', 'oven', 'rift', 'mixer',
 ]);
 /** Tiles a chef can stand on: not solid, and not a hole. Spawns and paths need this. */
 export function isWalkable(type: TileType): boolean { return !SOLID_TILES.has(type) && type !== 'gap'; }
@@ -231,7 +235,7 @@ export function makeItem(kind: ItemKind, count = 1, ware?: Ware): Item {
   const id = nextItemId++;
   switch (kind) {
     case 'ingredient': return { kind, id, type: 'onion', chopped: false, chopProgress: 0 };
-    case 'pot': return ware === 'pan' || ware === 'basket'
+    case 'pot': return ware === 'pan' || ware === 'basket' || ware === 'bowl' || ware === 'steamer'
       ? { kind, id, ware, contents: [], state: 'empty', cookProgress: 0, burnProgress: 0 }
       : { kind, id, contents: [], state: 'empty', cookProgress: 0, burnProgress: 0 };
     case 'plate': return { kind, id, dish: null };
@@ -298,7 +302,7 @@ export function validateLevel(level: LevelDef): string[] {
   const wares = new Set<Ware>();
   parsed.items.forEach((item, i) => {
     const site = parsed.tiles[i].type;
-    if (item?.kind === 'pot' && (site === 'stove' || site === 'fryer')) wares.add(item.ware ?? 'pot');
+    if (item?.kind === 'pot' && (site === 'stove' || site === 'fryer' || site === 'mixer')) wares.add(item.ware ?? 'pot');
   });
   for (const t of parsed.tiles) {
     if (t.type === 'crate' && !t.ingredient) errors.push(`crate (${t.x},${t.y}) has no ingredient: use a stations override`);
@@ -318,6 +322,8 @@ export function validateLevel(level: LevelDef): string[] {
     if (recipeDishType(recipe) !== 'burger' && parts && recipe.ingredients.some((i) => parts[i] === 'pan') && !wares.has('pan')) errors.push(`recipe '${id}' needs a stove with a pan`);
     if (recipeDishType(recipe) === 'fried' && !wares.has('basket')) errors.push(`recipe '${id}' needs a fryer with a basket`);
     if (recipeDishType(recipe) === 'pizza' && count('oven') === 0) errors.push(`recipe '${id}' needs an oven`);
+    if (recipeDishType(recipe) === 'steamed' && !wares.has('steamer')) errors.push(`recipe '${id}' needs a stove with a steamer`);
+    if (recipeDishType(recipe) === 'steamed' && recipe.ingredients.length > 1 && !wares.has('bowl')) errors.push(`recipe '${id}' needs a mixer`);
     const family = DISH_FAMILIES[recipeDishType(recipe)];
     if (family && recipe.ingredients.some((i) => family.parts[i] === 'boiled') && !wares.has('pot')) errors.push(`recipe '${id}' needs a stove with a pot`);
     if (family && recipe.ingredients.some((i) => family.parts[i] === undefined)) errors.push(`recipe '${id}' has an ingredient its dish does not take`);
