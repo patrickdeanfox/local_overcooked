@@ -100,6 +100,12 @@ export class ChefsScene extends Phaser.Scene {
         onLeft: () => this.change(player, -1),
         onRight: () => this.change(player, 1),
       });
+      items.push({
+        label: () => `Player ${player + 1} hat: ${this.hatOf(player) ? 'On' : 'Off'}`,
+        onSelect: () => this.toggleHat(player),
+        onLeft: () => this.toggleHat(player),
+        onRight: () => this.toggleHat(player),
+      });
     }
     items.push({ label: () => 'Back', onSelect: () => this.back() });
     this.menu = new MenuList(this, GAME_WIDTH / 2, CHEFS.menuY, items, {
@@ -134,6 +140,10 @@ export class ChefsScene extends Phaser.Scene {
     return CHEF_SKINS[this.settings.chefs[player]] ?? CHEF_SKINS[0];
   }
 
+  private hatOf(player: number): boolean {
+    return this.settings.hats[player] ?? true;
+  }
+
   private chefX(player: number): number {
     return PREVIEW.width / 2 + (player - (MAX_PLAYERS - 1) / 2) * PREVIEW.chefGap;
   }
@@ -154,7 +164,7 @@ export class ChefsScene extends Phaser.Scene {
     this.rigs[player]?.dispose();
     this.rings[player]?.removeFromParent();
     const skin = this.skinOf(player);
-    const rig = new ChefRig(skin, true);
+    const rig = new ChefRig(skin, this.hatOf(player));
     rig.setPosition(this.chefX(player), PREVIEW.chefZ);
     rig.setFacing('down');
     this.stage.scene.add(rig.group);
@@ -171,6 +181,15 @@ export class ChefsScene extends Phaser.Scene {
 
   private change(player: number, delta: number): void {
     this.settings.chefs = cycleChef(this.settings.chefs, player, delta);
+    saveSettings(this.settings);
+    this.buildChef(player);
+    this.menu.refresh();
+  }
+
+  private toggleHat(player: number): void {
+    const hats = [...this.settings.hats];
+    hats[player] = !this.hatOf(player);
+    this.settings.hats = hats;
     saveSettings(this.settings);
     this.buildChef(player);
     this.menu.refresh();

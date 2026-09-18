@@ -86,6 +86,7 @@ export class GameScene extends Phaser.Scene {
   private modifiers: Modifiers = {};
   private preset: PresetId = DEFAULT_PRESET;
   private chefSkins: readonly number[] = [];
+  private chefHats: readonly boolean[] = [];
   private readonly recentEvents = createEventRing();
   private accumulator = 0;
   private ending = false;
@@ -105,6 +106,7 @@ export class GameScene extends Phaser.Scene {
     this.modifiers = data.modifiers ?? presetModifiers(settings);
     this.preset = data.preset ?? settings.preset;
     this.chefSkins = settings.chefs;
+    this.chefHats = settings.hats;
     const level = snapshot.levels[this.levelId];
     if (!level) {
       log.error('unknown level', this.levelId, '- returning to the title');
@@ -204,7 +206,7 @@ export class GameScene extends Phaser.Scene {
     // Dev-only hook for the headless playtest harness (tools/playtest.mjs): read sim state via window.__oc.
     if (import.meta.env.DEV) (globalThis as unknown as { __oc?: unknown }).__oc = { sim: this.sim, level, scene: this };
     const effective = this.sim.getEffectiveSettings();
-    this.kitchen = new KitchenRenderer(this, this.sim.getState(), level.theme, this.chefSkins, { passThroughShelf: effective.passThroughShelf });
+    this.kitchen = new KitchenRenderer(this, this.sim.getState(), level.theme, this.chefSkins, { passThroughShelf: effective.passThroughShelf }, {}, this.chefHats);
     const mechanicsOn = effective.twoPlateCarry || effective.chopAssist || effective.tray || effective.passThroughShelf || effective.eightySix;
     const meta = `seed ${this.seed} · ${presetName(this.preset)}${isAssisted(this.modifiers) ? ' · assists on' : ''}${mechanicsOn ? ' · mechanics on' : ''}`;
     this.hud = new Hud(this, level.name, meta);

@@ -275,6 +275,14 @@ describe('chefs and audio', () => {
     expect(loadSettings(fakeStorage({ [STORAGE_KEYS.SETTINGS]: JSON.stringify({ version: SETTINGS_VERSION, chefs: 'none' }) })).chefs)
       .toEqual([0, 1]);
   });
+
+  it('keep hats on unless a player switched theirs off', () => {
+    expect(defaultSettings().hats).toEqual([true, true]);
+    const storage = fakeStorage({
+      [STORAGE_KEYS.SETTINGS]: JSON.stringify({ version: SETTINGS_VERSION, hats: [false, 'no', true] }),
+    });
+    expect(loadSettings(storage).hats).toEqual([false, true]);
+  });
 });
 
 // ─── Seeds ──────────────────────────────────────────────────────────────────
@@ -332,6 +340,7 @@ describe('settings persistence', () => {
       mechanics: { twoPlateCarry: true, chopAssist: false, tray: true, passThroughShelf: false, eightySix: true },
       audio: { music: false, sfx: true },
       chefs: [4, 2],
+      hats: [false, true],
     };
     expect(saveSettings(settings, storage)).toBe(true);
     expect(loadSettings(storage)).toEqual(settings);
