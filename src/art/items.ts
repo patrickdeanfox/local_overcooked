@@ -40,6 +40,10 @@ const SOUP_COLORS: Record<IngredientType, string> = {
   cucumber: PALETTE.cucumberFlesh,
   rice: PALETTE.rice,
   nori: PALETTE.nori,
+  tortilla: PALETTE.tortilla,
+  chicken: PALETTE.chicken,
+  cheese: PALETTE.cheese,
+  pasta: PALETTE.pasta,
 };
 
 /** Sesame seeds on a bun dome: [dx, dy] as fractions of the shape radius. */
@@ -463,6 +467,11 @@ export function drawBurgerLayer(
       withAlpha(ctx, 0.3, () => fillRound(ctx, cx - r * 0.8, cy + r * 0.18, r * 1.6, r * 0.1, r * 0.05, PALETTE.bunDark));
       break;
     }
+    case 'cheese': {
+      fillPolygon(ctx, [[cx - r * 0.9, cy - r * 0.2], [cx + r * 0.9, cy - r * 0.2], [cx + r * 0.7, cy + r * 0.12], [cx - r * 0.7, cy + r * 0.12]], PALETTE.cheese);
+      fillPolygon(ctx, [[cx - r * 0.3, cy + r * 0.12], [cx - r * 0.1, cy + r * 0.3], [cx + r * 0.1, cy + r * 0.12]], PALETTE.cheese);
+      break;
+    }
     case 'meat': {
       fillRound(ctx, cx - r * 0.94, cy - r * 0.18, r * 1.88, r * 0.44, r * 0.2, PALETTE.meatCookedDark);
       fillEllipse(ctx, cx, cy - r * 0.14, r * 0.94, r * 0.2, PALETTE.meatCooked);
@@ -534,7 +543,7 @@ export function drawBurgerLayer(
 /** Whole burger for the HUD: the same layers, stacked tight enough to read at 32 px. */
 export function drawBurgerStack(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
   const step = r * 0.3;
-  BURGER_LAYERS.forEach((layer, i) => {
+  BURGER_LAYERS.filter((layer) => layer !== 'cheese').forEach((layer, i) => { // the generic burger: no cheese
     drawBurgerLayer(ctx, layer, cx, cy + r * 0.62 - i * step, r);
   });
 }
@@ -581,12 +590,14 @@ const RAW_SHAPES: Record<IngredientType, ShapeFn> = {
   meat: drawMeatRaw, bun: drawBun, lettuce: drawLettuceRaw, fish: drawFishRaw, prawn: drawPrawnRaw,
   potato: drawPotatoRaw,
   cucumber: drawCucumberRaw, rice: drawRiceRaw, nori: drawNori,
+  tortilla: drawTortilla, chicken: drawChickenRaw, cheese: drawCheeseRaw, pasta: drawPastaRaw,
 };
 const CHOPPED_SHAPES: Record<IngredientType, ShapeFn> = {
   onion: drawOnionChopped, tomato: drawTomatoChopped, mushroom: drawMushroomChopped,
   meat: drawMeatChopped, bun: drawBun, lettuce: drawLettuceChopped, fish: drawFishChopped, prawn: drawPrawnChopped,
   potato: drawChipsRaw,
   cucumber: drawCucumberChopped, rice: drawRiceRaw, nori: drawNori,
+  tortilla: drawTortilla, chicken: drawChickenChopped, cheese: drawCheeseChopped, pasta: drawPastaRaw,
 };
 /** Fried ingredients after the pan or the basket; anything else falls back to its chopped shape. */
 const COOKED_SHAPES: Partial<Record<IngredientType, ShapeFn>> = {
@@ -594,6 +605,8 @@ const COOKED_SHAPES: Partial<Record<IngredientType, ShapeFn>> = {
   potato: drawChipsCooked,
   fish: drawFishFried,
   rice: drawRiceCooked,
+  chicken: drawChickenCooked,
+  pasta: drawPastaCooked,
 };
 
 /** Shared by item sprites, HUD icons and the ingredient shown on a crate. */
@@ -804,6 +817,81 @@ function drawNori(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: numb
     line(ctx, cx - r * 0.5, cy - r * 0.35, cx + r * 0.4, cy - r * 0.45, PALETTE.noriLight, Math.max(1, r * 0.08));
     line(ctx, cx - r * 0.45, cy + r * 0.1, cx + r * 0.5, cy, PALETTE.noriLight, Math.max(1, r * 0.06));
   });
+}
+
+// ─── Pasta, burritos, cheese and chicken (Overcooked 2) ─────────────────────
+
+/** A tortilla: a flat pale disc with toasted spots. */
+function drawTortilla(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  fillEllipse(ctx, cx, cy, r * 0.85, r * 0.6, PALETTE.tortilla);
+  strokeEllipse(ctx, cx, cy, r * 0.85, r * 0.6, PALETTE.tortillaSpot, Math.max(1, r * 0.06));
+  withAlpha(ctx, 0.6, () => {
+    for (const [dx, dy] of [[-0.4, -0.1], [0.1, 0.2], [0.35, -0.2], [-0.1, -0.3]] as const) {
+      fillCircle(ctx, cx + dx * r, cy + dy * r, r * 0.07, PALETTE.tortillaSpot);
+    }
+  });
+}
+
+/** A raw chicken leg: a pink drumstick with a bone end. */
+function drawChickenRaw(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  fillEllipse(ctx, cx - r * 0.15, cy, r * 0.55, r * 0.45, PALETTE.chicken);
+  strokeEllipse(ctx, cx - r * 0.15, cy, r * 0.55, r * 0.45, PALETTE.chickenDark, Math.max(1, r * 0.06));
+  line(ctx, cx + r * 0.3, cy + r * 0.05, cx + r * 0.75, cy + r * 0.3, '#f4efe4', Math.max(2, r * 0.16));
+  fillCircle(ctx, cx + r * 0.78, cy + r * 0.32, r * 0.1, '#f4efe4');
+}
+
+/** Chopped chicken: three pink chunks. */
+function drawChickenChopped(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  for (const [dx, dy] of [[-0.35, 0.15], [0.3, 0.2], [0, -0.25]] as const) {
+    fillRound(ctx, cx + dx * r - r * 0.25, cy + dy * r - r * 0.2, r * 0.5, r * 0.4, r * 0.12, PALETTE.chicken);
+    strokeRound(ctx, cx + dx * r - r * 0.25, cy + dy * r - r * 0.2, r * 0.5, r * 0.4, r * 0.12, PALETTE.chickenDark, Math.max(1, r * 0.05));
+  }
+}
+
+/** Cooked chicken pieces: golden nuggets. */
+function drawChickenCooked(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  for (const [dx, dy] of [[-0.35, 0.15], [0.3, 0.2], [0, -0.25]] as const) {
+    fillRound(ctx, cx + dx * r - r * 0.26, cy + dy * r - r * 0.2, r * 0.52, r * 0.42, r * 0.16, PALETTE.fried);
+    strokeRound(ctx, cx + dx * r - r * 0.26, cy + dy * r - r * 0.2, r * 0.52, r * 0.42, r * 0.16, PALETTE.friedDark, Math.max(1, r * 0.05));
+  }
+}
+
+/** A wedge of cheese with holes. */
+function drawCheeseRaw(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  fillPolygon(ctx, [[cx - r * 0.8, cy + r * 0.45], [cx + r * 0.8, cy + r * 0.45], [cx + r * 0.6, cy - r * 0.5]], PALETTE.cheese);
+  withAlpha(ctx, 0.8, () => {
+    for (const [dx, dy, rr] of [[-0.2, 0.2, 0.1], [0.3, 0.1, 0.08], [0.45, -0.2, 0.07]] as const) {
+      fillCircle(ctx, cx + dx * r, cy + dy * r, r * rr, PALETTE.cheeseDark);
+    }
+  });
+}
+
+/** Sliced cheese: three overlapping squares. */
+function drawCheeseChopped(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  for (const [dx, dy] of [[-0.3, 0.2], [0.25, 0.15], [0, -0.25]] as const) {
+    fillRound(ctx, cx + dx * r - r * 0.3, cy + dy * r - r * 0.25, r * 0.6, r * 0.5, r * 0.06, PALETTE.cheese);
+    strokeRound(ctx, cx + dx * r - r * 0.3, cy + dy * r - r * 0.25, r * 0.6, r * 0.5, r * 0.06, PALETTE.cheeseDark, Math.max(1, r * 0.05));
+  }
+}
+
+/** Dry pasta: a bundle of long pale sticks. */
+function drawPastaRaw(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  for (let i = -3; i <= 3; i++) {
+    line(ctx, cx - r * 0.8, cy + i * r * 0.07 + r * 0.2, cx + r * 0.8, cy + i * r * 0.07 - r * 0.2, PALETTE.pasta, Math.max(1.5, r * 0.08));
+  }
+  fillRound(ctx, cx - r * 0.12, cy - r * 0.32, r * 0.24, r * 0.64, r * 0.05, PALETTE.pastaDark);
+}
+
+/** Boiled pasta: a tangle in a nest. */
+function drawPastaCooked(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  fillEllipse(ctx, cx, cy, r * 0.75, r * 0.5, PALETTE.pasta);
+  ctx.strokeStyle = PALETTE.pastaDark;
+  ctx.lineWidth = Math.max(1, r * 0.06);
+  for (const [rx, ry] of [[0.55, 0.32], [0.35, 0.22], [0.18, 0.1]] as const) {
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, r * rx, r * ry, 0.3, 0, Math.PI * 2);
+    ctx.stroke();
+  }
 }
 
 // ─── Cookware ───────────────────────────────────────────────────────────────

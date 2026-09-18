@@ -588,6 +588,59 @@ D..##pp##...#
 
 Wiki facts used: fish and cucumber sushi; 3:30; four plates, sink; conveyor belts and a narrow corridor (infobox); 4 stars; stars 1P 80 / 180 / 340, 2P 120 / 260 / 400. Belt speed 1.5 tiles/s, an estimate. Orders the catalog's estimate, untested.
 
+## Overcooked 2 1-5 — Buffet Balloons
+
+```
+#########
+#...FF..#
+#.......# ##WD#
+#XBBBpp.# #...T
+#.......#_#...R
+#........G....a
+#..S#S..#_#...#
+#.......# #...#
+######### ##V##
+```
+
+15 x 9, the catalog grid (low confidence) with three changes. The crossing `=` is a hole gate (open 6 s of 12): the balloons drift together and apart. The three boards are a slider group (`boards`, 1 tile up and down every 8 s), the "moving tables". And the counter line across the big balloon leaves its last tile open at (7,3), with the two plates at (5,3) and (6,3): as catalogued the line sealed the pans off from the rest of the deck, which only the moving boards could open, and a board that is not there yet cannot be the only way to the pans. The tiles either side of the crossing are `_` so the sky shows there, not a wall.
+
+Wiki facts used: tomato pasta; 3:00; two plates; the sink on the small balloon; shifting platforms and moving tables (infobox); 5 stars; stars 1P 40 / 100 / 200, 2P 80 / 180 / 260. Pasta scores 60 (a boil, a chop and a fry). Orders the catalog's estimate (2, every 26 s, at most 4, 100 s), untested.
+
+## Overcooked 2 2-4 — Moreish Mines, the bridge
+
+```
+##SS##___##BB##
+r....#___#....A
+M....p___p....I
+p....p___#....#
+#....#___#....W
+#.............D
+#....#___#....#
+V....#___#....X
+#R####___##FFE#
+```
+
+15 x 9, the catalog grid with its bridge `=` as plain floor and the chasm as `_`. Pots, tortillas and mushrooms left; boards, pans, beef and rice right.
+
+Wiki facts used: beef and mushroom burritos; 4:00; four plates; the single bridge (infobox: bottleneck); the left/right roles (Strategies); 10 stars; stars 1P 300 / 420 / 560, 2P 360 / 480 / 660. Burritos score 60. Orders the catalog's estimate, untested.
+
+## Overcooked 2 4-3 — Moreish Mines, the reversing walkways
+
+```
+####### #######
+#UHppp. .B#ER##
+V.....»»».....#
+#AL.... .....B#
+#......#..F...#
+#W..... ..F...#
+#....««««..X..#
+####### #######
+```
+
+15 x 8, the catalog grid with its two belt runs written as walkable belts (the Strategies talk of walking on them) and a `beltReverse` dynamic turning both every 30 s (a wiki fact). The rift is interior void, drawn as wall.
+
+Wiki facts used: meat, cheese and lettuce-cheese burgers; 4:00; three plates; the hand-off counter on the dividing wall at (7,4); 32 stars; stars 1P 180 / 220 / 300, 2P 200 / 240 / 340. The burgers are OC2's own ids (`oc2_meat_burger` 40, `cheese_burger` 60, `lettuce_cheese_burger` 80), since OC1's burgers score by OC1's table. Orders the catalog's estimate (2, every 20 s, at most 5, 80 s), untested.
+
 ## 3-2 — Savoury Seas, the split deck
 
 ```

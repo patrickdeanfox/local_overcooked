@@ -167,7 +167,7 @@ export class KitchenRenderer {
     this.elapsed += dtSec;
     this.readSliderOffsets(state);
     this.drawSliders(state);
-    this.tiles?.animateBelts(dtSec);
+    this.tiles?.animateBelts(dtSec, state.beltsReversed === true);
     this.drawGates(state);
     this.drawFloes(state);
     this.drawTileItems(state);
@@ -242,8 +242,10 @@ export class KitchenRenderer {
     for (const group of state.sliders) this.sliderOffsets.set(group.id, { x: group.offsetX, y: group.offsetY });
   }
 
+  /** The slider offset of a tile riding a slider group (a 'slider' counter, or any station given the
+   *  group); gates share group names with nothing that moves. */
   private offsetFor(tile: Tile): { x: number; y: number } {
-    if (tile.type !== 'slider' || !tile.group) return { x: 0, y: 0 };
+    if (!tile.group || tile.type === 'gate') return { x: 0, y: 0 };
     return this.sliderOffsets.get(tile.group) ?? { x: 0, y: 0 };
   }
 
@@ -253,7 +255,7 @@ export class KitchenRenderer {
     const view = this.tiles?.views[index];
     const off = { ...this.offsetFor(tile) }; // a copy: the belt shift must not leak into the slider table
     if ((tile.type === 'conveyor' || tile.type === 'conveyorFloor') && tile.dir && state.beltProgress) {
-      const along = state.beltProgress[index] ?? 0;
+      const along = (state.beltProgress[index] ?? 0) * (state.beltsReversed === true ? -1 : 1);
       const v = FACING_VECTORS[tile.dir];
       off.x += v.dx * along;
       off.y += v.dy * along;

@@ -12,15 +12,15 @@ export const TILE_TYPES: readonly TileType[] = [
   'shelf', 'trayRack', 'delivery', 'conveyor', 'fryer', 'ice', 'conveyorFloor',
 ];
 /** Dish families with their own HUD icon (TEX.iconDish); the others use an ingredient's icon. */
-export const DISH_ICON_TYPES: readonly DishType[] = ['sushi', 'salad'];
+export const DISH_ICON_TYPES: readonly DishType[] = ['sushi', 'salad', 'pasta', 'burrito'];
 /** Ingredients with a cooked look (TEX.ingredientCooked): out of a pan or a frying basket. */
 export const COOKED_INGREDIENTS: readonly IngredientType[] = [...new Set([...FRIED_INGREDIENTS, ...DEEP_FRIED_INGREDIENTS])];
 export const FACINGS: readonly Facing[] = ['up', 'down', 'left', 'right'];
 export const CHEF_COUNT = 2;
 
 /** Layers of a plated burger, drawn bottom to top in this order. */
-export type BurgerLayer = 'bunBottom' | 'meat' | 'lettuce' | 'tomato' | 'bunTop';
-export const BURGER_LAYERS: readonly BurgerLayer[] = ['bunBottom', 'meat', 'lettuce', 'tomato', 'bunTop'];
+export type BurgerLayer = 'bunBottom' | 'meat' | 'cheese' | 'lettuce' | 'tomato' | 'bunTop';
+export const BURGER_LAYERS: readonly BurgerLayer[] = ['bunBottom', 'meat', 'cheese', 'lettuce', 'tomato', 'bunTop'];
 export type PanContentState = 'raw' | 'cooked' | 'burnt';
 
 export const TEX = {

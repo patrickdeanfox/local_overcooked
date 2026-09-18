@@ -31,6 +31,8 @@ const THEMES: Readonly<Record<string, ThemeDressing>> = {
   'savoury-seas': { backdropColor: 0x2e6b8a, floorColor: 0xc99a63, backWall: false },
   'glazed-glacier': { backdropColor: 0x2c5f86, floorColor: 0xeef3f6, backWall: false }, // the sea round the floe; snow underfoot
   'ravenous-roads': { backdropColor: 0x3b3d42, floorColor: null, backWall: false }, // the highway under the trucks
+  'buffet-balloons': { backdropColor: 0x8cc6e8, floorColor: 0xc9955e, backWall: false }, // sky under the wicker decks
+  'moreish-mines': { backdropColor: 0x241d18, floorColor: null, backWall: false }, // the dark of the mine and its chasms
 };
 const WALL = { span: 2, height: 2, depth: 0.25, windowEvery: 3 } as const; // tiles, at the manifest scale
 /** A road that reaches the grid edge continues as asphalt into the backdrop, with parked cars up the street. */
@@ -67,6 +69,7 @@ const DRYING = { rackOffset: new THREE.Vector3(0, 0, -0.28), itemOffset: new THR
 const CRATE_ROLE: Readonly<Record<IngredientType, ModelRole | null>> = {
   tomato: 'crateTomatoes', onion: 'crateOnions', lettuce: 'crateLettuce', bun: 'crateBuns', meat: 'crateSteak',
   mushroom: null, fish: null, prawn: null, potato: null, cucumber: null, rice: null, nori: null,
+  tortilla: null, chicken: null, cheese: null, pasta: null,
 };
 const GROUND_TEXTURE: Readonly<Partial<Record<TileType, string>>> = {
   floor: TEX.tile('floor'), road: TEX.tile('road'), gate: TEX.tile('gate'), slider: TEX.tile('floor'),
@@ -501,7 +504,8 @@ export class TileSet {
       this.root.add(station.root);
       if (station.knife) this.knives.set(index, station.knife);
       this.views.push({ root: station.root, surfaceY: station.surfaceY, itemOffset: station.itemOffset, solid: station.solid });
-      if (tile.type === 'slider') this.sliderIndices.push(index);
+      const rides = tile.type === 'slider' || (tile.group !== undefined && tile.type !== 'gate' && state.sliders.some((g) => g.id === tile.group));
+      if (rides) this.sliderIndices.push(index);
       if (tile.type === 'gate') {
         const gate = gateSlab(this.gateGrounds.get(index) ?? null);
         gate.slab.position.set(cx, GATE.height / 2, cz);
@@ -552,9 +556,11 @@ export class TileSet {
     }
   }
 
-  /** Belt tops scroll the way the belts carry, at the sim's belt speed. */
-  animateBelts(dtSec: number): void {
+  /** Belt tops scroll the way the belts carry, at the sim's belt speed; reversed, the chevrons flip
+   *  and scroll back. */
+  animateBelts(dtSec: number, reversed = false): void {
     if (!this.belt) return;
+    this.belt.repeat.x = reversed ? -1 : 1;
     this.belt.offset.x = (this.belt.offset.x - CONVEYOR_SPEED * dtSec) % 1;
   }
 

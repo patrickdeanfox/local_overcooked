@@ -7,22 +7,25 @@
 // chef's center, so a chef standing in the middle of tile (3,2) has x=3.5, y=2.5.
 
 export type IngredientType = 'onion' | 'tomato' | 'mushroom' | 'meat' | 'bun' | 'lettuce' | 'fish' | 'prawn' | 'potato'
-  | 'cucumber' | 'rice' | 'nori';
+  | 'cucumber' | 'rice' | 'nori' | 'tortilla' | 'chicken' | 'cheese' | 'pasta';
 export const INGREDIENT_TYPES: readonly IngredientType[] = [
   'onion', 'tomato', 'mushroom', 'meat', 'bun', 'lettuce', 'fish', 'prawn', 'potato', 'cucumber', 'rice', 'nori',
+  'tortilla', 'chicken', 'cheese', 'pasta',
 ];
 /** Ingredients that go in a pot and make soup. */
 export const SOUP_INGREDIENTS: readonly IngredientType[] = ['onion', 'tomato', 'mushroom'];
 /** Ingredients that need the chopping board before use (buns never do). */
-export const CHOPPED_INGREDIENTS: readonly IngredientType[] = ['onion', 'tomato', 'mushroom', 'meat', 'lettuce', 'fish', 'prawn', 'potato', 'cucumber'];
+export const CHOPPED_INGREDIENTS: readonly IngredientType[] = [
+  'onion', 'tomato', 'mushroom', 'meat', 'lettuce', 'fish', 'prawn', 'potato', 'cucumber', 'chicken', 'cheese',
+];
 /** Ingredients that go in a pan after chopping and come out cooked. */
-export const FRIED_INGREDIENTS: readonly IngredientType[] = ['meat'];
+export const FRIED_INGREDIENTS: readonly IngredientType[] = ['meat', 'chicken', 'tomato', 'mushroom', 'fish', 'prawn']; // meat for burgers; the rest for Overcooked 2's burritos and pasta sauces
 /** Chopped ingredients that go straight onto a plate as a 'plated' dish (sashimi; salads later). */
 export const PLATED_INGREDIENTS: readonly IngredientType[] = ['fish', 'prawn'];
 /** Chopped ingredients that go in a frying basket in a deep fryer and come out cooked (Overcooked 1 fish and chips). */
-export const DEEP_FRIED_INGREDIENTS: readonly IngredientType[] = ['fish', 'potato'];
+export const DEEP_FRIED_INGREDIENTS: readonly IngredientType[] = ['fish', 'potato', 'chicken'];
 /** Ingredients boiled whole in a pot, one portion at a time, and laid on a plate (Overcooked 2 rice). */
-export const BOILED_INGREDIENTS: readonly IngredientType[] = ['rice'];
+export const BOILED_INGREDIENTS: readonly IngredientType[] = ['rice', 'pasta'];
 /** The state a piece is in when it joins a plate: as it came, off the board, out of a pan, out of a
  *  frying basket, or boiled in a pot. A dish family (src/sim/recipes.ts DISH_FAMILIES) says which it takes. */
 export type Prep = 'raw' | 'chopped' | 'pan' | 'basket' | 'boiled';
@@ -32,7 +35,9 @@ export type Ware = 'pot' | 'pan' | 'basket'; // 'pot' and 'pan' sit on a stove, 
 export type DishType = 'soup' | 'burger' | 'plated'
   | 'fried'  // deep-fried pieces out of a frying basket, laid on the plate (fish and chips)
   | 'sushi'  // nori, boiled rice and chopped fillings (Overcooked 2)
-  | 'salad'; // chopped lettuce, tomato and cucumber, no heat (Overcooked 2)
+  | 'salad'   // chopped lettuce, tomato and cucumber, no heat (Overcooked 2)
+  | 'pasta'   // boiled pasta and a sauce piece out of a pan (Overcooked 2)
+  | 'burrito'; // a raw tortilla, boiled rice and a filling out of a pan (Overcooked 2)
 
 export type TileType =
   | 'void'        // outside the kitchen; not walkable, nothing placed
@@ -243,6 +248,7 @@ export interface SimState {
   flying?: FlyingItem[];       // thrown items in the air; absent until the first throw
   restocks?: Restock[];        // 86 system: deliveries on their way or waiting at the door; absent until the first shortage
   floes?: Floe[];              // drifting decks over the water; absent on levels without a floes dynamic
+  beltsReversed?: boolean;     // a beltReverse dynamic has every belt running against its arrow right now; absent otherwise
   beltProgress?: number[];     // conveyors: 0..1 of the way each belt tile's item has travelled towards the next tile, same indexing as tiles; absent on levels without belts
 }
 

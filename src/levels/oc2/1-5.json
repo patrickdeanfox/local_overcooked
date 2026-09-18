@@ -1,0 +1,39 @@
+{
+  "id": "oc2-1-5",
+  "name": "1-5",
+  "game": "oc2",
+  "world": 1,
+  "index": 5,
+  "theme": "buffet-balloons",
+  "description": "Tomato pasta on two hot-air balloons. The big one has the pans, the pots and a counter of three boards that slides up and down its deck; the small one has the crates, the sink and the serving hatch. The balloons drift together and apart.",
+  "strategy": "The small-balloon chef fetches pasta and tomatoes, washes up and serves; the big-balloon chef chops, fries and boils. There are only two plates, so wash them the moment they come back, and throw across when the balloons are apart.",
+  "source": "https://overcooked.fandom.com/wiki/1-5_(Overcooked!_2)",
+  "unlockStars": 5,
+  "timeLimitSec": 180,
+  "timerStartsOnFirstServe": false,
+  "recipes": ["tomato_pasta"],
+  "orders": { "initial": 2, "intervalSec": 26, "max": 4, "timeSec": 100 },
+  "stars": { "1": [40, 100, 200], "2": [80, 180, 260] },
+  "plates": { "mode": "sink", "count": 2 },
+  "grid": [
+    "#########      ",
+    "#...FF..#      ",
+    "#.......# ##WD#",
+    "#XBBBpp.# #...T",
+    "#.......#_#...R",
+    "#........G....a",
+    "#..S#S..#_#...#",
+    "#.......# #...#",
+    "######### ##V##"
+  ],
+  "spawns": [{ "x": 3, "y": 4 }, { "x": 12, "y": 4 }],
+  "stations": [
+    { "x": 2, "y": 3, "group": "boards" },
+    { "x": 3, "y": 3, "group": "boards" },
+    { "x": 4, "y": 3, "group": "boards" }
+  ],
+  "dynamics": [
+    { "type": "gate", "group": "1", "periodSec": 12, "openSec": 6, "closedAs": "hole" },
+    { "type": "sliders", "group": "boards", "axis": "y", "amplitude": 1, "periodSec": 8 }
+  ]
+}

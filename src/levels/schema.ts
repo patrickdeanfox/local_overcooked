@@ -103,6 +103,11 @@ export type Dynamic =
                                   // they fall into (the road between two trucks drawn apart, 2-1 and 3-3)
     }
   | {
+      type: 'beltReverse';   // 4-3: every belt runs against its arrow for periodSec, then with it again, and so on
+      periodSec: number;     // seconds each way
+      phase?: number;        // 0..1 of the two-way cycle; 0 starts with the arrows
+    }
+  | {
       type: 'floes';         // 3-4 river: decks drift along a lane of gap tiles and carry the chefs on them
       x: number;             // the lane's left column
       w: number;             // lane width in tiles; every floe is this wide
@@ -188,6 +193,10 @@ export const LEGEND: Readonly<Record<string, LegendEntry>> = Object.freeze({
   'c': { type: 'crate', ingredient: 'cucumber' },   // lowercase: the catalog reserves every uppercase letter
   'I': { type: 'crate', ingredient: 'rice' },
   'n': { type: 'crate', ingredient: 'nori' },
+  'r': { type: 'crate', ingredient: 'tortilla' },
+  'k': { type: 'crate', ingredient: 'chicken' },
+  'H': { type: 'crate', ingredient: 'cheese' },   // the catalog's cheese crate
+  'a': { type: 'crate', ingredient: 'pasta' },
   '>': { type: 'conveyor', dir: 'right' },  // conveyor belt, the arrow is the way it carries
   '<': { type: 'conveyor', dir: 'left' },
   '^': { type: 'conveyor', dir: 'up' },
@@ -293,6 +302,8 @@ export function validateLevel(level: LevelDef): string[] {
     }
     if (recipeDishType(recipe) === 'soup' && !wares.has('pot')) errors.push(`recipe '${id}' needs a stove with a pot`);
     if (recipeDishType(recipe) === 'burger' && recipe.ingredients.some((i) => FRIED_INGREDIENTS.includes(i)) && !wares.has('pan')) errors.push(`recipe '${id}' needs a stove with a pan`);
+    const parts = DISH_FAMILIES[recipeDishType(recipe)]?.parts;
+    if (recipeDishType(recipe) !== 'burger' && parts && recipe.ingredients.some((i) => parts[i] === 'pan') && !wares.has('pan')) errors.push(`recipe '${id}' needs a stove with a pan`);
     if (recipeDishType(recipe) === 'fried' && !wares.has('basket')) errors.push(`recipe '${id}' needs a fryer with a basket`);
     const family = DISH_FAMILIES[recipeDishType(recipe)];
     if (family && recipe.ingredients.some((i) => family.parts[i] === 'boiled') && !wares.has('pot')) errors.push(`recipe '${id}' needs a stove with a pot`);
@@ -306,7 +317,9 @@ export function validateLevel(level: LevelDef): string[] {
   if (level.unlockStars !== undefined && !(level.unlockStars >= 0)) errors.push('unlockStars must be >= 0');
   const gateGroups = new Set(parsed.tiles.filter((t) => t.type === 'gate').map((t) => t.group));
   for (const d of level.dynamics ?? []) {
-    if (d.type === 'sliders' && !parsed.tiles.some((t) => t.type === 'slider' && t.group === d.group)) errors.push(`sliders group '${d.group}' has no slider tiles`);
+    if (d.type === 'sliders' && !parsed.tiles.some((t) => t.group === d.group && t.type !== 'gate' && SOLID_TILES.has(t.type))) errors.push(`sliders group '${d.group}' has no slider tiles`);
+    if (d.type === 'sliders' && parsed.tiles.some((t) => t.type === 'gate' && t.group === d.group)) errors.push(`group '${d.group}' is both a gate and a slider group`);
+    if (d.type === 'beltReverse' && !(d.periodSec > 0)) errors.push('beltReverse needs a positive periodSec');
     if (d.type === 'pedestrians' && count('road') === 0) errors.push('pedestrians need road tiles');
     if (d.type === 'floes') {
       if (!(d.w >= 1) || d.x < 0 || d.x + d.w > parsed.width) errors.push('floes lane is off the grid');

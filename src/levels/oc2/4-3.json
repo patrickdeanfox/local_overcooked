@@ -1,0 +1,30 @@
+{
+  "id": "oc2-4-3",
+  "name": "4-3",
+  "game": "oc2",
+  "world": 4,
+  "index": 3,
+  "theme": "moreish-mines",
+  "description": "Cheese burgers in a kitchen split by a rift. Two moving walkways cross it, and every thirty seconds both of them turn round. The crates, plates, sink and serving counter are on the left; the pans, boards and plate return on the right.",
+  "strategy": "Throw raw ingredients over the rift and keep the one counter on the dividing wall for dirty plates going right and cooked patties going left. The cook can ignore the walkways and walk the corner between the pans and the boards.",
+  "source": "https://overcooked.fandom.com/wiki/4-3_(Overcooked!_2)",
+  "unlockStars": 32,
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "recipes": ["oc2_meat_burger", "cheese_burger", "lettuce_cheese_burger"],
+  "orders": { "initial": 2, "intervalSec": 20, "max": 5, "timeSec": 80 },
+  "stars": { "1": [180, 220, 300], "2": [200, 240, 340] },
+  "plates": { "mode": "sink", "count": 3 },
+  "grid": [
+    "####### #######",
+    "#UHppp. .B#ER##",
+    "V.....»»».....#",
+    "#AL.... .....B#",
+    "#......#..F...#",
+    "#W..... ..F...#",
+    "#....««««..X..#",
+    "####### #######"
+  ],
+  "spawns": [{ "x": 3, "y": 4 }, { "x": 11, "y": 4 }],
+  "dynamics": [{ "type": "beltReverse", "periodSec": 30 }]
+}
