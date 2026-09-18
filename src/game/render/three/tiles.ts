@@ -10,6 +10,7 @@ import { PALETTE } from '../../../art/palette';
 import type { ModelRole } from '../../../art/models';
 import { CONVEYOR_SPEED } from '../../../sim/constants';
 import type { Facing, IngredientType, SimState, Tile, TileType } from '../../../sim/types';
+import { rawIngredientView } from './items';
 import { modelInstance, modelSize } from './loader';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -65,10 +66,8 @@ const BELT_YAW: Readonly<Record<Facing, number>> = { right: 0, down: -Math.PI / 
 const DRYING = { rackOffset: new THREE.Vector3(0, 0, -0.28), itemOffset: new THREE.Vector3(0, 0, 0.12) } as const;
 const CRATE_ROLE: Readonly<Record<IngredientType, ModelRole | null>> = {
   tomato: 'crateTomatoes', onion: 'crateOnions', lettuce: 'crateLettuce', bun: 'crateBuns', meat: 'crateSteak',
-  mushroom: null, fish: null, prawn: null, potato: null,
+  mushroom: null, fish: null, prawn: null, potato: null, cucumber: null, rice: null, nori: null,
 };
-/** For ingredients with no crate model: the raw item, a few of them standing in a plain crate. */
-const CRATE_FILLER: Readonly<Partial<Record<IngredientType, ModelRole>>> = { mushroom: 'mushroom', fish: 'fish', prawn: 'prawn', potato: 'potato' };
 const GROUND_TEXTURE: Readonly<Partial<Record<TileType, string>>> = {
   floor: TEX.tile('floor'), road: TEX.tile('road'), gate: TEX.tile('gate'), slider: TEX.tile('floor'),
   counter: TEX.tile('floor'), crate: TEX.tile('floor'), board: TEX.tile('floor'), stove: TEX.tile('floor'),
@@ -77,6 +76,8 @@ const GROUND_TEXTURE: Readonly<Partial<Record<TileType, string>>> = {
   shelf: TEX.tile('floor'), trayRack: TEX.tile('floor'), delivery: TEX.tile('floor'), conveyor: TEX.tile('floor'),
   fryer: TEX.tile('floor'), ice: TEX.tile('ice'),
 };
+/** Walkable belts lie a hair above the floor so their rubber hides the floor tile under them. */
+const FLOOR_BELT = { lift: 0.003 } as const;
 
 /** Run flags the static kitchen depends on: a shelf is a hatch while its mechanic is on and a wall while off. */
 export interface TileFlags { passThroughShelf: boolean; }
@@ -118,7 +119,7 @@ function oneTileWide(model: THREE.Group, role: ModelRole): THREE.Group {
   return model;
 }
 
-const WALKABLE: ReadonlySet<TileType> = new Set<TileType>(['floor', 'road', 'gate', 'ice']);
+const WALKABLE: ReadonlySet<TileType> = new Set<TileType>(['floor', 'road', 'gate', 'ice', 'conveyorFloor']);
 /** Neighbour directions in preference order: face the camera when there is a choice. */
 const FRONT_CHOICES: readonly { dx: number; dy: number; yaw: number }[] = [
   { dx: 0, dy: 1, yaw: 0 },              // down (+z, towards the camera)
@@ -189,13 +190,12 @@ function crateTile(ingredient: IngredientType): { root: THREE.Group; surfaceY: n
   crate.scale.setScalar(CRATE.scale);
   place(crate, 0, counterTop, 0);
   root.add(crate);
-  const filler = role === null ? CRATE_FILLER[ingredient] : undefined;
-  if (filler !== undefined) {
+  if (role === null) {
     // No crate model for this ingredient in the kit: a plain crate with a few of the raw item standing in it.
     const crateTop = counterTop + modelSize('crate').y * CRATE.scale;
     for (let i = 0; i < CRATE.mushrooms; i++) {
       const angle = (i / CRATE.mushrooms) * Math.PI * 2;
-      const piece = modelInstance(filler);
+      const piece = rawIngredientView(ingredient);
       piece.scale.setScalar(CRATE.scale);
       piece.rotation.set(Math.cos(angle) * CRATE.mushroomTilt, angle, Math.sin(angle) * CRATE.mushroomTilt);
       place(piece, Math.cos(angle) * CRATE.mushroomRing, crateTop - 0.06, Math.sin(angle) * CRATE.mushroomRing);
@@ -387,9 +387,22 @@ function fryerStation(): Station {
   return { root, surfaceY: height - FRYER.wellDepth, itemOffset: new THREE.Vector3(), solid: true };
 }
 
+/** A walkable belt: a plane of the scrolling belt texture at floor height. */
+function floorBelt(texture: THREE.Texture): Station {
+  const root = new THREE.Group();
+  const top = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshStandardMaterial({ map: texture, roughness: 0.9 }));
+  top.rotation.x = -Math.PI / 2;
+  top.position.y = FLOOR_BELT.lift;
+  top.receiveShadow = true;
+  root.add(top);
+  return { root, surfaceY: FLOOR_BELT.lift, itemOffset: new THREE.Vector3(), solid: false };
+}
+
 function buildStation(tile: Tile, flags: Readonly<TileFlags>, belt: THREE.Texture | null): Station {
   const offset = new THREE.Vector3();
   switch (tile.type) {
+    case 'conveyorFloor':
+      return belt ? floorBelt(belt) : { root: new THREE.Group(), surfaceY: 0, itemOffset: offset, solid: false };
     case 'fryer':
       return fryerStation();
     case 'conveyor':
@@ -449,7 +462,7 @@ export class TileSet {
   ) {
     const dressing = THEMES[theme ?? 'default'] ?? THEMES.default;
     const groundGeometry = new THREE.PlaneGeometry(1, 1);
-    this.belt = state.tiles.some((tile) => tile.type === 'conveyor') ? beltTexture() : null;
+    this.belt = state.tiles.some((tile) => tile.type === 'conveyor' || tile.type === 'conveyorFloor') ? beltTexture() : null;
     this.root.add(backdrop(state.width, state.height, dressing.backdropColor));
     if (dressing.backWall) this.root.add(backWall(state));
     this.root.add(streetDressing(state));
@@ -476,7 +489,7 @@ export class TileSet {
       }
       const station = interior ? wallBlock() : buildStation(tile, flags, this.belt);
       station.root.position.set(cx, 0, cz);
-      if (tile.type === 'conveyor') {
+      if (tile.type === 'conveyor' || tile.type === 'conveyorFloor') {
         station.root.rotation.y = BELT_YAW[tile.dir ?? 'right'];
       } else if (station.solid) {
         // Wall pieces run along their wall; every other station faces a walkable neighbour.

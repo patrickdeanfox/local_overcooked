@@ -324,6 +324,37 @@ function drawPrompt(ctx: CanvasRenderingContext2D, label: string): void {
   drawKeycap(ctx, label);
 }
 
+// ─── Dish icons ─────────────────────────────────────────────────────────────
+
+/** Three maki slices: a nori ring, white rice, a pink filling. */
+function drawSushiIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  for (const [dx, dy] of [[-0.45, 0.25], [0.45, 0.25], [0, -0.35]] as const) {
+    const x = cx + dx * r;
+    const y = cy + dy * r;
+    fillCircle(ctx, x, y, r * 0.42, PALETTE.nori);
+    fillCircle(ctx, x, y, r * 0.33, PALETTE.rice);
+    fillCircle(ctx, x, y, r * 0.14, PALETTE.fishFlesh);
+  }
+}
+
+/** A bowl of leaves with tomato and cucumber. */
+function drawSaladIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  for (const [dx, dy, rr] of [[-0.35, -0.1, 0.4], [0.3, -0.15, 0.42], [0, -0.35, 0.38]] as const) {
+    fillCircle(ctx, cx + dx * r, cy + dy * r, r * rr, PALETTE.lettuce);
+  }
+  fillCircle(ctx, cx - r * 0.1, cy - r * 0.15, r * 0.16, PALETTE.soupTomato);
+  fillCircle(ctx, cx + r * 0.3, cy - r * 0.3, r * 0.13, PALETTE.cucumberFlesh);
+  ctx.beginPath();
+  ctx.moveTo(cx - r * 0.95, cy);
+  ctx.quadraticCurveTo(cx, cy + r * 1.3, cx + r * 0.95, cy);
+  ctx.closePath();
+  ctx.fillStyle = PALETTE.plateWhite;
+  ctx.fill();
+  ctx.strokeStyle = PALETTE.plateRim;
+  ctx.lineWidth = Math.max(1, r * 0.08);
+  ctx.stroke();
+}
+
 // ─── Texture generation ─────────────────────────────────────────────────────
 
 export function generateUiTextures(scene: Phaser.Scene): void {
@@ -334,6 +365,8 @@ export function generateUiTextures(scene: Phaser.Scene): void {
     makeTexture(scene, TEX.iconSoup(type), ICON, ICON, (ctx) => drawSoupBowl(ctx, ICON_C, ICON_C + 2, ICON_R, soupColor(type)));
   }
   makeTexture(scene, TEX.iconBurger, ICON, ICON, (ctx) => drawBurgerStack(ctx, ICON_C, ICON_C + 1, ICON_R + 1));
+  makeTexture(scene, TEX.iconDish('sushi'), ICON, ICON, (ctx) => drawSushiIcon(ctx, ICON_C, ICON_C, ICON_R));
+  makeTexture(scene, TEX.iconDish('salad'), ICON, ICON, (ctx) => drawSaladIcon(ctx, ICON_C, ICON_C, ICON_R));
   makeTexture(scene, TEX.iconLock, ICON, ICON, drawLock);
   makeTexture(scene, TEX.iconPlate, ICON, ICON, (ctx) => drawPlate(ctx, ICON_C, ICON_C, ICON_R + 1, null));
   makeTexture(scene, TEX.iconClock, ICON, ICON, drawClock);

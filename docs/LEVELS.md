@@ -536,6 +536,58 @@ ____,,,,,____
 
 Wiki facts used: chips, fried fish, fish and chips; 4:00, no prep time; the slippery floor and the detached hatch (Overview); "steer into the corners" (the one strategy line); 20 stars to unlock from the table (infobox 12); 3-star 200 (1P) and 220 (2P), lower thresholds a third and two-thirds, estimated. The recipe id is `fried_fish`, not the catalog's `fish`, so the dish never reads as the ingredient. Scores 15 / 15 / 25 are the research doc's estimates. The wiki gives no fry time (`DEEP_FRY_TIME` is the pan's 9 s) and no friction (`ICE_ACCEL` 7, `ICE_DECEL` 3.5 tiles/s², a slide of about 2.5 tiles from full speed); both want tuning by play. Orders are the catalog's estimate (2, every 22 s, at most 4, 100 s), untested.
 
+## Overcooked 2 1-2 — Sushi City courtyard
+
+```
+ #BBBppRV##
+ ..........
+ ..........
+ ....IJn...
+~~~~~~~~~~~~
+ ..........
+ ..........
+ ###XpSSSp#
+```
+
+12 x 8, the catalog grid with its crates in the clone's legend (`I` rice, `J` fish, `n` nori) and the pedestrian row running the full width so townsfolk enter and leave through the gaps in the side walls. Two lanes, one each way, every 8 s at 2.2 tiles/s, offset by 4 s (estimates; the wiki names the obstacle only). The plate return at (7,0) is a `plateStack` (no sink, plates come back clean).
+
+Wiki facts used: fish sushi only; 2:30 with the clock starting on the first serve; four plates; the plate return beside the serve; 2 stars to unlock; stars 1P 60 / 180 / 300, 2P 60 / 220 / 420 (OC2 star chart, used as is; the 4-star column is not modelled). Sushi scores 40 (a boil and a chop at 20 each, the research estimate). Orders the catalog's estimate (2, every 22 s, at most 4, 80 s), untested.
+
+## Overcooked 2 1-3 — Sushi City, the diagonal
+
+```
+#BBB###SSS###
+I.....#.....#
+Ø.p...#.....p
+n.#...#.....c
+#.p...#.....p
+V.#...#.....#
+#.....X.....#
+#...........#
+#######DWR###
+```
+
+13 x 9, the catalog grid (`n` nori, `c` cucumber). The centre counter runs from the top wall to the bin, so the halves meet only along the bottom rows. The first OC2 sink.
+
+Wiki facts used: prawn sashimi and cucumber sushi; 3:00; four plates, sink and return together; the left/right split (Strategies); 3 stars; stars 1P 40 / 120 / 160, 2P 40 / 160 / 320. Orders the catalog's estimate, untested.
+
+## Overcooked 2 1-4 — Sushi City, the moving floors
+
+```
+#nI##Jc#BB###
+X»»»»»»»»»»»S
+W...........S
+D..##pp##...#
+#..##pp##...S
+#...........#
+#«««««««««««#
+#####RV######
+```
+
+13 x 8, the catalog grid (low confidence) with its two belt rows written as walkable belts: the wiki says to travel with them and dash against them, so they are floor that carries chefs, not counters. The two fire pits are plain counters; the four plates sit between them. The wiki's Overview names a prawn crate, but no recipe uses prawn and the screenshot's crate is blue: fish, as the catalog decided.
+
+Wiki facts used: fish and cucumber sushi; 3:30; four plates, sink; conveyor belts and a narrow corridor (infobox); 4 stars; stars 1P 80 / 180 / 340, 2P 120 / 260 / 400. Belt speed 1.5 tiles/s, an estimate. Orders the catalog's estimate, untested.
+
 ## 3-2 — Savoury Seas, the split deck
 
 ```

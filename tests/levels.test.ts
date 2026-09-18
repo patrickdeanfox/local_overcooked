@@ -1097,6 +1097,10 @@ describe('order tuning', () => {
     'oc1-3-2': { initial: 2, intervalSec: 22, max: 4, timeSec: 95 },
     // Overcooked 2's first level: one chop per dish, so a quick drip; the catalog's estimate, untested.
     'oc2-1-1': { initial: 2, intervalSec: 18, max: 4, timeSec: 60 },
+    // Sushi: a boil and a chop per dish; the catalog's estimates, untested.
+    'oc2-1-2': { initial: 2, intervalSec: 22, max: 4, timeSec: 80 },
+    'oc2-1-3': { initial: 2, intervalSec: 22, max: 4, timeSec: 80 },
+    'oc2-1-4': { initial: 2, intervalSec: 22, max: 4, timeSec: 80 },
     // The mechanics kitchens (docs/MECHANICS.md): estimates from the nearest shipped level, untested.
     'custom-1-1': { initial: 2, intervalSec: 22, max: 4, timeSec: 90 },   // soups with a long walk, like 1-5
     'custom-1-2': { initial: 2, intervalSec: 24, max: 4, timeSec: 110 },  // burgers down a corridor, like 1-6's drip

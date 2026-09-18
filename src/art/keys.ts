@@ -4,13 +4,15 @@
 import { GAME_HEIGHT, GAME_WIDTH, TILE } from '../config';
 import {
   DEEP_FRIED_INGREDIENTS, FRIED_INGREDIENTS, INGREDIENT_TYPES, SOUP_INGREDIENTS,
-  type Facing, type IngredientType, type TileType,
+  type DishType, type Facing, type IngredientType, type TileType,
 } from '../sim/types';
 
 export const TILE_TYPES: readonly TileType[] = [
   'void', 'floor', 'road', 'counter', 'crate', 'board', 'stove', 'sink', 'drying', 'plateReturn', 'serve', 'trash', 'plateStack', 'slider', 'gate', 'gap',
-  'shelf', 'trayRack', 'delivery', 'conveyor', 'fryer', 'ice',
+  'shelf', 'trayRack', 'delivery', 'conveyor', 'fryer', 'ice', 'conveyorFloor',
 ];
+/** Dish families with their own HUD icon (TEX.iconDish); the others use an ingredient's icon. */
+export const DISH_ICON_TYPES: readonly DishType[] = ['sushi', 'salad'];
 /** Ingredients with a cooked look (TEX.ingredientCooked): out of a pan or a frying basket. */
 export const COOKED_INGREDIENTS: readonly IngredientType[] = [...new Set([...FRIED_INGREDIENTS, ...DEEP_FRIED_INGREDIENTS])];
 export const FACINGS: readonly Facing[] = ['up', 'down', 'left', 'right'];
@@ -55,6 +57,7 @@ export const TEX = {
   icon: (ingredient: IngredientType): string => `icon.${ingredient}`,
   iconSoup: (ingredient: IngredientType): string => `icon.soup.${ingredient}`,
   iconBurger: 'icon.burger',
+  iconDish: (dish: DishType): string => `icon.dish.${dish}`,
   iconPlate: 'icon.plate',
   iconClock: 'icon.clock',
   iconCoin: 'icon.coin',
@@ -82,6 +85,7 @@ export function ALL_TEXTURE_KEYS(): string[] {
   keys.push(TEX.pot, TEX.potBurnt, TEX.pan, TEX.plate, TEX.dirtyPlate, TEX.extinguisher, TEX.fire, TEX.spray, TEX.smoke);
   keys.push(TEX.tray, TEX.deliveryCrate, TEX.shelfClosed, TEX.chalk86);
   for (let c = 0; c < CHEF_COUNT; c++) for (const f of FACINGS) keys.push(TEX.chef(c, f));
+  for (const d of DISH_ICON_TYPES) keys.push(TEX.iconDish(d));
   keys.push(TEX.iconBurger, TEX.iconPlate, TEX.iconClock, TEX.iconCoin, TEX.iconStar, TEX.iconStarEmpty, TEX.iconLock, TEX.orderCard, TEX.panel, TEX.uiBackdrop);
   for (const l of PROMPT_LABELS) keys.push(TEX.buttonPrompt(l));
   return keys;

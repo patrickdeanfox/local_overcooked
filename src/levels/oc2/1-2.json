@@ -1,0 +1,34 @@
+{
+  "id": "oc2-1-2",
+  "name": "1-2",
+  "game": "oc2",
+  "world": 1,
+  "index": 2,
+  "theme": "sushi-city",
+  "description": "The first sushi: nori, boiled rice and chopped fish on one plate. The rice, fish and nori crates sit on an island in the courtyard, the pots are along the bottom, and townsfolk cut across the middle of the kitchen.",
+  "strategy": "One chef keeps the pots of rice going while the other chops fish, lays nori and serves. The clock waits for the first serve, so start rice and fish before anything goes out. Park the working plate on the fish crate so the rice cook can reach it.",
+  "source": "https://overcooked.fandom.com/wiki/1-2_(Overcooked!_2)",
+  "unlockStars": 2,
+  "timeLimitSec": 150,
+  "timerStartsOnFirstServe": true,
+  "recipes": ["fish_sushi"],
+  "orders": { "initial": 2, "intervalSec": 22, "max": 4, "timeSec": 80 },
+  "stars": { "1": [60, 180, 300], "2": [60, 220, 420] },
+  "plates": { "mode": "stack", "count": 4 },
+  "grid": [
+    " #BBBppRV## ",
+    " .......... ",
+    " .......... ",
+    " ....IJn... ",
+    "~~~~~~~~~~~~",
+    " .......... ",
+    " .......... ",
+    " ###XpSSSp# "
+  ],
+  "spawns": [{ "x": 3, "y": 5 }, { "x": 7, "y": 5 }],
+  "stations": [{ "x": 7, "y": 0, "type": "plateStack" }],
+  "dynamics": [
+    { "type": "pedestrians", "lanes": [{ "from": { "x": 0, "y": 4 }, "to": { "x": 11, "y": 4 } }], "intervalSec": 8, "speed": 2.2, "firstDelaySec": 2 },
+    { "type": "pedestrians", "lanes": [{ "from": { "x": 11, "y": 4 }, "to": { "x": 0, "y": 4 } }], "intervalSec": 8, "speed": 2.2, "firstDelaySec": 6 }
+  ]
+}

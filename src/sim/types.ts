@@ -6,23 +6,33 @@
 // Coordinates: tile units, x right, y down, (0,0) is the top-left tile. Chef x/y is the
 // chef's center, so a chef standing in the middle of tile (3,2) has x=3.5, y=2.5.
 
-export type IngredientType = 'onion' | 'tomato' | 'mushroom' | 'meat' | 'bun' | 'lettuce' | 'fish' | 'prawn' | 'potato';
-export const INGREDIENT_TYPES: readonly IngredientType[] = ['onion', 'tomato', 'mushroom', 'meat', 'bun', 'lettuce', 'fish', 'prawn', 'potato'];
+export type IngredientType = 'onion' | 'tomato' | 'mushroom' | 'meat' | 'bun' | 'lettuce' | 'fish' | 'prawn' | 'potato'
+  | 'cucumber' | 'rice' | 'nori';
+export const INGREDIENT_TYPES: readonly IngredientType[] = [
+  'onion', 'tomato', 'mushroom', 'meat', 'bun', 'lettuce', 'fish', 'prawn', 'potato', 'cucumber', 'rice', 'nori',
+];
 /** Ingredients that go in a pot and make soup. */
 export const SOUP_INGREDIENTS: readonly IngredientType[] = ['onion', 'tomato', 'mushroom'];
 /** Ingredients that need the chopping board before use (buns never do). */
-export const CHOPPED_INGREDIENTS: readonly IngredientType[] = ['onion', 'tomato', 'mushroom', 'meat', 'lettuce', 'fish', 'prawn', 'potato'];
+export const CHOPPED_INGREDIENTS: readonly IngredientType[] = ['onion', 'tomato', 'mushroom', 'meat', 'lettuce', 'fish', 'prawn', 'potato', 'cucumber'];
 /** Ingredients that go in a pan after chopping and come out cooked. */
 export const FRIED_INGREDIENTS: readonly IngredientType[] = ['meat'];
 /** Chopped ingredients that go straight onto a plate as a 'plated' dish (sashimi; salads later). */
 export const PLATED_INGREDIENTS: readonly IngredientType[] = ['fish', 'prawn'];
 /** Chopped ingredients that go in a frying basket in a deep fryer and come out cooked (Overcooked 1 fish and chips). */
 export const DEEP_FRIED_INGREDIENTS: readonly IngredientType[] = ['fish', 'potato'];
+/** Ingredients boiled whole in a pot, one portion at a time, and laid on a plate (Overcooked 2 rice). */
+export const BOILED_INGREDIENTS: readonly IngredientType[] = ['rice'];
+/** The state a piece is in when it joins a plate: as it came, off the board, out of a pan, out of a
+ *  frying basket, or boiled in a pot. A dish family (src/sim/recipes.ts DISH_FAMILIES) says which it takes. */
+export type Prep = 'raw' | 'chopped' | 'pan' | 'basket' | 'boiled';
 
 export type Ware = 'pot' | 'pan' | 'basket'; // 'pot' and 'pan' sit on a stove, 'basket' (a frying basket) in a fryer
 /** 'plated': chopped ingredients assembled directly on the plate, no heat (Overcooked 2 sashimi, salad). */
 export type DishType = 'soup' | 'burger' | 'plated'
-  | 'fried'; // deep-fried pieces out of a frying basket, laid on the plate (fish and chips)
+  | 'fried'  // deep-fried pieces out of a frying basket, laid on the plate (fish and chips)
+  | 'sushi'  // nori, boiled rice and chopped fillings (Overcooked 2)
+  | 'salad'; // chopped lettuce, tomato and cucumber, no heat (Overcooked 2)
 
 export type TileType =
   | 'void'        // outside the kitchen; not walkable, nothing placed
@@ -48,7 +58,8 @@ export type TileType =
   // Level mechanics (roadmap item 5):
   | 'conveyor'    // conveyor belt: a counter that carries its item one tile along tile.dir; hands off to the next belt, a free counter or a bin
   | 'fryer'       // solid; deep fryer: holds a frying basket and cooks it, like a stove holds a pot
-  | 'ice';        // walkable floor with momentum: a chef on it speeds up and slows down gradually (Glazed Glacier)
+  | 'ice'         // walkable floor with momentum: a chef on it speeds up and slows down gradually (Glazed Glacier)
+  | 'conveyorFloor'; // walkable belt: carries the chef standing on it, and items resting on it, along tile.dir (Overcooked 2 1-4)
 
 export interface Tile {
   x: number;

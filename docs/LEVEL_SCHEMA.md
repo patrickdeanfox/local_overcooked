@@ -34,6 +34,8 @@ One JSON file per level under `src/levels/<game>/`. Type: `LevelDef` in `src/lev
 | `d` | delivery | delivery door (section 5): restocks arrive here and are unloaded with held interact. At most one per level. With the mechanic off it is a solid tile that does nothing |
 | `Y` | fryer | deep fryer holding a frying basket (`ware: 'basket'`): deep-fries one chopped fish or potato. The basket only goes back in a fryer, pots and pans only on a burner |
 | `%` | crate | potato source (chips) |
+| `I` `n` `c` | crate | rice / nori / cucumber source (sushi, salad). `I` is the catalog's rice; nori and cucumber are lowercase because the catalog reserves every uppercase letter |
+| `»` `«` `↑` `↓` | conveyorFloor | walkable belt (Overcooked 2 1-4): carries a chef standing on it at `CONVEYOR_FLOOR_SPEED`, and an item resting on it on to the next belt tile or plain floor. The catalog writes these as `> <`; use these characters where the belt is floor, not counter |
 | `,` | ice | walkable floor with momentum: a chef on it eases up to speed (`ICE_ACCEL`) and slides on after letting go (`ICE_DECEL`); a wall stops it. Throws land on it like floor |
 | `>` `<` `^` `v` | conveyor | conveyor belt carrying the way the arrow points, at `CONVEYOR_SPEED` (1.5 tiles/s). A counter a chef can load and unload from any walkable side; its item hands off to the next belt or an empty counter, or drops into a bin (`X`) it points at, and waits at the seam while the next tile is taken. Plates, cookware and the extinguisher a belt carries into a bin come back to their starting tile after `TRASH_RESPAWN_SEC` (5 s). Point corner tiles round the corner, never off the grid |
 

@@ -1,0 +1,28 @@
+# -- Overcooked 2 world 1 sushi: 1-2's courtyard with townsfolk, a pot of rice, a finished fish sushi
+#    and a salad plate, 1-3's split kitchen, 1-4's walkable belts carrying a chef -------------------------
+eval localStorage.setItem('local-overcooked.settings.v1', JSON.stringify({ version: 1, players: 2, preset: 'normal', seedMode: 'fixed', fixedSeed: 5, freePlay: true }))
+eval location.reload()
+wait 1500
+until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
+wait 600
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval (__ui.scene('Title').scene.start('Game', { levelId: 'oc2-1-2', seed: 7 }), 'started')
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.level.id === 'oc2-1-2'
+wait 800
+eval ((st) => (st.tileItems[7 * 12 + 6].contents.push('rice'), st.tileItems[1 * 12 + 2] = { kind: 'plate', id: 9301, dish: { type: 'sushi', ingredients: ['fish', 'nori', 'rice'] } }, st.tileItems[1 * 12 + 3] = { kind: 'ingredient', id: 9302, type: 'nori', chopped: false, chopProgress: 0 }, 'set'))(__oc.sim.getState())
+wait 4000
+shot 32-00-courtyard.png
+
+eval (__ui.scene('Game').scene.start('Game', { levelId: 'oc2-1-3', seed: 7 }), 'started')
+until 20000 __oc.level && __oc.level.id === 'oc2-1-3' && __oc.sim.getState().elapsed > 0.5
+wait 800
+shot 32-01-split.png
+
+eval (__ui.scene('Game').scene.start('Game', { levelId: 'oc2-1-4', seed: 7 }), 'started')
+until 20000 __oc.level && __oc.level.id === 'oc2-1-4' && __oc.sim.getState().elapsed > 0.5
+wait 600
+eval ((c) => (c.x = 3.5, c.y = 1.5, 'on the top belt'))(__oc.sim.getState().chefs[0])
+wait 1500
+eval JSON.stringify(['carried to', __oc.sim.getState().chefs[0].x])
+shot 32-02-belts.png
+errors
