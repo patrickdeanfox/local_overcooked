@@ -7,7 +7,7 @@
 // recipe changes under it (the 86 system rewrote the ticket) flashes and slides its new
 // dish and ingredient icons in, and wears a small "86" tag from then on.
 import Phaser from 'phaser';
-import { TEX } from '../../art/keys';
+import { DISH_ICON_TYPES, TEX } from '../../art/keys';
 import { GAME_HEIGHT, GAME_WIDTH } from '../../config';
 import { ORDER_REWRITE_FLASH_SEC, TIMER_WARNING_AT } from '../../sim/constants';
 import { recipeDishType, RECIPES } from '../../sim/recipes';
@@ -107,6 +107,7 @@ function recipeIconKey(recipeId: string): string {
   const first: IngredientType | undefined = recipe.ingredients[0];
   if (!first) return TEX.iconPlate;
   if (kind === 'fried') return TEX.ingredientCooked(first);
+  if (DISH_ICON_TYPES.includes(kind)) return TEX.iconDish(kind);
   return kind === 'plated' ? TEX.icon(first) : TEX.iconSoup(first);
 }
 

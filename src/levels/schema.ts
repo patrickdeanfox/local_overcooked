@@ -5,7 +5,7 @@ import {
   CHOPPED_INGREDIENTS, FRIED_INGREDIENTS, SOUP_INGREDIENTS,
   type Facing, type IngredientType, type Item, type ItemKind, type SimEventType, type Tile, type TileType, type Ware,
 } from '../sim/types';
-import { RECIPES, recipeDishType } from '../sim/recipes';
+import { DISH_FAMILIES, RECIPES, recipeDishType } from '../sim/recipes';
 
 export interface LevelStars { 1: [number, number, number]; 2: [number, number, number]; } // 1-star, 2-star, 3-star score
 
@@ -181,6 +181,13 @@ export const LEGEND: Readonly<Record<string, LegendEntry>> = Object.freeze({
   'Y': { type: 'fryer', item: 'pot', ware: 'basket' }, // deep fryer with its frying basket
   '%': { type: 'crate', ingredient: 'potato' },
   ',': { type: 'ice' },                                  // slippery floor
+  '»': { type: 'conveyorFloor', dir: 'right' },     // walkable belt: carries chefs and dropped items
+  '«': { type: 'conveyorFloor', dir: 'left' },
+  '↑': { type: 'conveyorFloor', dir: 'up' },
+  '↓': { type: 'conveyorFloor', dir: 'down' },
+  'c': { type: 'crate', ingredient: 'cucumber' },   // lowercase: the catalog reserves every uppercase letter
+  'I': { type: 'crate', ingredient: 'rice' },
+  'n': { type: 'crate', ingredient: 'nori' },
   '>': { type: 'conveyor', dir: 'right' },  // conveyor belt, the arrow is the way it carries
   '<': { type: 'conveyor', dir: 'left' },
   '^': { type: 'conveyor', dir: 'up' },
@@ -287,6 +294,9 @@ export function validateLevel(level: LevelDef): string[] {
     if (recipeDishType(recipe) === 'soup' && !wares.has('pot')) errors.push(`recipe '${id}' needs a stove with a pot`);
     if (recipeDishType(recipe) === 'burger' && recipe.ingredients.some((i) => FRIED_INGREDIENTS.includes(i)) && !wares.has('pan')) errors.push(`recipe '${id}' needs a stove with a pan`);
     if (recipeDishType(recipe) === 'fried' && !wares.has('basket')) errors.push(`recipe '${id}' needs a fryer with a basket`);
+    const family = DISH_FAMILIES[recipeDishType(recipe)];
+    if (family && recipe.ingredients.some((i) => family.parts[i] === 'boiled') && !wares.has('pot')) errors.push(`recipe '${id}' needs a stove with a pot`);
+    if (family && recipe.ingredients.some((i) => family.parts[i] === undefined)) errors.push(`recipe '${id}' has an ingredient its dish does not take`);
     if (recipe.ingredients.some((i) => CHOPPED_INGREDIENTS.includes(i)) && count('board') === 0) errors.push(`recipe '${id}' needs a chopping board`);
     if (recipeDishType(recipe) === 'soup' && recipe.ingredients.some((i) => !SOUP_INGREDIENTS.includes(i))) errors.push(`recipe '${id}' has a non-soup ingredient`);
   }
@@ -331,7 +341,7 @@ export function validateLevel(level: LevelDef): string[] {
   }
   if (count('delivery') > 1) errors.push('at most one delivery tile');
   parsed.tiles.forEach((t, i) => {
-    if (t.type === 'conveyor' && !t.dir) errors.push(`conveyor (${t.x},${t.y}) has no direction`);
+    if ((t.type === 'conveyor' || t.type === 'conveyorFloor') && !t.dir) errors.push(`conveyor (${t.x},${t.y}) has no direction`);
     const item = parsed.items[i];
     if (item?.kind === 'pot' && item.ware === 'basket' && t.type === 'stove') errors.push(`frying basket at (${t.x},${t.y}) is on a burner, not a fryer`);
   });

@@ -1,0 +1,29 @@
+{
+  "id": "oc2-1-4",
+  "name": "1-4",
+  "game": "oc2",
+  "world": 1,
+  "index": 4,
+  "theme": "sushi-city",
+  "description": "Fish and cucumber sushi with moving floors: a belt along the top carries everyone right and one along the bottom carries everyone left. Two fire pits in the middle leave a narrow corridor down each side, with the four plates between the pits.",
+  "strategy": "Travel with the belts, not against them, and dash if you must go the wrong way. The rice cook in particular should ride the loop. One chef chops and plates, the other boils rice and washes up.",
+  "source": "https://overcooked.fandom.com/wiki/1-4_(Overcooked!_2)",
+  "unlockStars": 4,
+  "timeLimitSec": 210,
+  "timerStartsOnFirstServe": false,
+  "recipes": ["fish_sushi", "cucumber_sushi"],
+  "orders": { "initial": 2, "intervalSec": 22, "max": 4, "timeSec": 80 },
+  "stars": { "1": [80, 180, 340], "2": [120, 260, 400] },
+  "plates": { "mode": "sink", "count": 4 },
+  "grid": [
+    "#nI##Jc#BB###",
+    "X»»»»»»»»»»»S",
+    "W...........S",
+    "D..##pp##...#",
+    "#..##pp##...S",
+    "#...........#",
+    "#«««««««««««#",
+    "#####RV######"
+  ],
+  "spawns": [{ "x": 2, "y": 5 }, { "x": 10, "y": 5 }]
+}

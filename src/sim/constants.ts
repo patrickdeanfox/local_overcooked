@@ -61,6 +61,7 @@ export const ORDER_REWRITE_FLASH_SEC = 2;  // how long the HUD flashes a rewritt
 // Conveyor belts (OC1 2-3, 2-4). The wiki gives no belt speed; the Dash page says a dash
 // "outruns conveyor belts", and the catalog's estimate is 1.5 tiles per second.
 export const CONVEYOR_SPEED = 1.5;         // tiles per second an item rides a belt
+export const CONVEYOR_FLOOR_SPEED = 1.5;   // tiles per second a walkable belt carries a chef (OC2 1-4; the wiki gives none, matched to the counter belt)
 export const CONVEYOR_HOLD = 0.5;          // how far along its tile a blocked item waits: the seam with the next tile
 export const TRASH_RESPAWN_SEC = 5;
 // Deep fryer and the slippery floor (OC1 world 3). The wiki gives neither a fry time nor a friction.

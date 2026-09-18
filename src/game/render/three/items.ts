@@ -7,7 +7,8 @@ import * as THREE from 'three';
 import { BURGER_LAYERS, type BurgerLayer } from '../../../art/keys';
 import { soupColor } from '../../../art/items';
 import type { ModelRole } from '../../../art/models';
-import type { Dish, IngredientType, Item, PotItem, TrayItem } from '../../../sim/types';
+import { DISH_FAMILIES } from '../../../sim/recipes';
+import type { Dish, IngredientType, Item, PotItem, Prep, TrayItem } from '../../../sim/types';
 import { modelInstance, modelSize, tintObject } from './loader';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -37,7 +38,19 @@ const INGREDIENT_ROLE: Readonly<Record<IngredientType, { raw: ModelRole; chopped
   fish: { raw: 'fish', chopped: 'fishChopped', cooked: 'fish' }, // cooked: tinted batter gold by ingredientView
   prawn: { raw: 'prawn', chopped: 'prawnChopped' }, // the Food Kit has no prawn: a mussel stands in
   potato: { raw: 'potato', chopped: 'potato', cooked: 'chips' }, // no potato in the kit: a coconut; cut chips are drawn sticks
+  cucumber: { raw: 'cucumber', chopped: 'tomatoSlice' },          // no cucumber in the kit: a green eggplant, and green tomato slices
+  rice: { raw: 'riceBag', chopped: 'riceBag', cooked: 'riceCooked' },
+  nori: { raw: 'riceBag', chopped: 'riceBag' },                   // drawn as a sheet, never this model
 };
+/** Kit models tinted to stand in for an ingredient the kit lacks. */
+const INGREDIENT_TINT: Readonly<Partial<Record<IngredientType, { raw?: number; chopped?: number }>>> = {
+  cucumber: { raw: 0x3f8f3a, chopped: 0xb9e08a },
+};
+/** A sheet of nori: a thin dark-green square. */
+const NORI = { size: 0.26, thickness: 0.012, color: 0x23382a } as const;
+/** A finished roll of sushi: maki slices, one kind per filling, side by side. */
+const MAKI = { spacing: 0.12 } as const;
+const MAKI_ROLE: Readonly<Partial<Record<IngredientType, ModelRole>>> = { fish: 'makiSalmon', cucumber: 'makiVegetable' };
 /** Plated (sashimi, salad) pieces sit on the plate in a small ring. */
 const PLATED = { ring: 0.07, scale: 0.85 } as const;
 const BURGER_LAYER_ROLE: Readonly<Record<BurgerLayer, ModelRole>> = {
@@ -97,11 +110,54 @@ function brothColor(pot: PotItem): THREE.Color {
 
 function ingredientView(type: IngredientType, chopped: boolean, cooked: boolean): THREE.Group {
   if (type === 'potato' && chopped && !cooked) return rawChips();
+  if (type === 'nori') return noriSheet();
   const roles = INGREDIENT_ROLE[type];
   const role = cooked && roles.cooked ? roles.cooked : chopped ? roles.chopped : roles.raw;
   const view = modelInstance(role);
   if (type === 'fish' && cooked) tintObject(view, FRIED_TINT);
+  const tint = INGREDIENT_TINT[type];
+  const colour = chopped ? tint?.chopped : tint?.raw;
+  if (colour !== undefined && !cooked) tintObject(view, colour);
   return view;
+}
+
+/** The raw look of an ingredient, for the crates whose kit has no crate model of it. */
+export function rawIngredientView(type: IngredientType): THREE.Group {
+  return ingredientView(type, false, false);
+}
+
+/** A piece as it sits on a plate of the given family: raw, chopped, or out of its cookware. */
+function pieceView(type: IngredientType, prep: Prep): THREE.Group {
+  return ingredientView(type, prep !== 'raw', prep === 'pan' || prep === 'basket' || prep === 'boiled');
+}
+
+function noriSheet(): THREE.Group {
+  const root = new THREE.Group();
+  const sheet = new THREE.Mesh(
+    new THREE.BoxGeometry(NORI.size, NORI.thickness, NORI.size),
+    new THREE.MeshStandardMaterial({ color: NORI.color, roughness: 0.6 }),
+  );
+  sheet.position.y = NORI.thickness / 2;
+  sheet.castShadow = true;
+  root.add(sheet);
+  return root;
+}
+
+/** A finished sushi (nori, rice and at least one filling): a maki slice per filling. Anything less
+ *  is still loose pieces. */
+function makiView(dish: Dish): THREE.Group | null {
+  if (!dish.ingredients.includes('nori') || !dish.ingredients.includes('rice')) return null;
+  const fillings = dish.ingredients.filter((ing) => MAKI_ROLE[ing] !== undefined);
+  if (fillings.length === 0) return null;
+  const group = new THREE.Group();
+  fillings.forEach((ing, i) => {
+    const role = MAKI_ROLE[ing];
+    if (!role) return;
+    const slice = modelInstance(role);
+    slice.position.x = (i - (fillings.length - 1) / 2) * MAKI.spacing;
+    group.add(slice);
+  });
+  return group;
 }
 
 function rawChips(): THREE.Group {
@@ -193,8 +249,8 @@ function plateView(count: number, dish: Dish | null): THREE.Group {
       const stack = burgerStack(dish);
       stack.position.y = top + plateHeight;
       root.add(stack);
-    } else if (dish.type === 'plated' || dish.type === 'fried') {
-      const pieces = platedPieces(dish);
+    } else if (DISH_FAMILIES[dish.type]) {
+      const pieces = (dish.type === 'sushi' ? makiView(dish) : null) ?? platedPieces(dish);
       pieces.position.y = top + plateHeight;
       root.add(pieces);
     } else {
@@ -208,9 +264,9 @@ function plateView(count: number, dish: Dish | null): THREE.Group {
 function platedPieces(dish: Dish): THREE.Group {
   const group = new THREE.Group();
   const count = dish.ingredients.length;
-  const fried = dish.type === 'fried';
+  const family = DISH_FAMILIES[dish.type];
   dish.ingredients.forEach((ingredient, i) => {
-    const piece = fried ? ingredientView(ingredient, true, true) : modelInstance(INGREDIENT_ROLE[ingredient].chopped);
+    const piece = pieceView(ingredient, family?.parts[ingredient] ?? 'chopped');
     piece.scale.setScalar(PLATED.scale);
     const angle = (i / count) * Math.PI * 2;
     const radius = count === 1 ? 0 : PLATED.ring;

@@ -1,0 +1,30 @@
+{
+  "id": "oc2-1-3",
+  "name": "1-3",
+  "game": "oc2",
+  "world": 1,
+  "index": 3,
+  "theme": "sushi-city",
+  "description": "Prawn sashimi and cucumber sushi, and the first sink. A counter runs down the middle, so the two halves meet only along the bottom row: boards, rice, prawns and nori on the left, the pots, the cucumbers and the sink on the right.",
+  "strategy": "Split left and right. The left chef chops, plates and serves and throws raw rice across; the right chef boils the rice, washes up and throws cucumbers back. Throwing beats queueing at the one gap under the centre counter.",
+  "source": "https://overcooked.fandom.com/wiki/1-3_(Overcooked!_2)",
+  "unlockStars": 3,
+  "timeLimitSec": 180,
+  "timerStartsOnFirstServe": false,
+  "recipes": ["prawn_sashimi", "cucumber_sushi"],
+  "orders": { "initial": 2, "intervalSec": 22, "max": 4, "timeSec": 80 },
+  "stars": { "1": [40, 120, 160], "2": [40, 160, 320] },
+  "plates": { "mode": "sink", "count": 4 },
+  "grid": [
+    "#BBB###SSS###",
+    "I.....#.....#",
+    "Ø.p...#.....p",
+    "n.#...#.....c",
+    "#.p...#.....p",
+    "V.#...#.....#",
+    "#.....X.....#",
+    "#...........#",
+    "#######DWR###"
+  ],
+  "spawns": [{ "x": 3, "y": 6 }, { "x": 9, "y": 6 }]
+}

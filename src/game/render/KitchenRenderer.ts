@@ -252,7 +252,7 @@ export class KitchenRenderer {
     const tile = state.tiles[index];
     const view = this.tiles?.views[index];
     const off = { ...this.offsetFor(tile) }; // a copy: the belt shift must not leak into the slider table
-    if (tile.type === 'conveyor' && tile.dir && state.beltProgress) {
+    if ((tile.type === 'conveyor' || tile.type === 'conveyorFloor') && tile.dir && state.beltProgress) {
       const along = state.beltProgress[index] ?? 0;
       const v = FACING_VECTORS[tile.dir];
       off.x += v.dx * along;

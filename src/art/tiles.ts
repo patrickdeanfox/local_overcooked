@@ -576,6 +576,23 @@ function drawFryer(ctx: CanvasRenderingContext2D): void {
   line(ctx, TOP_CX, TOP_CY - 4, TOP_CX, 4, '#2a2a2e', 3);
 }
 
+/** Walkable belt: rubber flush with the floor, chevrons pointing right (the 3D kitchen turns it). */
+function drawConveyorFloor(ctx: CanvasRenderingContext2D): void {
+  ctx.fillStyle = BELT.rubber;
+  ctx.fillRect(0, 0, T, T);
+  ctx.strokeStyle = BELT.chevron;
+  ctx.lineWidth = 3;
+  ctx.lineJoin = 'round';
+  for (const x of BELT.chevronsX) {
+    ctx.beginPath();
+    ctx.moveTo(x, 14);
+    ctx.lineTo(x + 9, T / 2);
+    ctx.lineTo(x, T - 14);
+    ctx.stroke();
+  }
+  ctx.lineJoin = 'miter';
+}
+
 /** Ice floor: pale blue with a few frosty streaks. */
 function drawIce(ctx: CanvasRenderingContext2D): void {
   ctx.fillStyle = vGradient(ctx, 0, T, [[0, PALETTE.ice], [1, PALETTE.iceDark]]);
@@ -614,6 +631,7 @@ const TILE_DRAWERS: Record<Exclude<TileType, 'crate'>, TileDraw> = {
   conveyor: drawConveyor,
   fryer: drawFryer,
   ice: drawIce,
+  conveyorFloor: drawConveyorFloor,
 };
 
 export function generateTileTextures(scene: Phaser.Scene): void {

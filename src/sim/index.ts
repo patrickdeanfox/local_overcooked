@@ -8,7 +8,7 @@ import type { LevelDef, OrderSettings } from '../levels/schema';
 import { isWalkable, parseGrid, SOLID_TILES } from '../levels/schema';
 import {
   ASSIST_RATE, BURN_TIME, CATCH_RADIUS, CHEF_HITBOX, CHEF_RADIUS, CHEF_SPEED, CHOP_TIME, CONVEYOR_HOLD, CONVEYOR_SPEED,
-  COOK_TIME, CRATE_SIZE, DEEP_FRY_TIME, ICE_ACCEL, ICE_DECEL,
+  CONVEYOR_FLOOR_SPEED, COOK_TIME, CRATE_SIZE, DEEP_FRY_TIME, ICE_ACCEL, ICE_DECEL,
   DASH_BUMP_PUSH, DASH_COOLDOWN, DASH_SPEED, DASH_THROW_BONUS, DASH_THROW_WINDOW, DASH_TIME, EXTINGUISH_RATE,
   FALL_PENALTY_SEC, FIRE_SPREAD_TIME, MAX_PUSH_ESCAPE, MAX_SIMULTANEOUS_86, MOVE_DEADZONE, ORDER_FAIL_PENALTY,
   PAN_CAPACITY, PAN_COOK_TIME, PLATE_RETURN_DELAY, PLATE_STACK_RETURN_DELAY, POT_CAPACITY, REACH,
@@ -16,18 +16,21 @@ import {
   THROW_RANGE, THROW_SPEED, TICK_EVENT_HZ, TIMER_WARNING_AT, TIP_BASE, TIP_MAX, TRAY_CAPACITY, TRAY_SPEED_SCALE,
   TRASH_RESPAWN_SEC, TRAY_WINDUP_SEC, TRAY_WOBBLE_SEC, TWO_PLATE_MAX, WASH_TIME,
 } from './constants';
-import { dishMatchesRecipe, isBurgerComponent, isPlatedComponent, RECIPES, recipeDishType, sortIngredients } from './recipes';
+import { ASSEMBLY_ORDER, DISH_FAMILIES, dishMatchesRecipe, familyFits, RECIPES, recipeDishType, sortIngredients } from './recipes';
 import { mulberry32, type Rng } from './rng';
 import {
-  CHOPPED_INGREDIENTS, DEEP_FRIED_INGREDIENTS, FACING_VECTORS, FRIED_INGREDIENTS, INGREDIENT_TYPES, NO_INPUT, SOUP_INGREDIENTS,
+  BOILED_INGREDIENTS, CHOPPED_INGREDIENTS, DEEP_FRIED_INGREDIENTS, FACING_VECTORS, FRIED_INGREDIENTS, INGREDIENT_TYPES, NO_INPUT, SOUP_INGREDIENTS,
   type Chef, type ChefAction, type Dish, type DishType, type DirtyPlateItem, type Floe, type FlyingItem, type IngredientItem, type IngredientType,
-  type Item, type Order, type PlateItem, type PlayerInput, type PotItem, type Recipe, type Restock, type SimEvent,
+  type Item, type Order, type PlateItem, type PlayerInput, type PotItem, type Prep, type Recipe, type Restock, type SimEvent,
   type SimState, type Modifiers, type SliderGroup, type Tile, type TrayItem, type TrayLoad, type Ware,
 } from './types';
 
 export * from './constants';
 export * from './types';
-export { dishMatchesRecipe, isBurgerComponent, isPlatedComponent, RECIPES, recipeDishType, recipeForDish, sortIngredients } from './recipes';
+export {
+  ASSEMBLY_ORDER, DISH_FAMILIES, dishMatchesRecipe, familyFits, isBurgerComponent, isPlatedComponent, RECIPES, recipeDishType,
+  recipeForDish, sortIngredients,
+} from './recipes';
 export { mulberry32 } from './rng';
 export type { Rng } from './rng';
 
@@ -132,7 +135,12 @@ function sharedIngredients(a: readonly IngredientType[], b: readonly IngredientT
 
 /** Ground a thrown item can come to rest on. Open gates count; the caller checks the gate. */
 function isLandingFloor(type: Tile['type']): boolean {
-  return type === 'floor' || type === 'road' || type === 'gate' || type === 'ice';
+  return type === 'floor' || type === 'road' || type === 'gate' || type === 'ice' || type === 'conveyorFloor';
+}
+
+/** Tiles that carry what rests on them: counter belts and walkable belts. */
+function isBelt(type: Tile['type']): boolean {
+  return type === 'conveyor' || type === 'conveyorFloor';
 }
 
 /** Ground a throw flies over without stopping: holes, and gates while closed. */
@@ -159,7 +167,13 @@ function wareOf(pot: PotItem): Ware {
 }
 
 function wareCapacity(pot: PotItem): number {
-  return wareOf(pot) === 'pot' ? POT_CAPACITY : PAN_CAPACITY; // a pan and a frying basket take one piece
+  if (wareOf(pot) !== 'pot') return PAN_CAPACITY; // a pan and a frying basket take one piece
+  return boilsWhole(pot) ? 1 : POT_CAPACITY;      // a pot of rice holds one portion
+}
+
+/** True when the pot holds a whole boiled ingredient (rice) rather than soup. */
+function boilsWhole(pot: PotItem): boolean {
+  return pot.contents.length > 0 && BOILED_INGREDIENTS.includes(pot.contents[0]);
 }
 
 function wareCookTime(pot: PotItem, settings: EffectiveSettings): number {
@@ -176,30 +190,26 @@ function cookSite(pot: PotItem): Tile['type'] {
  *  deep-fries fish and potato. All refuse raw ingredients (wiki Burner: "an unchopped
  *  ingredient" is pushed away). */
 function wareAccepts(pot: PotItem, item: IngredientItem): boolean {
-  if (!item.chopped) return false;
   const ware = wareOf(pot);
+  // Rice goes in whole, alone, into an empty pot; nothing joins it.
+  if (ware === 'pot' && BOILED_INGREDIENTS.includes(item.type)) return !item.chopped && pot.contents.length === 0;
+  if (ware === 'pot' && boilsWhole(pot)) return false;
+  if (!item.chopped) return false;
   const list = ware === 'pan' ? FRIED_INGREDIENTS : ware === 'basket' ? DEEP_FRIED_INGREDIENTS : SOUP_INGREDIENTS;
   return list.includes(item.type);
 }
 
-/** The dish a component starts or joins: deep-fried pieces make a 'fried' dish, chopped fish and
- *  prawn a 'plated' one, bun, patty and toppings a 'burger'; null for anything else. */
-function componentDish(type: IngredientType, cooked: boolean): DishType | null {
-  if (cooked && DEEP_FRIED_INGREDIENTS.includes(type)) return 'fried';
-  if (isPlatedComponent(type)) return 'plated';
-  if (isBurgerComponent(type)) return 'burger';
-  return null;
+/** The state a loose ingredient is in: cooked (only ever set by tests and older saves: cooked food
+ *  goes from its cookware straight to a plate) counts as out of its pan or basket. */
+function prepOf(item: IngredientItem): Prep {
+  if (item.cooked === true) return FRIED_INGREDIENTS.includes(item.type) ? 'pan' : 'basket';
+  return item.chopped ? 'chopped' : 'raw';
 }
 
-/** True when the ingredient has had all the prep its plate needs: sashimi fish and prawn
- *  chopped; burger buns raw, toppings chopped, meat cooked (so it can only come out of a pan). */
+/** True when some dish family takes the ingredient as it is: chopped fish, a raw bun, raw nori. */
 function readyForPlate(item: IngredientItem): boolean {
-  if (item.cooked === true && DEEP_FRIED_INGREDIENTS.includes(item.type)) return true;
-  if (isPlatedComponent(item.type)) return item.chopped;
-  if (!isBurgerComponent(item.type)) return false;
-  if (FRIED_INGREDIENTS.includes(item.type)) return item.cooked === true;
-  if (CHOPPED_INGREDIENTS.includes(item.type)) return item.chopped;
-  return true;
+  const prep = prepOf(item);
+  return ASSEMBLY_ORDER.some((dish) => DISH_FAMILIES[dish]?.parts[item.type] === prep);
 }
 
 // ─── Difficulty ─────────────────────────────────────────────────────────────
@@ -249,6 +259,9 @@ export class Sim {
   private nextPedId = 1;
   private nextFlightId = 1;
   private nextRestockId = 1;
+
+  // Dish families in the order a plate tries them: the level's own first, then the rest.
+  private familyOrder: DishType[] = [];
 
   private orderTimer = 0;
   private warned = false;
@@ -307,6 +320,9 @@ export class Sim {
     this.level = level;
     this.rng = mulberry32(opts.seed);
     this.settings = effectiveSettings(level, opts.modifiers);
+    const menu = new Set<DishType>();
+    for (const id of level.recipes) if (RECIPES[id]) menu.add(recipeDishType(RECIPES[id]));
+    this.familyOrder = [...ASSEMBLY_ORDER.filter((d) => menu.has(d)), ...ASSEMBLY_ORDER.filter((d) => !menu.has(d))];
 
     const parsed = parseGrid(level);
     // parseGrid ids come from a module-global counter shared by every Sim in the process.
@@ -379,7 +395,7 @@ export class Sim {
       if (tile.type === 'crate') this.crateTiles.push(i);
       if (tile.type === 'trayRack') this.trayRackTiles.push(i);
       if (tile.type === 'delivery' && this.deliveryTile < 0) this.deliveryTile = i;
-      if (tile.type === 'conveyor') this.beltTiles.push(i);
+      if (isBelt(tile.type)) this.beltTiles.push(i);
       const item = st.tileItems[i];
       if (item && item.kind !== 'ingredient' && item.kind !== 'tray') {
         this.homeTile[item.id] = i;
@@ -586,6 +602,7 @@ export class Sim {
       this.tickChefTimers(chef, i, dt, events);
       this.startDash(chef, i, inp, events);
       this.moveChef(chef, inp, dt);
+      this.rideBelt(chef, dt);
       if (isDashing(chef)) this.dashBump(chef, i, events);
     }
     this.separateChefs();
@@ -707,6 +724,17 @@ export class Sim {
     const dist = speed * dt;
     if (mx !== 0) chef.x = this.resolveX(chef, chef.x + mx * dist);
     if (my !== 0) chef.y = this.resolveY(chef, chef.y + my * dist);
+  }
+
+  /** A chef standing on a walkable belt is carried along it, into walls like any move. */
+  private rideBelt(chef: Chef, dt: number): void {
+    if (isFalling(chef)) return;
+    const tile = this.tileAt(Math.floor(chef.x), Math.floor(chef.y));
+    if (!tile || tile.type !== 'conveyorFloor' || !tile.dir) return;
+    const v = FACING_VECTORS[tile.dir];
+    const dist = CONVEYOR_FLOOR_SPEED * dt;
+    if (v.dx !== 0) chef.x = this.resolveX(chef, chef.x + v.dx * dist);
+    if (v.dy !== 0) chef.y = this.resolveY(chef, chef.y + v.dy * dist);
   }
 
   /** Movement on ice: the velocity eases towards the stick's (ICE_ACCEL while steering, ICE_DECEL
@@ -1601,7 +1629,7 @@ export class Sim {
         }
         // wiki (Plate): a plate resting on a sink refuses food.
         if (item && item.kind === 'plate' && tile.type !== 'sink') {
-          if (!readyForPlate(held) || !this.addToPlate(item, held.type, held.cooked === true)) return;
+          if (!readyForPlate(held) || !this.addToPlate(item, held.type, prepOf(held))) return;
           chef.holding = null;
           events.push({ type: 'plateAdd', chef: idx, x: tx, y: ty });
           return;
@@ -1653,7 +1681,7 @@ export class Sim {
         // counter or a board.
         if (item && item.kind === 'ingredient') {
           if (!this.canPlaceOn(tile.type) && tile.type !== 'board') return;
-          if (!readyForPlate(item) || !this.addToPlate(held, item.type, item.cooked === true)) return;
+          if (!readyForPlate(item) || !this.addToPlate(held, item.type, prepOf(item))) return;
           st.tileItems[i] = null;
           events.push({ type: 'plateAdd', chef: idx, x: tx, y: ty });
           return;
@@ -1878,8 +1906,9 @@ export class Sim {
    *  plate that is empty or already holds burger parts. Refuses when the plate cannot take it,
    *  leaving both the plate and the cookware untouched. */
   private emptyOnto(plate: PlateItem, ware: PotItem, idx: number, tx: number, ty: number, events: SimEvent[]): void {
-    if (wareOf(ware) !== 'pot') { // a pan or a basket lays its one cooked piece on the plate
-      if (!this.addToPlate(plate, ware.contents[0], true)) return;
+    if (wareOf(ware) !== 'pot' || boilsWhole(ware)) { // a pan, a basket or a pot of rice lays its one piece on the plate
+      const prep: Prep = wareOf(ware) === 'pan' ? 'pan' : wareOf(ware) === 'basket' ? 'basket' : 'boiled';
+      if (!this.addToPlate(plate, ware.contents[0], prep)) return;
       this.emptyPot(ware);
       events.push({ type: 'plateAdd', chef: idx, x: tx, y: ty });
       return;
@@ -1890,23 +1919,31 @@ export class Sim {
     events.push({ type: 'potPour', chef: idx, x: tx, y: ty });
   }
 
-  /** Adds one component to a plate: a burger part or a deep-fried piece (at most one of each)
-   *  onto an empty plate or one of the same dish, a plated ingredient onto an empty or plated
-   *  plate. Soup plates and plate stacks refuse everything. Returns false when nothing changed. */
-  private addToPlate(plate: PlateItem, type: IngredientType, cooked: boolean): boolean {
+  /** Adds one piece to a plate. The plate's dish is the first family (the level's own first) that
+   *  takes every piece on it plus this one, each in its state, so chopped lettuce starts a burger on a
+   *  burger level and a salad on a salad level, and a later piece can move it to another family that
+   *  fits (the pieces keep the state their current family gave them). Soup plates and plate stacks
+   *  refuse everything. Returns false when nothing changed. */
+  private addToPlate(plate: PlateItem, type: IngredientType, prep: Prep): boolean {
     if ((plate.count ?? 1) !== 1) return false;
-    const kind = componentDish(type, cooked);
-    if (!kind) return false;
     const dish = plate.dish;
-    if (!dish) {
-      plate.dish = { type: kind, ingredients: [type] };
+    const current = dish ? DISH_FAMILIES[dish.type] : undefined;
+    if (dish && !current) return false;
+    const pieces: { type: IngredientType; prep: Prep }[] = [];
+    for (const ing of dish?.ingredients ?? []) pieces.push({ type: ing, prep: current?.parts[ing] ?? 'raw' });
+    pieces.push({ type, prep });
+    for (const family of this.familyOrder) {
+      if (!familyFits(family, pieces)) continue;
+      const ingredients = sortIngredients(pieces.map((p) => p.type)); // alphabetical, so recipe matching is a walk
+      if (dish) {
+        dish.type = family;
+        dish.ingredients = ingredients;
+      } else {
+        plate.dish = { type: family, ingredients };
+      }
       return true;
     }
-    if (dish.type !== kind) return false;
-    if (kind !== 'plated' && dish.ingredients.includes(type)) return false;
-    dish.ingredients.push(type);
-    dish.ingredients.sort(); // Dish.ingredients stays alphabetical, so recipe matching is a walk
-    return true;
+    return false;
   }
 
   private emptyPot(pot: PotItem): void {
@@ -2166,8 +2203,10 @@ export class Sim {
       if (!item || this.beltReceived[i]) continue;
       const next = this.beltNext(i);
       const target = next >= 0 ? st.tiles[next] : null;
+      const onFloor = st.tiles[i].type === 'conveyorFloor';
       const free = target !== null && (target.type === 'trash'
-        || (!st.tileItems[next] && this.canPlaceOn(target.type) && !this.fireAt(target.x, target.y)));
+        || (!st.tileItems[next] && !this.fireAt(target.x, target.y)
+          && (this.canPlaceOn(target.type) || (onFloor && isLandingFloor(target.type)))));
       if (!free) { prog[i] = Math.min(prog[i], CONVEYOR_HOLD); continue; }
       if (prog[i] < 1) continue;
       st.tileItems[i] = null;
@@ -2178,7 +2217,7 @@ export class Sim {
         continue;
       }
       st.tileItems[next] = item;
-      if (target.type === 'conveyor') {
+      if (isBelt(target.type)) {
         prog[next] = Math.min(carry, CONVEYOR_HOLD);
         this.beltReceived[next] = true;
       }

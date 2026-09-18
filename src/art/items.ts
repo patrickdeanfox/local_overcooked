@@ -37,6 +37,9 @@ const SOUP_COLORS: Record<IngredientType, string> = {
   fish: PALETTE.fishFlesh,
   prawn: PALETTE.prawn,
   potato: PALETTE.potatoFlesh,
+  cucumber: PALETTE.cucumberFlesh,
+  rice: PALETTE.rice,
+  nori: PALETTE.nori,
 };
 
 /** Sesame seeds on a bun dome: [dx, dy] as fractions of the shape radius. */
@@ -577,17 +580,20 @@ const RAW_SHAPES: Record<IngredientType, ShapeFn> = {
   onion: drawOnionRaw, tomato: drawTomatoRaw, mushroom: drawMushroomRaw,
   meat: drawMeatRaw, bun: drawBun, lettuce: drawLettuceRaw, fish: drawFishRaw, prawn: drawPrawnRaw,
   potato: drawPotatoRaw,
+  cucumber: drawCucumberRaw, rice: drawRiceRaw, nori: drawNori,
 };
 const CHOPPED_SHAPES: Record<IngredientType, ShapeFn> = {
   onion: drawOnionChopped, tomato: drawTomatoChopped, mushroom: drawMushroomChopped,
   meat: drawMeatChopped, bun: drawBun, lettuce: drawLettuceChopped, fish: drawFishChopped, prawn: drawPrawnChopped,
   potato: drawChipsRaw,
+  cucumber: drawCucumberChopped, rice: drawRiceRaw, nori: drawNori,
 };
 /** Fried ingredients after the pan or the basket; anything else falls back to its chopped shape. */
 const COOKED_SHAPES: Partial<Record<IngredientType, ShapeFn>> = {
   meat: drawMeatCooked,
   potato: drawChipsCooked,
   fish: drawFishFried,
+  rice: drawRiceCooked,
 };
 
 /** Shared by item sprites, HUD icons and the ingredient shown on a crate. */
@@ -741,6 +747,62 @@ function drawFishFried(ctx: CanvasRenderingContext2D, cx: number, cy: number, r:
     for (const [dx, dy] of [[-0.4, -0.05], [-0.1, 0.12], [0.2, -0.1], [0.45, 0.08]] as const) {
       fillCircle(ctx, cx + dx * r, cy + dy * r, r * 0.07, PALETTE.friedDark);
     }
+  });
+}
+
+// ─── Sushi and salad (Overcooked 2 world 1) ─────────────────────────────────
+
+/** A whole cucumber: a long dark-green body with pale speckles. */
+function drawCucumberRaw(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(-0.5);
+  fillRound(ctx, -r * 0.9, -r * 0.28, r * 1.8, r * 0.56, r * 0.28, PALETTE.cucumber);
+  strokeRound(ctx, -r * 0.9, -r * 0.28, r * 1.8, r * 0.56, r * 0.28, PALETTE.cucumberDark, Math.max(1, r * 0.06));
+  for (const [dx, dy] of [[-0.5, -0.05], [-0.1, 0.1], [0.3, -0.08], [0.6, 0.06]] as const) {
+    fillCircle(ctx, dx * r, dy * r, r * 0.05, PALETTE.cucumberFlesh);
+  }
+  ctx.restore();
+}
+
+/** Cucumber slices: three green-rimmed discs with pale flesh and seeds. */
+function drawCucumberChopped(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  for (const [dx, dy] of [[-0.35, 0.15], [0.3, 0.2], [0, -0.25]] as const) {
+    const x = cx + dx * r;
+    const y = cy + dy * r;
+    fillCircle(ctx, x, y, r * 0.38, PALETTE.cucumber);
+    fillCircle(ctx, x, y, r * 0.3, PALETTE.cucumberFlesh);
+    withAlpha(ctx, 0.6, () => fillCircle(ctx, x, y, r * 0.1, PALETTE.cucumberDark));
+  }
+}
+
+/** Raw rice: a small sack, tied at the neck. */
+function drawRiceRaw(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  fillRound(ctx, cx - r * 0.6, cy - r * 0.4, r * 1.2, r * 1.1, r * 0.35, PALETTE.rice);
+  strokeRound(ctx, cx - r * 0.6, cy - r * 0.4, r * 1.2, r * 1.1, r * 0.35, PALETTE.riceShade, Math.max(1, r * 0.07));
+  fillRound(ctx, cx - r * 0.3, cy - r * 0.62, r * 0.6, r * 0.28, r * 0.1, PALETTE.riceShade);
+  line(ctx, cx - r * 0.3, cy - r * 0.38, cx + r * 0.3, cy - r * 0.38, PALETTE.potatoDark, Math.max(1, r * 0.08));
+}
+
+/** Boiled rice: a white mound with a few grains picked out. */
+function drawRiceCooked(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  ctx.beginPath();
+  ctx.ellipse(cx, cy + r * 0.1, r * 0.75, r * 0.5, 0, 0, Math.PI * 2);
+  ctx.fillStyle = vGradient(ctx, cy - r * 0.4, cy + r * 0.6, [[0, '#ffffff'], [1, PALETTE.riceShade]]);
+  ctx.fill();
+  withAlpha(ctx, 0.6, () => {
+    for (const [dx, dy] of [[-0.3, 0], [0.1, -0.15], [0.35, 0.12], [-0.05, 0.25]] as const) {
+      fillEllipse(ctx, cx + dx * r, cy + dy * r, r * 0.08, r * 0.04, PALETTE.riceShade);
+    }
+  });
+}
+
+/** A sheet of nori: a dark green square with a sheen. */
+function drawNori(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  fillRound(ctx, cx - r * 0.7, cy - r * 0.6, r * 1.4, r * 1.2, r * 0.08, PALETTE.nori);
+  withAlpha(ctx, 0.5, () => {
+    line(ctx, cx - r * 0.5, cy - r * 0.35, cx + r * 0.4, cy - r * 0.45, PALETTE.noriLight, Math.max(1, r * 0.08));
+    line(ctx, cx - r * 0.45, cy + r * 0.1, cx + r * 0.5, cy, PALETTE.noriLight, Math.max(1, r * 0.06));
   });
 }
 
