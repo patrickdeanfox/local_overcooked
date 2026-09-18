@@ -41,7 +41,9 @@ export type TileType =
   // Mechanics spec (docs/MECHANICS.md), each behind a Modifiers switch:
   | 'shelf'       // pass-through shelf: a hatch in a wall, a counter reachable from both sides; a throw stops at it. Solid wall while the mechanic is off
   | 'trayRack'    // counter that starts with the tray on it (legend 't'); a plain counter while the mechanic is off
-  | 'delivery';   // delivery door: restock crates arrive here (86 system); solid, holds nothing, no interaction while the mechanic is off
+  | 'delivery'    // delivery door: restock crates arrive here (86 system); solid, holds nothing, no interaction while the mechanic is off
+  // Level mechanics (roadmap item 5):
+  | 'conveyor';   // conveyor belt: a counter that carries its item one tile along tile.dir; hands off to the next belt, a free counter or a bin
 
 export interface Tile {
   x: number;
@@ -51,6 +53,7 @@ export interface Tile {
   group?: string;              // slider and gate tiles
   stock?: number;              // crate, 86 system on: items left; 0 = empty ("86"). Absent = never runs out
   capacity?: number;           // crate: items a full crate holds (the fill level is stock / capacity)
+  dir?: Facing;                // conveyor: the way the belt carries
 }
 
 export type Facing = 'up' | 'down' | 'left' | 'right';
@@ -217,6 +220,7 @@ export interface SimState {
   seed?: number;               // the run's seed, for the results screen
   flying?: FlyingItem[];       // thrown items in the air; absent until the first throw
   restocks?: Restock[];        // 86 system: deliveries on their way or waiting at the door; absent until the first shortage
+  beltProgress?: number[];     // conveyors: 0..1 of the way each belt tile's item has travelled towards the next tile, same indexing as tiles; absent on levels without belts
 }
 
 // ─── Input ───────────────────────────────────────────────────────────────────
@@ -260,7 +264,8 @@ export type SimEventType =
   | 'restockTick'                  // 86: unloading in progress at (x, y), rate limited like chopTick
   | 'restocked'                    // 86: the crates of an ingredient are full again; x, y = the door, or the first crate
   | 'trayLift' | 'traySet'         // tray: the wind-up finished and the tray is in hand / on tile (x, y)
-  | 'trayWobble';                  // tray: a bump made the load wobble; the drop that a second bump causes is a plain 'drop'
+  | 'trayWobble'                   // tray: a bump made the load wobble; the drop that a second bump causes is a plain 'drop'
+  | 'respawned';                   // a plate, cookware or extinguisher a belt carried into a bin is back on tile (x, y)
 export interface SimEvent {
   type: SimEventType;
   chef?: number;   // chef index that caused it, if any

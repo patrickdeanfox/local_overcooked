@@ -179,7 +179,7 @@ export function sfxForEvent(event: SimEvent): SfxName | null {
     case 'fireOut': return 'fireOut';
     case 'washTick': return 'wash';
     case 'washDone': return 'washDone';
-    case 'plateReturned': return 'plateReturn';
+    case 'plateReturned': case 'respawned': return 'plateReturn';
     case 'serve': return 'serve';
     case 'serveRejected': return 'serveBad';
     case 'orderNew': return 'orderNew';

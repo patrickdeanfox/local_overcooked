@@ -162,6 +162,7 @@ export class KitchenRenderer {
     this.elapsed += dtSec;
     this.readSliderOffsets(state);
     this.drawSliders(state);
+    this.tiles?.animateBelts(dtSec);
     this.drawGates(state);
     this.drawTileItems(state);
     this.drawDelivery(state);
@@ -238,11 +239,17 @@ export class KitchenRenderer {
     return this.sliderOffsets.get(tile.group) ?? { x: 0, y: 0 };
   }
 
-  /** World position of the item slot on a tile, following sliders. */
+  /** World position of the item slot on a tile, following sliders and riding belts. */
   private slotPosition(state: Readonly<SimState>, index: number, out: THREE.Vector3): THREE.Vector3 {
     const tile = state.tiles[index];
     const view = this.tiles?.views[index];
-    const off = this.offsetFor(tile);
+    const off = { ...this.offsetFor(tile) }; // a copy: the belt shift must not leak into the slider table
+    if (tile.type === 'conveyor' && tile.dir && state.beltProgress) {
+      const along = state.beltProgress[index] ?? 0;
+      const v = FACING_VECTORS[tile.dir];
+      off.x += v.dx * along;
+      off.y += v.dy * along;
+    }
     const itemOffset = view?.itemOffset;
     out.set(
       tile.x + 0.5 + off.x + (itemOffset?.x ?? 0),

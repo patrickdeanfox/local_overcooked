@@ -1,0 +1,29 @@
+{
+  "id": "oc1-2-4",
+  "name": "2-4",
+  "game": "oc1",
+  "world": 2,
+  "index": 4,
+  "theme": "treacle-town",
+  "description": "The chefs are split again, and the belts no longer loop: each run carries toward one of three bins, so anything nobody catches is thrown away. Binned plates and pans come back. Pans, crates and sink on one side; boards and plates on the other.",
+  "strategy": "Say what you are sending before it goes on the belt, and be at the far end to catch it. The third pan lets the cooking side fry a batch of patties at once, which suits sending several pieces of beef together.",
+  "source": "https://overcooked.fandom.com/wiki/2-4_(Overcooked!)",
+  "unlockStars": 17,
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "recipes": ["meat_burger", "lettuce_burger", "tomato_lettuce_burger"],
+  "orders": { "initial": 2, "intervalSec": 24, "max": 4, "timeSec": 110 },
+  "stars": { "1": [40, 75, 110], "2": [55, 110, 160] },
+  "plates": { "mode": "sink", "count": 3 },
+  "grid": [
+    "#ppp##B#B######",
+    "#.............V",
+    "#.............R",
+    "#X<<<>>X<<>>>X#",
+    "F.............#",
+    "F.............#",
+    "F.............#",
+    "###WD##E##ULTA#"
+  ],
+  "spawns": [{ "x": 5, "y": 1 }, { "x": 7, "y": 5 }]
+}

@@ -7,13 +7,14 @@
 import type { LevelDef, OrderSettings } from '../levels/schema';
 import { isWalkable, parseGrid, SOLID_TILES } from '../levels/schema';
 import {
-  ASSIST_RATE, BURN_TIME, CATCH_RADIUS, CHEF_HITBOX, CHEF_RADIUS, CHEF_SPEED, CHOP_TIME, COOK_TIME, CRATE_SIZE,
+  ASSIST_RATE, BURN_TIME, CATCH_RADIUS, CHEF_HITBOX, CHEF_RADIUS, CHEF_SPEED, CHOP_TIME, CONVEYOR_HOLD, CONVEYOR_SPEED,
+  COOK_TIME, CRATE_SIZE,
   DASH_BUMP_PUSH, DASH_COOLDOWN, DASH_SPEED, DASH_THROW_BONUS, DASH_THROW_WINDOW, DASH_TIME, EXTINGUISH_RATE,
   FALL_PENALTY_SEC, FIRE_SPREAD_TIME, MAX_PUSH_ESCAPE, MAX_SIMULTANEOUS_86, MOVE_DEADZONE, ORDER_FAIL_PENALTY,
   PAN_CAPACITY, PAN_COOK_TIME, PLATE_RETURN_DELAY, PLATE_STACK_RETURN_DELAY, POT_CAPACITY, REACH,
   RESTOCK_DELAY_SEC, RESTOCK_UNLOAD_SEC, SIM_DT, SPRAY_LATERAL_TOLERANCE, SPRAY_RANGE, THROW_OWN_CATCH_DISTANCE,
   THROW_RANGE, THROW_SPEED, TICK_EVENT_HZ, TIMER_WARNING_AT, TIP_BASE, TIP_MAX, TRAY_CAPACITY, TRAY_SPEED_SCALE,
-  TRAY_WINDUP_SEC, TRAY_WOBBLE_SEC, TWO_PLATE_MAX, WASH_TIME,
+  TRASH_RESPAWN_SEC, TRAY_WINDUP_SEC, TRAY_WOBBLE_SEC, TWO_PLATE_MAX, WASH_TIME,
 } from './constants';
 import { dishMatchesRecipe, isBurgerComponent, isPlatedComponent, RECIPES, recipeDishType, sortIngredients } from './recipes';
 import { mulberry32, type Rng } from './rng';
@@ -77,6 +78,8 @@ interface PedLane {
 }
 /** A tray lift or set-down in its wind-up: what happens when the timer runs out, if still valid. */
 interface Windup { kind: 'lift' | 'set'; tile: number; trayId: number; }
+/** A plate, cookware or extinguisher a belt carried into a bin, on its way back to `tile`. */
+interface Respawn { sec: number; tile: number; item: Item; }
 
 // ─── Pure helpers ───────────────────────────────────────────────────────────
 function clamp(v: number, lo: number, hi: number): number {
@@ -93,7 +96,7 @@ function isStaticSolid(type: Tile['type']): boolean {
  *  counter that starts with the tray. The shelf joins them only while its mechanic is on, so
  *  the Sim checks it through canPlaceOn(). */
 function isPlaceableCounter(type: Tile['type']): boolean {
-  return type === 'counter' || type === 'slider' || type === 'trayRack';
+  return type === 'counter' || type === 'slider' || type === 'trayRack' || type === 'conveyor';
 }
 
 /** What a tray takes off a tile: an ingredient in any state, or a plate (one off a stack). */
@@ -241,6 +244,13 @@ export class Sim {
   private crateTiles: number[] = [];
   private trayRackTiles: number[] = [];
   private deliveryTile = -1;
+  // Conveyors: belt tiles in index order, and the tile each grid-placed plate, pot or extinguisher
+  // started on (by item id), where a belt that carries it into a bin sends it back.
+  private beltTiles: number[] = [];
+  private beltReceived: boolean[] = [];
+  private homeTile: Record<number, number> = {};
+  private plateHome = -1;
+  private respawns: Respawn[] = [];
   // Tiles a chef can stand next to, so a fire on them can be sprayed. Same indexing as tiles.
   private fightable: boolean[] = [];
   // Chop assist: which step each station was last worked in and by how many chefs so far.
@@ -343,10 +353,18 @@ export class Sim {
       if (tile.type === 'crate') this.crateTiles.push(i);
       if (tile.type === 'trayRack') this.trayRackTiles.push(i);
       if (tile.type === 'delivery' && this.deliveryTile < 0) this.deliveryTile = i;
+      if (tile.type === 'conveyor') this.beltTiles.push(i);
+      const item = st.tileItems[i];
+      if (item && item.kind !== 'ingredient' && item.kind !== 'tray') {
+        this.homeTile[item.id] = i;
+        if (item.kind === 'plate' && this.plateHome < 0) this.plateHome = i;
+      }
+      this.beltReceived.push(false);
       this.claimAt.push(-1);
       this.claimN.push(0);
     }
     for (let i = 0; i < st.tiles.length; i++) this.fightable.push(this.hasWalkableNeighbour(st.tiles[i]));
+    if (this.beltTiles.length > 0) st.beltProgress = st.tiles.map(() => 0);
     for (const _ of this.level.eightySix?.scripted ?? []) this.scriptedFired.push(false);
     for (const dyn of this.level.dynamics ?? []) {
       if (dyn.type === 'sliders') {
@@ -547,6 +565,8 @@ export class Sim {
       this.updateChefActions(st.chefs[i], i, inputs[i] ?? NO_INPUT, dt, events);
     }
     this.updateFlying(dt, events);
+    this.updateBelts(dt, events);
+    this.updateRespawns(dt, events);
 
     this.updateCooking(dt, events);
     this.updateFires(dt, events);
@@ -2045,6 +2065,103 @@ export class Sim {
       st.phase = 'ended';
       st.timerRunning = false;
       events.push({ type: 'levelEnd', value: st.score });
+    }
+  }
+
+  // ─── Conveyors ────────────────────────────────────────────────────────────
+  /** Every belt carries its item towards the next tile at CONVEYOR_SPEED. At the end of the tile
+   *  it hands off to the next belt or an empty counter, or drops into a bin; while the next tile
+   *  cannot take it, the item waits at the seam. A burning belt stands still. */
+  private updateBelts(dt: number, events: SimEvent[]): void {
+    const st = this.state;
+    const prog = st.beltProgress;
+    if (!prog) return;
+    for (const i of this.beltTiles) {
+      this.beltReceived[i] = false;
+      const tile = st.tiles[i];
+      if (!st.tileItems[i]) { prog[i] = 0; continue; }
+      if (this.fireAt(tile.x, tile.y)) continue;
+      prog[i] += CONVEYOR_SPEED * dt;
+    }
+    for (const i of this.beltTiles) {
+      const item = st.tileItems[i];
+      if (!item || this.beltReceived[i]) continue;
+      const next = this.beltNext(i);
+      const target = next >= 0 ? st.tiles[next] : null;
+      const free = target !== null && (target.type === 'trash'
+        || (!st.tileItems[next] && this.canPlaceOn(target.type) && !this.fireAt(target.x, target.y)));
+      if (!free) { prog[i] = Math.min(prog[i], CONVEYOR_HOLD); continue; }
+      if (prog[i] < 1) continue;
+      st.tileItems[i] = null;
+      const carry = prog[i] - 1;
+      prog[i] = 0;
+      if (target.type === 'trash') {
+        this.trashFromBelt(item, next, events);
+        continue;
+      }
+      st.tileItems[next] = item;
+      if (target.type === 'conveyor') {
+        prog[next] = Math.min(carry, CONVEYOR_HOLD);
+        this.beltReceived[next] = true;
+      }
+    }
+  }
+
+  /** The tile index a belt tile carries into, or -1 off the grid. */
+  private beltNext(i: number): number {
+    const st = this.state;
+    const tile = st.tiles[i];
+    const v = FACING_VECTORS[tile.dir ?? 'right'];
+    const nx = tile.x + v.dx;
+    const ny = tile.y + v.dy;
+    if (nx < 0 || ny < 0 || nx >= st.width || ny >= st.height) return -1;
+    return ny * st.width + nx;
+  }
+
+  /** A belt dropped the item into the bin at `bin`. Food is gone; a plate (its food lost), a pan or
+   *  pot (emptied), a dirty stack or the extinguisher comes back after TRASH_RESPAWN_SEC where it
+   *  started (wiki Trash Bin), and the tray goes back to its rack. */
+  private trashFromBelt(item: Item, bin: number, events: SimEvent[]): void {
+    const tile = this.state.tiles[bin];
+    events.push({ type: 'trash', x: tile.x, y: tile.y });
+    if (item.kind === 'ingredient') return;
+    if (item.kind === 'tray') {
+      for (const load of item.items) if (load.kind === 'plate') this.queueRespawn(load);
+      item.items.length = 0;
+      this.returnTray(item);
+      return;
+    }
+    if (item.kind === 'plate') item.dish = null;
+    if (item.kind === 'pot') this.emptyPot(item);
+    this.queueRespawn(item);
+  }
+
+  private queueRespawn(item: Item): void {
+    let tile = this.homeTile[item.id] ?? -1;
+    if (tile < 0 && item.kind === 'plate') tile = this.plateHome >= 0 ? this.plateHome : (this.plateStackTiles[0] ?? -1);
+    if (tile < 0 && item.kind === 'dirtyPlate') tile = this.plateReturnTiles[0] ?? -1;
+    if (tile < 0) return; // nowhere to come back to: lost
+    this.respawns.push({ sec: TRASH_RESPAWN_SEC, tile, item });
+  }
+
+  /** Respawns count down; one whose tile is taken waits until it is free (clean plates join a clean
+   *  stack, dirty ones a dirty stack). */
+  private updateRespawns(dt: number, events: SimEvent[]): void {
+    const st = this.state;
+    for (let k = 0; k < this.respawns.length; k++) {
+      const r = this.respawns[k];
+      r.sec -= dt;
+      if (r.sec > 0) continue;
+      const cur = st.tileItems[r.tile];
+      const item = r.item;
+      if (!cur) st.tileItems[r.tile] = item;
+      else if (cur.kind === 'plate' && item.kind === 'plate' && cur.dish === null) cur.count = (cur.count ?? 1) + (item.count ?? 1);
+      else if (cur.kind === 'dirtyPlate' && item.kind === 'dirtyPlate') cur.count += item.count;
+      else continue;
+      this.respawns.splice(k, 1);
+      k -= 1;
+      const tile = st.tiles[r.tile];
+      events.push({ type: 'respawned', x: tile.x, y: tile.y });
     }
   }
 

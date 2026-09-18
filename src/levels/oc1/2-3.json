@@ -1,0 +1,29 @@
+{
+  "id": "oc1-2-3",
+  "name": "2-3",
+  "game": "oc1",
+  "world": 2,
+  "index": 3,
+  "theme": "treacle-town",
+  "description": "A conveyor belt runs clockwise round the whole kitchen, and it is the only way between the two chefs. One side has the crates, both pans, the sink and the extinguisher; the other has the boards, the plates, the serving counter and the plate return.",
+  "strategy": "Every burger crosses the belt more than once: beef goes over to be chopped and comes back to be fried. Send several things at once rather than one at a time, since the wait on the belt costs more than the walk. Wash plates in batches too, because they live on the far side from the sink.",
+  "source": "https://overcooked.fandom.com/wiki/2-3_(Overcooked!)",
+  "unlockStars": 15,
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "recipes": ["meat_burger", "lettuce_burger", "tomato_lettuce_burger"],
+  "orders": { "initial": 2, "intervalSec": 26, "max": 4, "timeSec": 110 },
+  "stars": { "1": [40, 80, 120], "2": [60, 120, 180] },
+  "plates": { "mode": "sink", "count": 3 },
+  "grid": [
+    ">>>>>>>>>>>>v",
+    "^W...E .p..#v",
+    "^D...F B...#v",
+    "^A.... ....Vv",
+    "^L...F B...Rv",
+    "^U.... ....#v",
+    "^T...X#p.pX#v",
+    "^<<<<<<<<<<<<"
+  ],
+  "spawns": [{ "x": 3, "y": 2 }, { "x": 9, "y": 2 }]
+}

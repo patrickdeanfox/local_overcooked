@@ -405,6 +405,55 @@ Tuning knobs: the gate (`periodSec`, `openSec`, `phase`), and `orders` (initial 
 24 s, at most 4, 100 s each — the same starting point as 1-4, since it is the same recipe
 set). If the gate proves punishing, lengthen `openSec` before touching the orders.
 
+## 2-3 — Treacle Town, the belt loop
+
+```
+>>>>>>>>>>>>v
+^W...E .p..#v
+^D...F B...#v
+^A.... ....Vv
+^L...F B...Rv
+^U.... ....#v
+^T...X#p.pX#v
+^<<<<<<<<<<<<
+```
+
+13 x 8. The catalog grid (`docs/research/catalog/oc1/oc1-2-3.md`, medium confidence) with three changes:
+
+- **The belt runs through the pillar.** The catalog drew the pillar's column as `#` on rows 0 and 7, which would stop the loop at a counter. The wiki says the belt "runs in a circle around the kitchen", so (6,0) and (6,7) are belt.
+- **Corners turn.** (12,0) is `v` and (0,7) is `^`; the catalog's `>` and `<` there point off the grid.
+- **The pillar is wall, not counter.** Rows 1 to 5 of column 6 are interior void (drawn as a wall block), because the catalog says nothing can be put on it. (6,6) is a `#`: it has no walkable neighbour, so as void it would draw as a hole.
+
+| Tile | Station |
+| --- | --- |
+| `>` `v` `<` `^` | The clockwise belt round the whole kitchen, 38 tiles; only the north and south runs have floor beside them |
+| `W` (1,1), `D` (1,2) | Sink and rack, west |
+| `A` `L` `U` `T` (1,3)-(1,6) | Beef, lettuce, bun and tomato crates, west |
+| `F` (5,2), (5,4) | Two pans, west |
+| `E` (5,1), `X` (5,6) | Extinguisher and bin, west |
+| `B` (7,2), (7,4) | Boards, east |
+| `p` (8,1), (7,6), (9,6) | The three plates, east |
+| `V` (11,3), `R` (11,4), `X` (10,6) | Serve, plate return and bin, east |
+
+Wiki facts used: the three burgers; 4:00, no prep time; the clockwise loop and which chef has what (Overview); 15 stars to unlock from the stars-to-unlock table (the infobox says 9); 3-star scores 120 (1P) and 180 (2P). The 1- and 2-star values are a third and two-thirds of those, an estimate. Orders are the catalog's estimate (2, every 26 s, at most 4, 110 s), untested. Belt speed is not on the wiki: 1.5 tiles/s, the catalog's estimate (a dash must outrun it, per the Dash page).
+
+## 2-4 — Treacle Town, belts into bins
+
+```
+#ppp##B#B######
+#.............V
+#.............R
+#X<<<>>X<<>>>X#
+F.............#
+F.............#
+F.............#
+###WD##E##ULTA#
+```
+
+15 x 8, the catalog grid unchanged. The middle band is three bins with belts between them, each run carrying toward its nearest bin; the two rooms never touch. North: three plates, two boards, serve, plate return. South: three pans, sink and rack, extinguisher, the four crates.
+
+Wiki facts used: the three burgers; 4:00; belts that lead to bins instead of circling (Overview); three plates (Overview); 17 stars to unlock from the table (infobox 10); 3-star 110 (1P) and 160 (2P), lower thresholds estimated as for 2-3; trashed plates and cookware respawn after 5 s where they started, clean staying clean and dirty staying dirty (Trash Bin page), which is `TRASH_RESPAWN_SEC`. A clean plate that did not start on the grid (one washed at the sink) goes back to the first plate's counter. Orders are the catalog's estimate (2, every 24 s, at most 4, 110 s), untested.
+
 ## 3-2 — Savoury Seas, the split deck
 
 ```

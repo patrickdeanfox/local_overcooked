@@ -70,6 +70,9 @@ const WALL_TOP_H = T - 16;         // a wall stands taller than a counter, like 
 const HATCH = { y: 14, h: 30, post: 7, sillH: 8 } as const; // the opening in the shelf wall and its posts
 const RAIL = { x: 8, y1: 15, y2: 39, h: 5 } as const;       // the two tray rails on the rack
 const DOOR = { frame: 6, panelInset: 7, knobR: 2.6 } as const;
+// Level mechanics (roadmap item 5): the conveyor belt.
+const BELT = { rubber: '#3a3b40', chevron: '#8d8f96', roller: '#23242a', chevronsX: [12, 30, 48] } as const;
+const BELT_BLOCK: BlockColors = { top: '#7d828b', topHi: '#a3a8b1', edge: '#5b6069', edgeDark: '#3d4148' };
 
 // ─── Shared block ───────────────────────────────────────────────────────────
 
@@ -542,6 +545,25 @@ function drawGateClosed(ctx: CanvasRenderingContext2D): void {
   });
 }
 
+/** Conveyor belt: dark rubber on a steel block, chevrons pointing right (the direction the 3D
+ *  kitchen turns it to), roller feet along the front edge. */
+function drawConveyor(ctx: CanvasRenderingContext2D): void {
+  drawBlock(ctx, BELT_BLOCK);
+  fillRound(ctx, 3, 4, T - 6, TOP_H - 8, 4, BELT.rubber);
+  ctx.strokeStyle = BELT.chevron;
+  ctx.lineWidth = 3;
+  ctx.lineJoin = 'round';
+  for (const x of BELT.chevronsX) {
+    ctx.beginPath();
+    ctx.moveTo(x, 12);
+    ctx.lineTo(x + 9, TOP_H / 2);
+    ctx.lineTo(x, TOP_H - 12);
+    ctx.stroke();
+  }
+  ctx.lineJoin = 'miter';
+  for (let x = 6; x < T; x += 12) fillRound(ctx, x, TOP_H + 2, 6, FRONT_H - 4, 2, BELT.roller);
+}
+
 // ─── Texture generation ─────────────────────────────────────────────────────
 
 type TileDraw = (ctx: CanvasRenderingContext2D) => void;
@@ -565,6 +587,7 @@ const TILE_DRAWERS: Record<Exclude<TileType, 'crate'>, TileDraw> = {
   shelf: drawShelf,
   trayRack: drawTrayRack,
   delivery: drawDelivery,
+  conveyor: drawConveyor,
 };
 
 export function generateTileTextures(scene: Phaser.Scene): void {

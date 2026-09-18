@@ -57,6 +57,13 @@ export const RESTOCK_UNLOAD_SEC = 4;       // seconds of held interact to unload
 export const MAX_SIMULTANEOUS_86 = 2;      // while this many ingredients are out, no other crate gives up its last item
 export const ORDER_REWRITE_FLASH_SEC = 2;  // how long the HUD flashes a rewritten ticket
 
+// ─── Level mechanics (roadmap item 5) ───────────────────────────────────────
+// Conveyor belts (OC1 2-3, 2-4). The wiki gives no belt speed; the Dash page says a dash
+// "outruns conveyor belts", and the catalog's estimate is 1.5 tiles per second.
+export const CONVEYOR_SPEED = 1.5;         // tiles per second an item rides a belt
+export const CONVEYOR_HOLD = 0.5;          // how far along its tile a blocked item waits: the seam with the next tile
+export const TRASH_RESPAWN_SEC = 5;        // plates and cookware a belt carries into a bin come back after this long, where they started (wiki Trash Bin)
+
 // ─── Sim internals (added by the simulation agent) ──────────────────────────
 export const MOVE_DEADZONE = 0.2;         // stick magnitude below which the chef stands still
 export const TICK_EVENT_HZ = 4;           // max chopTick / washTick / spray events per second

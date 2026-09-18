@@ -189,15 +189,23 @@ describe('levels', () => {
 
     it(`${l.id} reaches every station from the spawns together, and a serve and a crate from each`, () => {
       // A split kitchen (3-2) shares the work over a counter, so each chef needs a serve and the
-      // crates, and the two reaches together must cover every station.
+      // crates, and the two reaches together must cover every station. A belt kitchen (2-3, 2-4)
+      // shares it over the belt instead, so there each chef needs a belt.
       const p = parseGrid(l);
+      const belted = countType(p, 'conveyor') > 0;
       const union = new Set<number>();
       for (const s of l.spawns) {
         const reached = reachableFrom(p, s.x, s.y);
         for (const i of reached) union.add(i);
+        if (belted) {
+          expect(reachesType(p, reached, 'conveyor'), `no belt from spawn (${s.x},${s.y})`).toBe(true);
+          continue;
+        }
         expect(reachesType(p, reached, 'serve'), `no serve from spawn (${s.x},${s.y})`).toBe(true);
         expect(reachesType(p, reached, 'crate'), `no crate from spawn (${s.x},${s.y})`).toBe(true);
       }
+      expect(reachesType(p, union, 'serve'), 'no serve from either spawn').toBe(true);
+      expect(reachesType(p, union, 'crate'), 'no crate from either spawn').toBe(true);
       expect(unreachableStations(p, union)).toEqual([]);
     });
 
@@ -1067,6 +1075,9 @@ describe('order tuning', () => {
     'oc1-1-5': { initial: 2, intervalSec: 20, max: 4, timeSec: 85 },
     'oc1-1-6': { initial: 2, intervalSec: 24, max: 4, timeSec: 100 },
     // 3-2 is the 1-3 deck again with the same soups; the catalog's estimate, untested.
+    // The belt kitchens: every burger rides the belt, so a long ticket life; the catalog's estimates, untested.
+    'oc1-2-3': { initial: 2, intervalSec: 26, max: 4, timeSec: 110 },
+    'oc1-2-4': { initial: 2, intervalSec: 24, max: 4, timeSec: 110 },
     'oc1-3-2': { initial: 2, intervalSec: 22, max: 4, timeSec: 95 },
     // Overcooked 2's first level: one chop per dish, so a quick drip; the catalog's estimate, untested.
     'oc2-1-1': { initial: 2, intervalSec: 18, max: 4, timeSec: 60 },
