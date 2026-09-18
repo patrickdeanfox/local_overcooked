@@ -9,7 +9,7 @@ import {
 
 export const TILE_TYPES: readonly TileType[] = [
   'void', 'floor', 'road', 'counter', 'crate', 'board', 'stove', 'sink', 'drying', 'plateReturn', 'serve', 'trash', 'plateStack', 'slider', 'gate', 'gap',
-  'shelf', 'trayRack', 'delivery',
+  'shelf', 'trayRack', 'delivery', 'conveyor',
 ];
 export const FACINGS: readonly Facing[] = ['up', 'down', 'left', 'right'];
 export const CHEF_COUNT = 2;

@@ -1,0 +1,38 @@
+# -- Conveyor belts: OC1 2-3's clockwise loop carries an onion from the west room round to the east,
+#    and 2-4's belt drops a plate into a bin that comes back on its counter five seconds later ------
+#
+# Levels are started by scene start so the title's row count does not matter.
+eval localStorage.setItem('local-overcooked.settings.v1', JSON.stringify({ version: 1, players: 2, preset: 'normal', seedMode: 'fixed', fixedSeed: 5, freePlay: true }))
+eval location.reload()
+wait 1500
+until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
+wait 600
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval (__ui.scene('Title').scene.start('Game', { levelId: 'oc1-2-3', seed: 7 }), 'started')
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.level.id === 'oc1-2-3'
+wait 1200
+shot 29-00-2-3-kitchen.png
+
+# -- An onion on the north belt above the west room rides east through the pillar --------------
+eval (__oc.sim.getState().tileItems[3] = { kind: 'ingredient', id: 9101, type: 'onion', chopped: false, chopProgress: 0 }, 'placed')
+wait 1000
+eval JSON.stringify(['onion at', __oc.sim.getState().tileItems.findIndex((i) => i && i.id === 9101), 'progress', __oc.sim.getState().beltProgress[__oc.sim.getState().tileItems.findIndex((i) => i && i.id === 9101)]])
+shot 29-01-onion-riding.png
+wait 2500
+eval JSON.stringify(['onion at', __oc.sim.getState().tileItems.findIndex((i) => i && i.id === 9101)])
+shot 29-02-onion-east.png
+
+# -- 2-4: a plate onto the middle belt, into the bin, back on its counter -------------------------
+eval (__ui.scene('Game').scene.start('Game', { levelId: 'oc1-2-4', seed: 7 }), 'started')
+until 20000 __oc.level && __oc.level.id === 'oc1-2-4' && __oc.sim.getState().elapsed > 0.5
+wait 800
+shot 29-03-2-4-kitchen.png
+eval ((st) => (st.tileItems[15 * 3 + 5] = st.tileItems[1], st.tileItems[1] = null, 'plate on the belt'))(__oc.sim.getState())
+wait 600
+shot 29-04-plate-riding.png
+until 8000 __oc.sim.getState().tileItems[1] === null && __oc.sim.getState().tileItems[15 * 3 + 5] === null && __oc.sim.getState().tileItems[15 * 3 + 6] === null
+eval JSON.stringify(['plate binned, home is', __oc.sim.getState().tileItems[1]])
+until 8000 __oc.sim.getState().tileItems[1] !== null
+eval JSON.stringify(['plate back', __oc.sim.getState().tileItems[1] && __oc.sim.getState().tileItems[1].kind])
+shot 29-05-plate-back.png
+errors

@@ -8,7 +8,8 @@ import * as THREE from 'three';
 import { TEX } from '../../../art/keys';
 import { PALETTE } from '../../../art/palette';
 import type { ModelRole } from '../../../art/models';
-import type { IngredientType, SimState, Tile, TileType } from '../../../sim/types';
+import { CONVEYOR_SPEED } from '../../../sim/constants';
+import type { Facing, IngredientType, SimState, Tile, TileType } from '../../../sim/types';
 import { modelInstance, modelSize } from './loader';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -50,6 +51,13 @@ const CRATE = { scale: 0.8, mushrooms: 3, mushroomRing: 0.17, mushroomTilt: 0.25
 const FOOTPRINT = { tile: 1, eps: 1e-3 } as const;
 const DELIVERY = { crateForward: 0.18 } as const;
 const BOARD = { knifeOffset: new THREE.Vector3(0.36, 0, 0.1), knifeYaw: 0.35 } as const;
+/** Conveyor belt: a steel block at counter height with a rubber top whose chevrons scroll the way it carries. */
+const BELT = {
+  steel: 0x80858e, rubber: '#34353a', chevron: '#9a9ca3', texturePx: 64, chevrons: 3, lineWidth: 7,
+  topLift: 0.002, roughness: 0.6,
+} as const;
+/** Yaw that turns the belt's local +x (the chevrons' way) to its direction. */
+const BELT_YAW: Readonly<Record<Facing, number>> = { right: 0, down: -Math.PI / 2, left: Math.PI, up: Math.PI / 2 };
 const DRYING = { rackOffset: new THREE.Vector3(0, 0, -0.28), itemOffset: new THREE.Vector3(0, 0, 0.12) } as const;
 const CRATE_ROLE: Readonly<Record<IngredientType, ModelRole | null>> = {
   tomato: 'crateTomatoes', onion: 'crateOnions', lettuce: 'crateLettuce', bun: 'crateBuns', meat: 'crateSteak',
@@ -62,7 +70,7 @@ const GROUND_TEXTURE: Readonly<Partial<Record<TileType, string>>> = {
   counter: TEX.tile('floor'), crate: TEX.tile('floor'), board: TEX.tile('floor'), stove: TEX.tile('floor'),
   sink: TEX.tile('floor'), drying: TEX.tile('floor'), plateReturn: TEX.tile('floor'), serve: TEX.tile('floor'),
   trash: TEX.tile('floor'), plateStack: TEX.tile('floor'),
-  shelf: TEX.tile('floor'), trayRack: TEX.tile('floor'), delivery: TEX.tile('floor'),
+  shelf: TEX.tile('floor'), trayRack: TEX.tile('floor'), delivery: TEX.tile('floor'), conveyor: TEX.tile('floor'),
 };
 
 /** Run flags the static kitchen depends on: a shelf is a hatch while its mechanic is on and a wall while off. */
@@ -260,7 +268,7 @@ function streetDressing(state: Readonly<SimState>): THREE.Group {
 
 const SOLID_FOR_WALL: ReadonlySet<TileType> = new Set<TileType>([
   'counter', 'crate', 'board', 'stove', 'sink', 'drying', 'plateReturn', 'serve', 'trash', 'plateStack',
-  'shelf', 'trayRack', 'delivery',
+  'shelf', 'trayRack', 'delivery', 'conveyor',
 ]);
 
 /** Wall pieces behind the top row, only where the tiles they cover are stations (never over a road or a gap). */
@@ -306,9 +314,59 @@ function wallBlock(height?: number): Station {
   return { root, surfaceY: height ?? topOf(root), itemOffset: new THREE.Vector3(), solid: true };
 }
 
-function buildStation(tile: Tile, flags: Readonly<TileFlags>): Station {
+/** The chevron texture every belt top shares; the TileSet scrolls its offset. */
+function beltTexture(): THREE.CanvasTexture {
+  const size = BELT.texturePx;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = BELT.rubber;
+    ctx.fillRect(0, 0, size, size);
+    ctx.strokeStyle = BELT.chevron;
+    ctx.lineWidth = BELT.lineWidth;
+    ctx.lineJoin = 'round';
+    const step = size / BELT.chevrons;
+    for (let i = 0; i < BELT.chevrons; i++) {
+      const x = i * step + step * 0.25;
+      ctx.beginPath();
+      ctx.moveTo(x, size * 0.2);
+      ctx.lineTo(x + step * 0.45, size * 0.5);
+      ctx.lineTo(x, size * 0.8);
+      ctx.stroke();
+    }
+  }
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  return texture;
+}
+
+function beltStation(texture: THREE.Texture): Station {
+  const height = modelSize('counter').y;
+  const root = new THREE.Group();
+  const body = new THREE.Mesh(
+    new THREE.BoxGeometry(1, height, 1),
+    new THREE.MeshStandardMaterial({ color: BELT.steel, roughness: BELT.roughness }),
+  );
+  body.position.y = height / 2;
+  body.castShadow = true;
+  body.receiveShadow = true;
+  const top = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshStandardMaterial({ map: texture, roughness: 0.9 }));
+  top.rotation.x = -Math.PI / 2;
+  top.position.y = height + BELT.topLift;
+  top.receiveShadow = true;
+  root.add(body, top);
+  return { root, surfaceY: height, itemOffset: new THREE.Vector3(), solid: true };
+}
+
+function buildStation(tile: Tile, flags: Readonly<TileFlags>, belt: THREE.Texture | null): Station {
   const offset = new THREE.Vector3();
   switch (tile.type) {
+    case 'conveyor':
+      return belt ? beltStation(belt) : { root: new THREE.Group(), surfaceY: 0, itemOffset: offset, solid: true };
     case 'shelf':
       // Open: a dip in the wall down to counter height, items on its top. Off: the full wall, as an interior void.
       return flags.passThroughShelf ? wallBlock(modelSize('counter').y) : wallBlock();
@@ -355,6 +413,7 @@ export class TileSet {
   private readonly knives = new Map<number, THREE.Group>();
   private readonly root = new THREE.Group();
   private readonly textures = new Map<string, THREE.Texture>();
+  private readonly belt: THREE.CanvasTexture | null;
 
   constructor(
     phaserScene: Phaser.Scene, scene: THREE.Scene, state: Readonly<SimState>, theme?: string,
@@ -362,6 +421,7 @@ export class TileSet {
   ) {
     const dressing = THEMES[theme ?? 'default'] ?? THEMES.default;
     const groundGeometry = new THREE.PlaneGeometry(1, 1);
+    this.belt = state.tiles.some((tile) => tile.type === 'conveyor') ? beltTexture() : null;
     this.root.add(backdrop(state.width, state.height, dressing.backdropColor));
     if (dressing.backWall) this.root.add(backWall(state));
     this.root.add(streetDressing(state));
@@ -385,9 +445,11 @@ export class TileSet {
         ground.receiveShadow = true;
         this.root.add(ground);
       }
-      const station = interior ? wallBlock() : buildStation(tile, flags);
+      const station = interior ? wallBlock() : buildStation(tile, flags, this.belt);
       station.root.position.set(cx, 0, cz);
-      if (station.solid) {
+      if (tile.type === 'conveyor') {
+        station.root.rotation.y = BELT_YAW[tile.dir ?? 'right'];
+      } else if (station.solid) {
         // Wall pieces run along their wall; every other station faces a walkable neighbour.
         const alongWall = interior || tile.type === 'shelf';
         const yaw = alongWall ? wallAxisYaw(state, tile) : frontYaw(state, tile);
@@ -436,8 +498,15 @@ export class TileSet {
     }
   }
 
+  /** Belt tops scroll the way the belts carry, at the sim's belt speed. */
+  animateBelts(dtSec: number): void {
+    if (!this.belt) return;
+    this.belt.offset.x = (this.belt.offset.x - CONVEYOR_SPEED * dtSec) % 1;
+  }
+
   dispose(): void {
     this.root.removeFromParent();
+    this.belt?.dispose();
     for (const texture of this.textures.values()) texture.dispose();
     this.textures.clear();
   }

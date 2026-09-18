@@ -3,7 +3,7 @@
 // Human-readable ASCII grid + fixed legend. See docs/LEVEL_SCHEMA.md.
 import {
   CHOPPED_INGREDIENTS, FRIED_INGREDIENTS, SOUP_INGREDIENTS,
-  type IngredientType, type Item, type ItemKind, type SimEventType, type Tile, type TileType, type Ware,
+  type Facing, type IngredientType, type Item, type ItemKind, type SimEventType, type Tile, type TileType, type Ware,
 } from '../sim/types';
 import { RECIPES, recipeDishType } from '../sim/recipes';
 
@@ -128,7 +128,7 @@ export interface LevelDef {
   tutorial?: TutorialDef;        // the guided walkthrough shown when the level starts
 }
 
-export interface LegendEntry { type: TileType; ingredient?: IngredientType; group?: string; item?: ItemKind; ware?: Ware; }
+export interface LegendEntry { type: TileType; ingredient?: IngredientType; group?: string; item?: ItemKind; ware?: Ware; dir?: Facing; }
 
 export const LEGEND: Readonly<Record<string, LegendEntry>> = Object.freeze({
   ' ': { type: 'void' },
@@ -165,13 +165,18 @@ export const LEGEND: Readonly<Record<string, LegendEntry>> = Object.freeze({
   'h': { type: 'shelf' },                  // pass-through shelf (a hatch in a wall)
   't': { type: 'trayRack', item: 'tray' }, // tray rack, the tray on it; the sim removes the tray while the mechanic is off
   'd': { type: 'delivery' },               // delivery door for restocks
+  // Level mechanics (roadmap item 5). The catalog's extension characters, so catalog grids drop straight in.
+  '>': { type: 'conveyor', dir: 'right' },  // conveyor belt, the arrow is the way it carries
+  '<': { type: 'conveyor', dir: 'left' },
+  '^': { type: 'conveyor', dir: 'up' },
+  'v': { type: 'conveyor', dir: 'down' },
 });
 
 /** Tiles a chef body cannot enter. 'gate' is walkable while open, so it is not listed; the sim closes it.
  *  'gap' is not listed either: it has no wall, a chef walks straight in and falls. */
 export const SOLID_TILES: ReadonlySet<TileType> = new Set<TileType>([
   'void', 'counter', 'crate', 'board', 'stove', 'sink', 'drying', 'plateReturn', 'serve', 'trash', 'plateStack', 'slider',
-  'shelf', 'trayRack', 'delivery',
+  'shelf', 'trayRack', 'delivery', 'conveyor',
 ]);
 /** Tiles a chef can stand on: not solid, and not a hole. Spawns and paths need this. */
 export function isWalkable(type: TileType): boolean { return !SOLID_TILES.has(type) && type !== 'gap'; }
@@ -207,6 +212,7 @@ export function parseGrid(level: LevelDef): ParsedGrid {
       const tile: Tile = { x, y, type: entry.type };
       if (entry.ingredient) tile.ingredient = entry.ingredient;
       if (entry.group) tile.group = entry.group;
+      if (entry.dir) tile.dir = entry.dir;
       tiles.push(tile);
       items.push(entry.item ? makeItem(entry.item, 1, entry.ware) : null);
     }
@@ -302,6 +308,9 @@ export function validateLevel(level: LevelDef): string[] {
     }
   }
   if (count('delivery') > 1) errors.push('at most one delivery tile');
+  for (const t of parsed.tiles) {
+    if (t.type === 'conveyor' && !t.dir) errors.push(`conveyor (${t.x},${t.y}) has no direction`);
+  }
   parsed.items.forEach((item, i) => {
     if (item?.kind === 'tray' && parsed.tiles[i].type !== 'trayRack') errors.push(`tray at (${parsed.tiles[i].x},${parsed.tiles[i].y}) is not on a trayRack tile`);
   });
