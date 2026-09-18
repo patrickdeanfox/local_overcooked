@@ -679,6 +679,63 @@ V.#....#....E.#
 
 Wiki facts used: the four burgers (OC2's own ids); 4:00; four plates round the ring; random floor fires that block corridors and can corner a chef; 47 stars; stars 1P 180 / 220 / 300, 2P 240 / 300 / 420. Orders the catalog's estimate (2, every 20 s, at most 5, 80 s), untested.
 
+## 4-1 — Munch Mansion, the drifting counters
+
+```
+  #E#N#N#N#X#
+ ............#
+###.....#ppp####
+W.......#......V
+D.......#......V
+#.......#......R
+#..............#
+####B#B##...####
+............#
+####&THMe###
+```
+
+16 x 10: the catalog's 16 x 12 (low confidence) with one row taken out of each corridor to fit the 10-row budget, and the corridors' open ends closed with a counter. The wiki's "free-floating counters" become three slider groups: the wall between the rooms (`divider`, up and down), the counter of boards (`boards`, left and right) and the counter of plates (`plates`, left and right, the plates riding on it); a waypoint path would be more faithful. Three ovens north, five crates south (`&` dough, `T` tomato, `H` cheese, `M` mushroom, `e` pepperoni).
+
+Wiki facts used: pizza, pepperoni and mushroom pizza; 4:00; three ovens; the moving counters that swap who washes and who serves; 29 stars (table; infobox 20); 3-star 120 (1P) and 200 (2P), lower thresholds estimated. Pizza scores 25 / 30 / 30 are the research doc's OC1 estimates. The ticket life is 90 s rather than the catalog's 60 s estimate, which a pizza (three chops and a bake) does not fit; untested.
+
+## Overcooked 2 3-1 — Conjurer's Kitchen, the moving wall
+
+```
+##X##V#R#####
+#...........#
+######.######
+#.....#.....#
+#.....B.....#
+#.....B.....#
+#.....B.....#
+p.....#.....#
+E.....#.....W
+#Tpp####NN&HD
+```
+
+13 x 10. The catalog grid (low confidence) with its sliding counter re-based at the room's middle: a slider group (`wall`, six tiles, three of them boards) swings two tiles either side every 60 s, so it sweeps the lower room and decides who can reach the stairs at (6,2), the ovens and the sink. The extinguisher moved up a row beside the plates (as catalogued it had no floor next to it), and a plate with it.
+
+Wiki facts used: pizza only; 3:30 with the clock waiting for the first pizza; three plates; the counter moving about every 30 s; 16 stars; stars 1P 240 / 340 / 460, 2P 480 / 600 / 820. OC2 pizza scores 80. Orders the catalog's estimate, untested.
+
+## Overcooked 2 3-3 — Conjurer's Kitchen, the quarters
+
+```
+##X#B###BE###
+#.....G.....#
+#.....G.....V
+#.....G.....#
+#.....&.....#
+#G#pHGpGTp#G#
+#.....e.....#
+#.....G.....#
+#.....G.....#
+#NWD#####NR##
+```
+
+13 x 10 (one of the catalog's two identical south rows dropped for the budget). The wiki's sliding crates close a vertical and then a horizontal split in turn; here the crates stay put in the middle cross and the splits are two wall-gate groups: `v` down the middle column, `h` across the middle row. `v` closes at 10 s for 35 s of every 70; `h` is open the first 45 s of every 70, so the room is whole for the first ten seconds and then cut one way and the other in turn (the wiki: open 10 s, then alternating every 30 to 40 s).
+
+Wiki facts used: pizza and pepperoni pizza; 4:00; three plates on the middle counters; every quarter missing something; 20 stars; stars 1P 200 / 280 / 380, 2P 380 / 480 / 640. Orders the catalog's estimate, untested.
+
 ## 3-2 — Savoury Seas, the split deck
 
 ```

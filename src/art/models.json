@@ -73,5 +73,10 @@
   "chickenChopped": {"src": "kenney_food-kit/Models/GLB format/meat-raw.glb", "url": "models/kenney-food/meat-raw.glb", "fit": 0.28},
   "chickenCooked": {"src": "kenney_food-kit/Models/GLB format/meat-cooked.glb", "url": "models/kenney-food/meat-cooked.glb", "fit": 0.28},
   "cheese": {"src": "kenney_food-kit/Models/GLB format/cheese.glb", "url": "models/kenney-food/cheese.glb", "fit": 0.3},
-  "cheeseChopped": {"src": "kenney_food-kit/Models/GLB format/cheese-cut.glb", "url": "models/kenney-food/cheese-cut.glb", "fit": 0.26}
+  "cheeseChopped": {"src": "kenney_food-kit/Models/GLB format/cheese-cut.glb", "url": "models/kenney-food/cheese-cut.glb", "fit": 0.26},
+  "pepperoni": {"src": "kenney_food-kit/Models/GLB format/sausage.glb", "url": "models/kenney-food/sausage.glb", "fit": 0.32},
+  "pepperoniChopped": {"src": "kenney_food-kit/Models/GLB format/sausage-half.glb", "url": "models/kenney-food/sausage-half.glb", "fit": 0.24},
+  "oven": {"src": "KayKit_Restaurant_Bits_1.0_FREE/Assets/gltf/oven.gltf", "url": "models/kaykit/oven.gltf", "scale": 0.5},
+  "crateCheese": {"src": "KayKit_Restaurant_Bits_1.0_FREE/Assets/gltf/crate_cheese.gltf", "url": "models/kaykit/crate_cheese.gltf", "scale": 0.5},
+  "cratePotatoes": {"src": "KayKit_Restaurant_Bits_1.0_FREE/Assets/gltf/crate_potatoes.gltf", "url": "models/kaykit/crate_potatoes.gltf", "scale": 0.5}
 }

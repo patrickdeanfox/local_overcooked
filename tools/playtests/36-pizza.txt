@@ -1,0 +1,29 @@
+# -- Pizza: OC2 3-1's sliding wall of boards with a raw pizza on a base, one in the oven and one plated,
+#    3-3's walls closing the quarters, and OC1 4-1's drifting counters
+eval localStorage.setItem('local-overcooked.settings.v1', JSON.stringify({ version: 1, players: 2, preset: 'normal', seedMode: 'fixed', fixedSeed: 5, freePlay: true }))
+eval location.reload()
+wait 1500
+until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
+wait 600
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval (__ui.scene('Title').scene.start('Game', { levelId: 'oc2-3-1', seed: 7 }), 'started')
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.level.id === 'oc2-3-1'
+wait 800
+eval ((st) => (st.tileItems[3 * 13 + 1] = { kind: 'pot', id: 9501, ware: 'dough', contents: ['cheese', 'tomato'], state: 'empty', cookProgress: 0, burnProgress: 0 }, st.tileItems[9 * 13 + 8] = { kind: 'pot', id: 9502, ware: 'dough', contents: ['cheese', 'pepperoni', 'tomato'], state: 'empty', cookProgress: 0, burnProgress: 0 }, st.tileItems[3 * 13 + 11] = { kind: 'plate', id: 9503, dish: { type: 'pizza', ingredients: ['cheese', 'dough', 'tomato'] } }, 'set'))(__oc.sim.getState())
+wait 3000
+eval JSON.stringify(['wall', __oc.sim.sliderOffset('wall'), 'oven', __oc.sim.getState().tileItems[9 * 13 + 8].state])
+shot 36-00-conjurer.png
+
+eval (__ui.scene('Game').scene.start('Game', { levelId: 'oc2-3-3', seed: 7 }), 'started')
+until 20000 __oc.level && __oc.level.id === 'oc2-3-3' && __oc.sim.getState().elapsed > 0.5
+until 20000 __oc.sim.getState().gates.some((g) => !g.open)
+wait 500
+eval JSON.stringify(['walls', __oc.sim.getState().gates])
+shot 36-01-quarters.png
+
+eval (__ui.scene('Game').scene.start('Game', { levelId: 'oc1-4-1', seed: 7 }), 'started')
+until 20000 __oc.level && __oc.level.id === 'oc1-4-1' && __oc.sim.getState().elapsed > 0.5
+wait 3000
+eval JSON.stringify(['divider', __oc.sim.sliderOffset('divider'), 'boards', __oc.sim.sliderOffset('boards')])
+shot 36-02-mansion.png
+errors

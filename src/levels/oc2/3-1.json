@@ -1,0 +1,40 @@
+{
+  "id": "oc2-3-1",
+  "name": "3-1",
+  "game": "oc2",
+  "world": 3,
+  "index": 1,
+  "theme": "conjurers-kitchen",
+  "description": "The first pizzas: dough, cheese and tomato, chopped, built on the flattened dough and baked. A counter of three boards slides across the lower room like a moving wall, deciding who can reach the stairs up to the serving strip.",
+  "strategy": "The clock waits for the first serve, so bake a stack of pizzas onto spare counters before you serve any, then spend the timed part washing plates and serving the pile. Swap jobs whenever the wall moves.",
+  "source": "https://overcooked.fandom.com/wiki/3-1_(Overcooked!_2)",
+  "unlockStars": 16,
+  "timeLimitSec": 210,
+  "timerStartsOnFirstServe": true,
+  "recipes": ["oc2_pizza"],
+  "orders": { "initial": 2, "intervalSec": 26, "max": 4, "timeSec": 100 },
+  "stars": { "1": [240, 340, 460], "2": [480, 600, 820] },
+  "plates": { "mode": "sink", "count": 3 },
+  "grid": [
+    "##X##V#R#####",
+    "#...........#",
+    "######.######",
+    "#.....#.....#",
+    "#.....B.....#",
+    "#.....B.....#",
+    "#.....B.....#",
+    "p.....#.....#",
+    "E.....#.....W",
+    "#Tpp####NN&HD"
+  ],
+  "spawns": [{ "x": 2, "y": 6 }, { "x": 9, "y": 6 }],
+  "stations": [
+    { "x": 6, "y": 3, "group": "wall" },
+    { "x": 6, "y": 4, "group": "wall" },
+    { "x": 6, "y": 5, "group": "wall" },
+    { "x": 6, "y": 6, "group": "wall" },
+    { "x": 6, "y": 7, "group": "wall" },
+    { "x": 6, "y": 8, "group": "wall" }
+  ],
+  "dynamics": [{ "type": "sliders", "group": "wall", "axis": "x", "amplitude": 2, "periodSec": 60, "phase": 0.75 }]
+}

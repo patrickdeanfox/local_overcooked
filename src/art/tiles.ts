@@ -593,6 +593,13 @@ function drawConveyorFloor(ctx: CanvasRenderingContext2D): void {
   ctx.lineJoin = 'miter';
 }
 
+/** Oven: a dark block with a glowing window. */
+function drawOven(ctx: CanvasRenderingContext2D): void {
+  drawBlock(ctx, BELT_BLOCK);
+  fillRound(ctx, 6, 5, T - 12, TOP_H - 12, 6, PALETTE.ovenBody);
+  withAlpha(ctx, 0.8, () => fillRound(ctx, 14, 14, T - 28, TOP_H - 30, 4, PALETTE.ovenGlow));
+}
+
 /** Ice floor: pale blue with a few frosty streaks. */
 function drawIce(ctx: CanvasRenderingContext2D): void {
   ctx.fillStyle = vGradient(ctx, 0, T, [[0, PALETTE.ice], [1, PALETTE.iceDark]]);
@@ -632,6 +639,7 @@ const TILE_DRAWERS: Record<Exclude<TileType, 'crate'>, TileDraw> = {
   fryer: drawFryer,
   ice: drawIce,
   conveyorFloor: drawConveyorFloor,
+  oven: drawOven,
 };
 
 export function generateTileTextures(scene: Phaser.Scene): void {

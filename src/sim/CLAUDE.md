@@ -47,6 +47,8 @@ Pasta, burritos, sliding stations and belt reversal (`tests/sim.pasta.test.ts`):
 
 Floor fires (`tests/sim.floorfire.test.ts`): a `floorFires` dynamic runs `updateFloorFires` after `updateFires`: every `intervalSec` (first at `firstDelaySec`), while fewer than `max` fires burn on floor, road or ice, the seed picks an empty such tile at least `FLOOR_FIRE_CLEARANCE` from every chef (one `rng.int`, the same buffer fire spread uses), lights it and sets it in `staticSolid`; `spray` calls `clearFloorFire` when it puts one out, which makes the tile walkable again.
 
+Pizza (`tests/sim.pizza.test.ts`): chopping a `BASE_INGREDIENTS` piece (dough) replaces it on the board with `newBase()`, a `PotItem` with `ware: 'dough'`. It takes chopped `PIZZA_TOPPINGS`, one of each, while `empty`; `cookSite` sends it to an `oven`, where it bakes in `bakeTime` (`BAKE_TIME`) and burns like anything else. `emptyOnto` puts a baked one on an empty plate as a `'pizza'` dish (dough plus its toppings) and returns true, and the caller takes the base away (from the chef's hands or the oven); a base in the bin, by hand or by belt, is gone.
+
 Falling (`tests/sim.gap.test.ts`): a chef whose centre is over a `gap` loses its item, is pinned as `falling` for `FALL_PENALTY_SEC`, is ignored by separation and pushes, and comes back at its spawn. `gap` has no wall (`SOLID_TILES` excludes it) but `isWalkable` is false, so spawns and reachability treat it as a hole.
 
 ### The mechanics (`docs/MECHANICS.md`), each behind an `EffectiveSettings` flag; off is the kitchen as it shipped

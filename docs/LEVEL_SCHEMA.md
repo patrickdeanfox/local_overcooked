@@ -34,6 +34,8 @@ One JSON file per level under `src/levels/<game>/`. Type: `LevelDef` in `src/lev
 | `d` | delivery | delivery door (section 5): restocks arrive here and are unloaded with held interact. At most one per level. With the mechanic off it is a solid tile that does nothing |
 | `Y` | fryer | deep fryer holding a frying basket (`ware: 'basket'`): deep-fries one chopped fish or potato. The basket only goes back in a fryer, pots and pans only on a burner |
 | `%` | crate | potato source (chips) |
+| `N` | oven | bakes a pizza base set on it (the catalog's letter) |
+| `&` `e` | crate | dough (the catalog's) / pepperoni source. Chopping dough turns it into a pizza base on the board: chopped toppings go on it, it bakes in an oven, and a baked pizza slides onto a plate whole |
 | `r` `k` `H` `a` | crate | tortilla / chicken / cheese / pasta source (burritos, nuggets, cheese burgers, pasta). `H` is the catalog's cheese |
 | `I` `n` `c` | crate | rice / nori / cucumber source (sushi, salad). `I` is the catalog's rice; nori and cucumber are lowercase because the catalog reserves every uppercase letter |
 | `»` `«` `↑` `↓` | conveyorFloor | walkable belt (Overcooked 2 1-4): carries a chef standing on it at `CONVEYOR_FLOOR_SPEED`, and an item resting on it on to the next belt tile or plain floor. The catalog writes these as `> <`; use these characters where the belt is floor, not counter |

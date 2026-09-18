@@ -7,7 +7,7 @@
 import type { LevelDef, OrderSettings } from '../levels/schema';
 import { isWalkable, parseGrid, SOLID_TILES } from '../levels/schema';
 import {
-  ASSIST_RATE, BURN_TIME, CATCH_RADIUS, CHEF_HITBOX, CHEF_RADIUS, CHEF_SPEED, CHOP_TIME, CONVEYOR_HOLD, CONVEYOR_SPEED,
+  ASSIST_RATE, BAKE_TIME, BURN_TIME, CATCH_RADIUS, CHEF_HITBOX, CHEF_RADIUS, CHEF_SPEED, CHOP_TIME, CONVEYOR_HOLD, CONVEYOR_SPEED,
   CONVEYOR_FLOOR_SPEED, COOK_TIME, CRATE_SIZE, DEEP_FRY_TIME, FLOOR_FIRE_CLEARANCE, ICE_ACCEL, ICE_DECEL,
   DASH_BUMP_PUSH, DASH_COOLDOWN, DASH_SPEED, DASH_THROW_BONUS, DASH_THROW_WINDOW, DASH_TIME, EXTINGUISH_RATE,
   FALL_PENALTY_SEC, FIRE_SPREAD_TIME, MAX_PUSH_ESCAPE, MAX_SIMULTANEOUS_86, MOVE_DEADZONE, ORDER_FAIL_PENALTY,
@@ -19,7 +19,7 @@ import {
 import { ASSEMBLY_ORDER, DISH_FAMILIES, dishMatchesRecipe, familyFits, RECIPES, recipeDishType, sortIngredients } from './recipes';
 import { mulberry32, type Rng } from './rng';
 import {
-  BOILED_INGREDIENTS, CHOPPED_INGREDIENTS, DEEP_FRIED_INGREDIENTS, FACING_VECTORS, FRIED_INGREDIENTS, INGREDIENT_TYPES, NO_INPUT, SOUP_INGREDIENTS,
+  BASE_INGREDIENTS, BOILED_INGREDIENTS, CHOPPED_INGREDIENTS, PIZZA_TOPPINGS, DEEP_FRIED_INGREDIENTS, FACING_VECTORS, FRIED_INGREDIENTS, INGREDIENT_TYPES, NO_INPUT, SOUP_INGREDIENTS,
   type Chef, type ChefAction, type Dish, type DishType, type Facing, type DirtyPlateItem, type Floe, type FlyingItem, type IngredientItem, type IngredientType,
   type Item, type Order, type PlateItem, type PlayerInput, type PotItem, type Prep, type Recipe, type Restock, type SimEvent,
   type SimState, type Modifiers, type SliderGroup, type Tile, type TrayItem, type TrayLoad, type Ware,
@@ -57,6 +57,7 @@ export interface EffectiveSettings {
   cookTime: number;     // seconds for a full pot, COOK_TIME scaled
   panCookTime: number;  // seconds for a patty, PAN_COOK_TIME scaled
   deepFryTime: number;  // seconds for a piece in the frying basket, DEEP_FRY_TIME scaled
+  bakeTime: number;     // seconds for a pizza in the oven, BAKE_TIME scaled
   burnTime: number;     // seconds from cooked to burnt, BURN_TIME scaled
   chopTime: number;     // seconds per ingredient, CHOP_TIME scaled
   washTime: number;     // seconds per plate, WASH_TIME scaled
@@ -175,6 +176,7 @@ function wareOf(pot: PotItem): Ware {
 }
 
 function wareCapacity(pot: PotItem): number {
+  if (wareOf(pot) === 'dough') return PIZZA_TOPPINGS.length; // one of each topping
   if (wareOf(pot) !== 'pot') return PAN_CAPACITY; // a pan and a frying basket take one piece
   return boilsWhole(pot) ? 1 : POT_CAPACITY;      // a pot of rice holds one portion
 }
@@ -186,12 +188,15 @@ function boilsWhole(pot: PotItem): boolean {
 
 function wareCookTime(pot: PotItem, settings: EffectiveSettings): number {
   const ware = wareOf(pot);
+  if (ware === 'dough') return settings.bakeTime;
   return ware === 'pan' ? settings.panCookTime : ware === 'basket' ? settings.deepFryTime : settings.cookTime;
 }
 
-/** The station the cookware cooks on: pots and pans on a burner, the frying basket in a fryer. */
+/** The station the cookware cooks on: pots and pans on a burner, the frying basket in a fryer, a
+ *  pizza base in an oven. */
 function cookSite(pot: PotItem): Tile['type'] {
-  return wareOf(pot) === 'basket' ? 'fryer' : 'stove';
+  const ware = wareOf(pot);
+  return ware === 'basket' ? 'fryer' : ware === 'dough' ? 'oven' : 'stove';
 }
 
 /** A pot boils soup ingredients, a pan fries the chopped ones that come out cooked, a basket
@@ -199,6 +204,8 @@ function cookSite(pot: PotItem): Tile['type'] {
  *  ingredient" is pushed away). */
 function wareAccepts(pot: PotItem, item: IngredientItem): boolean {
   const ware = wareOf(pot);
+  // A pizza base takes chopped toppings, one of each, until it goes in the oven.
+  if (ware === 'dough') return item.chopped && PIZZA_TOPPINGS.includes(item.type) && !pot.contents.includes(item.type) && pot.state === 'empty';
   // Rice goes in whole, alone, into an empty pot; nothing joins it.
   if (ware === 'pot' && BOILED_INGREDIENTS.includes(item.type)) return !item.chopped && pot.contents.length === 0;
   if (ware === 'pot' && boilsWhole(pot)) return false;
@@ -239,6 +246,7 @@ function effectiveSettings(level: LevelDef, mods: Modifiers | undefined): Effect
     cookTime: COOK_TIME * (mods?.cookTimeScale ?? 1),
     panCookTime: PAN_COOK_TIME * (mods?.cookTimeScale ?? 1),
     deepFryTime: DEEP_FRY_TIME * (mods?.cookTimeScale ?? 1),
+    bakeTime: BAKE_TIME * (mods?.cookTimeScale ?? 1),
     burnTime: BURN_TIME * (mods?.burnTimeScale ?? 1),
     chopTime: CHOP_TIME * (mods?.chopTimeScale ?? 1),
     washTime: WASH_TIME * (mods?.washTimeScale ?? 1),
@@ -1504,6 +1512,7 @@ export class Sim {
         item.chopped = true;
         chef.action = 'idle';
         chef.actionProgress = 0;
+        if (BASE_INGREDIENTS.includes(item.type)) st.tileItems[i] = this.newBase(); // flattened dough is a pizza base
         events.push({ type: 'chopDone', chef: idx, x: tx, y: ty });
       }
       return;
@@ -1669,6 +1678,11 @@ export class Sim {
       }
 
       case 'pot': {
+        if (tile.type === 'trash' && wareOf(held) === 'dough') { // a pizza base is food, not cookware: it goes
+          chef.holding = null;
+          events.push({ type: 'trash', chef: idx, x: tx, y: ty });
+          return;
+        }
         if (tile.type === 'trash') {
           if (held.contents.length > 0) {
             this.emptyPot(held); // the pot stays in hand, only the contents go
@@ -1679,7 +1693,7 @@ export class Sim {
         // wiki (Plate): a plate resting on a sink refuses food, poured as well as plated.
         if (item && item.kind === 'plate' && tile.type !== 'sink'
             && held.state === 'cooked' && held.contents.length > 0) {
-          this.emptyOnto(item, held, idx, tx, ty, events);
+          if (this.emptyOnto(item, held, idx, tx, ty, events) && wareOf(held) === 'dough') chef.holding = null; // the pizza is on the plate
           return;
         }
         if (!item && (this.canPlaceOn(tile.type) || tile.type === cookSite(held))) {
@@ -1702,7 +1716,7 @@ export class Sim {
         }
         // wiki (3-2 Strategies): "you can use the plates to scoop up the food from the pot".
         if (item && item.kind === 'pot' && item.state === 'cooked' && item.contents.length > 0) {
-          this.emptyOnto(held, item, idx, tx, ty, events);
+          if (this.emptyOnto(held, item, idx, tx, ty, events) && wareOf(item) === 'dough') st.tileItems[i] = null; // off the oven onto the plate
           return;
         }
         // Burger assembly the other way round: the plate collects a prepped ingredient off a
@@ -1933,18 +1947,25 @@ export class Sim {
   /** Empties cooked cookware onto a plate: a pot pours a soup, a pan drops its patty on a
    *  plate that is empty or already holds burger parts. Refuses when the plate cannot take it,
    *  leaving both the plate and the cookware untouched. */
-  private emptyOnto(plate: PlateItem, ware: PotItem, idx: number, tx: number, ty: number, events: SimEvent[]): void {
+  private emptyOnto(plate: PlateItem, ware: PotItem, idx: number, tx: number, ty: number, events: SimEvent[]): boolean {
+    if (wareOf(ware) === 'dough') { // a baked pizza slides onto an empty plate whole; the caller takes the base away
+      if (plate.dish !== null || (plate.count ?? 1) !== 1) return false;
+      plate.dish = { type: 'pizza', ingredients: sortIngredients([...BASE_INGREDIENTS, ...ware.contents]) };
+      events.push({ type: 'plateAdd', chef: idx, x: tx, y: ty });
+      return true;
+    }
     if (wareOf(ware) !== 'pot' || boilsWhole(ware)) { // a pan, a basket or a pot of rice lays its one piece on the plate
       const prep: Prep = wareOf(ware) === 'pan' ? 'pan' : wareOf(ware) === 'basket' ? 'basket' : 'boiled';
-      if (!this.addToPlate(plate, ware.contents[0], prep)) return;
+      if (!this.addToPlate(plate, ware.contents[0], prep)) return false;
       this.emptyPot(ware);
       events.push({ type: 'plateAdd', chef: idx, x: tx, y: ty });
-      return;
+      return true;
     }
-    if (plate.dish !== null || (plate.count ?? 1) !== 1) return; // no soup on top of a burger
+    if (plate.dish !== null || (plate.count ?? 1) !== 1) return false; // no soup on top of a burger
     plate.dish = { type: 'soup', ingredients: sortIngredients(ware.contents) };
     this.emptyPot(ware);
     events.push({ type: 'potPour', chef: idx, x: tx, y: ty });
+    return true;
   }
 
   /** Adds one piece to a plate. The plate's dish is the first family (the level's own first) that
@@ -2328,6 +2349,7 @@ export class Sim {
       return;
     }
     if (item.kind === 'plate') item.dish = null;
+    if (item.kind === 'pot' && item.ware === 'dough') return; // a pizza base is food: gone
     if (item.kind === 'pot') this.emptyPot(item);
     this.queueRespawn(item);
   }
@@ -2507,6 +2529,11 @@ export class Sim {
   // ─── Item factories (per-Sim ids) ─────────────────────────────────────────
   private newIngredient(type: IngredientType): IngredientItem {
     return { kind: 'ingredient', id: this.nextItemId++, type, chopped: false, chopProgress: 0 };
+  }
+
+  /** Flattened dough: a pizza base waiting for its toppings. */
+  private newBase(): PotItem {
+    return { kind: 'pot', id: this.nextItemId++, ware: 'dough', contents: [], state: 'empty', cookProgress: 0, burnProgress: 0 };
   }
 
   private newPlate(count = 1): PlateItem {

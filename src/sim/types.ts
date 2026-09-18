@@ -7,17 +7,22 @@
 // chef's center, so a chef standing in the middle of tile (3,2) has x=3.5, y=2.5.
 
 export type IngredientType = 'onion' | 'tomato' | 'mushroom' | 'meat' | 'bun' | 'lettuce' | 'fish' | 'prawn' | 'potato'
-  | 'cucumber' | 'rice' | 'nori' | 'tortilla' | 'chicken' | 'cheese' | 'pasta';
+  | 'cucumber' | 'rice' | 'nori' | 'tortilla' | 'chicken' | 'cheese' | 'pasta' | 'dough' | 'pepperoni';
 export const INGREDIENT_TYPES: readonly IngredientType[] = [
   'onion', 'tomato', 'mushroom', 'meat', 'bun', 'lettuce', 'fish', 'prawn', 'potato', 'cucumber', 'rice', 'nori',
-  'tortilla', 'chicken', 'cheese', 'pasta',
+  'tortilla', 'chicken', 'cheese', 'pasta', 'dough', 'pepperoni',
 ];
 /** Ingredients that go in a pot and make soup. */
 export const SOUP_INGREDIENTS: readonly IngredientType[] = ['onion', 'tomato', 'mushroom'];
 /** Ingredients that need the chopping board before use (buns never do). */
 export const CHOPPED_INGREDIENTS: readonly IngredientType[] = [
   'onion', 'tomato', 'mushroom', 'meat', 'lettuce', 'fish', 'prawn', 'potato', 'cucumber', 'chicken', 'cheese',
+  'dough', 'pepperoni',
 ];
+/** Chopping one of these (dough, flattened) turns it into a pizza base: cookware that takes the toppings. */
+export const BASE_INGREDIENTS: readonly IngredientType[] = ['dough'];
+/** Chopped toppings a pizza base takes, one of each. */
+export const PIZZA_TOPPINGS: readonly IngredientType[] = ['cheese', 'tomato', 'pepperoni', 'mushroom', 'chicken'];
 /** Ingredients that go in a pan after chopping and come out cooked. */
 export const FRIED_INGREDIENTS: readonly IngredientType[] = ['meat', 'chicken', 'tomato', 'mushroom', 'fish', 'prawn']; // meat for burgers; the rest for Overcooked 2's burritos and pasta sauces
 /** Chopped ingredients that go straight onto a plate as a 'plated' dish (sashimi; salads later). */
@@ -30,14 +35,16 @@ export const BOILED_INGREDIENTS: readonly IngredientType[] = ['rice', 'pasta'];
  *  frying basket, or boiled in a pot. A dish family (src/sim/recipes.ts DISH_FAMILIES) says which it takes. */
 export type Prep = 'raw' | 'chopped' | 'pan' | 'basket' | 'boiled';
 
-export type Ware = 'pot' | 'pan' | 'basket'; // 'pot' and 'pan' sit on a stove, 'basket' (a frying basket) in a fryer
+export type Ware = 'pot' | 'pan' | 'basket' // 'pot' and 'pan' sit on a stove, 'basket' (a frying basket) in a fryer
+  | 'dough'; // a pizza base: chopped dough carrying its toppings, baked in an oven and slid onto a plate whole
 /** 'plated': chopped ingredients assembled directly on the plate, no heat (Overcooked 2 sashimi, salad). */
 export type DishType = 'soup' | 'burger' | 'plated'
   | 'fried'  // deep-fried pieces out of a frying basket, laid on the plate (fish and chips)
   | 'sushi'  // nori, boiled rice and chopped fillings (Overcooked 2)
   | 'salad'   // chopped lettuce, tomato and cucumber, no heat (Overcooked 2)
   | 'pasta'   // boiled pasta and a sauce piece out of a pan (Overcooked 2)
-  | 'burrito'; // a raw tortilla, boiled rice and a filling out of a pan (Overcooked 2)
+  | 'burrito' // a raw tortilla, boiled rice and a filling out of a pan (Overcooked 2)
+  | 'pizza';  // a baked pizza base and its toppings, off the oven onto the plate
 
 export type TileType =
   | 'void'        // outside the kitchen; not walkable, nothing placed
@@ -64,6 +71,7 @@ export type TileType =
   | 'conveyor'    // conveyor belt: a counter that carries its item one tile along tile.dir; hands off to the next belt, a free counter or a bin
   | 'fryer'       // solid; deep fryer: holds a frying basket and cooks it, like a stove holds a pot
   | 'ice'         // walkable floor with momentum: a chef on it speeds up and slows down gradually (Glazed Glacier)
+  | 'oven'        // solid; bakes the pizza base set on it, like a stove cooks a pot
   | 'conveyorFloor'; // walkable belt: carries the chef standing on it, and items resting on it, along tile.dir (Overcooked 2 1-4)
 
 export interface Tile {
