@@ -90,9 +90,9 @@ describe('mixer and steamer', () => {
     expect(errors.some((e) => e.includes('needs a mixer'))).toBe(true);
   });
 
-  it('takes raw flour and one chopped filling in the bowl, nothing else', () => {
+  it('takes raw flour and chopped fillings in the bowl, one of each, and no raw filling', () => {
     const sim = make();
-    feed(sim, 7, ing('flour', false, 901), ing('meat', false, 902), ing('carrot', true, 903), ing('prawn', true, 904), ing('flour', false, 905));
+    feed(sim, 7, ing('flour', false, 901), ing('meat', false, 902), ing('carrot', true, 903), ing('flour', false, 905), ing('carrot', true, 906));
     expect(ware(sim, 7).contents).toEqual(['flour', 'carrot']);
   });
 

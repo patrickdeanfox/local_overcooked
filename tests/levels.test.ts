@@ -1144,6 +1144,9 @@ describe('order tuning', () => {
     'oc2-3-4': { initial: 2, intervalSec: 22, max: 4, timeSec: 90 },
     // Kevin: steamed dumplings; the catalog's estimates, untested.
     'oc2-7-1': { initial: 2, intervalSec: 20, max: 5, timeSec: 90 },
+    // Pancakes and cakes: a mix and a cook per dish; the catalog's estimates, untested.
+    'oc2-5-4': { initial: 2, intervalSec: 20, max: 5, timeSec: 80 },
+    'oc2-6-1': { initial: 2, intervalSec: 20, max: 5, timeSec: 100 },
     'oc2-7-4': { initial: 2, intervalSec: 20, max: 5, timeSec: 90 },
     // The dark kitchen: a lit kitchen's soup cadence; the catalog's estimate, untested.
     'oc1-4-2': { initial: 2, intervalSec: 18, max: 4, timeSec: 60 },

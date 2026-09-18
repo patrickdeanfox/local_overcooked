@@ -12,7 +12,7 @@ export const TILE_TYPES: readonly TileType[] = [
   'shelf', 'trayRack', 'delivery', 'conveyor', 'fryer', 'ice', 'conveyorFloor', 'oven', 'portal', 'rift', 'mixer',
 ];
 /** Dish families with their own HUD icon (TEX.iconDish); the others use an ingredient's icon. */
-export const DISH_ICON_TYPES: readonly DishType[] = ['sushi', 'salad', 'pasta', 'burrito', 'pizza', 'steamed'];
+export const DISH_ICON_TYPES: readonly DishType[] = ['sushi', 'salad', 'pasta', 'burrito', 'pizza', 'steamed', 'pancake', 'cake'];
 /** Ingredients with a cooked look (TEX.ingredientCooked): out of a pan or a frying basket. */
 export const COOKED_INGREDIENTS: readonly IngredientType[] = [...new Set([...FRIED_INGREDIENTS, ...DEEP_FRIED_INGREDIENTS])];
 export const FACINGS: readonly Facing[] = ['up', 'down', 'left', 'right'];

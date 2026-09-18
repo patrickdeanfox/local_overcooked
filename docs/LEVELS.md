@@ -783,6 +783,14 @@ Kevin 4, 15 x 10: the catalog's 15 x 11 with its empty bottom floor row dropped 
 
 Both: steamed fish 40 and the mixed dumplings 60 (the 20-per-step estimate); orders the catalog's estimate (2, every 20 s, at most 5, 90 s), untested.
 
+## Overcooked 2 5-4 and 6-1 — pancakes and cakes
+
+5-4, 15 x 10 (medium confidence): two top sections over a pit and the bottom section with the mixers, pans, eggs and bin. The pit (`_`) is where the catalog had a solid block between the top sections; the wiki throws chocolate across and warns of falling in, so it is open. The staircases are one wall-gate group, gone for 35 s of every 70 (the wiki: about every 35 s). The drifting third portal is not modelled: two fixed pairs, `left` (3,4)-(6,7) and `right` (12,4)-(8,7). Stars 1P 160 / 200 / 280, 2P 260 / 340 / 460; 54 stars.
+
+6-1, 15 x 10: the catalog's 15 x 11 with one top-band floor row dropped for the budget. The belt down the left wall (`v`) stops one tile short of the bottom counter, on a counter the bottom band can reach, since as catalogued it ended against a counter no chef could reach. Floor fires every 25 s, at most two (estimate). The wiki's cap of five waiting cakes is not modelled. Clock waits for the first serve. Stars 1P 360 / 460 / 620, 2P 420 / 520 / 700; 66 stars.
+
+Both: pancakes 40 / 60 and cakes 60 / 80 / 80 (the 20-per-step estimate); orders the catalog's estimates (2, every 20 s, at most 5; 80 s and 100 s), untested.
+
 ## 3-2 — Savoury Seas, the split deck
 
 ```

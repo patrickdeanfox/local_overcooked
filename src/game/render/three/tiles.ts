@@ -75,6 +75,7 @@ const CRATE_ROLE: Readonly<Record<IngredientType, ModelRole | null>> = {
   potato: 'cratePotatoes', cheese: 'crateCheese', carrot: 'crateCarrots',
   mushroom: null, fish: null, prawn: null, cucumber: null, rice: null, nori: null,
   tortilla: null, chicken: null, pasta: null, dough: null, pepperoni: null, flour: null,
+  egg: null, honey: null, chocolate: null,
 };
 const GROUND_TEXTURE: Readonly<Partial<Record<TileType, string>>> = {
   floor: TEX.tile('floor'), road: TEX.tile('road'), gate: TEX.tile('gate'), slider: TEX.tile('floor'),

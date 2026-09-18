@@ -49,6 +49,9 @@ const INGREDIENT_ROLE: Readonly<Record<IngredientType, { raw: ModelRole; chopped
   pepperoni: { raw: 'pepperoni', chopped: 'pepperoniChopped' },
   flour: { raw: 'flourBag', chopped: 'flourBag' },
   carrot: { raw: 'carrot', chopped: 'carrotChopped' },
+  egg: { raw: 'egg', chopped: 'egg' },
+  honey: { raw: 'honey', chopped: 'honey' },
+  chocolate: { raw: 'chocolate', chopped: 'chocolateChopped' },
 };
 /** Kit models tinted to stand in for an ingredient the kit lacks. */
 const INGREDIENT_TINT: Readonly<Partial<Record<IngredientType, { raw?: number; chopped?: number }>>> = {
@@ -67,6 +70,9 @@ const CHEESE_LAYER = { size: 0.3, thickness: 0.02, color: 0xf6c945 } as const;
 /** The mixing bowl with its mix, and the steamer with its dumplings. */
 const MIX = { radius: 0.13, level: 0.08, raw: 0xefe4c8, mixed: 0xf6efdd, burnt: 0x3b2c22 } as const;
 const STEAMED = { lift: 0.06, rawTint: 0xd9cfb8 } as const;
+/** Batter in a pan, and a cake tin on the oven. */
+const BATTER = { radius: 0.14, height: 0.02, raw: 0xf1d9a0, fried: 0xd99a4e, lift: 0.03 } as const;
+const TIN = { radius: 0.18, height: 0.1, metal: 0x8d939c, raw: 0xf1d9a0, baked: 0xe2a95a, burnt: 0x3b2c22 } as const;
 /** A pizza, raw on its base or baked on a plate: dough disc, then sauce, cheese and toppings in rings. */
 const PIZZA = {
   radius: 0.2, thickness: 0.025, rawDough: 0xf1dfb4, baked: 0xd99a4e, burnt: 0x3b2c22, sauce: 0xc8331f, cheese: 0xf6c945,
@@ -303,6 +309,19 @@ function steamerView(pot: PotItem): THREE.Group {
   return root;
 }
 
+/** A cake tin: a metal ring with the batter, the sponge or the charred remains inside. */
+function tinView(pot: PotItem): THREE.Group {
+  const root = new THREE.Group();
+  const tin = new THREE.Mesh(
+    new THREE.CylinderGeometry(TIN.radius, TIN.radius * 0.95, TIN.height, 24, 1, true),
+    new THREE.MeshStandardMaterial({ color: TIN.metal, metalness: 0.5, roughness: 0.4, side: THREE.DoubleSide }),
+  );
+  tin.position.y = TIN.height / 2;
+  const colour = pot.state === 'burnt' ? TIN.burnt : pot.state === 'cooked' ? TIN.baked : TIN.raw;
+  root.add(tin, soupDisc(colour, TIN.radius * 0.95, TIN.height * (pot.state === 'cooked' ? 0.9 : 0.5)));
+  return root;
+}
+
 function noriSheet(): THREE.Group {
   const root = new THREE.Group();
   const sheet = new THREE.Mesh(
@@ -375,11 +394,21 @@ function potView(pot: PotItem): THREE.Group {
   if (pot.ware === 'dough') return pizzaView(pot.contents, pot.state === 'burnt' ? 'burnt' : pot.state === 'cooked' ? 'baked' : 'raw');
   if (pot.ware === 'bowl') return bowlView(pot);
   if (pot.ware === 'steamer') return steamerView(pot);
+  if (pot.ware === 'tin') return tinView(pot);
   const root = new THREE.Group();
   const pan = (pot.ware ?? 'pot') === 'pan';
   const ware = modelInstance(pan ? 'pan' : 'pot');
   root.add(ware);
   if (pot.contents.length === 0) return root;
+  if (pan && (pot.contents.includes('flour') || pot.contents.includes('egg'))) { // batter: a pancake
+    const disc = new THREE.Mesh(
+      new THREE.CylinderGeometry(BATTER.radius, BATTER.radius, BATTER.height, 20),
+      new THREE.MeshStandardMaterial({ color: pot.state === 'burnt' ? BURNT_TINT : pot.state === 'cooked' ? BATTER.fried : BATTER.raw }),
+    );
+    disc.position.set(0, BATTER.lift, PAN.pattyOffsetZ);
+    root.add(disc);
+    return root;
+  }
   if (pan && pot.contents[0] !== 'meat') { // a sauce or a filling: the piece itself, browned once cooked
     const piece = ingredientView(pot.contents[0], true, pot.state === 'cooked' || pot.state === 'burnt');
     piece.position.set(0, PAN.pattyLift, PAN.pattyOffsetZ);
@@ -442,6 +471,10 @@ function plateView(count: number, dish: Dish | null): THREE.Group {
       const stack = burgerStack(dish);
       stack.position.y = top + plateHeight;
       root.add(stack);
+    } else if (dish.type === 'pancake' || dish.type === 'cake') {
+      const food = modelInstance(dish.type === 'pancake' ? 'pancakes' : 'cake');
+      food.position.y = top + plateHeight;
+      root.add(food);
     } else if (dish.type === 'steamed') {
       const dumplings = modelInstance('dimSum');
       dumplings.position.y = top + plateHeight;

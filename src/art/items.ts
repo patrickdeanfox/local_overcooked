@@ -48,6 +48,9 @@ const SOUP_COLORS: Record<IngredientType, string> = {
   pepperoni: PALETTE.pepperoni,
   flour: PALETTE.flour,
   carrot: PALETTE.carrot,
+  egg: PALETTE.yolk,
+  honey: PALETTE.honey,
+  chocolate: PALETTE.chocolate,
 };
 
 /** Sesame seeds on a bun dome: [dx, dy] as fractions of the shape radius. */
@@ -596,6 +599,7 @@ const RAW_SHAPES: Record<IngredientType, ShapeFn> = {
   cucumber: drawCucumberRaw, rice: drawRiceRaw, nori: drawNori,
   tortilla: drawTortilla, chicken: drawChickenRaw, cheese: drawCheeseRaw, pasta: drawPastaRaw,
   dough: drawDoughRaw, pepperoni: drawPepperoniRaw, flour: drawFlour, carrot: drawCarrotRaw,
+  egg: drawEgg, honey: drawHoneyRaw, chocolate: drawChocolateRaw,
 };
 const CHOPPED_SHAPES: Record<IngredientType, ShapeFn> = {
   onion: drawOnionChopped, tomato: drawTomatoChopped, mushroom: drawMushroomChopped,
@@ -604,6 +608,7 @@ const CHOPPED_SHAPES: Record<IngredientType, ShapeFn> = {
   cucumber: drawCucumberChopped, rice: drawRiceRaw, nori: drawNori,
   tortilla: drawTortilla, chicken: drawChickenChopped, cheese: drawCheeseChopped, pasta: drawPastaRaw,
   dough: drawDoughFlat, pepperoni: drawPepperoniSlices, flour: drawFlour, carrot: drawCarrotChopped,
+  egg: drawEgg, honey: drawHoneyChopped, chocolate: drawChocolateChopped,
 };
 /** Fried ingredients after the pan or the basket; anything else falls back to its chopped shape. */
 const COOKED_SHAPES: Partial<Record<IngredientType, ShapeFn>> = {
@@ -960,6 +965,50 @@ function drawCarrotChopped(ctx: CanvasRenderingContext2D, cx: number, cy: number
   for (const [dx, dy] of [[-0.35, 0.15], [0.3, 0.2], [0, -0.25]] as const) {
     fillCircle(ctx, cx + dx * r, cy + dy * r, r * 0.32, PALETTE.carrot);
     withAlpha(ctx, 0.6, () => fillCircle(ctx, cx + dx * r, cy + dy * r, r * 0.12, PALETTE.carrotDark));
+  }
+}
+
+// ─── Pancakes and cakes ─────────────────────────────────────────────────────
+
+/** An egg. */
+function drawEgg(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  ctx.beginPath();
+  ctx.ellipse(cx, cy + r * 0.05, r * 0.5, r * 0.66, 0, 0, Math.PI * 2);
+  ctx.fillStyle = vGradient(ctx, cy - r * 0.6, cy + r * 0.7, [[0, '#ffffff'], [1, PALETTE.eggShade]]);
+  ctx.fill();
+  ctx.strokeStyle = PALETTE.eggShade;
+  ctx.lineWidth = Math.max(1, r * 0.06);
+  ctx.stroke();
+}
+
+/** A pot of honey. */
+function drawHoneyRaw(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  fillRound(ctx, cx - r * 0.55, cy - r * 0.4, r * 1.1, r * 1.05, r * 0.3, PALETTE.honey);
+  strokeRound(ctx, cx - r * 0.55, cy - r * 0.4, r * 1.1, r * 1.05, r * 0.3, PALETTE.honeyDark, Math.max(1, r * 0.07));
+  fillRound(ctx, cx - r * 0.45, cy - r * 0.62, r * 0.9, r * 0.26, r * 0.08, PALETTE.honeyDark);
+}
+
+/** Honeycomb pieces. */
+function drawHoneyChopped(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  for (const [dx, dy] of [[-0.35, 0.15], [0.3, 0.2], [0, -0.25]] as const) {
+    fillCircle(ctx, cx + dx * r, cy + dy * r, r * 0.3, PALETTE.honey);
+    withAlpha(ctx, 0.6, () => fillCircle(ctx, cx + dx * r, cy + dy * r, r * 0.12, PALETTE.honeyDark));
+  }
+}
+
+/** A bar of chocolate. */
+function drawChocolateRaw(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  fillRound(ctx, cx - r * 0.75, cy - r * 0.45, r * 1.5, r * 0.9, r * 0.08, PALETTE.chocolate);
+  withAlpha(ctx, 0.6, () => {
+    for (const x of [-0.25, 0.25]) line(ctx, cx + x * r, cy - r * 0.45, cx + x * r, cy + r * 0.45, PALETTE.chocolateLight, 1.5);
+    line(ctx, cx - r * 0.75, cy, cx + r * 0.75, cy, PALETTE.chocolateLight, 1.5);
+  });
+}
+
+/** Chocolate chunks. */
+function drawChocolateChopped(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  for (const [dx, dy] of [[-0.35, 0.15], [0.3, 0.2], [0, -0.25]] as const) {
+    fillRound(ctx, cx + dx * r - r * 0.22, cy + dy * r - r * 0.2, r * 0.44, r * 0.4, r * 0.05, PALETTE.chocolate);
   }
 }
 

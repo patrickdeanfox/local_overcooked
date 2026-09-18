@@ -85,5 +85,11 @@
   "flourBag": {"src": "kenney_food-kit/Models/GLB format/bag-flat.glb", "url": "models/kenney-food/bag-flat.glb", "fit": 0.3},
   "mixingBowl": {"src": "kenney_food-kit/Models/GLB format/bowl.glb", "url": "models/kenney-food/bowl.glb", "fit": 0.36},
   "steamer": {"src": "kenney_food-kit/Models/GLB format/steamer.glb", "url": "models/kenney-food/steamer.glb", "fit": 0.4},
-  "dimSum": {"src": "kenney_food-kit/Models/GLB format/dim-sum.glb", "url": "models/kenney-food/dim-sum.glb", "fit": 0.24}
+  "dimSum": {"src": "kenney_food-kit/Models/GLB format/dim-sum.glb", "url": "models/kenney-food/dim-sum.glb", "fit": 0.24},
+  "egg": {"src": "kenney_food-kit/Models/GLB format/egg.glb", "url": "models/kenney-food/egg.glb", "fit": 0.18},
+  "honey": {"src": "kenney_food-kit/Models/GLB format/honey.glb", "url": "models/kenney-food/honey.glb", "fit": 0.26},
+  "chocolate": {"src": "kenney_food-kit/Models/GLB format/chocolate.glb", "url": "models/kenney-food/chocolate.glb", "fit": 0.3},
+  "chocolateChopped": {"src": "kenney_food-kit/Models/GLB format/candy-bar.glb", "url": "models/kenney-food/candy-bar.glb", "fit": 0.24},
+  "pancakes": {"src": "kenney_food-kit/Models/GLB format/pancakes.glb", "url": "models/kenney-food/pancakes.glb", "fit": 0.3},
+  "cake": {"src": "kenney_food-kit/Models/GLB format/cake.glb", "url": "models/kenney-food/cake.glb", "fit": 0.3}
 }
