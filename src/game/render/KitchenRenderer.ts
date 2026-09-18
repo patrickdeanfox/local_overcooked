@@ -121,7 +121,8 @@ export class KitchenRenderer {
 
   /** `skins` is the apron (CHEF_SKINS index) each chef wears, by chef index; missing entries fall
    *  back to the default order. `flags` are the run's mechanics the static kitchen depends on.
-   *  `framing` frames the kitchen somewhere other than the HUD band (a menu diorama). */
+   *  `framing` frames the kitchen somewhere other than the HUD band (a menu diorama).
+   *  `hats` says, by chef index, whether each chef wears the toque; missing entries do. */
   constructor(
     private readonly scene: Phaser.Scene,
     state: Readonly<SimState>,
@@ -129,6 +130,7 @@ export class KitchenRenderer {
     private readonly skins: readonly number[] = [],
     private readonly flags: Readonly<TileFlags> = DEFAULT_TILE_FLAGS,
     private readonly framing: Readonly<Framing> = {},
+    private readonly hats: readonly boolean[] = [],
   ) {
     this.stage = acquireStage(scene.game.canvas);
     this.stage.resetScene();
@@ -651,7 +653,7 @@ export class KitchenRenderer {
   }
 
   private makeChef(index: number): ChefRig {
-    const rig = new ChefRig(this.skinFor(index), true);
+    const rig = new ChefRig(this.skinFor(index), this.hats[index] ?? true);
     this.stage.scene.add(rig.group);
     this.chefs.set(index, rig);
     return rig;

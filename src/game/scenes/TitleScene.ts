@@ -311,7 +311,7 @@ export class TitleScene extends Phaser.Scene {
     const state = sim.getState();
     this.diorama = new KitchenRenderer(this, state, level.theme, this.settings.chefs, { passThroughShelf: sim.getEffectiveSettings().passThroughShelf }, {
       band: DIORAMA.band, yawRad: DIORAMA.yawRad, pitchDeg: DIORAMA.pitchDeg,
-    });
+    }, this.settings.hats);
     this.diorama.container.setDepth(-8);
     this.dioramaState = state;
     this.dioramaTargets = state.chefs.map(() => null);

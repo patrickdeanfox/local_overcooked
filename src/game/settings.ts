@@ -1,6 +1,6 @@
 // ─── Game settings ──────────────────────────────────────────────────────────
 // Player count, difficulty preset, the custom difficulty numbers, seed mode, free play,
-// assists, audio switches and the chefs' aprons, saved under STORAGE_KEYS.SETTINGS. Pure
+// assists, audio switches, the chefs' aprons and hats, saved under STORAGE_KEYS.SETTINGS. Pure
 // module: no Phaser, no scene state. The title, the Settings, Custom difficulty and Chefs
 // pages edit it; GameScene reads it to build the Sim and the kitchen.
 import { CHEF_SKINS, DEFAULT_CHEF_SKINS } from '../art/models';
@@ -147,6 +147,7 @@ export interface Settings {
   mechanics: Mechanics; // the docs/MECHANICS.md additions that are switched on
   audio: AudioSettings;
   chefs: number[];      // character (CHEF_SKINS index) per player, index = player
+  hats: boolean[];      // whether each player's chef wears the toque, index = player
 }
 
 export const DEFAULT_SETTINGS: Readonly<Settings> = Object.freeze({
@@ -160,6 +161,7 @@ export const DEFAULT_SETTINGS: Readonly<Settings> = Object.freeze({
   mechanics: NO_MECHANICS,
   audio: DEFAULT_AUDIO,
   chefs: [...DEFAULT_CHEF_SKINS],
+  hats: DEFAULT_CHEF_SKINS.map(() => true),
 });
 
 // ─── Pure helpers ───────────────────────────────────────────────────────────
@@ -171,6 +173,7 @@ export function defaultSettings(): Settings {
     mechanics: { ...NO_MECHANICS },
     audio: { ...DEFAULT_AUDIO },
     chefs: [...DEFAULT_CHEF_SKINS],
+    hats: DEFAULT_CHEF_SKINS.map(() => true),
   };
 }
 
@@ -224,6 +227,12 @@ function asChefs(value: unknown): number[] {
     const skin = stored[player];
     return typeof skin === 'number' && Number.isInteger(skin) && skin >= 0 && skin < CHEF_SKINS.length ? skin : fallback;
   });
+}
+
+/** One hat switch per player; anything that is not a boolean (a save from before hats) is on. */
+function asHats(value: unknown): boolean[] {
+  const stored: unknown[] = Array.isArray(value) ? value : [];
+  return DEFAULT_CHEF_SKINS.map((_, player) => asBoolean(stored[player], true));
 }
 
 /** Wraps any number into the 32-bit unsigned seed range. */
@@ -429,6 +438,7 @@ export function loadSettings(storage: StorageLike | null = browserStorage()): Se
     mechanics: asMechanics(stored.mechanics),
     audio: asAudio(stored.audio),
     chefs: asChefs(stored.chefs),
+    hats: asHats(stored.hats),
   };
 }
 
