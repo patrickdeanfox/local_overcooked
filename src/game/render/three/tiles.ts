@@ -28,6 +28,7 @@ const THEMES: Readonly<Record<string, ThemeDressing>> = {
   default: { backdropColor: 0x3d322b, floorColor: null, backWall: false },
   'treacle-town': { backdropColor: 0x4b3d33, floorColor: null, backWall: true },
   'savoury-seas': { backdropColor: 0x2e6b8a, floorColor: 0xc99a63, backWall: false },
+  'glazed-glacier': { backdropColor: 0x2c5f86, floorColor: null, backWall: false }, // the sea round the floe
 };
 const WALL = { span: 2, height: 2, depth: 0.25, windowEvery: 3 } as const; // tiles, at the manifest scale
 /** A road that reaches the grid edge continues as asphalt into the backdrop, with parked cars up the street. */
@@ -56,21 +57,24 @@ const BELT = {
   steel: 0x80858e, rubber: '#34353a', chevron: '#9a9ca3', texturePx: 64, chevrons: 3, lineWidth: 7,
   topLift: 0.002, roughness: 0.6,
 } as const;
+/** Deep fryer: a steel block at counter height with a well of oil in its top. */
+const FRYER = { steel: 0x8d939c, oil: 0xc98f2a, wellInset: 0.14, wellDepth: 0.03, roughness: 0.5 } as const;
 /** Yaw that turns the belt's local +x (the chevrons' way) to its direction. */
 const BELT_YAW: Readonly<Record<Facing, number>> = { right: 0, down: -Math.PI / 2, left: Math.PI, up: Math.PI / 2 };
 const DRYING = { rackOffset: new THREE.Vector3(0, 0, -0.28), itemOffset: new THREE.Vector3(0, 0, 0.12) } as const;
 const CRATE_ROLE: Readonly<Record<IngredientType, ModelRole | null>> = {
   tomato: 'crateTomatoes', onion: 'crateOnions', lettuce: 'crateLettuce', bun: 'crateBuns', meat: 'crateSteak',
-  mushroom: null, fish: null, prawn: null,
+  mushroom: null, fish: null, prawn: null, potato: null,
 };
 /** For ingredients with no crate model: the raw item, a few of them standing in a plain crate. */
-const CRATE_FILLER: Readonly<Partial<Record<IngredientType, ModelRole>>> = { mushroom: 'mushroom', fish: 'fish', prawn: 'prawn' };
+const CRATE_FILLER: Readonly<Partial<Record<IngredientType, ModelRole>>> = { mushroom: 'mushroom', fish: 'fish', prawn: 'prawn', potato: 'potato' };
 const GROUND_TEXTURE: Readonly<Partial<Record<TileType, string>>> = {
   floor: TEX.tile('floor'), road: TEX.tile('road'), gate: TEX.tile('gate'), slider: TEX.tile('floor'),
   counter: TEX.tile('floor'), crate: TEX.tile('floor'), board: TEX.tile('floor'), stove: TEX.tile('floor'),
   sink: TEX.tile('floor'), drying: TEX.tile('floor'), plateReturn: TEX.tile('floor'), serve: TEX.tile('floor'),
   trash: TEX.tile('floor'), plateStack: TEX.tile('floor'),
   shelf: TEX.tile('floor'), trayRack: TEX.tile('floor'), delivery: TEX.tile('floor'), conveyor: TEX.tile('floor'),
+  fryer: TEX.tile('floor'), ice: TEX.tile('ice'),
 };
 
 /** Run flags the static kitchen depends on: a shelf is a hatch while its mechanic is on and a wall while off. */
@@ -111,7 +115,7 @@ function oneTileWide(model: THREE.Group, role: ModelRole): THREE.Group {
   return model;
 }
 
-const WALKABLE: ReadonlySet<TileType> = new Set<TileType>(['floor', 'road', 'gate']);
+const WALKABLE: ReadonlySet<TileType> = new Set<TileType>(['floor', 'road', 'gate', 'ice']);
 /** Neighbour directions in preference order: face the camera when there is a choice. */
 const FRONT_CHOICES: readonly { dx: number; dy: number; yaw: number }[] = [
   { dx: 0, dy: 1, yaw: 0 },              // down (+z, towards the camera)
@@ -268,7 +272,7 @@ function streetDressing(state: Readonly<SimState>): THREE.Group {
 
 const SOLID_FOR_WALL: ReadonlySet<TileType> = new Set<TileType>([
   'counter', 'crate', 'board', 'stove', 'sink', 'drying', 'plateReturn', 'serve', 'trash', 'plateStack',
-  'shelf', 'trayRack', 'delivery', 'conveyor',
+  'shelf', 'trayRack', 'delivery', 'conveyor', 'fryer',
 ]);
 
 /** Wall pieces behind the top row, only where the tiles they cover are stations (never over a road or a gap). */
@@ -362,9 +366,29 @@ function beltStation(texture: THREE.Texture): Station {
   return { root, surfaceY: height, itemOffset: new THREE.Vector3(), solid: true };
 }
 
+function fryerStation(): Station {
+  const height = modelSize('counter').y;
+  const root = new THREE.Group();
+  const body = new THREE.Mesh(
+    new THREE.BoxGeometry(1, height, 1),
+    new THREE.MeshStandardMaterial({ color: FRYER.steel, roughness: FRYER.roughness, metalness: 0.3 }),
+  );
+  body.position.y = height / 2;
+  body.castShadow = true;
+  body.receiveShadow = true;
+  const well = 1 - FRYER.wellInset * 2;
+  const oil = new THREE.Mesh(new THREE.PlaneGeometry(well, well), new THREE.MeshStandardMaterial({ color: FRYER.oil, roughness: 0.2 }));
+  oil.rotation.x = -Math.PI / 2;
+  oil.position.y = height + 0.002;
+  root.add(body, oil);
+  return { root, surfaceY: height - FRYER.wellDepth, itemOffset: new THREE.Vector3(), solid: true };
+}
+
 function buildStation(tile: Tile, flags: Readonly<TileFlags>, belt: THREE.Texture | null): Station {
   const offset = new THREE.Vector3();
   switch (tile.type) {
+    case 'fryer':
+      return fryerStation();
     case 'conveyor':
       return belt ? beltStation(belt) : { root: new THREE.Group(), surfaceY: 0, itemOffset: offset, solid: true };
     case 'shelf':

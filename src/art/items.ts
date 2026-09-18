@@ -4,8 +4,8 @@
 // drawn from shape helpers that take a radius so the 40 px item sprites and the
 // 32 px HUD icons share one set of shapes.
 import type Phaser from 'phaser';
-import { FRIED_INGREDIENTS, INGREDIENT_TYPES, SOUP_INGREDIENTS, type IngredientType } from '../sim/types';
-import { BURGER_LAYERS, TEX, TEXTURE_SIZES, type BurgerLayer } from './keys';
+import { INGREDIENT_TYPES, SOUP_INGREDIENTS, type IngredientType } from '../sim/types';
+import { BURGER_LAYERS, COOKED_INGREDIENTS, TEX, TEXTURE_SIZES, type BurgerLayer } from './keys';
 import { PALETTE } from './palette';
 import {
   drawText, fillCircle, fillEllipse, fillPolygon, fillRound, line, makeTexture, radial, roundRectPath,
@@ -36,6 +36,7 @@ const SOUP_COLORS: Record<IngredientType, string> = {
   lettuce: PALETTE.lettuce,
   fish: PALETTE.fishFlesh,
   prawn: PALETTE.prawn,
+  potato: PALETTE.potatoFlesh,
 };
 
 /** Sesame seeds on a bun dome: [dx, dy] as fractions of the shape radius. */
@@ -575,14 +576,18 @@ export function drawPan(ctx: CanvasRenderingContext2D, cx: number, cy: number, r
 const RAW_SHAPES: Record<IngredientType, ShapeFn> = {
   onion: drawOnionRaw, tomato: drawTomatoRaw, mushroom: drawMushroomRaw,
   meat: drawMeatRaw, bun: drawBun, lettuce: drawLettuceRaw, fish: drawFishRaw, prawn: drawPrawnRaw,
+  potato: drawPotatoRaw,
 };
 const CHOPPED_SHAPES: Record<IngredientType, ShapeFn> = {
   onion: drawOnionChopped, tomato: drawTomatoChopped, mushroom: drawMushroomChopped,
   meat: drawMeatChopped, bun: drawBun, lettuce: drawLettuceChopped, fish: drawFishChopped, prawn: drawPrawnChopped,
+  potato: drawChipsRaw,
 };
-/** Fried ingredients after the pan; anything else falls back to its chopped shape. */
+/** Fried ingredients after the pan or the basket; anything else falls back to its chopped shape. */
 const COOKED_SHAPES: Partial<Record<IngredientType, ShapeFn>> = {
   meat: drawMeatCooked,
+  potato: drawChipsCooked,
+  fish: drawFishFried,
 };
 
 /** Shared by item sprites, HUD icons and the ingredient shown on a crate. */
@@ -682,6 +687,61 @@ function drawPrawnRaw(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: 
 function drawPrawnChopped(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
   drawPrawnCurl(ctx, cx - r * 0.42, cy + r * 0.3, r * 0.55);
   drawPrawnCurl(ctx, cx + r * 0.4, cy - r * 0.2, r * 0.55);
+}
+
+// ─── Fish and chips (Overcooked 1 world 3) ──────────────────────────────────
+
+/** A whole potato: a lumpy brown oval with a few eyes. */
+function drawPotatoRaw(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, r * 0.82, r * 0.6, -0.25, 0, Math.PI * 2);
+  ctx.fillStyle = vGradient(ctx, cy - r * 0.6, cy + r * 0.6, [[0, PALETTE.potato], [1, PALETTE.potatoDark]]);
+  ctx.fill();
+  ctx.strokeStyle = PALETTE.potatoDark;
+  ctx.lineWidth = Math.max(1, r * 0.07);
+  ctx.stroke();
+  for (const [dx, dy] of [[-0.4, -0.12], [0.1, 0.22], [0.42, -0.2]] as const) {
+    fillCircle(ctx, cx + dx * r, cy + dy * r, r * 0.06, PALETTE.potatoDark);
+  }
+}
+
+/** A little stack of sticks, crossing, in the given colours. */
+function drawSticks(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, fill: string, edge: string): void {
+  const sticks: readonly (readonly [number, number, number])[] = [[-0.3, 0.1, -0.5], [0.05, -0.05, 0.3], [0.32, 0.12, -0.2], [-0.05, 0.25, 0.9]];
+  for (const [dx, dy, angle] of sticks) {
+    ctx.save();
+    ctx.translate(cx + dx * r, cy + dy * r);
+    ctx.rotate(angle);
+    fillRound(ctx, -r * 0.55, -r * 0.1, r * 1.1, r * 0.2, r * 0.05, fill);
+    strokeRound(ctx, -r * 0.55, -r * 0.1, r * 1.1, r * 0.2, r * 0.05, edge, Math.max(1, r * 0.05));
+    ctx.restore();
+  }
+}
+
+/** Cut chips before the fryer: pale sticks. */
+function drawChipsRaw(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  drawSticks(ctx, cx, cy, r, PALETTE.potatoFlesh, PALETTE.potato);
+}
+
+/** Chips out of the fryer: golden sticks. */
+function drawChipsCooked(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  drawSticks(ctx, cx, cy, r, PALETTE.fried, PALETTE.friedDark);
+}
+
+/** A battered fish fillet out of the fryer. */
+function drawFishFried(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, r * 0.8, r * 0.42, -0.2, 0, Math.PI * 2);
+  ctx.fillStyle = vGradient(ctx, cy - r * 0.42, cy + r * 0.42, [[0, PALETTE.friedLight], [1, PALETTE.fried]]);
+  ctx.fill();
+  ctx.strokeStyle = PALETTE.friedDark;
+  ctx.lineWidth = Math.max(1, r * 0.07);
+  ctx.stroke();
+  withAlpha(ctx, 0.5, () => {
+    for (const [dx, dy] of [[-0.4, -0.05], [-0.1, 0.12], [0.2, -0.1], [0.45, 0.08]] as const) {
+      fillCircle(ctx, cx + dx * r, cy + dy * r, r * 0.07, PALETTE.friedDark);
+    }
+  });
 }
 
 // ─── Cookware ───────────────────────────────────────────────────────────────
@@ -899,7 +959,7 @@ export function generateItemTextures(scene: Phaser.Scene): void {
     makeTexture(scene, TEX.plateSoup(type), ITEM, ITEM, (ctx) => drawPlate(ctx, c, c, ITEM_R, soupColor(type)));
   }
 
-  for (const type of FRIED_INGREDIENTS) {
+  for (const type of COOKED_INGREDIENTS) {
     const shape = COOKED_SHAPES[type] ?? CHOPPED_SHAPES[type];
     makeTexture(scene, TEX.ingredientCooked(type), ITEM, ITEM, (ctx) => shape(ctx, c, c, ITEM_R));
   }

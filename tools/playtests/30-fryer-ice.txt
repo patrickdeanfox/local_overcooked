@@ -1,0 +1,29 @@
+# -- OC1 3-1, Glazed Glacier: the floe, the fryers with their baskets, a fish frying, a plate of
+#    fish and chips, the tickets' fried icons, and a chef sliding on after letting go ---------------
+eval localStorage.setItem('local-overcooked.settings.v1', JSON.stringify({ version: 1, players: 2, preset: 'normal', seedMode: 'fixed', fixedSeed: 5, freePlay: true }))
+eval location.reload()
+wait 1500
+until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
+wait 600
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval (__ui.scene('Title').scene.start('Game', { levelId: 'oc1-3-1', seed: 7 }), 'started')
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.level.id === 'oc1-3-1'
+wait 1200
+eval JSON.stringify(['orders', __qa.orders()])
+shot 30-00-glacier.png
+
+# -- A chopped fish into the first basket, a plate of fish and chips on the counter by the plates --
+eval ((st) => (st.tileItems[6 * 13 + 4].contents.push('fish'), st.tileItems[6 * 13 + 5].contents.push('potato'), st.tileItems[3 * 13 + 3] = { kind: 'plate', id: 9201, dish: { type: 'fried', ingredients: ['fish', 'potato'] } }, 'set'))(__oc.sim.getState())
+wait 2500
+eval JSON.stringify(['basket', __oc.sim.getState().tileItems[6 * 13 + 4].state, __oc.sim.getState().tileItems[6 * 13 + 4].cookProgress])
+shot 30-01-frying.png
+until 15000 __oc.sim.getState().tileItems[6 * 13 + 4].state === 'cooked'
+shot 30-02-fried.png
+
+# -- Ice: hold right for a moment, let go, the chef slides on --------------------------------------
+hold KeyD 500
+eval JSON.stringify(['released at', __qa.chef(0), 'v', __oc.sim.getState().chefs[0].vx])
+wait 300
+eval JSON.stringify(['slid to', __qa.chef(0)])
+shot 30-03-slide.png
+errors

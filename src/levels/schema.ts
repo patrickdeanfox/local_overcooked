@@ -166,6 +166,9 @@ export const LEGEND: Readonly<Record<string, LegendEntry>> = Object.freeze({
   't': { type: 'trayRack', item: 'tray' }, // tray rack, the tray on it; the sim removes the tray while the mechanic is off
   'd': { type: 'delivery' },               // delivery door for restocks
   // Level mechanics (roadmap item 5). The catalog's extension characters, so catalog grids drop straight in.
+  'Y': { type: 'fryer', item: 'pot', ware: 'basket' }, // deep fryer with its frying basket
+  '%': { type: 'crate', ingredient: 'potato' },
+  ',': { type: 'ice' },                                  // slippery floor
   '>': { type: 'conveyor', dir: 'right' },  // conveyor belt, the arrow is the way it carries
   '<': { type: 'conveyor', dir: 'left' },
   '^': { type: 'conveyor', dir: 'up' },
@@ -176,7 +179,7 @@ export const LEGEND: Readonly<Record<string, LegendEntry>> = Object.freeze({
  *  'gap' is not listed either: it has no wall, a chef walks straight in and falls. */
 export const SOLID_TILES: ReadonlySet<TileType> = new Set<TileType>([
   'void', 'counter', 'crate', 'board', 'stove', 'sink', 'drying', 'plateReturn', 'serve', 'trash', 'plateStack', 'slider',
-  'shelf', 'trayRack', 'delivery', 'conveyor',
+  'shelf', 'trayRack', 'delivery', 'conveyor', 'fryer',
 ]);
 /** Tiles a chef can stand on: not solid, and not a hole. Spawns and paths need this. */
 export function isWalkable(type: TileType): boolean { return !SOLID_TILES.has(type) && type !== 'gap'; }
@@ -188,8 +191,8 @@ export function makeItem(kind: ItemKind, count = 1, ware?: Ware): Item {
   const id = nextItemId++;
   switch (kind) {
     case 'ingredient': return { kind, id, type: 'onion', chopped: false, chopProgress: 0 };
-    case 'pot': return ware === 'pan'
-      ? { kind, id, ware: 'pan', contents: [], state: 'empty', cookProgress: 0, burnProgress: 0 }
+    case 'pot': return ware === 'pan' || ware === 'basket'
+      ? { kind, id, ware, contents: [], state: 'empty', cookProgress: 0, burnProgress: 0 }
       : { kind, id, contents: [], state: 'empty', cookProgress: 0, burnProgress: 0 };
     case 'plate': return { kind, id, dish: null };
     case 'dirtyPlate': return { kind, id, count };
@@ -254,7 +257,8 @@ export function validateLevel(level: LevelDef): string[] {
   const crates = new Set(parsed.tiles.filter((t) => t.type === 'crate').map((t) => t.ingredient));
   const wares = new Set<Ware>();
   parsed.items.forEach((item, i) => {
-    if (item?.kind === 'pot' && parsed.tiles[i].type === 'stove') wares.add(item.ware ?? 'pot');
+    const site = parsed.tiles[i].type;
+    if (item?.kind === 'pot' && (site === 'stove' || site === 'fryer')) wares.add(item.ware ?? 'pot');
   });
   for (const t of parsed.tiles) {
     if (t.type === 'crate' && !t.ingredient) errors.push(`crate (${t.x},${t.y}) has no ingredient: use a stations override`);
@@ -269,7 +273,8 @@ export function validateLevel(level: LevelDef): string[] {
       if (!crates.has(ingredient)) errors.push(`recipe '${id}' needs a ${ingredient} crate`);
     }
     if (recipeDishType(recipe) === 'soup' && !wares.has('pot')) errors.push(`recipe '${id}' needs a stove with a pot`);
-    if (recipe.ingredients.some((i) => FRIED_INGREDIENTS.includes(i)) && !wares.has('pan')) errors.push(`recipe '${id}' needs a stove with a pan`);
+    if (recipeDishType(recipe) === 'burger' && recipe.ingredients.some((i) => FRIED_INGREDIENTS.includes(i)) && !wares.has('pan')) errors.push(`recipe '${id}' needs a stove with a pan`);
+    if (recipeDishType(recipe) === 'fried' && !wares.has('basket')) errors.push(`recipe '${id}' needs a fryer with a basket`);
     if (recipe.ingredients.some((i) => CHOPPED_INGREDIENTS.includes(i)) && count('board') === 0) errors.push(`recipe '${id}' needs a chopping board`);
     if (recipeDishType(recipe) === 'soup' && recipe.ingredients.some((i) => !SOUP_INGREDIENTS.includes(i))) errors.push(`recipe '${id}' has a non-soup ingredient`);
   }
@@ -308,9 +313,11 @@ export function validateLevel(level: LevelDef): string[] {
     }
   }
   if (count('delivery') > 1) errors.push('at most one delivery tile');
-  for (const t of parsed.tiles) {
+  parsed.tiles.forEach((t, i) => {
     if (t.type === 'conveyor' && !t.dir) errors.push(`conveyor (${t.x},${t.y}) has no direction`);
-  }
+    const item = parsed.items[i];
+    if (item?.kind === 'pot' && item.ware === 'basket' && t.type === 'stove') errors.push(`frying basket at (${t.x},${t.y}) is on a burner, not a fryer`);
+  });
   parsed.items.forEach((item, i) => {
     if (item?.kind === 'tray' && parsed.tiles[i].type !== 'trayRack') errors.push(`tray at (${parsed.tiles[i].x},${parsed.tiles[i].y}) is not on a trayRack tile`);
   });

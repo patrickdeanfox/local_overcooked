@@ -564,6 +564,30 @@ function drawConveyor(ctx: CanvasRenderingContext2D): void {
   for (let x = 6; x < T; x += 12) fillRound(ctx, x, TOP_H + 2, 6, FRONT_H - 4, 2, BELT.roller);
 }
 
+/** Deep fryer: a steel block with a well of golden oil and the basket's handle. */
+function drawFryer(ctx: CanvasRenderingContext2D): void {
+  drawBlock(ctx, BELT_BLOCK);
+  fixtureShadow(ctx, 6, 6, T - 12, TOP_H - 12, 6);
+  fillRound(ctx, 6, 5, T - 12, TOP_H - 12, 6, PALETTE.hob);
+  fillRound(ctx, 10, 9, T - 20, TOP_H - 20, 4, PALETTE.fryerOil);
+  withAlpha(ctx, 0.4, () => {
+    for (const [x, y] of [[22, 20], [38, 30], [28, 36]] as const) fillCircle(ctx, x, y, 2.5, PALETTE.friedLight);
+  });
+  line(ctx, TOP_CX, TOP_CY - 4, TOP_CX, 4, '#2a2a2e', 3);
+}
+
+/** Ice floor: pale blue with a few frosty streaks. */
+function drawIce(ctx: CanvasRenderingContext2D): void {
+  ctx.fillStyle = vGradient(ctx, 0, T, [[0, PALETTE.ice], [1, PALETTE.iceDark]]);
+  ctx.fillRect(0, 0, T, T);
+  withAlpha(ctx, 0.55, () => {
+    line(ctx, 8, 14, 30, 6, '#ffffff', 2);
+    line(ctx, 30, 44, 56, 30, '#ffffff', 1.5);
+    line(ctx, 12, 54, 22, 50, '#ffffff', 1);
+  });
+  speckle(ctx, 20, '#ffffff', 0.25, 13);
+}
+
 // ─── Texture generation ─────────────────────────────────────────────────────
 
 type TileDraw = (ctx: CanvasRenderingContext2D) => void;
@@ -588,6 +612,8 @@ const TILE_DRAWERS: Record<Exclude<TileType, 'crate'>, TileDraw> = {
   trayRack: drawTrayRack,
   delivery: drawDelivery,
   conveyor: drawConveyor,
+  fryer: drawFryer,
+  ice: drawIce,
 };
 
 export function generateTileTextures(scene: Phaser.Scene): void {

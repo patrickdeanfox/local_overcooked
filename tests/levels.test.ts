@@ -1078,6 +1078,8 @@ describe('order tuning', () => {
     // The belt kitchens: every burger rides the belt, so a long ticket life; the catalog's estimates, untested.
     'oc1-2-3': { initial: 2, intervalSec: 26, max: 4, timeSec: 110 },
     'oc1-2-4': { initial: 2, intervalSec: 24, max: 4, timeSec: 110 },
+    // Fish and chips on ice: every dish needs the fryer, so a long ticket life; the catalog's estimate, untested.
+    'oc1-3-1': { initial: 2, intervalSec: 22, max: 4, timeSec: 100 },
     'oc1-3-2': { initial: 2, intervalSec: 22, max: 4, timeSec: 95 },
     // Overcooked 2's first level: one chop per dish, so a quick drip; the catalog's estimate, untested.
     'oc2-1-1': { initial: 2, intervalSec: 18, max: 4, timeSec: 60 },

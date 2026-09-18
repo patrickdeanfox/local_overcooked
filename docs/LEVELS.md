@@ -454,6 +454,36 @@ F.............#
 
 Wiki facts used: the three burgers; 4:00; belts that lead to bins instead of circling (Overview); three plates (Overview); 17 stars to unlock from the table (infobox 10); 3-star 110 (1P) and 160 (2P), lower thresholds estimated as for 2-3; trashed plates and cookware respawn after 5 s where they started, clean staying clean and dirty staying dirty (Trash Bin page), which is `TRASH_RESPAWN_SEC`. A clean plate that did not start on the grid (one washed at the sink) goes back to the first plate's counter. Orders are the catalog's estimate (2, every 24 s, at most 4, 110 s), untested.
 
+## 3-1 — Glazed Glacier, fish and chips on the ice
+
+```
+_____RVV_____
+____,,,,,____
+__,,,,,,,,,__
+_,,#B#BE#X,,_
+_,,W#####J,,_
+_,,D#####%,,_
+_,,#YYY##Y,,_
+_,,,,,,ppp,,_
+__,,,,,,,,,__
+____,,,,,____
+```
+
+13 x 10, the catalog grid (`docs/research/catalog/oc1/oc1-3-1.md`, medium confidence) with its floor written as ice (`,`) and its sea as `_` gaps. The island counted cleanly; the floe's rounded outline is read off the screenshot's silhouette, not measured.
+
+| Tile | Station |
+| --- | --- |
+| `R` (5,0), `V` (6,0)-(7,0) | Plate return and the two-tile serving hatch, on their own ledge north of the floe |
+| `B` (4,3), (6,3) | Boards |
+| `E` (7,3), `X` (9,3) | Extinguisher and bin |
+| `W` (3,4), `D` (3,5) | Sink and rack, the island's west face |
+| `J` (9,4), `%` (9,5) | Fish and potato crates, east face |
+| `Y` (4,6)-(6,6), (9,6) | The four deep fryers with baskets |
+| `p` (7,7)-(9,7) | Three clean plates |
+| `_` | The sea: falling in costs `FALL_PENALTY_SEC` (5 s, the infobox) |
+
+Wiki facts used: chips, fried fish, fish and chips; 4:00, no prep time; the slippery floor and the detached hatch (Overview); "steer into the corners" (the one strategy line); 20 stars to unlock from the table (infobox 12); 3-star 200 (1P) and 220 (2P), lower thresholds a third and two-thirds, estimated. The recipe id is `fried_fish`, not the catalog's `fish`, so the dish never reads as the ingredient. Scores 15 / 15 / 25 are the research doc's estimates. The wiki gives no fry time (`DEEP_FRY_TIME` is the pan's 9 s) and no friction (`ICE_ACCEL` 7, `ICE_DECEL` 3.5 tiles/s², a slide of about 2.5 tiles from full speed); both want tuning by play. Orders are the catalog's estimate (2, every 22 s, at most 4, 100 s), untested.
+
 ## 3-2 — Savoury Seas, the split deck
 
 ```

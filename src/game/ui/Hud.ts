@@ -106,6 +106,7 @@ function recipeIconKey(recipeId: string): string {
   if (kind === 'burger') return TEX.iconBurger;
   const first: IngredientType | undefined = recipe.ingredients[0];
   if (!first) return TEX.iconPlate;
+  if (kind === 'fried') return TEX.ingredientCooked(first);
   return kind === 'plated' ? TEX.icon(first) : TEX.iconSoup(first);
 }
 

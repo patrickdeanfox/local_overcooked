@@ -21,6 +21,8 @@ import { acquireStage, type Framing, type Stage } from './three/stage';
 import { DEFAULT_TILE_FLAGS, TileSet, themeSceneHeight, type TileFlags } from './three/tiles';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
+/** Stations that cook what sits on them: burners for pots and pans, fryers for the frying basket. */
+const COOK_SITES: ReadonlySet<Tile['type']> = new Set<Tile['type']>(['stove', 'fryer']);
 const HELD = { scale: 0.9 } as const;
 
 const HIGHLIGHT = { inner: 0.3, outer: 0.42, segments: 40, alpha: 0.85, lift: 0.012 } as const;
@@ -474,7 +476,7 @@ export class KitchenRenderer {
     this.steamPositions.length = 0;
     for (let i = 0; i < state.tileItems.length; i++) {
       const item = state.tileItems[i];
-      if (!item || item.kind !== 'pot' || state.tiles[i].type !== 'stove') continue;
+      if (!item || item.kind !== 'pot' || !COOK_SITES.has(state.tiles[i].type)) continue;
       if (item.state !== 'cooking' && item.state !== 'cooked') continue;
       this.steamPositions.push(this.slotPosition(state, i, new THREE.Vector3()));
     }
@@ -533,7 +535,7 @@ export class KitchenRenderer {
       if (tile.type === 'board' && item.kind === 'ingredient' && item.chopProgress > 0 && item.chopProgress < 1) {
         this.bar(state, i, item.chopProgress, COLOR.barWarn, 1);
       }
-      if (tile.type === 'stove' && item.kind === 'pot') {
+      if (COOK_SITES.has(tile.type) && item.kind === 'pot') {
         if (item.state === 'cooking') this.bar(state, i, item.cookProgress, COLOR.barGood, 1);
         else if (item.state === 'cooked') {
           const flash = BAR.flashMinAlpha + (1 - BAR.flashMinAlpha) * (0.5 + 0.5 * Math.sin(this.elapsed * BAR.flashSpeedRad));

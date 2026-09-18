@@ -3,14 +3,16 @@
 // that ALL_TEXTURE_KEYS() lists. Sizes are in native pixels at TILE = 64.
 import { GAME_HEIGHT, GAME_WIDTH, TILE } from '../config';
 import {
-  FRIED_INGREDIENTS, INGREDIENT_TYPES, SOUP_INGREDIENTS,
+  DEEP_FRIED_INGREDIENTS, FRIED_INGREDIENTS, INGREDIENT_TYPES, SOUP_INGREDIENTS,
   type Facing, type IngredientType, type TileType,
 } from '../sim/types';
 
 export const TILE_TYPES: readonly TileType[] = [
   'void', 'floor', 'road', 'counter', 'crate', 'board', 'stove', 'sink', 'drying', 'plateReturn', 'serve', 'trash', 'plateStack', 'slider', 'gate', 'gap',
-  'shelf', 'trayRack', 'delivery', 'conveyor',
+  'shelf', 'trayRack', 'delivery', 'conveyor', 'fryer', 'ice',
 ];
+/** Ingredients with a cooked look (TEX.ingredientCooked): out of a pan or a frying basket. */
+export const COOKED_INGREDIENTS: readonly IngredientType[] = [...new Set([...FRIED_INGREDIENTS, ...DEEP_FRIED_INGREDIENTS])];
 export const FACINGS: readonly Facing[] = ['up', 'down', 'left', 'right'];
 export const CHEF_COUNT = 2;
 
@@ -74,7 +76,7 @@ export function ALL_TEXTURE_KEYS(): string[] {
   keys.push(TEX.gateClosed);
   for (const i of INGREDIENT_TYPES) keys.push(TEX.crate(i), TEX.ingredient(i, false), TEX.ingredient(i, true), TEX.icon(i));
   for (const i of SOUP_INGREDIENTS) keys.push(TEX.potSoup(i), TEX.plateSoup(i), TEX.iconSoup(i));
-  for (const i of FRIED_INGREDIENTS) keys.push(TEX.ingredientCooked(i));
+  for (const i of COOKED_INGREDIENTS) keys.push(TEX.ingredientCooked(i));
   for (const s of PAN_CONTENT_STATES) keys.push(TEX.panMeat(s));
   for (const l of BURGER_LAYERS) keys.push(TEX.burgerLayer(l));
   keys.push(TEX.pot, TEX.potBurnt, TEX.pan, TEX.plate, TEX.dirtyPlate, TEX.extinguisher, TEX.fire, TEX.spray, TEX.smoke);
