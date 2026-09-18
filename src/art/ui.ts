@@ -355,6 +355,30 @@ function drawSaladIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number, r:
   ctx.stroke();
 }
 
+/** A plate of pasta with a red sauce on top. */
+function drawPastaIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  drawPlate(ctx, cx, cy, r + 1, null);
+  fillEllipse(ctx, cx, cy - r * 0.05, r * 0.6, r * 0.38, PALETTE.pasta);
+  ctx.strokeStyle = PALETTE.pastaDark;
+  ctx.lineWidth = Math.max(1, r * 0.06);
+  ctx.beginPath();
+  ctx.ellipse(cx, cy - r * 0.05, r * 0.4, r * 0.24, 0.3, 0, Math.PI * 2);
+  ctx.stroke();
+  fillEllipse(ctx, cx, cy - r * 0.12, r * 0.28, r * 0.16, PALETTE.soupTomato);
+}
+
+/** A burrito: a rolled tortilla, cut end showing rice and filling. */
+function drawBurritoIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(-0.4);
+  fillRound(ctx, -r * 0.9, -r * 0.35, r * 1.6, r * 0.7, r * 0.35, PALETTE.tortilla);
+  strokeRound(ctx, -r * 0.9, -r * 0.35, r * 1.6, r * 0.7, r * 0.35, PALETTE.tortillaSpot, Math.max(1, r * 0.06));
+  fillEllipse(ctx, r * 0.7, 0, r * 0.2, r * 0.35, PALETTE.rice);
+  fillEllipse(ctx, r * 0.72, 0, r * 0.1, r * 0.18, PALETTE.meatCooked);
+  ctx.restore();
+}
+
 // ─── Texture generation ─────────────────────────────────────────────────────
 
 export function generateUiTextures(scene: Phaser.Scene): void {
@@ -367,6 +391,8 @@ export function generateUiTextures(scene: Phaser.Scene): void {
   makeTexture(scene, TEX.iconBurger, ICON, ICON, (ctx) => drawBurgerStack(ctx, ICON_C, ICON_C + 1, ICON_R + 1));
   makeTexture(scene, TEX.iconDish('sushi'), ICON, ICON, (ctx) => drawSushiIcon(ctx, ICON_C, ICON_C, ICON_R));
   makeTexture(scene, TEX.iconDish('salad'), ICON, ICON, (ctx) => drawSaladIcon(ctx, ICON_C, ICON_C, ICON_R));
+  makeTexture(scene, TEX.iconDish('pasta'), ICON, ICON, (ctx) => drawPastaIcon(ctx, ICON_C, ICON_C, ICON_R));
+  makeTexture(scene, TEX.iconDish('burrito'), ICON, ICON, (ctx) => drawBurritoIcon(ctx, ICON_C, ICON_C, ICON_R));
   makeTexture(scene, TEX.iconLock, ICON, ICON, drawLock);
   makeTexture(scene, TEX.iconPlate, ICON, ICON, (ctx) => drawPlate(ctx, ICON_C, ICON_C, ICON_R + 1, null));
   makeTexture(scene, TEX.iconClock, ICON, ICON, drawClock);

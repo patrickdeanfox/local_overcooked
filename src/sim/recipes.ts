@@ -5,15 +5,17 @@ import { PLATED_INGREDIENTS, type Dish, type DishType, type IngredientType, type
  *  a piece may repeat (two fish on a sashimi plate). Soup is not here: it is poured from a pot. */
 export interface DishFamily { parts: Partial<Record<IngredientType, Prep>>; repeats?: boolean; }
 export const DISH_FAMILIES: Readonly<Partial<Record<DishType, DishFamily>>> = {
-  burger: { parts: { bun: 'raw', meat: 'pan', lettuce: 'chopped', tomato: 'chopped' } },
+  burger: { parts: { bun: 'raw', meat: 'pan', lettuce: 'chopped', tomato: 'chopped', cheese: 'chopped' } },
   plated: { parts: { fish: 'chopped', prawn: 'chopped' }, repeats: true },
-  fried: { parts: { fish: 'basket', potato: 'basket' } },
+  fried: { parts: { fish: 'basket', potato: 'basket', chicken: 'basket' } },
   sushi: { parts: { nori: 'raw', rice: 'boiled', fish: 'chopped', cucumber: 'chopped' } },
   salad: { parts: { lettuce: 'chopped', tomato: 'chopped', cucumber: 'chopped' } },
+  pasta: { parts: { pasta: 'boiled', tomato: 'pan', meat: 'pan', mushroom: 'pan', fish: 'pan', prawn: 'pan' } },
+  burrito: { parts: { tortilla: 'raw', rice: 'boiled', meat: 'pan', chicken: 'pan', mushroom: 'pan' } },
 };
 /** The order a plate tries the families in when a piece fits several (chopped lettuce: burger or salad);
  *  the Sim puts the level's own families first. */
-export const ASSEMBLY_ORDER: readonly DishType[] = ['burger', 'plated', 'fried', 'sushi', 'salad'];
+export const ASSEMBLY_ORDER: readonly DishType[] = ['burger', 'plated', 'fried', 'sushi', 'salad', 'pasta', 'burrito'];
 
 /** True when the family takes every piece in its state, each at most once unless the family repeats. */
 export function familyFits(dish: DishType, pieces: readonly { type: IngredientType; prep: Prep }[]): boolean {
@@ -56,6 +58,21 @@ export const RECIPES: Record<string, Recipe> = {
   lettuce_salad:         { id: 'lettuce_salad',         name: 'Salad',               dish: 'salad', ingredients: ['lettuce'],                          score: 20 },
   tomato_salad:          { id: 'tomato_salad',          name: 'Tomato Salad',        dish: 'salad', ingredients: ['lettuce', 'tomato'],                score: 40 },
   cucumber_tomato_salad: { id: 'cucumber_tomato_salad', name: 'Cucumber Salad',      dish: 'salad', ingredients: ['cucumber', 'lettuce', 'tomato'],    score: 60 },
+  // Overcooked 2 worlds 1, 2 and 5: pasta, burritos, burgers with cheese, nuggets. Same 20-per-step estimate.
+  tomato_pasta:       { id: 'tomato_pasta',       name: 'Tomato Pasta',       dish: 'pasta',   ingredients: ['pasta', 'tomato'],          score: 60 },
+  beef_pasta:         { id: 'beef_pasta',         name: 'Beef Pasta',         dish: 'pasta',   ingredients: ['meat', 'pasta'],            score: 60 },
+  mushroom_pasta:     { id: 'mushroom_pasta',     name: 'Mushroom Pasta',     dish: 'pasta',   ingredients: ['mushroom', 'pasta'],        score: 60 },
+  fish_prawn_pasta:   { id: 'fish_prawn_pasta',   name: 'Seafood Pasta',      dish: 'pasta',   ingredients: ['fish', 'pasta', 'prawn'],   score: 100 },
+  beef_burrito:       { id: 'beef_burrito',       name: 'Beef Burrito',       dish: 'burrito', ingredients: ['meat', 'rice', 'tortilla'], score: 60 },
+  chicken_burrito:    { id: 'chicken_burrito',    name: 'Chicken Burrito',    dish: 'burrito', ingredients: ['chicken', 'rice', 'tortilla'], score: 60 },
+  mushroom_burrito:   { id: 'mushroom_burrito',   name: 'Mushroom Burrito',   dish: 'burrito', ingredients: ['mushroom', 'rice', 'tortilla'], score: 60 },
+  nuggets:            { id: 'nuggets',            name: 'Nuggets',            dish: 'fried',   ingredients: ['chicken'],                  score: 40 },
+  nuggets_and_chips:  { id: 'nuggets_and_chips',  name: 'Nuggets and Chips',  dish: 'fried',   ingredients: ['chicken', 'potato'],        score: 80 },
+  // Overcooked 2's burgers score by its own table, so the dishes Overcooked 1 also has get their own ids.
+  oc2_meat_burger:            { id: 'oc2_meat_burger',            name: 'Burger',               dish: 'burger', ingredients: ['bun', 'meat'],                     score: 40 },
+  cheese_burger:              { id: 'cheese_burger',              name: 'Cheese Burger',        dish: 'burger', ingredients: ['bun', 'cheese', 'meat'],           score: 60 },
+  lettuce_cheese_burger:      { id: 'lettuce_cheese_burger',      name: 'Cheese Salad Burger',  dish: 'burger', ingredients: ['bun', 'cheese', 'lettuce', 'meat'], score: 80 },
+  oc2_tomato_lettuce_burger:  { id: 'oc2_tomato_lettuce_burger',  name: 'Salad Burger',         dish: 'burger', ingredients: ['bun', 'lettuce', 'meat', 'tomato'], score: 80 },
 };
 
 export function recipeDishType(recipe: Recipe): DishType {

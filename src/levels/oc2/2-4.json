@@ -1,0 +1,30 @@
+{
+  "id": "oc2-2-4",
+  "name": "2-4",
+  "game": "oc2",
+  "world": 2,
+  "index": 4,
+  "theme": "moreish-mines",
+  "description": "The first burritos: a tortilla, boiled rice and fried beef or mushroom. A mine chasm splits the kitchen and one narrow bridge crosses it. The pots, tortillas and mushrooms are on the left; the boards, pans, beef and rice on the right.",
+  "strategy": "Throw across the chasm instead of queueing on the bridge. The left chef lays tortillas on plates, throws mushrooms over and washes up while the rice boils; the right chef chops and fries and throws the rice back.",
+  "source": "https://overcooked.fandom.com/wiki/2-4_(Overcooked!_2)",
+  "unlockStars": 10,
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "recipes": ["beef_burrito", "mushroom_burrito"],
+  "orders": { "initial": 2, "intervalSec": 26, "max": 4, "timeSec": 100 },
+  "stars": { "1": [300, 420, 560], "2": [360, 480, 660] },
+  "plates": { "mode": "sink", "count": 4 },
+  "grid": [
+    "##SS##___##BB##",
+    "r....#___#....A",
+    "M....p___p....I",
+    "p....p___#....#",
+    "#....#___#....W",
+    "#.............D",
+    "#....#___#....#",
+    "V....#___#....X",
+    "#R####___##FFE#"
+  ],
+  "spawns": [{ "x": 2, "y": 5 }, { "x": 12, "y": 5 }]
+}

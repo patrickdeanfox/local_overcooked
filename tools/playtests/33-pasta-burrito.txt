@@ -1,0 +1,32 @@
+# -- Overcooked 2 pasta, burritos and cheese burgers: 1-5's balloons with the sliding boards and a plate
+#    of tomato pasta, 2-4's chasm with a finished burrito, 4-3's walkways before and after they reverse
+eval localStorage.setItem('local-overcooked.settings.v1', JSON.stringify({ version: 1, players: 2, preset: 'normal', seedMode: 'fixed', fixedSeed: 5, freePlay: true }))
+eval location.reload()
+wait 1500
+until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
+wait 600
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval (__ui.scene('Title').scene.start('Game', { levelId: 'oc2-1-5', seed: 7 }), 'started')
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.level.id === 'oc2-1-5'
+wait 800
+eval ((st) => (st.tileItems[3 * 15 + 5] = { kind: 'plate', id: 9401, dish: { type: 'pasta', ingredients: ['pasta', 'tomato'] } }, st.tileItems[1 * 15 + 4].contents.push('tomato'), 'set'))(__oc.sim.getState())
+wait 1200
+eval JSON.stringify(['boards', __oc.sim.sliderOffset('boards'), 'seam', __oc.sim.getState().gates])
+shot 33-00-balloons.png
+
+eval (__ui.scene('Game').scene.start('Game', { levelId: 'oc2-2-4', seed: 7 }), 'started')
+until 20000 __oc.level && __oc.level.id === 'oc2-2-4' && __oc.sim.getState().elapsed > 0.5
+wait 600
+eval ((st) => (st.tileItems[2 * 15 + 5] = { kind: 'plate', id: 9402, dish: { type: 'burrito', ingredients: ['meat', 'rice', 'tortilla'] } }, st.tileItems[3 * 15 + 5] = { kind: 'plate', id: 9403, dish: { type: 'burger', ingredients: ['bun', 'cheese', 'meat'] } }, 'set'))(__oc.sim.getState())
+wait 800
+shot 33-01-mines.png
+
+eval (__ui.scene('Game').scene.start('Game', { levelId: 'oc2-4-3', seed: 7 }), 'started')
+until 20000 __oc.level && __oc.level.id === 'oc2-4-3' && __oc.sim.getState().elapsed > 0.5
+wait 600
+shot 33-02-walkways.png
+until 40000 __oc.sim.getState().beltsReversed === true
+wait 600
+eval JSON.stringify(['reversed', __oc.sim.getState().beltsReversed])
+shot 33-03-reversed.png
+errors

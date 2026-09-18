@@ -41,11 +41,25 @@ const INGREDIENT_ROLE: Readonly<Record<IngredientType, { raw: ModelRole; chopped
   cucumber: { raw: 'cucumber', chopped: 'tomatoSlice' },          // no cucumber in the kit: a green eggplant, and green tomato slices
   rice: { raw: 'riceBag', chopped: 'riceBag', cooked: 'riceCooked' },
   nori: { raw: 'riceBag', chopped: 'riceBag' },                   // drawn as a sheet, never this model
+  tortilla: { raw: 'riceBag', chopped: 'riceBag' },               // drawn as a disc, never this model
+  chicken: { raw: 'chicken', chopped: 'chickenChopped', cooked: 'chickenCooked' },
+  cheese: { raw: 'cheese', chopped: 'cheeseChopped' },
+  pasta: { raw: 'riceBag', chopped: 'riceBag' },                  // drawn as sticks or a nest, never this model
 };
 /** Kit models tinted to stand in for an ingredient the kit lacks. */
 const INGREDIENT_TINT: Readonly<Partial<Record<IngredientType, { raw?: number; chopped?: number }>>> = {
   cucumber: { raw: 0x3f8f3a, chopped: 0xb9e08a },
+  chicken: { chopped: 0xf1b9a6 },
 };
+/** Tortilla, pasta and the burrito: simple shapes the kit has no model for. */
+const TORTILLA = { radius: 0.17, thickness: 0.014, color: 0xe8cf93, segments: 20 } as const;
+const PASTA = { stickLength: 0.3, stickRadius: 0.006, sticks: 7, raw: 0xf2dd8a, cooked: 0xf0d27a, nestRadius: 0.13, nestTube: 0.035 } as const;
+const BURRITO = { radius: 0.065, length: 0.28 } as const;
+/** Sauce on a plate of pasta, by the pan piece. */
+const SAUCE_COLOR: Readonly<Partial<Record<IngredientType, number>>> = {
+  tomato: 0xc8331f, meat: 0x6e3b22, mushroom: 0x8a6444, fish: 0xf1a07f, prawn: 0xf2896b,
+};
+const CHEESE_LAYER = { size: 0.3, thickness: 0.02, color: 0xf6c945 } as const;
 /** A sheet of nori: a thin dark-green square. */
 const NORI = { size: 0.26, thickness: 0.012, color: 0x23382a } as const;
 /** A finished roll of sushi: maki slices, one kind per filling, side by side. */
@@ -53,11 +67,11 @@ const MAKI = { spacing: 0.12 } as const;
 const MAKI_ROLE: Readonly<Partial<Record<IngredientType, ModelRole>>> = { fish: 'makiSalmon', cucumber: 'makiVegetable' };
 /** Plated (sashimi, salad) pieces sit on the plate in a small ring. */
 const PLATED = { ring: 0.07, scale: 0.85 } as const;
-const BURGER_LAYER_ROLE: Readonly<Record<BurgerLayer, ModelRole>> = {
+const BURGER_LAYER_ROLE: Readonly<Record<Exclude<BurgerLayer, 'cheese'>, ModelRole>> = {
   bunBottom: 'bunBottom', meat: 'meatCooked', lettuce: 'lettuceSlice', tomato: 'tomatoSlice', bunTop: 'bunTop',
 };
 const BURGER_LAYER_INGREDIENT: Readonly<Record<BurgerLayer, IngredientType>> = {
-  bunBottom: 'bun', meat: 'meat', lettuce: 'lettuce', tomato: 'tomato', bunTop: 'bun',
+  bunBottom: 'bun', meat: 'meat', cheese: 'cheese', lettuce: 'lettuce', tomato: 'tomato', bunTop: 'bun',
 };
 
 // ─── Signatures ─────────────────────────────────────────────────────────────
@@ -111,6 +125,8 @@ function brothColor(pot: PotItem): THREE.Color {
 function ingredientView(type: IngredientType, chopped: boolean, cooked: boolean): THREE.Group {
   if (type === 'potato' && chopped && !cooked) return rawChips();
   if (type === 'nori') return noriSheet();
+  if (type === 'tortilla') return tortillaDisc();
+  if (type === 'pasta') return cooked ? pastaNest() : pastaSticks();
   const roles = INGREDIENT_ROLE[type];
   const role = cooked && roles.cooked ? roles.cooked : chopped ? roles.chopped : roles.raw;
   const view = modelInstance(role);
@@ -129,6 +145,73 @@ export function rawIngredientView(type: IngredientType): THREE.Group {
 /** A piece as it sits on a plate of the given family: raw, chopped, or out of its cookware. */
 function pieceView(type: IngredientType, prep: Prep): THREE.Group {
   return ingredientView(type, prep !== 'raw', prep === 'pan' || prep === 'basket' || prep === 'boiled');
+}
+
+function tortillaDisc(): THREE.Group {
+  const root = new THREE.Group();
+  const disc = new THREE.Mesh(
+    new THREE.CylinderGeometry(TORTILLA.radius, TORTILLA.radius, TORTILLA.thickness, TORTILLA.segments),
+    new THREE.MeshStandardMaterial({ color: TORTILLA.color, roughness: 0.8 }),
+  );
+  disc.position.y = TORTILLA.thickness / 2;
+  disc.castShadow = true;
+  root.add(disc);
+  return root;
+}
+
+function pastaSticks(): THREE.Group {
+  const root = new THREE.Group();
+  const material = new THREE.MeshStandardMaterial({ color: PASTA.raw, roughness: 0.6 });
+  const geometry = new THREE.CylinderGeometry(PASTA.stickRadius, PASTA.stickRadius, PASTA.stickLength, 6);
+  for (let i = 0; i < PASTA.sticks; i++) {
+    const stick = new THREE.Mesh(geometry, material);
+    stick.rotation.z = Math.PI / 2;
+    stick.position.set(0, PASTA.stickRadius * (1 + (i % 2) * 2), (i - PASTA.sticks / 2) * PASTA.stickRadius * 2.4);
+    stick.castShadow = true;
+    root.add(stick);
+  }
+  return root;
+}
+
+function pastaNest(): THREE.Group {
+  const root = new THREE.Group();
+  const nest = new THREE.Mesh(
+    new THREE.TorusGeometry(PASTA.nestRadius * 0.6, PASTA.nestTube, 8, 20),
+    new THREE.MeshStandardMaterial({ color: PASTA.cooked, roughness: 0.5 }),
+  );
+  nest.rotation.x = -Math.PI / 2;
+  nest.position.y = PASTA.nestTube;
+  const middle = new THREE.Mesh(
+    new THREE.CylinderGeometry(PASTA.nestRadius * 0.55, PASTA.nestRadius * 0.6, PASTA.nestTube * 1.6, 16),
+    new THREE.MeshStandardMaterial({ color: PASTA.cooked, roughness: 0.5 }),
+  );
+  middle.position.y = PASTA.nestTube * 0.8;
+  root.add(nest, middle);
+  return root;
+}
+
+/** A plate of pasta: the nest, with a disc of sauce on top once there is one. */
+function pastaDish(dish: Dish): THREE.Group | null {
+  if (!dish.ingredients.includes('pasta')) return null;
+  const root = pastaNest();
+  const sauce = dish.ingredients.find((ing) => SAUCE_COLOR[ing] !== undefined);
+  if (sauce) root.add(soupDisc(SAUCE_COLOR[sauce] ?? 0xc8331f, PASTA.nestRadius * 0.55, PASTA.nestTube * 1.8));
+  return root;
+}
+
+/** A finished burrito (tortilla, rice and a filling): a rolled tortilla lying on the plate. */
+function burritoDish(dish: Dish): THREE.Group | null {
+  if (!dish.ingredients.includes('tortilla') || !dish.ingredients.includes('rice') || dish.ingredients.length < 3) return null;
+  const root = new THREE.Group();
+  const roll = new THREE.Mesh(
+    new THREE.CylinderGeometry(BURRITO.radius, BURRITO.radius, BURRITO.length, 16),
+    new THREE.MeshStandardMaterial({ color: TORTILLA.color, roughness: 0.8 }),
+  );
+  roll.rotation.z = Math.PI / 2;
+  roll.position.y = BURRITO.radius;
+  roll.castShadow = true;
+  root.add(roll);
+  return root;
 }
 
 function noriSheet(): THREE.Group {
@@ -205,6 +288,13 @@ function potView(pot: PotItem): THREE.Group {
   const ware = modelInstance(pan ? 'pan' : 'pot');
   root.add(ware);
   if (pot.contents.length === 0) return root;
+  if (pan && pot.contents[0] !== 'meat') { // a sauce or a filling: the piece itself, browned once cooked
+    const piece = ingredientView(pot.contents[0], true, pot.state === 'cooked' || pot.state === 'burnt');
+    piece.position.set(0, PAN.pattyLift, PAN.pattyOffsetZ);
+    if (pot.state === 'burnt') tintObject(piece, BURNT_TINT);
+    root.add(piece);
+    return root;
+  }
   if (pan) {
     const patty = modelInstance(pot.state === 'cooking' ? 'meatChopped' : 'meatCooked');
     patty.position.set(0, PAN.pattyLift, PAN.pattyOffsetZ);
@@ -226,6 +316,17 @@ function burgerStack(dish: Dish): THREE.Group {
   let level = 0;
   for (const layer of BURGER_LAYERS) {
     if (!dish.ingredients.includes(BURGER_LAYER_INGREDIENT[layer])) continue;
+    if (layer === 'cheese') {
+      const slice = new THREE.Mesh(
+        new THREE.BoxGeometry(CHEESE_LAYER.size, CHEESE_LAYER.thickness, CHEESE_LAYER.size),
+        new THREE.MeshStandardMaterial({ color: CHEESE_LAYER.color, roughness: 0.5 }),
+      );
+      slice.rotation.y = Math.PI / 4;
+      slice.position.y = level + CHEESE_LAYER.thickness / 2;
+      stack.add(slice);
+      level += CHEESE_LAYER.thickness + STACK.burgerGap;
+      continue;
+    }
     const part = modelInstance(BURGER_LAYER_ROLE[layer]);
     part.position.y = level;
     stack.add(part);
@@ -250,7 +351,8 @@ function plateView(count: number, dish: Dish | null): THREE.Group {
       stack.position.y = top + plateHeight;
       root.add(stack);
     } else if (DISH_FAMILIES[dish.type]) {
-      const pieces = (dish.type === 'sushi' ? makiView(dish) : null) ?? platedPieces(dish);
+      const whole = dish.type === 'sushi' ? makiView(dish) : dish.type === 'pasta' ? pastaDish(dish) : dish.type === 'burrito' ? burritoDish(dish) : null;
+      const pieces = whole ?? platedPieces(dish);
       pieces.position.y = top + plateHeight;
       root.add(pieces);
     } else {

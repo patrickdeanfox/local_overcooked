@@ -20,7 +20,7 @@ import { ASSEMBLY_ORDER, DISH_FAMILIES, dishMatchesRecipe, familyFits, RECIPES, 
 import { mulberry32, type Rng } from './rng';
 import {
   BOILED_INGREDIENTS, CHOPPED_INGREDIENTS, DEEP_FRIED_INGREDIENTS, FACING_VECTORS, FRIED_INGREDIENTS, INGREDIENT_TYPES, NO_INPUT, SOUP_INGREDIENTS,
-  type Chef, type ChefAction, type Dish, type DishType, type DirtyPlateItem, type Floe, type FlyingItem, type IngredientItem, type IngredientType,
+  type Chef, type ChefAction, type Dish, type DishType, type Facing, type DirtyPlateItem, type Floe, type FlyingItem, type IngredientItem, type IngredientType,
   type Item, type Order, type PlateItem, type PlayerInput, type PotItem, type Prep, type Recipe, type Restock, type SimEvent,
   type SimState, type Modifiers, type SliderGroup, type Tile, type TrayItem, type TrayLoad, type Ware,
 } from './types';
@@ -94,10 +94,13 @@ function clamp(v: number, lo: number, hi: number): number {
 }
 
 /** Tile types a chef body cannot enter. Sliders are solid too but move, so they are
- *  collided separately from the static grid. */
+ *  collided separately from the static grid; so is any station riding a slider group. */
 function isStaticSolid(type: Tile['type']): boolean {
   return SOLID_TILES.has(type) && type !== 'slider';
 }
+
+/** The way a belt carries right now: its arrow, or the opposite while the belts are reversed. */
+const OPPOSITE: Readonly<Record<Facing, Facing>> = { up: 'down', down: 'up', left: 'right', right: 'left' };
 
 /** Counters a chef may set an item down on. Sliders are counters that move; the tray rack is a
  *  counter that starts with the tray. The shelf joins them only while its mechanic is on, so
@@ -275,6 +278,8 @@ export class Sim {
   private gateSpecs: GateSpec[] = [];
   private pedLanes: PedLane[] = [];
   private floeLanes: FloeLane[] = [];
+  private beltReverseSec = 0;     // a beltReverse dynamic's period; 0 = the belts never reverse
+  private beltReversePhase = 0;
   private nextFloeId = 1;
   private pedTargets: Record<number, { x: number; y: number }> = {};
   private plateReturnTiles: number[] = [];
@@ -385,10 +390,14 @@ export class Sim {
   // ─── Setup ────────────────────────────────────────────────────────────────
   private indexLevel(): void {
     const st = this.state;
+    // Any solid station whose group has a sliders dynamic rides it, not only the plain 'slider' counters.
+    const sliding = new Set<string>();
+    for (const dyn of this.level.dynamics ?? []) if (dyn.type === 'sliders') sliding.add(dyn.group);
     for (let i = 0; i < st.tiles.length; i++) {
       const tile = st.tiles[i];
-      this.staticSolid.push(isStaticSolid(tile.type));
-      if (tile.type === 'slider') this.sliderTiles.push({ x: tile.x, y: tile.y, group: tile.group ?? '' });
+      const rides = tile.type === 'slider' || (SOLID_TILES.has(tile.type) && tile.group !== undefined && sliding.has(tile.group));
+      this.staticSolid.push(isStaticSolid(tile.type) && !rides);
+      if (rides) this.sliderTiles.push({ x: tile.x, y: tile.y, group: tile.group ?? '' });
       if (tile.type === 'gate') this.gateTiles.push({ index: i, x: tile.x, y: tile.y, group: tile.group ?? '' });
       if (tile.type === 'plateReturn') this.plateReturnTiles.push(i);
       if (tile.type === 'plateStack') this.plateStackTiles.push(i);
@@ -425,6 +434,10 @@ export class Sim {
           x: first ? first.x : 0, y: first ? first.y : 0, hole,
         });
         (this.state.gates ??= []).push(hole ? { id: dyn.group, open: true, secondsToChange: 0, hole } : { id: dyn.group, open: true, secondsToChange: 0 });
+      } else if (dyn.type === 'beltReverse') {
+        this.beltReverseSec = Math.max(dyn.periodSec, SIM_DT);
+        this.beltReversePhase = dyn.phase ?? 0;
+        this.state.beltsReversed = false;
       } else if (dyn.type === 'floes') {
         this.floeLanes.push({
           x: dyn.x, w: dyn.w, dir: dyn.dir === 'up' ? -1 : 1, speed: dyn.speed,
@@ -731,7 +744,7 @@ export class Sim {
     if (isFalling(chef)) return;
     const tile = this.tileAt(Math.floor(chef.x), Math.floor(chef.y));
     if (!tile || tile.type !== 'conveyorFloor' || !tile.dir) return;
-    const v = FACING_VECTORS[tile.dir];
+    const v = FACING_VECTORS[this.beltDir(tile)];
     const dist = CONVEYOR_FLOOR_SPEED * dt;
     if (v.dx !== 0) chef.x = this.resolveX(chef, chef.x + v.dx * dist);
     if (v.dy !== 0) chef.y = this.resolveY(chef, chef.y + v.dy * dist);
@@ -2191,6 +2204,13 @@ export class Sim {
     const st = this.state;
     const prog = st.beltProgress;
     if (!prog) return;
+    if (this.beltReverseSec > 0) {
+      const reversed = Math.floor(st.elapsed / this.beltReverseSec + this.beltReversePhase) % 2 === 1;
+      if (reversed !== st.beltsReversed) {
+        st.beltsReversed = reversed;
+        prog.fill(0); // everything on a belt starts the new way from its tile's centre
+      }
+    }
     for (const i of this.beltTiles) {
       this.beltReceived[i] = false;
       const tile = st.tiles[i];
@@ -2224,11 +2244,17 @@ export class Sim {
     }
   }
 
+  /** The way a belt tile carries right now. */
+  private beltDir(tile: Tile): Facing {
+    const dir = tile.dir ?? 'right';
+    return this.state.beltsReversed === true ? OPPOSITE[dir] : dir;
+  }
+
   /** The tile index a belt tile carries into, or -1 off the grid. */
   private beltNext(i: number): number {
     const st = this.state;
     const tile = st.tiles[i];
-    const v = FACING_VECTORS[tile.dir ?? 'right'];
+    const v = FACING_VECTORS[this.beltDir(tile)];
     const nx = tile.x + v.dx;
     const ny = tile.y + v.dy;
     if (nx < 0 || ny < 0 || nx >= st.width || ny >= st.height) return -1;
