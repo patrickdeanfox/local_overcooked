@@ -139,7 +139,7 @@ function sharedIngredients(a: readonly IngredientType[], b: readonly IngredientT
 
 /** Ground a thrown item can come to rest on. Open gates count; the caller checks the gate. */
 function isLandingFloor(type: Tile['type']): boolean {
-  return type === 'floor' || type === 'road' || type === 'gate' || type === 'ice' || type === 'conveyorFloor';
+  return type === 'floor' || type === 'road' || type === 'gate' || type === 'ice' || type === 'conveyorFloor' || type === 'portal';
 }
 
 /** Floor a floor fire can break out on (5-2). */
@@ -152,9 +152,9 @@ function isBelt(type: Tile['type']): boolean {
   return type === 'conveyor' || type === 'conveyorFloor';
 }
 
-/** Ground a throw flies over without stopping: holes, and gates while closed. */
+/** Ground a throw flies over without stopping: holes, gates while closed, and the rift. */
 function isFlyOver(type: Tile['type']): boolean {
-  return type === 'gap' || type === 'gate';
+  return type === 'gap' || type === 'gate' || type === 'rift';
 }
 
 /** Only ingredients fly: never plates, cookware or the extinguisher (wiki, OC2 Throwing). */
@@ -306,6 +306,8 @@ export class Sim {
   private deliveryTile = -1;
   // Conveyors: belt tiles in index order, and the tile each grid-placed plate, pot or extinguisher
   // started on (by item id), where a belt that carries it into a bin sends it back.
+  // Portals: each portal tile's partner (same indexing as tiles), -1 for every other tile.
+  private portalPartner: number[] = [];
   private beltTiles: number[] = [];
   private beltReceived: boolean[] = [];
   private homeTile: Record<number, number> = {};
@@ -432,6 +434,15 @@ export class Sim {
       this.claimN.push(0);
     }
     for (let i = 0; i < st.tiles.length; i++) this.fightable.push(this.hasWalkableNeighbour(st.tiles[i]));
+    this.portalPartner = st.tiles.map(() => -1);
+    const firstOfGroup = new Map<string, number>();
+    st.tiles.forEach((tile, i) => {
+      if (tile.type !== 'portal' || !tile.group) return;
+      const other = firstOfGroup.get(tile.group);
+      if (other === undefined) { firstOfGroup.set(tile.group, i); return; }
+      this.portalPartner[i] = other;
+      this.portalPartner[other] = i;
+    });
     if (this.beltTiles.length > 0) st.beltProgress = st.tiles.map(() => 0);
     for (const _ of this.level.eightySix?.scripted ?? []) this.scriptedFired.push(false);
     for (const dyn of this.level.dynamics ?? []) {
@@ -637,6 +648,7 @@ export class Sim {
       this.startDash(chef, i, inp, events);
       this.moveChef(chef, inp, dt);
       this.rideBelt(chef, dt);
+      this.usePortal(chef, i, events);
       if (isDashing(chef)) this.dashBump(chef, i, events);
     }
     this.separateChefs();
@@ -759,6 +771,26 @@ export class Sim {
     const dist = speed * dt;
     if (mx !== 0) chef.x = this.resolveX(chef, chef.x + mx * dist);
     if (my !== 0) chef.y = this.resolveY(chef, chef.y + my * dist);
+  }
+
+  /** A chef whose centre enters a portal comes out at the centre of its partner, facing the same
+   *  way, and cannot go back through until it has stepped off the portal it came out of. */
+  private usePortal(chef: Chef, idx: number, events: SimEvent[]): void {
+    if (isFalling(chef)) return;
+    const st = this.state;
+    const tx = Math.floor(chef.x);
+    const ty = Math.floor(chef.y);
+    const i = ty * st.width + tx;
+    if (chef.portalLock !== undefined && chef.portalLock !== i) delete chef.portalLock;
+    const partner = this.portalPartner[i] ?? -1;
+    if (partner < 0 || chef.portalLock === i) return;
+    const out = st.tiles[partner];
+    chef.x = out.x + 0.5;
+    chef.y = out.y + 0.5;
+    chef.portalLock = partner;
+    delete chef.vx;
+    delete chef.vy;
+    events.push({ type: 'portal', chef: idx, x: out.x, y: out.y });
   }
 
   /** A chef standing on a walkable belt is carried along it, into walls like any move. */
@@ -1378,11 +1410,24 @@ export class Sim {
   /** The tile the item is over now. Returns true when the flight ended there. */
   private resolveFlight(f: FlyingItem, events: SimEvent[]): boolean {
     const st = this.state;
-    const tx = Math.floor(f.x);
-    const ty = Math.floor(f.y);
+    let tx = Math.floor(f.x);
+    let ty = Math.floor(f.y);
     if (tx < 0 || ty < 0 || tx >= st.width || ty >= st.height) {
       this.endFlight(f, f.floorX, f.floorY, events); // the grid edge is a wall
       return true;
+    }
+    // Through a portal: out of the partner's centre, still flying the same way.
+    const here = ty * st.width + tx;
+    if (f.portalLock !== undefined && f.portalLock !== here) delete f.portalLock;
+    const partner = this.portalPartner[here] ?? -1;
+    if (partner >= 0 && f.portalLock !== here) {
+      const out = st.tiles[partner];
+      f.x = out.x + 0.5;
+      f.y = out.y + 0.5;
+      f.portalLock = partner;
+      tx = out.x;
+      ty = out.y;
+      events.push({ type: 'portal', x: out.x, y: out.y, value: f.id });
     }
     // A slider is a counter that moves: hit-test it where it is, but its item lives on its base tile.
     for (const s of this.sliderTiles) {
@@ -2115,7 +2160,7 @@ export class Sim {
         if (nx < 0 || ny < 0 || nx >= st.width || ny >= st.height) continue;
         const j = ny * st.width + nx;
         const type = st.tiles[j].type;
-        if (type === 'void' || !SOLID_TILES.has(type)) continue;
+        if (type === 'void' || type === 'rift' || !SOLID_TILES.has(type)) continue;
         if (this.fireAt(nx, ny)) continue;
         // No chef can stand next to this tile, so a fire on it could never be sprayed and
         // would re-light its neighbours for the rest of the level. Wall corners and the

@@ -72,6 +72,8 @@ export type TileType =
   | 'fryer'       // solid; deep fryer: holds a frying basket and cooks it, like a stove holds a pot
   | 'ice'         // walkable floor with momentum: a chef on it speeds up and slows down gradually (Glazed Glacier)
   | 'oven'        // solid; bakes the pizza base set on it, like a stove cooks a pot
+  | 'portal'      // walkable; a chef or a thrown item that enters it comes out of the other portal of its group
+  | 'rift'        // solid for chefs, but a throw flies over it (Overcooked 2 3-4's magic rift); nobody falls in
   | 'conveyorFloor'; // walkable belt: carries the chef standing on it, and items resting on it, along tile.dir (Overcooked 2 1-4)
 
 export interface Tile {
@@ -169,6 +171,7 @@ export interface Chef {
   assisting?: boolean;    // chop assist: true while this chef is the second pair of hands at a station this step
   windupLeft?: number;    // tray: seconds of lift / set-down wind-up left; absent = not winding up
   wobble?: number;        // tray: seconds left in the wobble window after a bump; a second bump inside it drops the top item
+  portalLock?: number;    // portals: the tile index of the portal the chef just came out of; cleared once it steps off
   vx?: number;            // ice: velocity in tiles per second while the chef stands on ice; absent elsewhere
   vy?: number;
 }
@@ -185,6 +188,7 @@ export interface FlyingItem {
   flown: number;          // tiles flown so far
   floorX: number;         // the last floor tile it was over: where it drops when a wall stops it
   floorY: number;
+  portalLock?: number;    // portals: the tile index of the portal it just came out of
 }
 // on tile (x,y); health 1 → 0 when out. spreadTimer counts down to the next spread.
 export interface Fire { x: number; y: number; health: number; spreadTimer?: number; }
@@ -302,7 +306,8 @@ export type SimEventType =
   | 'restocked'                    // 86: the crates of an ingredient are full again; x, y = the door, or the first crate
   | 'trayLift' | 'traySet'         // tray: the wind-up finished and the tray is in hand / on tile (x, y)
   | 'trayWobble'                   // tray: a bump made the load wobble; the drop that a second bump causes is a plain 'drop'
-  | 'respawned';                   // a plate, cookware or extinguisher a belt carried into a bin is back on tile (x, y)
+  | 'respawned'                    // a plate, cookware or extinguisher a belt carried into a bin is back on tile (x, y)
+  | 'portal';                      // a chef (chef set) or a thrown item came out of the portal at (x, y)
 export interface SimEvent {
   type: SimEventType;
   chef?: number;   // chef index that caused it, if any

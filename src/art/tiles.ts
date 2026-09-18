@@ -600,6 +600,28 @@ function drawOven(ctx: CanvasRenderingContext2D): void {
   withAlpha(ctx, 0.8, () => fillRound(ctx, 14, 14, T - 28, TOP_H - 30, 4, PALETTE.ovenGlow));
 }
 
+/** Portal: a swirl of violet rings on the floor. */
+function drawPortal(ctx: CanvasRenderingContext2D): void {
+  drawFloor(ctx);
+  fillCircle(ctx, T / 2, T / 2, T * 0.44, PALETTE.portal);
+  for (const [r, a] of [[0.34, 0.6], [0.22, 0.8], [0.1, 1]] as const) {
+    withAlpha(ctx, a, () => {
+      ctx.beginPath();
+      ctx.arc(T / 2, T / 2, T * r, 0.3, Math.PI * 1.7);
+      ctx.strokeStyle = PALETTE.portalLight;
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    });
+  }
+}
+
+/** The rift: a deep violet chasm. */
+function drawRift(ctx: CanvasRenderingContext2D): void {
+  ctx.fillStyle = PALETTE.rift;
+  ctx.fillRect(0, 0, T, T);
+  speckle(ctx, 18, PALETTE.portalLight, 0.35, 29);
+}
+
 /** Ice floor: pale blue with a few frosty streaks. */
 function drawIce(ctx: CanvasRenderingContext2D): void {
   ctx.fillStyle = vGradient(ctx, 0, T, [[0, PALETTE.ice], [1, PALETTE.iceDark]]);
@@ -640,6 +662,8 @@ const TILE_DRAWERS: Record<Exclude<TileType, 'crate'>, TileDraw> = {
   ice: drawIce,
   conveyorFloor: drawConveyorFloor,
   oven: drawOven,
+  portal: drawPortal,
+  rift: drawRift,
 };
 
 export function generateTileTextures(scene: Phaser.Scene): void {

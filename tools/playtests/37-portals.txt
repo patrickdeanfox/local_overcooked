@@ -1,0 +1,27 @@
+# -- Portals: OC2 3-2's three tiers with a chef walked through the lower portal pair, and OC2 3-4's rift
+#    with an onion thrown over it
+eval localStorage.setItem('local-overcooked.settings.v1', JSON.stringify({ version: 1, players: 2, preset: 'normal', seedMode: 'fixed', fixedSeed: 5, freePlay: true }))
+eval location.reload()
+wait 1500
+until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
+wait 600
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval (__ui.scene('Title').scene.start('Game', { levelId: 'oc2-3-2', seed: 7 }), 'started')
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.level.id === 'oc2-3-2'
+wait 800
+shot 37-00-tiers.png
+eval ((c) => (c.x = 1.5, c.y = 7.5, c.facing = 'left', 'next to the lower portal'))(__oc.sim.getState().chefs[0])
+hold KeyA 250
+eval JSON.stringify(['chef', __oc.sim.getState().chefs[0].x, __oc.sim.getState().chefs[0].y])
+shot 37-01-through.png
+
+eval (__ui.scene('Game').scene.start('Game', { levelId: 'oc2-3-4', seed: 7 }), 'started')
+until 20000 __oc.level && __oc.level.id === 'oc2-3-4' && __oc.sim.getState().elapsed > 0.5
+wait 600
+eval ((c) => (c.x = 9.5, c.y = 6.5, c.facing = 'left', c.holding = { kind: 'ingredient', id: 9601, type: 'onion', chopped: false, chopProgress: 0 }, 'armed'))(__oc.sim.getState().chefs[0])
+eval ((c) => (c.x = 1.5, c.y = 5.5, 'out of the way'))(__oc.sim.getState().chefs[1])
+tap KeyE
+wait 1200
+eval JSON.stringify(['onion at', __oc.sim.getState().tileItems.findIndex((i) => i && i.id === 9601) % 15])
+shot 37-02-rift.png
+errors

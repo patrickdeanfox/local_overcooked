@@ -1,0 +1,35 @@
+{
+  "id": "oc2-3-4",
+  "name": "3-4",
+  "game": "oc2",
+  "world": 3,
+  "index": 4,
+  "theme": "conjurers-kitchen",
+  "description": "Four kinds of burger across a magic rift nobody can walk over. The crates, sink and bin are on the right, the boards and pans on the left, and the serving counter is up in the middle, reached by a portal from each side.",
+  "strategy": "Throw ingredients right to left over the rift, carry clean plates through the middle, build the burgers on the left, then take them up through the portal to serve. The two plates on the left go first, so keep the sink going.",
+  "source": "https://overcooked.fandom.com/wiki/3-4_(Overcooked!_2)",
+  "unlockStars": 22,
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "recipes": ["oc2_meat_burger", "cheese_burger", "lettuce_cheese_burger", "oc2_tomato_lettuce_burger"],
+  "orders": { "initial": 2, "intervalSec": 22, "max": 4, "timeSec": 90 },
+  "stars": { "1": [160, 240, 300], "2": [260, 320, 440] },
+  "plates": { "mode": "sink", "count": 4 },
+  "grid": [
+    "     #RV##     ",
+    "     @...@     ",
+    "     #####     ",
+    "######zzzp#####",
+    "@.....zzz.....@",
+    "#BB...zzz.....X",
+    "p.....zzz.....W",
+    "p.....zzz.....D",
+    "E.....zzz.....p",
+    "#FFF##zzzTHAUL#"
+  ],
+  "spawns": [{ "x": 3, "y": 6 }, { "x": 11, "y": 6 }],
+  "stations": [
+    { "x": 5, "y": 1, "group": "left" }, { "x": 0, "y": 4, "group": "left" },
+    { "x": 9, "y": 1, "group": "right" }, { "x": 14, "y": 4, "group": "right" }
+  ]
+}

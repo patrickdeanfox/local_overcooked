@@ -9,7 +9,7 @@ import {
 
 export const TILE_TYPES: readonly TileType[] = [
   'void', 'floor', 'road', 'counter', 'crate', 'board', 'stove', 'sink', 'drying', 'plateReturn', 'serve', 'trash', 'plateStack', 'slider', 'gate', 'gap',
-  'shelf', 'trayRack', 'delivery', 'conveyor', 'fryer', 'ice', 'conveyorFloor', 'oven',
+  'shelf', 'trayRack', 'delivery', 'conveyor', 'fryer', 'ice', 'conveyorFloor', 'oven', 'portal', 'rift',
 ];
 /** Dish families with their own HUD icon (TEX.iconDish); the others use an ingredient's icon. */
 export const DISH_ICON_TYPES: readonly DishType[] = ['sushi', 'salad', 'pasta', 'burrito', 'pizza'];
