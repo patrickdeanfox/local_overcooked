@@ -28,7 +28,8 @@ const THEMES: Readonly<Record<string, ThemeDressing>> = {
   default: { backdropColor: 0x3d322b, floorColor: null, backWall: false },
   'treacle-town': { backdropColor: 0x4b3d33, floorColor: null, backWall: true },
   'savoury-seas': { backdropColor: 0x2e6b8a, floorColor: 0xc99a63, backWall: false },
-  'glazed-glacier': { backdropColor: 0x2c5f86, floorColor: null, backWall: false }, // the sea round the floe
+  'glazed-glacier': { backdropColor: 0x2c5f86, floorColor: 0xeef3f6, backWall: false }, // the sea round the floe; snow underfoot
+  'ravenous-roads': { backdropColor: 0x3b3d42, floorColor: null, backWall: false }, // the highway under the trucks
 };
 const WALL = { span: 2, height: 2, depth: 0.25, windowEvery: 3 } as const; // tiles, at the manifest scale
 /** A road that reaches the grid edge continues as asphalt into the backdrop, with parked cars up the street. */
@@ -88,7 +89,9 @@ export interface TileView {
   solid: boolean;
 }
 
-interface GateView { slab: THREE.Mesh; material: THREE.MeshStandardMaterial; }
+interface GateView { slab: THREE.Mesh; material: THREE.MeshStandardMaterial; ground: THREE.Mesh | null; }
+/** A hole gate (the deck between two trucks) glows this colour while it warns that it is about to open. */
+const HOLE_WARN = { color: 0xffb347, emissive: 0.8 } as const;
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -296,14 +299,14 @@ function backWall(state: Readonly<SimState>): THREE.Group {
   return group;
 }
 
-function gateSlab(): GateView {
+function gateSlab(ground: THREE.Mesh | null): GateView {
   const material = new THREE.MeshStandardMaterial({ color: new THREE.Color(PALETTE.ledgeTop), emissive: new THREE.Color(PALETTE.ledgeTopHi), emissiveIntensity: 0 });
   const slab = new THREE.Mesh(new THREE.BoxGeometry(1, GATE.height, 1), material);
   slab.position.y = GATE.height / 2;
   slab.castShadow = true;
   slab.receiveShadow = true;
   slab.visible = false;
-  return { slab, material };
+  return { slab, material, ground };
 }
 
 interface Station { root: THREE.Group; surfaceY: number; itemOffset: THREE.Vector3; solid: boolean; knife?: THREE.Group; }
@@ -438,6 +441,7 @@ export class TileSet {
   private readonly root = new THREE.Group();
   private readonly textures = new Map<string, THREE.Texture>();
   private readonly belt: THREE.CanvasTexture | null;
+  private readonly gateGrounds = new Map<number, THREE.Mesh>();
 
   constructor(
     phaserScene: Phaser.Scene, scene: THREE.Scene, state: Readonly<SimState>, theme?: string,
@@ -459,7 +463,7 @@ export class TileSet {
         : tile.type === 'shelf' && !flags.passThroughShelf ? TEX.shelfClosed
         : GROUND_TEXTURE[tile.type];
       if (textureKey) {
-        const flat = dressing.floorColor !== null && tile.type !== 'road' && tile.type !== 'gate';
+        const flat = dressing.floorColor !== null && tile.type !== 'road' && tile.type !== 'gate' && tile.type !== 'ice';
         const material = flat
           ? new THREE.MeshStandardMaterial({ color: dressing.floorColor ?? 0xffffff, roughness: 0.9 })
           : new THREE.MeshStandardMaterial({ map: groundTexture(phaserScene, textureKey, this.textures), color: GROUND.roadTint });
@@ -468,6 +472,7 @@ export class TileSet {
         ground.position.set(cx, GROUND.thickness, cz);
         ground.receiveShadow = true;
         this.root.add(ground);
+        if (tile.type === 'gate') this.gateGrounds.set(index, ground);
       }
       const station = interior ? wallBlock() : buildStation(tile, flags, this.belt);
       station.root.position.set(cx, 0, cz);
@@ -485,7 +490,7 @@ export class TileSet {
       this.views.push({ root: station.root, surfaceY: station.surfaceY, itemOffset: station.itemOffset, solid: station.solid });
       if (tile.type === 'slider') this.sliderIndices.push(index);
       if (tile.type === 'gate') {
-        const gate = gateSlab();
+        const gate = gateSlab(this.gateGrounds.get(index) ?? null);
         gate.slab.position.set(cx, GATE.height / 2, cz);
         this.root.add(gate.slab);
         this.gates.set(index, gate);
@@ -502,10 +507,22 @@ export class TileSet {
     view.root.position.set(tile.x + 0.5 + offsetX, 0, tile.y + 0.5 + offsetZ);
   }
 
-  /** A closed gate shows its risen slab; an open one flashes before it closes. */
-  setGate(index: number, closed: boolean, warnAlpha: number): void {
+  /** A closed gate shows its risen slab; an open one flashes before it closes. A hole gate has no slab:
+   *  open it is deck, closed it is gone and the road shows through, and it glows while it warns. */
+  setGate(index: number, closed: boolean, warnAlpha: number, hole = false): void {
     const gate = this.gates.get(index);
     if (!gate) return;
+    if (hole) {
+      gate.slab.visible = false;
+      if (gate.ground) {
+        gate.ground.visible = !closed;
+        const material = gate.ground.material as THREE.MeshStandardMaterial;
+        material.emissive.setHex(HOLE_WARN.color);
+        material.emissiveIntensity = closed ? 0 : warnAlpha * HOLE_WARN.emissive;
+      }
+      this.views[index].surfaceY = 0;
+      return;
+    }
     gate.slab.visible = closed || warnAlpha > 0;
     gate.slab.position.y = closed ? GATE.height / 2 : -GATE.height / 2 + GATE.height * warnAlpha * 0.35;
     gate.material.emissiveIntensity = closed ? 0 : warnAlpha * GATE.warnEmissive;

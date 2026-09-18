@@ -454,6 +454,58 @@ F.............#
 
 Wiki facts used: the three burgers; 4:00; belts that lead to bins instead of circling (Overview); three plates (Overview); 17 stars to unlock from the table (infobox 10); 3-star 110 (1P) and 160 (2P), lower thresholds estimated as for 2-3; trashed plates and cookware respawn after 5 s where they started, clean staying clean and dirty staying dirty (Trash Bin page), which is `TRASH_RESPAWN_SEC`. A clean plate that did not start on the grid (one washed at the sink) goes back to the first plate's counter. Orders are the catalog's estimate (2, every 24 s, at most 4, 110 s), untested.
 
+## 2-1 — Ravenous Roads, two trucks
+
+```
+#FFF#ppp#
+U.......V
+#.......R
+____GGGGG____
+    A.......X
+    L.......#
+    T.......B
+    #E###B###
+```
+
+13 x 8, the catalog grid (medium confidence) with its highway row written as a seam: `G` hole gates across the five columns where the beds overlap, `_` road either side. The sim's grid is static, so the trucks do not move; what moves is the seam. It is deck (walkable) for 4 s of every 12 while the trucks touch, then road for 8 s: a chef on it falls and is out 5 s. The deck glows before it goes, the tell the 3-3 page describes. Throws cross either way.
+
+Wiki facts used: the three burgers; 4:00; "Moving Trucks, 5 second penalty for falling off" (infobox); no sink, plates come back clean (the plate return at (8,2) is a `plateStack` override, as in 3-2); 10 stars to unlock (table; the infobox says 7); 3-star 180 (1P) and 240 (2P), lower thresholds estimated. The cycle (12 s, touching a third of it) is the catalog's estimate. Orders the catalog's estimate (2, every 26 s, at most 4, 110 s), untested.
+
+## 3-3 — Ravenous Road, three trucks
+
+```
+#BB#_OJ%MTX_#BB#
+S...G......G...Y
+#...G......G...p
+S...G......G...Y
+#...G......G...p
+S...G......G...Y
+E...G......G...E
+#...G......G...#
+#pp#_##VR##_####
+```
+
+16 x 9. The catalog's arrangement is 20 x 9, over the 16 x 10 budget, and it says itself that the arrangement is invented ("the three beds counted cleanly; what is invented is their arrangement in one grid"). So the beds are turned on their side and stood in a row: the soup truck (three pots with a counter between each, two boards, extinguisher, two plates) on the left, the supply truck (onion, fish, potato, mushroom and tomato crates, bin, serving counter, plate return) in the middle, the fish truck (three fryers with plates between, two boards, extinguisher) on the right. Station counts match the catalog. Each seam is a column of hole gates: group `1` on the left, group `2` (a `stations` override per tile) on the right, each open 6 s of 12 and out of phase, so the supply truck touches one cooking truck at a time.
+
+Wiki facts used: soups and fish and chips in one order pool, the first level to do that; no sink, plates return clean (the return at (8,8) is a `plateStack`); four plates; one chef per cooking truck (Strategies); 26 stars (table; infobox 16); 3-star 150 (1P) and 270 (2P), lower thresholds estimated. Orders the catalog's estimate (2, every 20 s, at most 5, 110 s), untested.
+
+## 3-4 — Glazed Glacier, the frozen river
+
+```
+#XYY##___#ppY##
+J.....___.....#
+%.,,,,___,,,,.#
+E.,,,,___,,,,.V
+#.,,,,___,,,,.V
+#.,,,,___,,,,.R
+#.....___.....#
+#WD###___#B#B##
+```
+
+15 x 8, the catalog grid with its two `=` frames of floe turned back into river: the floes are a `floes` dynamic now. Floor next to a counter is snow (`.`, not slippery), the open middle of each bank ice (`,`), as the screenshot shows (white snow along the counter runs, blue ice inside) and the Overview says ("the snowy areas are not slippery"). Floes 3 wide (the river's width), 3, 2, 3 tiles long in turn, one every 6.5 s at 0.8 tiles/s, prefilled, all estimates: the wiki gives no interval, speed or size. West bank: bin, two fryers, fish and potato crates, extinguisher, sink and rack. East bank: two plates, the third fryer, the two-tile hatch, plate return, both boards.
+
+Wiki facts used: the fish and chips family; 4:00; two plates (Strategies); the floes as the only way across; +5 s for falling in (infobox); snow grips and ice does not; 29 stars (table; infobox 18); 3-star 170 (1P) and 180 (2P), lower thresholds estimated. Orders the catalog's estimate (2, every 24 s, at most 4, 110 s), untested.
+
 ## 3-1 — Glazed Glacier, fish and chips on the ice
 
 ```

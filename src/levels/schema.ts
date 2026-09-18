@@ -99,6 +99,18 @@ export type Dynamic =
       periodSec: number;     // full open+closed cycle
       openSec: number;       // seconds open per cycle
       phase?: number;        // 0..1 cycle offset; the cycle starts open
+      closedAs?: 'wall' | 'hole'; // what a closed gate is: a wall that shoves chefs off (1-6, the default) or a hole
+                                  // they fall into (the road between two trucks drawn apart, 2-1 and 3-3)
+    }
+  | {
+      type: 'floes';         // 3-4 river: decks drift along a lane of gap tiles and carry the chefs on them
+      x: number;             // the lane's left column
+      w: number;             // lane width in tiles; every floe is this wide
+      dir: 'down' | 'up';    // the way the floes drift; they enter at one grid edge and leave at the other
+      speed: number;         // tiles per second
+      intervalSec: number;   // seconds between one floe entering and the next
+      lengths: number[];     // floe lengths in tiles, cycled in order
+      prefill?: boolean;     // start with the lane already carrying floes, as if it had been running
     };
 
 export interface LevelDef {
@@ -286,6 +298,11 @@ export function validateLevel(level: LevelDef): string[] {
   for (const d of level.dynamics ?? []) {
     if (d.type === 'sliders' && !parsed.tiles.some((t) => t.type === 'slider' && t.group === d.group)) errors.push(`sliders group '${d.group}' has no slider tiles`);
     if (d.type === 'pedestrians' && count('road') === 0) errors.push('pedestrians need road tiles');
+    if (d.type === 'floes') {
+      if (!(d.w >= 1) || d.x < 0 || d.x + d.w > parsed.width) errors.push('floes lane is off the grid');
+      if (!(d.speed > 0) || !(d.intervalSec > 0)) errors.push('floes need a positive speed and interval');
+      if (!d.lengths?.length || d.lengths.some((n) => !(n >= 1))) errors.push('floes need lengths of at least 1');
+    }
     if (d.type === 'gate') {
       if (!gateGroups.has(d.group)) errors.push(`gate group '${d.group}' has no gate tiles`);
       if (!(d.openSec > 0 && d.openSec < d.periodSec)) errors.push(`gate group '${d.group}': openSec must be within (0, periodSec)`);

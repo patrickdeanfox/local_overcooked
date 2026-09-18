@@ -166,8 +166,12 @@ export interface FlyingItem {
 export interface Fire { x: number; y: number; health: number; spreadTimer?: number; }
 export interface Pedestrian { id: number; x: number; y: number; vx: number; vy: number; } // solid moving obstacle
 export interface SliderGroup { id: string; offsetX: number; offsetY: number; }     // current tile offset
-/** A gate group (1-6 earthquake seam): its 'gate' tiles are walkable only while open. */
-export interface GateGroup { id: string; open: boolean; secondsToChange: number; }
+/** A gate group (1-6 earthquake seam): its 'gate' tiles are walkable only while open. A 'hole' gate
+ *  (hole: true, the seam between two trucks) is a hole while closed instead of a wall: a chef on it falls. */
+export interface GateGroup { id: string; open: boolean; secondsToChange: number; hole?: boolean; }
+/** An ice floe (OC1 3-4): a deck of w by h tiles drifting over the water at (x, y), its top-left corner, in
+ *  tile units. A chef whose centre is on it does not fall and is carried along. */
+export interface Floe { id: number; x: number; y: number; w: number; h: number; }
 /** 86 system: one restock on its way. It waits arrivesIn seconds, then sits at the delivery door
  *  until a chef unloads it (unloaded 0..1); on a level with no door it restocks by itself when
  *  it arrives. Unloading refills every crate of the ingredient. */
@@ -227,6 +231,7 @@ export interface SimState {
   seed?: number;               // the run's seed, for the results screen
   flying?: FlyingItem[];       // thrown items in the air; absent until the first throw
   restocks?: Restock[];        // 86 system: deliveries on their way or waiting at the door; absent until the first shortage
+  floes?: Floe[];              // drifting decks over the water; absent on levels without a floes dynamic
   beltProgress?: number[];     // conveyors: 0..1 of the way each belt tile's item has travelled towards the next tile, same indexing as tiles; absent on levels without belts
 }
 

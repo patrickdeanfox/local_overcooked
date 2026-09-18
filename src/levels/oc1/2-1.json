@@ -1,0 +1,31 @@
+{
+  "id": "oc1-2-1",
+  "name": "2-1",
+  "game": "oc1",
+  "world": 2,
+  "index": 1,
+  "theme": "ravenous-roads",
+  "description": "Burgers on the back of two trucks driving down the highway. The trucks drift together and apart: while they touch you can walk across, while they are apart the road shows between them, and a chef who falls off is out for five seconds.",
+  "strategy": "Prep on the lower truck and pile the chopped parts on its counters, then throw them all across to the upper truck while the trucks touch. The seam glows just before the trucks pull apart, so step off it then.",
+  "source": "https://overcooked.fandom.com/wiki/2-1_(Overcooked!)",
+  "unlockStars": 10,
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "recipes": ["meat_burger", "lettuce_burger", "tomato_lettuce_burger"],
+  "orders": { "initial": 2, "intervalSec": 26, "max": 4, "timeSec": 110 },
+  "stars": { "1": [60, 120, 180], "2": [80, 160, 240] },
+  "plates": { "mode": "stack", "count": 3 },
+  "grid": [
+    "#FFF#ppp#    ",
+    "U.......V    ",
+    "#.......R    ",
+    "____GGGGG____",
+    "    A.......X",
+    "    L.......#",
+    "    T.......B",
+    "    #E###B###"
+  ],
+  "spawns": [{ "x": 6, "y": 1 }, { "x": 7, "y": 5 }],
+  "stations": [{ "x": 8, "y": 2, "type": "plateStack" }],
+  "dynamics": [{ "type": "gate", "group": "1", "periodSec": 12, "openSec": 4, "closedAs": "hole" }]
+}

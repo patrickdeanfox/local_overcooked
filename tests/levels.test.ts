@@ -190,15 +190,25 @@ describe('levels', () => {
     it(`${l.id} reaches every station from the spawns together, and a serve and a crate from each`, () => {
       // A split kitchen (3-2) shares the work over a counter, so each chef needs a serve and the
       // crates, and the two reaches together must cover every station. A belt kitchen (2-3, 2-4)
-      // shares it over the belt instead, so there each chef needs a belt.
+      // shares it over the belt instead, so there each chef needs a belt; on a river kitchen (3-4)
+      // the floes are the link, so each chef needs the bank of their lane.
       const p = parseGrid(l);
       const belted = countType(p, 'conveyor') > 0;
+      const lanes = (l.dynamics ?? []).flatMap((d) => (d.type === 'floes' ? [d] : []));
       const union = new Set<number>();
       for (const s of l.spawns) {
         const reached = reachableFrom(p, s.x, s.y);
         for (const i of reached) union.add(i);
         if (belted) {
           expect(reachesType(p, reached, 'conveyor'), `no belt from spawn (${s.x},${s.y})`).toBe(true);
+          continue;
+        }
+        if (lanes.length > 0) {
+          const bank = [...reached].some((i) => {
+            const x = i % p.width;
+            return lanes.some((d) => x === d.x - 1 || x === d.x + d.w);
+          });
+          expect(bank, `no river bank from spawn (${s.x},${s.y})`).toBe(true);
           continue;
         }
         expect(reachesType(p, reached, 'serve'), `no serve from spawn (${s.x},${s.y})`).toBe(true);
@@ -1078,6 +1088,10 @@ describe('order tuning', () => {
     // The belt kitchens: every burger rides the belt, so a long ticket life; the catalog's estimates, untested.
     'oc1-2-3': { initial: 2, intervalSec: 26, max: 4, timeSec: 110 },
     'oc1-2-4': { initial: 2, intervalSec: 24, max: 4, timeSec: 110 },
+    // The trucks and the river: every dish waits on a crossing; the catalog's estimates, untested.
+    'oc1-2-1': { initial: 2, intervalSec: 26, max: 4, timeSec: 110 },
+    'oc1-3-3': { initial: 2, intervalSec: 20, max: 5, timeSec: 110 },
+    'oc1-3-4': { initial: 2, intervalSec: 24, max: 4, timeSec: 110 },
     // Fish and chips on ice: every dish needs the fryer, so a long ticket life; the catalog's estimate, untested.
     'oc1-3-1': { initial: 2, intervalSec: 22, max: 4, timeSec: 100 },
     'oc1-3-2': { initial: 2, intervalSec: 22, max: 4, timeSec: 95 },

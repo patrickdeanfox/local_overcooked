@@ -1,0 +1,44 @@
+{
+  "id": "oc1-3-3",
+  "name": "3-3",
+  "game": "oc1",
+  "world": 3,
+  "index": 3,
+  "theme": "ravenous-roads",
+  "description": "Three trucks on the road: a soup truck, a fish and chips truck, and a supply truck between them with every crate, the serving counter and the plate return. Soups and fish and chips are both on the menu, and the supply truck touches one cooking truck at a time.",
+  "strategy": "Keep one chef on each cooking truck so neither the pots nor the fryers burn. Take the ingredients for one soup at a time, but carry several fish and potatoes, since a fryer takes one of anything. Watch the seam: it glows before the trucks pull apart.",
+  "source": "https://overcooked.fandom.com/wiki/3-3_(Overcooked!)",
+  "unlockStars": 26,
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "recipes": ["onion_soup", "tomato_soup", "mushroom_soup", "chips", "fried_fish", "fish_and_chips"],
+  "orders": { "initial": 2, "intervalSec": 20, "max": 5, "timeSec": 110 },
+  "stars": { "1": [50, 100, 150], "2": [90, 180, 270] },
+  "plates": { "mode": "stack", "count": 4 },
+  "grid": [
+    "#BB#_OJ%MTX_#BB#",
+    "S...G......G...Y",
+    "#...G......G...p",
+    "S...G......G...Y",
+    "#...G......G...p",
+    "S...G......G...Y",
+    "E...G......G...E",
+    "#...G......G...#",
+    "#pp#_##VR##_####"
+  ],
+  "spawns": [{ "x": 2, "y": 4 }, { "x": 13, "y": 4 }],
+  "stations": [
+    { "x": 8, "y": 8, "type": "plateStack" },
+    { "x": 11, "y": 1, "group": "2" },
+    { "x": 11, "y": 2, "group": "2" },
+    { "x": 11, "y": 3, "group": "2" },
+    { "x": 11, "y": 4, "group": "2" },
+    { "x": 11, "y": 5, "group": "2" },
+    { "x": 11, "y": 6, "group": "2" },
+    { "x": 11, "y": 7, "group": "2" }
+  ],
+  "dynamics": [
+    { "type": "gate", "group": "1", "periodSec": 12, "openSec": 6, "closedAs": "hole" },
+    { "type": "gate", "group": "2", "periodSec": 12, "openSec": 6, "phase": 0.5, "closedAs": "hole" }
+  ]
+}
