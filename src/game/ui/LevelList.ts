@@ -3,6 +3,8 @@
 // the star cost when it is not open yet. The title screen owns the cursor and calls
 // setSelected(); the list itself is a dumb view over LevelEntry records. The selected
 // row is a cream ticket in dark ink with a mustard tab; the ticket slides between rows.
+// With `visibleRows` set, only that many rows show at a time and the window scrolls to keep
+// the selected row in view, with a mark above and below while there are more rows that way.
 import Phaser from 'phaser';
 import { TEX } from '../../art/keys';
 import { MAX_STARS } from '../progress';
@@ -37,7 +39,11 @@ const ROW = {
   slideEase: 'Cubic.easeOut',
   unselectedAlpha: 0.92,
   lockedAlpha: 0.55,
+  moreFontPx: 12,     // the "more above / more below" marks of a scrolling list
+  moreOffsetPx: 22,   // from the first and last visible rows
+  scrollMargin: 1,    // rows kept in view beyond the selected one while scrolling
 } as const;
+const MORE = { above: '▲ more', below: '▼ more' } as const;
 
 /** Ink on the cream ticket. */
 const INK = { name: TEXT_COLOR.ink, theme: '#5f7078', meta: '#5f7078' } as const;
@@ -55,6 +61,7 @@ export interface LevelEntry {
 export interface LevelListOptions {
   spacing?: number;
   width?: number;
+  visibleRows?: number; // show this many rows at a time and scroll; all of them when absent
 }
 
 interface RowView {
@@ -74,6 +81,10 @@ export class LevelList {
   private readonly width: number;
   private slide: Phaser.Tweens.Tween | null = null;
   private index = -1;
+  private readonly visibleRows: number;
+  private top = 0; // the first visible row
+  private readonly moreAbove: Phaser.GameObjects.Text;
+  private readonly moreBelow: Phaser.GameObjects.Text;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -84,6 +95,7 @@ export class LevelList {
   ) {
     this.spacing = options.spacing ?? ROW.spacing;
     this.width = options.width ?? ROW.width;
+    this.visibleRows = Math.max(1, Math.min(options.visibleRows ?? entries.length, entries.length));
 
     this.root = scene.add.container(x, y);
     this.highlight = roundedPanel(scene, this.width, ROW.height, { fill: COLOR.cream, radius: ROW.radius }).setVisible(false);
@@ -92,6 +104,11 @@ export class LevelList {
       .setOrigin(0, 0.5)
       .setVisible(false);
     this.root.add([this.highlight, this.tab]);
+    this.moreAbove = scene.add.text(0, -ROW.moreOffsetPx, MORE.above, textStyle(ROW.moreFontPx, TEXT_COLOR.dim)).setOrigin(0.5, 0.5);
+    this.moreBelow = scene.add
+      .text(0, (this.visibleRows - 1) * this.spacing + ROW.moreOffsetPx, MORE.below, textStyle(ROW.moreFontPx, TEXT_COLOR.dim))
+      .setOrigin(0.5, 0.5);
+    this.root.add([this.moreAbove, this.moreBelow]);
 
     this.entries.forEach((entry, i) => this.buildRow(scene, entry, i));
     this.refresh(false);
@@ -99,6 +116,8 @@ export class LevelList {
 
   get container(): Phaser.GameObjects.Container { return this.root; }
   get length(): number { return this.entries.length; }
+  /** Rows shown at once: the list's height is this many rows, whatever its length. */
+  get shownRows(): number { return this.visibleRows; }
 
   entryAt(index: number): LevelEntry | null {
     return this.entries[index] ?? null;
@@ -106,9 +125,23 @@ export class LevelList {
 
   /** -1 clears the highlight, for when the cursor is down in the settings rows. */
   setSelected(index: number): void {
-    const slide = this.index >= 0 && index >= 0 && index !== this.index;
+    const scrolled = index >= 0 && this.scrollTo(index);
+    const slide = this.index >= 0 && index >= 0 && index !== this.index && !scrolled;
     this.index = index;
     this.refresh(slide);
+  }
+
+  /** Moves the window so row `index` shows with a row of margin where there is one. True when it moved. */
+  private scrollTo(index: number): boolean {
+    const margin = Math.min(ROW.scrollMargin, Math.floor((this.visibleRows - 1) / 2));
+    const maxTop = this.entries.length - this.visibleRows;
+    let top = this.top;
+    if (index - margin < top) top = index - margin;
+    if (index + margin > top + this.visibleRows - 1) top = index + margin - this.visibleRows + 1;
+    top = Phaser.Math.Clamp(top, 0, Math.max(0, maxTop));
+    if (top === this.top) return false;
+    this.top = top;
+    return true;
   }
 
   destroy(): void {
@@ -163,14 +196,19 @@ export class LevelList {
     this.entries.forEach((entry, i) => {
       const view = this.views[i];
       if (!view) return;
+      const shown = i >= this.top && i < this.top + this.visibleRows;
+      view.root.setVisible(shown);
+      view.root.setY((i - this.top) * this.spacing);
       const selected = i === this.index;
       view.name.setColor(selected ? INK.name : entry.locked ? TEXT_COLOR.dim : TEXT_COLOR.bright);
       view.theme.setColor(selected ? INK.theme : TEXT_COLOR.dim);
       for (const text of view.meta) text.setColor(selected ? INK.meta : TEXT_COLOR.dim);
       view.root.setAlpha(selected || entry.locked ? 1 : ROW.unselectedAlpha);
     });
+    this.moreAbove.setVisible(this.top > 0);
+    this.moreBelow.setVisible(this.top + this.visibleRows < this.entries.length);
     const selected = this.index >= 0 && this.index < this.entries.length;
-    const y = selected ? this.index * this.spacing : 0;
+    const y = selected ? (this.index - this.top) * this.spacing : 0;
     paintPanel(this.highlight, this.width, ROW.height, { fill: COLOR.cream, radius: ROW.radius });
     this.slide?.remove();
     this.slide = null;

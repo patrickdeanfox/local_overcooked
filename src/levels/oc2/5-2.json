@@ -1,0 +1,32 @@
+{
+  "id": "oc2-5-2",
+  "name": "5-2",
+  "game": "oc2",
+  "world": 5,
+  "index": 2,
+  "theme": "buffet-balloons",
+  "description": "Burgers with cheese, lettuce and tomato on a balloon: two stations back to back sharing a sink and the bun crate, ringed by a corridor with the plates and the serving counter. Fires break out on the floor at random and block the way until put out.",
+  "strategy": "The right chef builds the burgers and takes dirty plates to the sink; the left chef passes cheese and tomato across, washes up and serves. Keep someone near the extinguisher: a floor fire can corner a chef.",
+  "source": "https://overcooked.fandom.com/wiki/5-2_(Overcooked!_2)",
+  "unlockStars": 47,
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "recipes": ["oc2_meat_burger", "cheese_burger", "lettuce_cheese_burger", "oc2_tomato_lettuce_burger"],
+  "orders": { "initial": 2, "intervalSec": 20, "max": 5, "timeSec": 80 },
+  "stars": { "1": [180, 220, 300], "2": [240, 300, 420] },
+  "plates": { "mode": "sink", "count": 4 },
+  "grid": [
+    "###############",
+    "#.............#",
+    "#.##B.#U#.#B#.#",
+    "V.#....#....E.#",
+    "#.F...H#L...F.#",
+    "#.#...T#A...F.#",
+    "#.X....W....R.#",
+    "#.#.#######.#.#",
+    "#.............#",
+    "##p#p#####p#p##"
+  ],
+  "spawns": [{ "x": 4, "y": 4 }, { "x": 10, "y": 4 }],
+  "dynamics": [{ "type": "floorFires", "intervalSec": 22, "max": 2, "firstDelaySec": 30 }]
+}

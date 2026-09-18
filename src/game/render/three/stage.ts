@@ -99,6 +99,14 @@ export class Stage {
     log.info('stage: WebGL renderer created');
   }
 
+  /** Dims the stage's own lights to `level` of their normal strength (1 = lit, as every level but a
+   *  dark one); the renderer brings its own lamps. */
+  setLightLevel(level: number): void {
+    this.hemisphere.intensity = LIGHT.hemisphere * level;
+    this.ambient.intensity = LIGHT.ambientIntensity * level;
+    this.sun.intensity = LIGHT.sunIntensity * level;
+  }
+
   /** Clears the level's objects, keeping the lights. */
   resetScene(): void {
     for (const child of [...this.scene.children]) {

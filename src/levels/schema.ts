@@ -103,6 +103,12 @@ export type Dynamic =
                                   // they fall into (the road between two trucks drawn apart, 2-1 and 3-3)
     }
   | {
+      type: 'floorFires';    // 5-2: fires break out on the floor at random and block it until sprayed out
+      intervalSec: number;   // seconds between outbreaks
+      max: number;           // at most this many floor fires burn at once
+      firstDelaySec?: number; // seconds before the first; intervalSec when absent
+    }
+  | {
       type: 'beltReverse';   // 4-3: every belt runs against its arrow for periodSec, then with it again, and so on
       periodSec: number;     // seconds each way
       phase?: number;        // 0..1 of the two-way cycle; 0 starts with the arrows
@@ -143,6 +149,7 @@ export interface LevelDef {
   eightySix?: EightySixSettings; // 86 system tuning; the mechanic works without it using the constants
   mechanics?: LevelMechanics;    // switches this level always plays with, on top of the Settings
   tutorial?: TutorialDef;        // the guided walkthrough shown when the level starts
+  dark?: boolean;                // the kitchen is unlit and each chef carries a lamp (OC1 4-2); presentation only
 }
 
 export interface LegendEntry { type: TileType; ingredient?: IngredientType; group?: string; item?: ItemKind; ware?: Ware; dir?: Facing; }
@@ -320,6 +327,7 @@ export function validateLevel(level: LevelDef): string[] {
     if (d.type === 'sliders' && !parsed.tiles.some((t) => t.group === d.group && t.type !== 'gate' && SOLID_TILES.has(t.type))) errors.push(`sliders group '${d.group}' has no slider tiles`);
     if (d.type === 'sliders' && parsed.tiles.some((t) => t.type === 'gate' && t.group === d.group)) errors.push(`group '${d.group}' is both a gate and a slider group`);
     if (d.type === 'beltReverse' && !(d.periodSec > 0)) errors.push('beltReverse needs a positive periodSec');
+    if (d.type === 'floorFires' && (!(d.intervalSec > 0) || !(d.max >= 1))) errors.push('floorFires needs a positive intervalSec and max');
     if (d.type === 'pedestrians' && count('road') === 0) errors.push('pedestrians need road tiles');
     if (d.type === 'floes') {
       if (!(d.w >= 1) || d.x < 0 || d.x + d.w > parsed.width) errors.push('floes lane is off the grid');
