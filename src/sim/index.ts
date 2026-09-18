@@ -8,7 +8,7 @@ import type { LevelDef, OrderSettings } from '../levels/schema';
 import { isWalkable, parseGrid, SOLID_TILES } from '../levels/schema';
 import {
   ASSIST_RATE, BURN_TIME, CATCH_RADIUS, CHEF_HITBOX, CHEF_RADIUS, CHEF_SPEED, CHOP_TIME, CONVEYOR_HOLD, CONVEYOR_SPEED,
-  COOK_TIME, CRATE_SIZE,
+  COOK_TIME, CRATE_SIZE, DEEP_FRY_TIME, ICE_ACCEL, ICE_DECEL,
   DASH_BUMP_PUSH, DASH_COOLDOWN, DASH_SPEED, DASH_THROW_BONUS, DASH_THROW_WINDOW, DASH_TIME, EXTINGUISH_RATE,
   FALL_PENALTY_SEC, FIRE_SPREAD_TIME, MAX_PUSH_ESCAPE, MAX_SIMULTANEOUS_86, MOVE_DEADZONE, ORDER_FAIL_PENALTY,
   PAN_CAPACITY, PAN_COOK_TIME, PLATE_RETURN_DELAY, PLATE_STACK_RETURN_DELAY, POT_CAPACITY, REACH,
@@ -19,8 +19,8 @@ import {
 import { dishMatchesRecipe, isBurgerComponent, isPlatedComponent, RECIPES, recipeDishType, sortIngredients } from './recipes';
 import { mulberry32, type Rng } from './rng';
 import {
-  CHOPPED_INGREDIENTS, FACING_VECTORS, FRIED_INGREDIENTS, INGREDIENT_TYPES, NO_INPUT, SOUP_INGREDIENTS,
-  type Chef, type ChefAction, type Dish, type DirtyPlateItem, type FlyingItem, type IngredientItem, type IngredientType,
+  CHOPPED_INGREDIENTS, DEEP_FRIED_INGREDIENTS, FACING_VECTORS, FRIED_INGREDIENTS, INGREDIENT_TYPES, NO_INPUT, SOUP_INGREDIENTS,
+  type Chef, type ChefAction, type Dish, type DishType, type DirtyPlateItem, type FlyingItem, type IngredientItem, type IngredientType,
   type Item, type Order, type PlateItem, type PlayerInput, type PotItem, type Recipe, type Restock, type SimEvent,
   type SimState, type Modifiers, type SliderGroup, type Tile, type TrayItem, type TrayLoad, type Ware,
 } from './types';
@@ -53,6 +53,7 @@ export interface EffectiveSettings {
   chefSpeed: number;
   cookTime: number;     // seconds for a full pot, COOK_TIME scaled
   panCookTime: number;  // seconds for a patty, PAN_COOK_TIME scaled
+  deepFryTime: number;  // seconds for a piece in the frying basket, DEEP_FRY_TIME scaled
   burnTime: number;     // seconds from cooked to burnt, BURN_TIME scaled
   chopTime: number;     // seconds per ingredient, CHOP_TIME scaled
   washTime: number;     // seconds per plate, WASH_TIME scaled
@@ -128,7 +129,7 @@ function sharedIngredients(a: readonly IngredientType[], b: readonly IngredientT
 
 /** Ground a thrown item can come to rest on. Open gates count; the caller checks the gate. */
 function isLandingFloor(type: Tile['type']): boolean {
-  return type === 'floor' || type === 'road' || type === 'gate';
+  return type === 'floor' || type === 'road' || type === 'gate' || type === 'ice';
 }
 
 /** Ground a throw flies over without stopping: holes, and gates while closed. */
@@ -155,24 +156,42 @@ function wareOf(pot: PotItem): Ware {
 }
 
 function wareCapacity(pot: PotItem): number {
-  return wareOf(pot) === 'pan' ? PAN_CAPACITY : POT_CAPACITY;
+  return wareOf(pot) === 'pot' ? POT_CAPACITY : PAN_CAPACITY; // a pan and a frying basket take one piece
 }
 
 function wareCookTime(pot: PotItem, settings: EffectiveSettings): number {
-  return wareOf(pot) === 'pan' ? settings.panCookTime : settings.cookTime;
+  const ware = wareOf(pot);
+  return ware === 'pan' ? settings.panCookTime : ware === 'basket' ? settings.deepFryTime : settings.cookTime;
 }
 
-/** A pot boils soup ingredients, a pan fries the chopped ones that come out cooked. Both
- *  refuse raw ingredients (wiki Burner: "an unchopped ingredient" is pushed away). */
+/** The station the cookware cooks on: pots and pans on a burner, the frying basket in a fryer. */
+function cookSite(pot: PotItem): Tile['type'] {
+  return wareOf(pot) === 'basket' ? 'fryer' : 'stove';
+}
+
+/** A pot boils soup ingredients, a pan fries the chopped ones that come out cooked, a basket
+ *  deep-fries fish and potato. All refuse raw ingredients (wiki Burner: "an unchopped
+ *  ingredient" is pushed away). */
 function wareAccepts(pot: PotItem, item: IngredientItem): boolean {
   if (!item.chopped) return false;
-  const list = wareOf(pot) === 'pan' ? FRIED_INGREDIENTS : SOUP_INGREDIENTS;
+  const ware = wareOf(pot);
+  const list = ware === 'pan' ? FRIED_INGREDIENTS : ware === 'basket' ? DEEP_FRIED_INGREDIENTS : SOUP_INGREDIENTS;
   return list.includes(item.type);
+}
+
+/** The dish a component starts or joins: deep-fried pieces make a 'fried' dish, chopped fish and
+ *  prawn a 'plated' one, bun, patty and toppings a 'burger'; null for anything else. */
+function componentDish(type: IngredientType, cooked: boolean): DishType | null {
+  if (cooked && DEEP_FRIED_INGREDIENTS.includes(type)) return 'fried';
+  if (isPlatedComponent(type)) return 'plated';
+  if (isBurgerComponent(type)) return 'burger';
+  return null;
 }
 
 /** True when the ingredient has had all the prep its plate needs: sashimi fish and prawn
  *  chopped; burger buns raw, toppings chopped, meat cooked (so it can only come out of a pan). */
 function readyForPlate(item: IngredientItem): boolean {
+  if (item.cooked === true && DEEP_FRIED_INGREDIENTS.includes(item.type)) return true;
   if (isPlatedComponent(item.type)) return item.chopped;
   if (!isBurgerComponent(item.type)) return false;
   if (FRIED_INGREDIENTS.includes(item.type)) return item.cooked === true;
@@ -198,6 +217,7 @@ function effectiveSettings(level: LevelDef, mods: Modifiers | undefined): Effect
     chefSpeed: CHEF_SPEED * (mods?.chefSpeedScale ?? 1),
     cookTime: COOK_TIME * (mods?.cookTimeScale ?? 1),
     panCookTime: PAN_COOK_TIME * (mods?.cookTimeScale ?? 1),
+    deepFryTime: DEEP_FRY_TIME * (mods?.cookTimeScale ?? 1),
     burnTime: BURN_TIME * (mods?.burnTimeScale ?? 1),
     chopTime: CHOP_TIME * (mods?.chopTimeScale ?? 1),
     washTime: WASH_TIME * (mods?.washTimeScale ?? 1),
@@ -649,19 +669,66 @@ export class Sim {
     const locked = (chef.action === 'chopping' || chef.action === 'washing' || chef.action === 'unloading') && inp.interactHeld;
     chef.action = 'idle';
     chef.actionProgress = 0;
+    const onIce = this.tileAt(Math.floor(chef.x), Math.floor(chef.y))?.type === 'ice';
+    if (!onIce || locked) { delete chef.vx; delete chef.vy; }
     if (locked) return;
 
     let mx = inp.moveX;
     let my = inp.moveY;
     const len = Math.hypot(mx, my);
-    if (len < MOVE_DEADZONE) return;
-    if (len > 1) { mx /= len; my /= len; } // analog below full deflection, clamped above
-
-    chef.facing = Math.abs(mx) > Math.abs(my) ? (mx > 0 ? 'right' : 'left') : (my > 0 ? 'down' : 'up');
-    chef.action = 'walking';
-    const dist = this.settings.chefSpeed * (isTray(chef.holding) ? TRAY_SPEED_SCALE : 1) * dt;
+    if (len < MOVE_DEADZONE) {
+      mx = 0;
+      my = 0;
+    } else {
+      if (len > 1) { mx /= len; my /= len; } // analog below full deflection, clamped above
+      chef.facing = Math.abs(mx) > Math.abs(my) ? (mx > 0 ? 'right' : 'left') : (my > 0 ? 'down' : 'up');
+      chef.action = 'walking';
+    }
+    const speed = this.settings.chefSpeed * (isTray(chef.holding) ? TRAY_SPEED_SCALE : 1);
+    if (onIce) {
+      this.slide(chef, mx * speed, my * speed, mx !== 0 || my !== 0, dt);
+      return;
+    }
+    if (mx === 0 && my === 0) return;
+    const dist = speed * dt;
     if (mx !== 0) chef.x = this.resolveX(chef, chef.x + mx * dist);
     if (my !== 0) chef.y = this.resolveY(chef, chef.y + my * dist);
+  }
+
+  /** Movement on ice: the velocity eases towards the stick's (ICE_ACCEL while steering, ICE_DECEL
+   *  with the stick released), so a chef slides on after letting go. A wall stops that axis. */
+  private slide(chef: Chef, tvx: number, tvy: number, steering: boolean, dt: number): void {
+    let vx = chef.vx ?? 0;
+    let vy = chef.vy ?? 0;
+    const dvx = tvx - vx;
+    const dvy = tvy - vy;
+    const gap = Math.hypot(dvx, dvy);
+    const reach = (steering ? ICE_ACCEL : ICE_DECEL) * dt;
+    if (gap <= reach) {
+      vx = tvx;
+      vy = tvy;
+    } else {
+      vx += (dvx / gap) * reach;
+      vy += (dvy / gap) * reach;
+    }
+    if (vx !== 0) {
+      const want = chef.x + vx * dt;
+      chef.x = this.resolveX(chef, want);
+      if (chef.x !== want) vx = 0;
+    }
+    if (vy !== 0) {
+      const want = chef.y + vy * dt;
+      chef.y = this.resolveY(chef, want);
+      if (chef.y !== want) vy = 0;
+    }
+    if (vx === 0 && vy === 0) {
+      delete chef.vx;
+      delete chef.vy;
+      return;
+    }
+    chef.vx = vx;
+    chef.vy = vy;
+    chef.action = 'walking';
   }
 
   /** Fills boxBuf with the 1x1 solid boxes overlapping the given AABB and returns the entry
@@ -1520,7 +1587,7 @@ export class Sim {
         }
         // wiki (Plate): a plate resting on a sink refuses food.
         if (item && item.kind === 'plate' && tile.type !== 'sink') {
-          if (!readyForPlate(held) || !this.addToPlate(item, held.type)) return;
+          if (!readyForPlate(held) || !this.addToPlate(item, held.type, held.cooked === true)) return;
           chef.holding = null;
           events.push({ type: 'plateAdd', chef: idx, x: tx, y: ty });
           return;
@@ -1545,7 +1612,7 @@ export class Sim {
           this.emptyOnto(item, held, idx, tx, ty, events);
           return;
         }
-        if (!item && (this.canPlaceOn(tile.type) || tile.type === 'stove')) {
+        if (!item && (this.canPlaceOn(tile.type) || tile.type === cookSite(held))) {
           this.place(chef, i, idx, tx, ty, events);
         }
         return;
@@ -1572,7 +1639,7 @@ export class Sim {
         // counter or a board.
         if (item && item.kind === 'ingredient') {
           if (!this.canPlaceOn(tile.type) && tile.type !== 'board') return;
-          if (!readyForPlate(item) || !this.addToPlate(held, item.type)) return;
+          if (!readyForPlate(item) || !this.addToPlate(held, item.type, item.cooked === true)) return;
           st.tileItems[i] = null;
           events.push({ type: 'plateAdd', chef: idx, x: tx, y: ty });
           return;
@@ -1797,8 +1864,8 @@ export class Sim {
    *  plate that is empty or already holds burger parts. Refuses when the plate cannot take it,
    *  leaving both the plate and the cookware untouched. */
   private emptyOnto(plate: PlateItem, ware: PotItem, idx: number, tx: number, ty: number, events: SimEvent[]): void {
-    if (wareOf(ware) === 'pan') {
-      if (!this.addToPlate(plate, ware.contents[0])) return;
+    if (wareOf(ware) !== 'pot') { // a pan or a basket lays its one cooked piece on the plate
+      if (!this.addToPlate(plate, ware.contents[0], true)) return;
       this.emptyPot(ware);
       events.push({ type: 'plateAdd', chef: idx, x: tx, y: ty });
       return;
@@ -1809,23 +1876,20 @@ export class Sim {
     events.push({ type: 'potPour', chef: idx, x: tx, y: ty });
   }
 
-  /** Adds one component to a plate: a burger part (at most one of each) onto an empty or burger
-   *  plate, a plated ingredient onto an empty or plated plate. Soup plates and plate stacks
-   *  refuse everything. Returns false when nothing changed. */
-  private addToPlate(plate: PlateItem, type: IngredientType): boolean {
+  /** Adds one component to a plate: a burger part or a deep-fried piece (at most one of each)
+   *  onto an empty plate or one of the same dish, a plated ingredient onto an empty or plated
+   *  plate. Soup plates and plate stacks refuse everything. Returns false when nothing changed. */
+  private addToPlate(plate: PlateItem, type: IngredientType, cooked: boolean): boolean {
     if ((plate.count ?? 1) !== 1) return false;
-    const plated = isPlatedComponent(type);
-    if (!plated && !isBurgerComponent(type)) return false;
+    const kind = componentDish(type, cooked);
+    if (!kind) return false;
     const dish = plate.dish;
     if (!dish) {
-      plate.dish = { type: plated ? 'plated' : 'burger', ingredients: [type] };
+      plate.dish = { type: kind, ingredients: [type] };
       return true;
     }
-    if (plated) {
-      if (dish.type !== 'plated') return false;
-    } else if (dish.type !== 'burger' || dish.ingredients.includes(type)) {
-      return false;
-    }
+    if (dish.type !== kind) return false;
+    if (kind !== 'plated' && dish.ingredients.includes(type)) return false;
     dish.ingredients.push(type);
     dish.ingredients.sort(); // Dish.ingredients stays alphabetical, so recipe matching is a walk
     return true;
@@ -1898,7 +1962,7 @@ export class Sim {
       const item = st.tileItems[i];
       if (!item || item.kind !== 'pot') continue;
       const tile = st.tiles[i];
-      if (tile.type !== 'stove') continue; // pots off the stove hold their progress
+      if (tile.type !== cookSite(item)) continue; // cookware off its burner or fryer holds its progress
       if (item.state === 'burnt' || item.contents.length === 0) continue;
       // wiki (Fire): "Any cooking device affected by tabletop fire cannot cook food until
       // the fire is extinguished." The burn clock stops with it, so a fire that reaches a

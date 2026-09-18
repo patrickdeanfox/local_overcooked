@@ -61,5 +61,7 @@
   "fish": {"src": "kenney_food-kit/Models/GLB format/fish.glb", "url": "models/kenney-food/fish.glb", "fit": 0.4},
   "fishChopped": {"src": "kenney_food-kit/Models/GLB format/sushi-salmon.glb", "url": "models/kenney-food/sushi-salmon.glb", "fit": 0.3},
   "prawn": {"src": "kenney_food-kit/Models/GLB format/mussel.glb", "url": "models/kenney-food/mussel.glb", "fit": 0.32},
-  "prawnChopped": {"src": "kenney_food-kit/Models/GLB format/mussel-open.glb", "url": "models/kenney-food/mussel-open.glb", "fit": 0.32}
+  "prawnChopped": {"src": "kenney_food-kit/Models/GLB format/mussel-open.glb", "url": "models/kenney-food/mussel-open.glb", "fit": 0.32},
+  "potato": {"src": "kenney_food-kit/Models/GLB format/coconut.glb", "url": "models/kenney-food/coconut.glb", "fit": 0.3},
+  "chips": {"src": "kenney_food-kit/Models/GLB format/fries.glb", "url": "models/kenney-food/fries.glb", "fit": 0.3}
 }

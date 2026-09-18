@@ -1,0 +1,31 @@
+{
+  "id": "oc1-3-1",
+  "name": "3-1",
+  "game": "oc1",
+  "world": 3,
+  "index": 1,
+  "theme": "glazed-glacier",
+  "description": "Fish and chips on an ice floe. Every station sits on one island in the middle, the serving hatch and plate return are on their own ledge to the north, and the ice keeps chefs sliding. Skid off the edge and you are out for five seconds.",
+  "strategy": "Start turning before you need to: on ice you keep sliding after you let go. Split by recipe rather than by place, one chef on fish and one on chips, and batch the trips to the hatch, since every serve is a separate skid across the floe.",
+  "source": "https://overcooked.fandom.com/wiki/3-1_(Overcooked!)",
+  "unlockStars": 20,
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "recipes": ["chips", "fried_fish", "fish_and_chips"],
+  "orders": { "initial": 2, "intervalSec": 22, "max": 4, "timeSec": 100 },
+  "stars": { "1": [65, 130, 200], "2": [75, 145, 220] },
+  "plates": { "mode": "sink", "count": 3 },
+  "grid": [
+    "_____RVV_____",
+    "____,,,,,____",
+    "__,,,,,,,,,__",
+    "_,,#B#BE#X,,_",
+    "_,,W#####J,,_",
+    "_,,D#####%,,_",
+    "_,,#YYY##Y,,_",
+    "_,,,,,,ppp,,_",
+    "__,,,,,,,,,__",
+    "____,,,,,____"
+  ],
+  "spawns": [{ "x": 3, "y": 8 }, { "x": 9, "y": 8 }]
+}

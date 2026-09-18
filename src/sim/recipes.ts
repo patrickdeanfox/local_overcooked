@@ -15,6 +15,11 @@ export const RECIPES: Record<string, Recipe> = {
   tomato_lettuce_burger: { id: 'tomato_lettuce_burger', name: 'Salad Burger',   dish: 'burger', ingredients: ['bun', 'lettuce', 'meat', 'tomato'], score: 30 },
   fish_sashimi:  { id: 'fish_sashimi',  name: 'Fish Sashimi',  dish: 'plated', ingredients: ['fish'],  score: 20 },
   prawn_sashimi: { id: 'prawn_sashimi', name: 'Prawn Sashimi', dish: 'plated', ingredients: ['prawn'], score: 20 },
+  // Overcooked 1 world 3: fish and potato chopped, deep-fried in a basket, laid on the plate.
+  // Scores estimated in docs/research/oc1-recipes.md (15 for one piece, 25 for both).
+  chips:          { id: 'chips',          name: 'Chips',          dish: 'fried', ingredients: ['potato'],         score: 15 },
+  fried_fish:     { id: 'fried_fish',     name: 'Fried Fish',     dish: 'fried', ingredients: ['fish'],           score: 15 },
+  fish_and_chips: { id: 'fish_and_chips', name: 'Fish and Chips', dish: 'fried', ingredients: ['fish', 'potato'], score: 25 },
 };
 
 export function recipeDishType(recipe: Recipe): DishType {

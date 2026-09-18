@@ -6,20 +6,23 @@
 // Coordinates: tile units, x right, y down, (0,0) is the top-left tile. Chef x/y is the
 // chef's center, so a chef standing in the middle of tile (3,2) has x=3.5, y=2.5.
 
-export type IngredientType = 'onion' | 'tomato' | 'mushroom' | 'meat' | 'bun' | 'lettuce' | 'fish' | 'prawn';
-export const INGREDIENT_TYPES: readonly IngredientType[] = ['onion', 'tomato', 'mushroom', 'meat', 'bun', 'lettuce', 'fish', 'prawn'];
+export type IngredientType = 'onion' | 'tomato' | 'mushroom' | 'meat' | 'bun' | 'lettuce' | 'fish' | 'prawn' | 'potato';
+export const INGREDIENT_TYPES: readonly IngredientType[] = ['onion', 'tomato', 'mushroom', 'meat', 'bun', 'lettuce', 'fish', 'prawn', 'potato'];
 /** Ingredients that go in a pot and make soup. */
 export const SOUP_INGREDIENTS: readonly IngredientType[] = ['onion', 'tomato', 'mushroom'];
 /** Ingredients that need the chopping board before use (buns never do). */
-export const CHOPPED_INGREDIENTS: readonly IngredientType[] = ['onion', 'tomato', 'mushroom', 'meat', 'lettuce', 'fish', 'prawn'];
+export const CHOPPED_INGREDIENTS: readonly IngredientType[] = ['onion', 'tomato', 'mushroom', 'meat', 'lettuce', 'fish', 'prawn', 'potato'];
 /** Ingredients that go in a pan after chopping and come out cooked. */
 export const FRIED_INGREDIENTS: readonly IngredientType[] = ['meat'];
 /** Chopped ingredients that go straight onto a plate as a 'plated' dish (sashimi; salads later). */
 export const PLATED_INGREDIENTS: readonly IngredientType[] = ['fish', 'prawn'];
+/** Chopped ingredients that go in a frying basket in a deep fryer and come out cooked (Overcooked 1 fish and chips). */
+export const DEEP_FRIED_INGREDIENTS: readonly IngredientType[] = ['fish', 'potato'];
 
-export type Ware = 'pot' | 'pan'; // cookware that sits on a stove
+export type Ware = 'pot' | 'pan' | 'basket'; // 'pot' and 'pan' sit on a stove, 'basket' (a frying basket) in a fryer
 /** 'plated': chopped ingredients assembled directly on the plate, no heat (Overcooked 2 sashimi, salad). */
-export type DishType = 'soup' | 'burger' | 'plated';
+export type DishType = 'soup' | 'burger' | 'plated'
+  | 'fried'; // deep-fried pieces out of a frying basket, laid on the plate (fish and chips)
 
 export type TileType =
   | 'void'        // outside the kitchen; not walkable, nothing placed
@@ -43,7 +46,9 @@ export type TileType =
   | 'trayRack'    // counter that starts with the tray on it (legend 't'); a plain counter while the mechanic is off
   | 'delivery'    // delivery door: restock crates arrive here (86 system); solid, holds nothing, no interaction while the mechanic is off
   // Level mechanics (roadmap item 5):
-  | 'conveyor';   // conveyor belt: a counter that carries its item one tile along tile.dir; hands off to the next belt, a free counter or a bin
+  | 'conveyor'    // conveyor belt: a counter that carries its item one tile along tile.dir; hands off to the next belt, a free counter or a bin
+  | 'fryer'       // solid; deep fryer: holds a frying basket and cooks it, like a stove holds a pot
+  | 'ice';        // walkable floor with momentum: a chef on it speeds up and slows down gradually (Glazed Glacier)
 
 export interface Tile {
   x: number;
@@ -140,6 +145,8 @@ export interface Chef {
   assisting?: boolean;    // chop assist: true while this chef is the second pair of hands at a station this step
   windupLeft?: number;    // tray: seconds of lift / set-down wind-up left; absent = not winding up
   wobble?: number;        // tray: seconds left in the wobble window after a bump; a second bump inside it drops the top item
+  vx?: number;            // ice: velocity in tiles per second while the chef stands on ice; absent elsewhere
+  vy?: number;
 }
 /** A thrown item in the air: straight flight until it is caught, hits something or runs out of range. */
 export interface FlyingItem {

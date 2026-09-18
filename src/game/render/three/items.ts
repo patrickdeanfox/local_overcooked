@@ -13,6 +13,13 @@ import { modelInstance, modelSize, tintObject } from './loader';
 // ─── Constants ──────────────────────────────────────────────────────────────
 const SOUP = { potRadius: 0.2, potLevel: 0.2, plateRadius: 0.17, plateLevel: 0.062, rawColor: 0xe9d6a8, segments: 24 } as const;
 const PAN = { pattyOffsetZ: -0.12, pattyLift: 0.03 } as const;
+/** The frying basket: a wire cage with a handle, its piece inside. Fried fish is the fish model in batter gold. */
+const BASKET = {
+  radius: 0.17, height: 0.14, wire: 0x9aa0a8, handle: 0x2a2a2e, handleLength: 0.26, segments: 12, pieceLift: 0.02,
+} as const;
+const FRIED_TINT = 0xd89a3a;
+/** Cut chips before the fryer: a few pale sticks. */
+const STICKS = { count: 5, length: 0.2, width: 0.035, spread: 0.06, color: 0xf3e2b0 } as const;
 const BURNT_TINT = 0x4a3a30;
 const DIRTY_TINT = 0xb9a88f;
 const STACK = { maxShown: 5, plateGap: 0.045, dirtyGap: 0.05, burgerGap: 0.005 } as const;
@@ -27,8 +34,9 @@ const INGREDIENT_ROLE: Readonly<Record<IngredientType, { raw: ModelRole; chopped
   meat: { raw: 'meat', chopped: 'meatChopped', cooked: 'meatCooked' },
   bun: { raw: 'bun', chopped: 'bun' },
   lettuce: { raw: 'lettuce', chopped: 'lettuceChopped' },
-  fish: { raw: 'fish', chopped: 'fishChopped' },
+  fish: { raw: 'fish', chopped: 'fishChopped', cooked: 'fish' }, // cooked: tinted batter gold by ingredientView
   prawn: { raw: 'prawn', chopped: 'prawnChopped' }, // the Food Kit has no prawn: a mussel stands in
+  potato: { raw: 'potato', chopped: 'potato', cooked: 'chips' }, // no potato in the kit: a coconut; cut chips are drawn sticks
 };
 /** Plated (sashimi, salad) pieces sit on the plate in a small ring. */
 const PLATED = { ring: 0.07, scale: 0.85 } as const;
@@ -88,12 +96,54 @@ function brothColor(pot: PotItem): THREE.Color {
 }
 
 function ingredientView(type: IngredientType, chopped: boolean, cooked: boolean): THREE.Group {
+  if (type === 'potato' && chopped && !cooked) return rawChips();
   const roles = INGREDIENT_ROLE[type];
   const role = cooked && roles.cooked ? roles.cooked : chopped ? roles.chopped : roles.raw;
-  return modelInstance(role);
+  const view = modelInstance(role);
+  if (type === 'fish' && cooked) tintObject(view, FRIED_TINT);
+  return view;
+}
+
+function rawChips(): THREE.Group {
+  const root = new THREE.Group();
+  const material = new THREE.MeshStandardMaterial({ color: STICKS.color, roughness: 0.8 });
+  const geometry = new THREE.BoxGeometry(STICKS.length, STICKS.width, STICKS.width);
+  for (let i = 0; i < STICKS.count; i++) {
+    const stick = new THREE.Mesh(geometry, material);
+    const angle = (i / STICKS.count) * Math.PI;
+    stick.position.set(Math.cos(angle * 2) * STICKS.spread, STICKS.width / 2 + (i % 2) * STICKS.width, Math.sin(angle * 2) * STICKS.spread);
+    stick.rotation.y = angle;
+    stick.castShadow = true;
+    root.add(stick);
+  }
+  return root;
+}
+
+/** The frying basket, and its piece raw, fried or burnt. */
+function basketView(pot: PotItem): THREE.Group {
+  const root = new THREE.Group();
+  const cage = new THREE.Mesh(
+    new THREE.CylinderGeometry(BASKET.radius, BASKET.radius * 0.85, BASKET.height, BASKET.segments, 1, true),
+    new THREE.MeshStandardMaterial({ color: BASKET.wire, wireframe: true }),
+  );
+  cage.position.y = BASKET.height / 2;
+  const handle = new THREE.Mesh(
+    new THREE.BoxGeometry(BASKET.handleLength, 0.025, 0.025),
+    new THREE.MeshStandardMaterial({ color: BASKET.handle }),
+  );
+  handle.position.set(BASKET.radius + BASKET.handleLength / 2, BASKET.height, 0);
+  root.add(cage, handle);
+  const type = pot.contents[0];
+  if (!type) return root;
+  const piece = ingredientView(type, true, pot.state === 'cooked' || pot.state === 'burnt');
+  piece.position.y = BASKET.pieceLift;
+  if (pot.state === 'burnt') tintObject(piece, BURNT_TINT);
+  root.add(piece);
+  return root;
 }
 
 function potView(pot: PotItem): THREE.Group {
+  if (pot.ware === 'basket') return basketView(pot);
   const root = new THREE.Group();
   const pan = (pot.ware ?? 'pot') === 'pan';
   const ware = modelInstance(pan ? 'pan' : 'pot');
@@ -143,7 +193,7 @@ function plateView(count: number, dish: Dish | null): THREE.Group {
       const stack = burgerStack(dish);
       stack.position.y = top + plateHeight;
       root.add(stack);
-    } else if (dish.type === 'plated') {
+    } else if (dish.type === 'plated' || dish.type === 'fried') {
       const pieces = platedPieces(dish);
       pieces.position.y = top + plateHeight;
       root.add(pieces);
@@ -158,8 +208,9 @@ function plateView(count: number, dish: Dish | null): THREE.Group {
 function platedPieces(dish: Dish): THREE.Group {
   const group = new THREE.Group();
   const count = dish.ingredients.length;
+  const fried = dish.type === 'fried';
   dish.ingredients.forEach((ingredient, i) => {
-    const piece = modelInstance(INGREDIENT_ROLE[ingredient].chopped);
+    const piece = fried ? ingredientView(ingredient, true, true) : modelInstance(INGREDIENT_ROLE[ingredient].chopped);
     piece.scale.setScalar(PLATED.scale);
     const angle = (i / count) * Math.PI * 2;
     const radius = count === 1 ? 0 : PLATED.ring;
