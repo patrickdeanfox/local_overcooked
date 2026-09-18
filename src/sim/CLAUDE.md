@@ -53,6 +53,8 @@ Portals and the rift (`tests/sim.portal.test.ts`): `indexLevel` pairs `portal` t
 
 Mixer and steamer (`tests/sim.steamer.test.ts`): a `mixer` tile holds a `PotItem` with `ware: 'bowl'` (`cookSite` sends bowls there). It takes raw `MIXED_RAW` (flour) and one chopped `MIXED_CHOPPED` filling, mixes in `mixTime`, and overmixed (`burnProgress` 1) sets `Tile.broken` and fires `mixerBroke` instead of a fire; a broken mixer mixes nothing again. A `steamer` is cookware on a stove: it takes a chopped `STEAMED_WHOLE` piece (fish) straight in, or a mixed bowl through `pour()` (holding the bowl, facing an empty steamer), steams in `steamTime`, and `emptyOnto` lays a `'steamed'` dish on an empty plate. A bowl never goes onto a plate.
 
+Pancakes and cakes (`tests/sim.cake.test.ts`): the bowl also takes raw egg and chopped honey and chocolate, one of each, up to four. `pour()` pours a mixed bowl into an empty pan as well as a steamer; a pan holding batter (flour or egg) empties onto a plate as a `'pancake'`. A mixed bowl set on an empty `oven` becomes `newTin()`, a `PotItem` with `ware: 'tin'` that bakes in `bakeTime` and, like a pizza base (`isWholeDish`), slides onto a plate whole as a `'cake'` and leaves with it; a tin takes nothing piece by piece.
+
 Falling (`tests/sim.gap.test.ts`): a chef whose centre is over a `gap` loses its item, is pinned as `falling` for `FALL_PENALTY_SEC`, is ignored by separation and pushes, and comes back at its spawn. `gap` has no wall (`SOLID_TILES` excludes it) but `isWalkable` is false, so spawns and reachability treat it as a hole.
 
 ### The mechanics (`docs/MECHANICS.md`), each behind an `EffectiveSettings` flag; off is the kitchen as it shipped

@@ -8,21 +8,21 @@
 
 export type IngredientType = 'onion' | 'tomato' | 'mushroom' | 'meat' | 'bun' | 'lettuce' | 'fish' | 'prawn' | 'potato'
   | 'cucumber' | 'rice' | 'nori' | 'tortilla' | 'chicken' | 'cheese' | 'pasta' | 'dough' | 'pepperoni'
-  | 'flour' | 'carrot';
+  | 'flour' | 'carrot' | 'egg' | 'honey' | 'chocolate';
 export const INGREDIENT_TYPES: readonly IngredientType[] = [
   'onion', 'tomato', 'mushroom', 'meat', 'bun', 'lettuce', 'fish', 'prawn', 'potato', 'cucumber', 'rice', 'nori',
-  'tortilla', 'chicken', 'cheese', 'pasta', 'dough', 'pepperoni', 'flour', 'carrot',
+  'tortilla', 'chicken', 'cheese', 'pasta', 'dough', 'pepperoni', 'flour', 'carrot', 'egg', 'honey', 'chocolate',
 ];
 /** Ingredients that go in a pot and make soup. */
 export const SOUP_INGREDIENTS: readonly IngredientType[] = ['onion', 'tomato', 'mushroom'];
 /** Ingredients that need the chopping board before use (buns never do). */
 export const CHOPPED_INGREDIENTS: readonly IngredientType[] = [
   'onion', 'tomato', 'mushroom', 'meat', 'lettuce', 'fish', 'prawn', 'potato', 'cucumber', 'chicken', 'cheese',
-  'dough', 'pepperoni', 'carrot',
+  'dough', 'pepperoni', 'carrot', 'honey', 'chocolate',
 ];
 /** What a mixing bowl takes: flour as it comes, and the chopped fillings of a steamed dumpling. */
-export const MIXED_RAW: readonly IngredientType[] = ['flour'];
-export const MIXED_CHOPPED: readonly IngredientType[] = ['meat', 'carrot', 'prawn'];
+export const MIXED_RAW: readonly IngredientType[] = ['flour', 'egg'];
+export const MIXED_CHOPPED: readonly IngredientType[] = ['meat', 'carrot', 'prawn', 'honey', 'chocolate'];
 /** Chopped pieces that go straight into a steamer, unmixed (the steamed fish). */
 export const STEAMED_WHOLE: readonly IngredientType[] = ['fish'];
 /** Chopping one of these (dough, flattened) turns it into a pizza base: cookware that takes the toppings. */
@@ -44,7 +44,8 @@ export type Prep = 'raw' | 'chopped' | 'pan' | 'basket' | 'boiled';
 export type Ware = 'pot' | 'pan' | 'basket' // 'pot' and 'pan' sit on a stove, 'basket' (a frying basket) in a fryer
   | 'dough'   // a pizza base: chopped dough carrying its toppings, baked in an oven and slid onto a plate whole
   | 'bowl'    // a mixing bowl: sits in a mixer, mixes its contents, and is poured into a steamer
-  | 'steamer'; // a bamboo steamer on a burner: steams a poured mix, or a chopped fish, into dumplings
+  | 'steamer' // a bamboo steamer on a burner: steams a poured mix, or a chopped fish, into dumplings
+  | 'tin';    // a cake tin: a mixed bowl poured onto an empty oven, baked there, and slid onto a plate whole
 /** 'plated': chopped ingredients assembled directly on the plate, no heat (Overcooked 2 sashimi, salad). */
 export type DishType = 'soup' | 'burger' | 'plated'
   | 'fried'  // deep-fried pieces out of a frying basket, laid on the plate (fish and chips)
@@ -53,7 +54,9 @@ export type DishType = 'soup' | 'burger' | 'plated'
   | 'pasta'   // boiled pasta and a sauce piece out of a pan (Overcooked 2)
   | 'burrito' // a raw tortilla, boiled rice and a filling out of a pan (Overcooked 2)
   | 'pizza'   // a baked pizza base and its toppings, off the oven onto the plate
-  | 'steamed'; // dumplings out of a steamer: a mix of flour and a filling, or a fish (Overcooked 2 Kevin levels)
+  | 'steamed'  // dumplings out of a steamer: a mix of flour and a filling, or a fish (Overcooked 2 Kevin levels)
+  | 'pancake'  // a mix of flour and egg (and chocolate) fried in a pan
+  | 'cake';    // a mix of flour, egg and honey (and carrot or chocolate) baked in an oven
 
 export type TileType =
   | 'void'        // outside the kitchen; not walkable, nothing placed

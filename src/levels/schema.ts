@@ -196,6 +196,9 @@ export const LEGEND: Readonly<Record<string, LegendEntry>> = Object.freeze({
   'Z': { type: 'stove', item: 'pot', ware: 'steamer' },  // the catalog's steamer: a burner with a bamboo steamer
   'f': { type: 'crate', ingredient: 'flour' },
   'q': { type: 'crate', ingredient: 'carrot' },
+  '$': { type: 'crate', ingredient: 'egg' },       // the catalog's egg crate
+  'y': { type: 'crate', ingredient: 'honey' },
+  'b': { type: 'crate', ingredient: 'chocolate' },
   '@': { type: 'portal' },                               // the catalog's portal; a stations override pairs it (group)
   'z': { type: 'rift' },                                 // throws cross it, chefs cannot                                 // the catalog's oven: bakes a pizza base set on it
   '&': { type: 'crate', ingredient: 'dough' },           // the catalog's dough crate
@@ -324,6 +327,9 @@ export function validateLevel(level: LevelDef): string[] {
     if (recipeDishType(recipe) === 'pizza' && count('oven') === 0) errors.push(`recipe '${id}' needs an oven`);
     if (recipeDishType(recipe) === 'steamed' && !wares.has('steamer')) errors.push(`recipe '${id}' needs a stove with a steamer`);
     if (recipeDishType(recipe) === 'steamed' && recipe.ingredients.length > 1 && !wares.has('bowl')) errors.push(`recipe '${id}' needs a mixer`);
+    if ((recipeDishType(recipe) === 'pancake' || recipeDishType(recipe) === 'cake') && !wares.has('bowl')) errors.push(`recipe '${id}' needs a mixer`);
+    if (recipeDishType(recipe) === 'pancake' && !wares.has('pan')) errors.push(`recipe '${id}' needs a stove with a pan`);
+    if (recipeDishType(recipe) === 'cake' && count('oven') === 0) errors.push(`recipe '${id}' needs an oven`);
     const family = DISH_FAMILIES[recipeDishType(recipe)];
     if (family && recipe.ingredients.some((i) => family.parts[i] === 'boiled') && !wares.has('pot')) errors.push(`recipe '${id}' needs a stove with a pot`);
     if (family && recipe.ingredients.some((i) => family.parts[i] === undefined)) errors.push(`recipe '${id}' has an ingredient its dish does not take`);

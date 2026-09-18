@@ -1,0 +1,23 @@
+# -- Pancakes and cakes: OC2 5-4 with a pancake frying and one plated, and OC2 6-1 with a cake baking,
+#    one plated, and an item riding the belt down the left wall
+eval localStorage.setItem('local-overcooked.settings.v1', JSON.stringify({ version: 1, players: 2, preset: 'normal', seedMode: 'fixed', fixedSeed: 5, freePlay: true }))
+eval location.reload()
+wait 1500
+until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
+wait 600
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval (__ui.scene('Title').scene.start('Game', { levelId: 'oc2-5-4', seed: 7 }), 'started')
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.level.id === 'oc2-5-4'
+wait 800
+eval ((st) => (st.tileItems[9 * 15 + 5].contents.push('flour', 'egg'), st.tileItems[4 * 15 + 4].dish = { type: 'pancake', ingredients: ['chocolate', 'egg', 'flour'] }, 'set'))(__oc.sim.getState())
+wait 2500
+shot 39-00-pancakes.png
+
+eval (__ui.scene('Game').scene.start('Game', { levelId: 'oc2-6-1', seed: 7 }), 'started')
+until 20000 __oc.level && __oc.level.id === 'oc2-6-1' && __oc.sim.getState().elapsed > 0.5
+wait 600
+eval ((st) => (st.tileItems[5] = { kind: 'pot', id: 9701, ware: 'tin', contents: ['egg', 'flour', 'honey'], state: 'empty', cookProgress: 0, burnProgress: 0 }, st.tileItems[4 * 15 + 9].dish = { type: 'cake', ingredients: ['egg', 'flour', 'honey'] }, st.tileItems[1 * 15 + 1] = { kind: 'ingredient', id: 9702, type: 'egg', chopped: false, chopProgress: 0 }, 'set'))(__oc.sim.getState())
+wait 3000
+eval JSON.stringify(['tin', __oc.sim.getState().tileItems[5].state, 'egg at row', Math.floor(__oc.sim.getState().tileItems.findIndex((i) => i && i.id === 9702) / 15)])
+shot 39-01-cakes.png
+errors

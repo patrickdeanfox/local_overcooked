@@ -1,0 +1,32 @@
+{
+  "id": "oc2-6-1",
+  "name": "6-1",
+  "game": "oc2",
+  "world": 6,
+  "index": 1,
+  "theme": "buffet-balloons",
+  "description": "The first cakes: flour, egg and honey mixed, then baked. Three bands behind walls too high to throw over, ovens at the top and mixers at the bottom, joined by a belt down one side and a corridor down the other. Fires break out on the floor.",
+  "strategy": "The clock waits for the first cake, so chop honey and mix a few batches before serving. Two chefs can ignore the belt and use the corridor; keep someone near the extinguisher in the middle band.",
+  "source": "https://overcooked.fandom.com/wiki/6-1_(Overcooked!_2)",
+  "unlockStars": 66,
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": true,
+  "recipes": ["cake", "carrot_cake", "chocolate_cake"],
+  "orders": { "initial": 2, "intervalSec": 20, "max": 5, "timeSec": 100 },
+  "stars": { "1": [360, 460, 620], "2": [420, 520, 700] },
+  "plates": { "mode": "sink", "count": 3 },
+  "grid": [
+    "##fb#NN##R#X###",
+    "#v............#",
+    "#v###########.#",
+    "#v............#",
+    "#v#B#B#E#ppp#.V",
+    "#v............#",
+    "#v###########.#",
+    "#v............#",
+    "##............#",
+    "##KK#$qy#W#####"
+  ],
+  "spawns": [{ "x": 6, "y": 3 }, { "x": 6, "y": 8 }],
+  "dynamics": [{ "type": "floorFires", "intervalSec": 25, "max": 2, "firstDelaySec": 30 }]
+}

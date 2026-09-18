@@ -87,6 +87,12 @@ export const RECIPES: Record<string, Recipe> = {
   steamed_beef:   { id: 'steamed_beef',   name: 'Steamed Beef',   dish: 'steamed', ingredients: ['flour', 'meat'],   score: 60 },
   steamed_carrot: { id: 'steamed_carrot', name: 'Steamed Carrot', dish: 'steamed', ingredients: ['carrot', 'flour'], score: 60 },
   steamed_prawn:  { id: 'steamed_prawn',  name: 'Steamed Prawn',  dish: 'steamed', ingredients: ['flour', 'prawn'],  score: 60 },
+  // Pancakes (mix, then fry) and cakes (chop the honey, mix, then bake). The 20-per-step estimate.
+  pancake:           { id: 'pancake',           name: 'Pancake',           dish: 'pancake', ingredients: ['egg', 'flour'],                          score: 40 },
+  chocolate_pancake: { id: 'chocolate_pancake', name: 'Chocolate Pancake', dish: 'pancake', ingredients: ['chocolate', 'egg', 'flour'],             score: 60 },
+  cake:              { id: 'cake',              name: 'Cake',              dish: 'cake',    ingredients: ['egg', 'flour', 'honey'],                 score: 60 },
+  carrot_cake:       { id: 'carrot_cake',       name: 'Carrot Cake',       dish: 'cake',    ingredients: ['carrot', 'egg', 'flour', 'honey'],       score: 80 },
+  chocolate_cake:    { id: 'chocolate_cake',    name: 'Chocolate Cake',    dish: 'cake',    ingredients: ['chocolate', 'egg', 'flour', 'honey'],    score: 80 },
 };
 
 export function recipeDishType(recipe: Recipe): DishType {

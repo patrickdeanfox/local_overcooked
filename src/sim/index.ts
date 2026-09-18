@@ -179,7 +179,7 @@ function wareOf(pot: PotItem): Ware {
 
 function wareCapacity(pot: PotItem): number {
   if (wareOf(pot) === 'dough') return PIZZA_TOPPINGS.length; // one of each topping
-  if (wareOf(pot) === 'bowl') return MIXED_RAW.length + 1;     // flour and one filling
+  if (wareOf(pot) === 'bowl') return 4;                         // the most a mix takes: a carrot or chocolate cake
   if (wareOf(pot) === 'steamer') return 2;                     // a poured mix, or one fish
   if (wareOf(pot) !== 'pot') return PAN_CAPACITY; // a pan and a frying basket take one piece
   return boilsWhole(pot) ? 1 : POT_CAPACITY;      // a pot of rice holds one portion
@@ -194,15 +194,21 @@ function wareCookTime(pot: PotItem, settings: EffectiveSettings): number {
   const ware = wareOf(pot);
   if (ware === 'dough') return settings.bakeTime;
   if (ware === 'bowl') return settings.mixTime;
+  if (ware === 'tin') return settings.bakeTime;
   if (ware === 'steamer') return settings.steamTime;
   return ware === 'pan' ? settings.panCookTime : ware === 'basket' ? settings.deepFryTime : settings.cookTime;
+}
+
+/** Cookware that is the dish itself and leaves with it: a pizza base, a cake tin. */
+function isWholeDish(pot: PotItem): boolean {
+  return wareOf(pot) === 'dough' || wareOf(pot) === 'tin';
 }
 
 /** The station the cookware cooks on: pots and pans on a burner, the frying basket in a fryer, a
  *  pizza base in an oven. */
 function cookSite(pot: PotItem): Tile['type'] {
   const ware = wareOf(pot);
-  return ware === 'basket' ? 'fryer' : ware === 'dough' ? 'oven' : ware === 'bowl' ? 'mixer' : 'stove';
+  return ware === 'basket' ? 'fryer' : ware === 'dough' || ware === 'tin' ? 'oven' : ware === 'bowl' ? 'mixer' : 'stove';
 }
 
 /** A pot boils soup ingredients, a pan fries the chopped ones that come out cooked, a basket
@@ -210,12 +216,12 @@ function cookSite(pot: PotItem): Tile['type'] {
  *  ingredient" is pushed away). */
 function wareAccepts(pot: PotItem, item: IngredientItem): boolean {
   const ware = wareOf(pot);
-  // A mixing bowl takes flour as it comes and one chopped filling, one of each.
+  // A mixing bowl takes flour and egg as they come and chopped fillings, one of each.
   if (ware === 'bowl') {
     const fits = item.chopped ? MIXED_CHOPPED.includes(item.type) : MIXED_RAW.includes(item.type);
-    const oneFilling = !item.chopped || !pot.contents.some((c) => MIXED_CHOPPED.includes(c));
-    return fits && oneFilling && !pot.contents.includes(item.type) && pot.state !== 'burnt';
+    return fits && !pot.contents.includes(item.type) && pot.state !== 'burnt';
   }
+  if (ware === 'tin') return false; // a cake tin is filled by pouring, never piece by piece
   // A steamer takes a chopped fish straight in; everything else is poured in from a bowl.
   if (ware === 'steamer') return item.chopped && STEAMED_WHOLE.includes(item.type) && pot.contents.length === 0;
   // A pizza base takes chopped toppings, one of each, until it goes in the oven.
@@ -1739,7 +1745,7 @@ export class Sim {
       }
 
       case 'pot': {
-        if (tile.type === 'trash' && wareOf(held) === 'dough') { // a pizza base is food, not cookware: it goes
+        if (tile.type === 'trash' && isWholeDish(held)) { // a pizza base or cake tin is food, not cookware: it goes
           chef.holding = null;
           events.push({ type: 'trash', chef: idx, x: tx, y: ty });
           return;
@@ -1754,10 +1760,16 @@ export class Sim {
         // wiki (Plate): a plate resting on a sink refuses food, poured as well as plated.
         if (item && item.kind === 'plate' && tile.type !== 'sink'
             && held.state === 'cooked' && held.contents.length > 0) {
-          if (this.emptyOnto(item, held, idx, tx, ty, events) && wareOf(held) === 'dough') chef.holding = null; // the pizza is on the plate
+          if (this.emptyOnto(item, held, idx, tx, ty, events) && isWholeDish(held)) chef.holding = null; // the pizza or cake is on the plate
           return;
         }
-        if (item && item.kind === 'pot' && this.pour(held, item)) { // a mixed bowl into an empty steamer
+        if (item && item.kind === 'pot' && this.pour(held, item)) { // a mixed bowl into an empty steamer or pan
+          events.push({ type: 'potPour', chef: idx, x: tx, y: ty });
+          return;
+        }
+        if (!item && tile.type === 'oven' && wareOf(held) === 'bowl' && held.state === 'cooked' && held.contents.length > 0) {
+          st.tileItems[i] = this.newTin(held.contents); // a mixed bowl onto an empty oven: a cake tin to bake
+          this.emptyPot(held);
           events.push({ type: 'potPour', chef: idx, x: tx, y: ty });
           return;
         }
@@ -1781,7 +1793,7 @@ export class Sim {
         }
         // wiki (3-2 Strategies): "you can use the plates to scoop up the food from the pot".
         if (item && item.kind === 'pot' && item.state === 'cooked' && item.contents.length > 0) {
-          if (this.emptyOnto(held, item, idx, tx, ty, events) && wareOf(item) === 'dough') st.tileItems[i] = null; // off the oven onto the plate
+          if (this.emptyOnto(held, item, idx, tx, ty, events) && isWholeDish(item)) st.tileItems[i] = null; // off the oven onto the plate
           return;
         }
         // Burger assembly the other way round: the plate collects a prepped ingredient off a
@@ -2016,7 +2028,8 @@ export class Sim {
    *  again. False, and nothing changes, for anything else. */
   private pour(from: PotItem, into: PotItem): boolean {
     if (wareOf(from) !== 'bowl' || from.state !== 'cooked' || from.contents.length === 0) return false;
-    if (wareOf(into) !== 'steamer' || into.contents.length > 0) return false;
+    const target = wareOf(into);
+    if ((target !== 'steamer' && target !== 'pan') || into.contents.length > 0) return false;
     into.contents = [...from.contents];
     into.state = 'empty';
     into.cookProgress = 0;
@@ -2034,9 +2047,18 @@ export class Sim {
       return true;
     }
     if (wareOf(ware) === 'bowl') return false; // a mix is poured into a steamer, never served raw
-    if (wareOf(ware) === 'dough') { // a baked pizza slides onto an empty plate whole; the caller takes the base away
+    if (wareOf(ware) === 'dough' || wareOf(ware) === 'tin') { // a baked pizza or cake slides onto an empty plate whole; the caller takes it away
       if (plate.dish !== null || (plate.count ?? 1) !== 1) return false;
-      plate.dish = { type: 'pizza', ingredients: sortIngredients([...BASE_INGREDIENTS, ...ware.contents]) };
+      plate.dish = wareOf(ware) === 'tin'
+        ? { type: 'cake', ingredients: sortIngredients(ware.contents) }
+        : { type: 'pizza', ingredients: sortIngredients([...BASE_INGREDIENTS, ...ware.contents]) };
+      events.push({ type: 'plateAdd', chef: idx, x: tx, y: ty });
+      return true;
+    }
+    if (wareOf(ware) === 'pan' && ware.contents.some((c) => MIXED_RAW.includes(c))) { // fried batter: a pancake
+      if (plate.dish !== null || (plate.count ?? 1) !== 1) return false;
+      plate.dish = { type: 'pancake', ingredients: sortIngredients(ware.contents) };
+      this.emptyPot(ware);
       events.push({ type: 'plateAdd', chef: idx, x: tx, y: ty });
       return true;
     }
@@ -2441,7 +2463,7 @@ export class Sim {
       return;
     }
     if (item.kind === 'plate') item.dish = null;
-    if (item.kind === 'pot' && item.ware === 'dough') return; // a pizza base is food: gone
+    if (item.kind === 'pot' && isWholeDish(item)) return; // a pizza base or cake tin is food: gone
     if (item.kind === 'pot') this.emptyPot(item);
     this.queueRespawn(item);
   }
@@ -2621,6 +2643,11 @@ export class Sim {
   // ─── Item factories (per-Sim ids) ─────────────────────────────────────────
   private newIngredient(type: IngredientType): IngredientItem {
     return { kind: 'ingredient', id: this.nextItemId++, type, chopped: false, chopProgress: 0 };
+  }
+
+  /** A cake tin holding a poured mix, on the oven that will bake it. */
+  private newTin(contents: readonly IngredientType[]): PotItem {
+    return { kind: 'pot', id: this.nextItemId++, ware: 'tin', contents: [...contents], state: 'empty', cookProgress: 0, burnProgress: 0 };
   }
 
   /** Flattened dough: a pizza base waiting for its toppings. */

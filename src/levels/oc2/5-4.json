@@ -1,0 +1,36 @@
+{
+  "id": "oc2-5-4",
+  "name": "5-4",
+  "game": "oc2",
+  "world": 5,
+  "index": 4,
+  "theme": "conjurers-kitchen",
+  "description": "The first pancakes: flour and egg (and chocolate) mixed, then fried. Two sections at the top over a pit, the mixers, pans and eggs below. The staircases down vanish every thirty-five seconds, and portals take chefs between the top and the bottom.",
+  "strategy": "One chef makes pancakes at the bottom; the other washes, plates and serves up top, and throws chocolate across the pit from the left section to the right. Throw flour down carefully: the bin and the right-hand mixer are both where it lands.",
+  "source": "https://overcooked.fandom.com/wiki/5-4_(Overcooked!_2)",
+  "unlockStars": 54,
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "recipes": ["pancake", "chocolate_pancake"],
+  "orders": { "initial": 2, "intervalSec": 20, "max": 5, "timeSec": 80 },
+  "stars": { "1": [160, 200, 280], "2": [260, 340, 460] },
+  "plates": { "mode": "sink", "count": 2 },
+  "grid": [
+    "###############",
+    "#pW#R#####fB#B#",
+    "#...._____....#",
+    "b...._____....V",
+    "#..@p_____..@.#",
+    "###G#######G###",
+    "#.............#",
+    "#.....@.@.....#",
+    "#.............#",
+    "#K#K#F#F#$#X#E#"
+  ],
+  "spawns": [{ "x": 3, "y": 7 }, { "x": 10, "y": 7 }],
+  "stations": [
+    { "x": 3, "y": 4, "group": "left" }, { "x": 6, "y": 7, "group": "left" },
+    { "x": 12, "y": 4, "group": "right" }, { "x": 8, "y": 7, "group": "right" }
+  ],
+  "dynamics": [{ "type": "gate", "group": "1", "periodSec": 70, "openSec": 35 }]
+}

@@ -7,7 +7,7 @@ import { INGREDIENT_TYPES, SOUP_INGREDIENTS } from '../sim/types';
 import { PROMPT_LABELS, TEX, TEXTURE_SIZES } from './keys';
 import { PALETTE } from './palette';
 import {
-  drawText, fillCircle, fillEllipse, fillRound, line, makeTexture, radial,
+  drawText, fillCircle, fillEllipse, fillPolygon, fillRound, line, makeTexture, radial,
   roundRectPath, starPath, strokeCircle, strokeRound, vGradient, withAlpha,
 } from './draw';
 import { drawBurgerStack, drawIngredient, drawPlate, soupColor } from './items';
@@ -397,6 +397,23 @@ function drawSteamedIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number, 
   }
 }
 
+/** A short stack of pancakes with a pat of butter. */
+function drawPancakeIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  for (let i = 0; i < 3; i++) {
+    const y = cy + r * 0.4 - i * r * 0.28;
+    fillEllipse(ctx, cx, y, r * 0.85, r * 0.3, PALETTE.sponge);
+    fillEllipse(ctx, cx, y - r * 0.06, r * 0.82, r * 0.24, PALETTE.batter);
+  }
+  fillRound(ctx, cx - r * 0.18, cy - r * 0.5, r * 0.36, r * 0.18, r * 0.04, '#fff3b0');
+}
+
+/** A slice of layered cake. */
+function drawCakeIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  fillPolygon(ctx, [[cx - r * 0.85, cy + r * 0.55], [cx + r * 0.85, cy + r * 0.55], [cx + r * 0.85, cy - r * 0.2], [cx - r * 0.2, cy - r * 0.6]], PALETTE.sponge);
+  line(ctx, cx - r * 0.85, cy + r * 0.15, cx + r * 0.85, cy + r * 0.15, '#fff5e6', Math.max(2, r * 0.12));
+  fillPolygon(ctx, [[cx - r * 0.2, cy - r * 0.6], [cx + r * 0.85, cy - r * 0.2], [cx + r * 0.85, cy - r * 0.32], [cx - r * 0.2, cy - r * 0.72]], '#fff5e6');
+}
+
 // ─── Texture generation ─────────────────────────────────────────────────────
 
 export function generateUiTextures(scene: Phaser.Scene): void {
@@ -413,6 +430,8 @@ export function generateUiTextures(scene: Phaser.Scene): void {
   makeTexture(scene, TEX.iconDish('burrito'), ICON, ICON, (ctx) => drawBurritoIcon(ctx, ICON_C, ICON_C, ICON_R));
   makeTexture(scene, TEX.iconDish('pizza'), ICON, ICON, (ctx) => drawPizzaIcon(ctx, ICON_C, ICON_C, ICON_R));
   makeTexture(scene, TEX.iconDish('steamed'), ICON, ICON, (ctx) => drawSteamedIcon(ctx, ICON_C, ICON_C, ICON_R));
+  makeTexture(scene, TEX.iconDish('pancake'), ICON, ICON, (ctx) => drawPancakeIcon(ctx, ICON_C, ICON_C, ICON_R));
+  makeTexture(scene, TEX.iconDish('cake'), ICON, ICON, (ctx) => drawCakeIcon(ctx, ICON_C, ICON_C, ICON_R));
   makeTexture(scene, TEX.iconLock, ICON, ICON, drawLock);
   makeTexture(scene, TEX.iconPlate, ICON, ICON, (ctx) => drawPlate(ctx, ICON_C, ICON_C, ICON_R + 1, null));
   makeTexture(scene, TEX.iconClock, ICON, ICON, drawClock);
