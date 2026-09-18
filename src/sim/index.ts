@@ -20,7 +20,7 @@ import { dishMatchesRecipe, isBurgerComponent, isPlatedComponent, RECIPES, recip
 import { mulberry32, type Rng } from './rng';
 import {
   CHOPPED_INGREDIENTS, DEEP_FRIED_INGREDIENTS, FACING_VECTORS, FRIED_INGREDIENTS, INGREDIENT_TYPES, NO_INPUT, SOUP_INGREDIENTS,
-  type Chef, type ChefAction, type Dish, type DishType, type DirtyPlateItem, type FlyingItem, type IngredientItem, type IngredientType,
+  type Chef, type ChefAction, type Dish, type DishType, type DirtyPlateItem, type Floe, type FlyingItem, type IngredientItem, type IngredientType,
   type Item, type Order, type PlateItem, type PlayerInput, type PotItem, type Recipe, type Restock, type SimEvent,
   type SimState, type Modifiers, type SliderGroup, type Tile, type TrayItem, type TrayLoad, type Ware,
 } from './types';
@@ -70,8 +70,11 @@ export interface EffectiveSettings {
 
 interface SliderSpec { group: string; axis: 'x' | 'y'; amplitude: number; periodSec: number; phase: number; }
 interface SliderTile { x: number; y: number; group: string; }
-/** One gate dynamic. x/y is a tile of the group, carried on the open/close events. */
-interface GateSpec { group: string; periodSec: number; openFrac: number; phase: number; x: number; y: number; }
+/** One gate dynamic. x/y is a tile of the group, carried on the open/close events. A hole gate is a
+ *  hole while closed (chefs on it fall) rather than a wall. */
+interface GateSpec { group: string; periodSec: number; openFrac: number; phase: number; x: number; y: number; hole: boolean; }
+/** One floes dynamic: a lane of drifting decks. `timer` counts down to the next floe, `next` cycles `lengths`. */
+interface FloeLane { x: number; w: number; dir: 1 | -1; speed: number; intervalSec: number; lengths: number[]; timer: number; next: number; }
 interface GateTile { index: number; x: number; y: number; group: string; }
 interface PedLane {
   fromX: number; fromY: number; toX: number; toY: number;
@@ -258,6 +261,8 @@ export class Sim {
   private gateTiles: GateTile[] = [];
   private gateSpecs: GateSpec[] = [];
   private pedLanes: PedLane[] = [];
+  private floeLanes: FloeLane[] = [];
+  private nextFloeId = 1;
   private pedTargets: Record<number, { x: number; y: number }> = {};
   private plateReturnTiles: number[] = [];
   private plateStackTiles: number[] = [];
@@ -358,6 +363,7 @@ export class Sim {
     this.recomputeStars();
     this.updateSliders();
     this.updateGates(null); // a group whose phase starts it closed is solid from step one
+    this.prefillFloes();
   }
 
   // ─── Setup ────────────────────────────────────────────────────────────────
@@ -396,12 +402,19 @@ export class Sim {
       } else if (dyn.type === 'gate') {
         const first = this.gateTiles.find((t) => t.group === dyn.group);
         const periodSec = Math.max(dyn.periodSec, SIM_DT);
+        const hole = dyn.closedAs === 'hole';
         this.gateSpecs.push({
           group: dyn.group, periodSec,
           openFrac: clamp(dyn.openSec / periodSec, 0, 1), phase: dyn.phase ?? 0,
-          x: first ? first.x : 0, y: first ? first.y : 0,
+          x: first ? first.x : 0, y: first ? first.y : 0, hole,
         });
-        (this.state.gates ??= []).push({ id: dyn.group, open: true, secondsToChange: 0 });
+        (this.state.gates ??= []).push(hole ? { id: dyn.group, open: true, secondsToChange: 0, hole } : { id: dyn.group, open: true, secondsToChange: 0 });
+      } else if (dyn.type === 'floes') {
+        this.floeLanes.push({
+          x: dyn.x, w: dyn.w, dir: dyn.dir === 'up' ? -1 : 1, speed: dyn.speed,
+          intervalSec: Math.max(dyn.intervalSec, SIM_DT), lengths: dyn.lengths.length ? dyn.lengths : [1], timer: 0, next: 0,
+        });
+        this.state.floes ??= [];
       } else if (dyn.type === 'pedestrians') {
         for (const lane of dyn.lanes) {
           this.pedLanes.push({
@@ -562,6 +575,7 @@ export class Sim {
     this.updateSliders();
     this.updateGates(events);
     this.updatePedestrians(dt);
+    this.updateFloes(dt);
 
     for (let i = 0; i < st.chefs.length; i++) {
       const chef = st.chefs[i];
@@ -945,7 +959,7 @@ export class Sim {
     for (const chef of st.chefs) {
       if (isFalling(chef)) continue;
       const tile = this.tileAt(Math.floor(chef.x), Math.floor(chef.y));
-      if (!tile || tile.type !== 'gap') continue;
+      if (!tile || !this.isHole(tile) || this.onFloe(chef.x, chef.y)) continue;
       if (isTray(chef.holding)) this.returnTray(chef.holding); // the one tray goes back to its rack, if free
       chef.holding = null;
       chef.respawnIn = FALL_PENALTY_SEC;
@@ -1059,7 +1073,7 @@ export class Sim {
       const fromX = chef.x;
       const fromY = chef.y;
       for (const g of this.gateTiles) {
-        if (this.gateOpen(g.group)) continue;
+        if (this.gateOpen(g.group) || this.holeGroup(g.group)) continue;
         const penX = Math.min(chef.x + HALF - g.x, g.x + 1 - (chef.x - HALF));
         const penY = Math.min(chef.y + HALF - g.y, g.y + 1 - (chef.y - HALF));
         if (penX <= EPS || penY <= EPS) continue;
@@ -2257,7 +2271,7 @@ export class Sim {
       group.secondsToChange = (open ? spec.openFrac - t : 1 - t) * spec.periodSec;
       if (open === group.open) continue;
       group.open = open;
-      for (const g of this.gateTiles) if (g.group === spec.group) this.staticSolid[g.index] = !open;
+      if (!spec.hole) for (const g of this.gateTiles) if (g.group === spec.group) this.staticSolid[g.index] = !open;
       if (events) events.push({ type: open ? 'gateOpen' : 'gateClose', x: spec.x, y: spec.y });
     }
   }
@@ -2293,6 +2307,73 @@ export class Sim {
         delete this.pedTargets[p.id];
       }
     }
+  }
+
+  // ─── Floes ────────────────────────────────────────────────────────────────
+  /** True for a tile a chef falls into: a gap, or a hole gate while closed. */
+  private isHole(tile: Tile): boolean {
+    if (tile.type === 'gap') return true;
+    return tile.type === 'gate' && this.holeGroup(tile.group ?? '') && !this.gateOpen(tile.group ?? '');
+  }
+
+  private holeGroup(group: string): boolean {
+    for (const spec of this.gateSpecs) if (spec.group === group) return spec.hole;
+    return false;
+  }
+
+  /** True when the point is on a floe: a chef whose centre is there stands on the deck. */
+  private onFloe(x: number, y: number): boolean {
+    const floes = this.state.floes;
+    if (!floes) return false;
+    for (const f of floes) if (x >= f.x && x < f.x + f.w && y >= f.y && y < f.y + f.h) return true;
+    return false;
+  }
+
+  /** Floes enter their lane at one grid edge every intervalSec, drift at their speed, carry the chefs
+   *  standing on them, and are gone once wholly past the other edge. */
+  private updateFloes(dt: number): void {
+    const floes = this.state.floes;
+    if (!floes) return;
+    const height = this.state.height;
+    for (const lane of this.floeLanes) {
+      lane.timer -= dt;
+      if (lane.timer > 0) continue;
+      lane.timer += lane.intervalSec;
+      const h = lane.lengths[lane.next % lane.lengths.length];
+      lane.next += 1;
+      floes.push({ id: this.nextFloeId++, x: lane.x, y: lane.dir > 0 ? -h : height, w: lane.w, h });
+    }
+    for (let i = floes.length - 1; i >= 0; i--) {
+      const f = floes[i];
+      const lane = this.laneOf(f);
+      if (!lane) continue;
+      const dy = lane.dir * lane.speed * dt;
+      for (const chef of this.state.chefs) {
+        if (isFalling(chef)) continue;
+        if (chef.x >= f.x && chef.x < f.x + f.w && chef.y >= f.y && chef.y < f.y + f.h) {
+          chef.y = clamp(chef.y + dy, HALF, Math.max(HALF, height - HALF));
+        }
+      }
+      f.y += dy;
+      if (f.y > height || f.y + f.h < 0) floes.splice(i, 1);
+    }
+  }
+
+  private laneOf(f: Floe): FloeLane | null {
+    for (const lane of this.floeLanes) if (lane.x === f.x && lane.w === f.w) return lane;
+    return null;
+  }
+
+  /** A prefilled lane starts as if it had been running for one crossing: floes already on the water. */
+  private prefillFloes(): void {
+    const floes = this.state.floes;
+    if (!floes) return;
+    const prefill = (this.level.dynamics ?? []).some((d) => d.type === 'floes' && d.prefill === true);
+    if (!prefill) return;
+    const longest = Math.max(...this.floeLanes.flatMap((l) => l.lengths));
+    const slowest = Math.min(...this.floeLanes.map((l) => l.speed));
+    const steps = Math.ceil((this.state.height + longest) / slowest / SIM_DT);
+    for (let i = 0; i < steps; i++) this.updateFloes(SIM_DT);
   }
 
   private groupOffset(group: string): SliderGroup | null {

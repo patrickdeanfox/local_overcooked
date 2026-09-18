@@ -1,0 +1,30 @@
+{
+  "id": "oc1-3-4",
+  "name": "3-4",
+  "game": "oc1",
+  "world": 3,
+  "index": 4,
+  "theme": "glazed-glacier",
+  "description": "Fish and chips on two banks of a frozen river. Every ingredient is on the west bank; the plates, boards and serving hatch are on the east. Ice floes drift down the river and are the only way across. The snow along the counters grips; the open ice does not.",
+  "strategy": "Fry in the east bank's fryer so a chopped piece never has to cross the water again. Dash onto a floe and off the other side rather than riding it. There are only two plates, so wash them as soon as they come back.",
+  "source": "https://overcooked.fandom.com/wiki/3-4_(Overcooked!)",
+  "unlockStars": 29,
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "recipes": ["chips", "fried_fish", "fish_and_chips"],
+  "orders": { "initial": 2, "intervalSec": 24, "max": 4, "timeSec": 110 },
+  "stars": { "1": [55, 115, 170], "2": [60, 120, 180] },
+  "plates": { "mode": "sink", "count": 2 },
+  "grid": [
+    "#XYY##___#ppY##",
+    "J.....___.....#",
+    "%.,,,,___,,,,.#",
+    "E.,,,,___,,,,.V",
+    "#.,,,,___,,,,.V",
+    "#.,,,,___,,,,.R",
+    "#.....___.....#",
+    "#WD###___#B#B##"
+  ],
+  "spawns": [{ "x": 3, "y": 3 }, { "x": 11, "y": 3 }],
+  "dynamics": [{ "type": "floes", "x": 6, "w": 3, "dir": "down", "speed": 0.8, "intervalSec": 6.5, "lengths": [3, 2, 3], "prefill": true }]
+}

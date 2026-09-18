@@ -24,6 +24,8 @@ import { DEFAULT_TILE_FLAGS, TileSet, themeSceneHeight, type TileFlags } from '.
 /** Stations that cook what sits on them: burners for pots and pans, fryers for the frying basket. */
 const COOK_SITES: ReadonlySet<Tile['type']> = new Set<Tile['type']>(['stove', 'fryer']);
 const HELD = { scale: 0.9 } as const;
+/** Ice floes (3-4): a pale slab whose top sits just above the floor, most of it under the water. */
+const FLOE = { color: 0xcfe9f7, thickness: 0.3, top: 0.02, inset: 0.06, roughness: 0.35 } as const;
 
 const HIGHLIGHT = { inner: 0.3, outer: 0.42, segments: 40, alpha: 0.85, lift: 0.012 } as const;
 
@@ -103,6 +105,7 @@ export class KitchenRenderer {
   private readonly dashDustTimer: number[] = [];
   private readonly wasFalling: boolean[] = [];
   private readonly pedestrians = new Map<number, ChefRig>();
+  private readonly floes = new Map<number, THREE.Mesh>();
   private readonly highlights: THREE.Mesh[] = [];
   private readonly firePositions = new Map<string, THREE.Vector3>();
   private readonly choppingBoards = new Set<number>();
@@ -166,6 +169,7 @@ export class KitchenRenderer {
     this.drawSliders(state);
     this.tiles?.animateBelts(dtSec);
     this.drawGates(state);
+    this.drawFloes(state);
     this.drawTileItems(state);
     this.drawDelivery(state);
     this.drawFlying(state);
@@ -198,6 +202,8 @@ export class KitchenRenderer {
     this.flying.clear();
     for (const rig of this.pedestrians.values()) rig.dispose();
     this.pedestrians.clear();
+    for (const floe of this.floes.values()) floe.removeFromParent();
+    this.floes.clear();
     for (const ring of this.highlights) ring.removeFromParent();
     this.highlights.length = 0;
     for (const badge of this.badges.values()) badge.destroy();
@@ -282,7 +288,35 @@ export class KitchenRenderer {
       const group = this.gateGroup(state, tile.group);
       const closed = group ? !group.open : false;
       const warning = !closed && group !== null && group.secondsToChange <= GATE_DRAW.warnSec;
-      this.tiles.setGate(index, closed, warning ? flash * GATE_DRAW.warnMaxAlpha : 0);
+      this.tiles.setGate(index, closed, warning ? flash * GATE_DRAW.warnMaxAlpha : 0, group?.hole === true);
+    }
+  }
+
+  /** Ice floes: one slab per floe, pooled by id, its top level with the floor. */
+  private drawFloes(state: Readonly<SimState>): void {
+    const live = state.floes;
+    if (!live && this.floes.size === 0) return;
+    const seen = new Set<number>();
+    for (const floe of live ?? []) {
+      seen.add(floe.id);
+      let mesh = this.floes.get(floe.id);
+      if (!mesh) {
+        mesh = new THREE.Mesh(
+          new THREE.BoxGeometry(floe.w - FLOE.inset, FLOE.thickness, floe.h - FLOE.inset),
+          new THREE.MeshStandardMaterial({ color: FLOE.color, roughness: FLOE.roughness }),
+        );
+        mesh.receiveShadow = true;
+        mesh.castShadow = true;
+        this.stage.scene.add(mesh);
+        this.floes.set(floe.id, mesh);
+      }
+      mesh.position.set(floe.x + floe.w / 2, FLOE.top - FLOE.thickness / 2, floe.y + floe.h / 2);
+    }
+    for (const [id, mesh] of this.floes) {
+      if (seen.has(id)) continue;
+      mesh.geometry.dispose();
+      mesh.removeFromParent();
+      this.floes.delete(id);
     }
   }
 
