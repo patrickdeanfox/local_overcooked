@@ -1,0 +1,41 @@
+{
+  "id": "oc1-5-3",
+  "name": "5-3",
+  "game": "oc1",
+  "world": 5,
+  "index": 3,
+  "theme": "cosmic-canteen",
+  "description": "Burritos in four rooms wired together. Standing on the pressure plate in one half opens the door in the other: the top chef's plate lets the bottom chef reach the meat, the bottom chef's plate lets the top chef reach the boards. Plates come back clean.",
+  "strategy": "Take turns on the plates. The top chef stands while the bottom chef fetches beef, chicken and tortillas; then the bottom chef stands while the top chef crosses to chop. Cook together, then let the top chef assemble and serve.",
+  "source": "https://overcooked.fandom.com/wiki/5-3_(Overcooked!)",
+  "unlockStars": 51,
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "recipes": ["beef_burrito", "chicken_burrito"],
+  "orders": { "initial": 2, "intervalSec": 24, "max": 4, "timeSec": 90 },
+  "stars": { "1": [80, 180, 300], "2": [120, 260, 400] },
+  "plates": { "mode": "stack", "count": 3 },
+  "grid": [
+    "##ppp#I###B#B##",
+    "V.......#.....#",
+    "R.....o.G.....#",
+    "#.......#.....#",
+    "###############",
+    "E.......#.....#",
+    "#.....o.G.....#",
+    "#.......#.....#",
+    "#F#S#F#S###rkA#"
+  ],
+  "spawns": [{ "x": 4, "y": 1 }, { "x": 3, "y": 5 }],
+  "stations": [
+    { "x": 0, "y": 2, "type": "plateStack" },
+    { "x": 6, "y": 2, "group": "upper" },
+    { "x": 6, "y": 6, "group": "lower" },
+    { "x": 8, "y": 2, "group": "upperDoor" },
+    { "x": 8, "y": 6, "group": "lowerDoor" }
+  ],
+  "dynamics": [
+    { "type": "door", "group": "upperDoor", "plate": "lower" },
+    { "type": "door", "group": "lowerDoor", "plate": "upper" }
+  ]
+}

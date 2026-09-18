@@ -35,6 +35,7 @@ const THEMES: Readonly<Record<string, ThemeDressing>> = {
   'moreish-mines': { backdropColor: 0x241d18, floorColor: null, backWall: false }, // the dark of the mine and its chasms
   'munch-mansion': { backdropColor: 0x1d1622, floorColor: null, backWall: true }, // the haunted house
   'conjurers-kitchen': { backdropColor: 0x2b2040, floorColor: 0x6b5a86, backWall: false }, // the wizards' school
+  'cosmic-canteen': { backdropColor: 0x10142a, floorColor: 0xb8c0cc, backWall: false }, // the space station
 };
 const WALL = { span: 2, height: 2, depth: 0.25, windowEvery: 3 } as const; // tiles, at the manifest scale
 /** A road that reaches the grid edge continues as asphalt into the backdrop, with parked cars up the street. */
@@ -84,7 +85,7 @@ const GROUND_TEXTURE: Readonly<Partial<Record<TileType, string>>> = {
   trash: TEX.tile('floor'), plateStack: TEX.tile('floor'),
   shelf: TEX.tile('floor'), trayRack: TEX.tile('floor'), delivery: TEX.tile('floor'), conveyor: TEX.tile('floor'),
   fryer: TEX.tile('floor'), ice: TEX.tile('ice'), oven: TEX.tile('floor'), portal: TEX.tile('portal'), rift: TEX.tile('rift'),
-  mixer: TEX.tile('floor'),
+  mixer: TEX.tile('floor'), pressurePlate: TEX.tile('pressurePlate'),
 };
 /** Walkable belts lie a hair above the floor so their rubber hides the floor tile under them. */
 const FLOOR_BELT = { lift: 0.003 } as const;
@@ -129,7 +130,7 @@ function oneTileWide(model: THREE.Group, role: ModelRole): THREE.Group {
   return model;
 }
 
-const WALKABLE: ReadonlySet<TileType> = new Set<TileType>(['floor', 'road', 'gate', 'ice', 'conveyorFloor', 'portal']);
+const WALKABLE: ReadonlySet<TileType> = new Set<TileType>(['floor', 'road', 'gate', 'ice', 'conveyorFloor', 'portal', 'pressurePlate']);
 /** Neighbour directions in preference order: face the camera when there is a choice. */
 const FRONT_CHOICES: readonly { dx: number; dy: number; yaw: number }[] = [
   { dx: 0, dy: 1, yaw: 0 },              // down (+z, towards the camera)
@@ -513,7 +514,7 @@ export class TileSet {
         : GROUND_TEXTURE[tile.type];
       if (textureKey) {
         const flat = dressing.floorColor !== null && tile.type !== 'road' && tile.type !== 'gate' && tile.type !== 'ice'
-          && tile.type !== 'portal' && tile.type !== 'rift';
+          && tile.type !== 'portal' && tile.type !== 'rift' && tile.type !== 'pressurePlate';
         const material = flat
           ? new THREE.MeshStandardMaterial({ color: dressing.floorColor ?? 0xffffff, roughness: 0.9 })
           : new THREE.MeshStandardMaterial({ map: groundTexture(phaserScene, textureKey, this.textures), color: GROUND.roadTint });

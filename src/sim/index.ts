@@ -77,8 +77,11 @@ export interface EffectiveSettings {
 interface SliderSpec { group: string; axis: 'x' | 'y'; amplitude: number; periodSec: number; phase: number; }
 interface SliderTile { x: number; y: number; group: string; }
 /** One gate dynamic. x/y is a tile of the group, carried on the open/close events. A hole gate is a
- *  hole while closed (chefs on it fall) rather than a wall. */
-interface GateSpec { group: string; periodSec: number; openFrac: number; phase: number; x: number; y: number; hole: boolean; }
+ *  hole while closed (chefs on it fall) rather than a wall. A door (plate set) has no timer: it is open
+ *  while a chef stands on a pressure plate of that group. */
+interface GateSpec { group: string; periodSec: number; openFrac: number; phase: number; x: number; y: number; hole: boolean; plate?: string; }
+/** secondsToChange reported for a door, which changes when a chef steps on or off its plate, not on a clock. */
+const DOOR_NO_TIMER = 999;
 /** One floes dynamic: a lane of drifting decks. `timer` counts down to the next floe, `next` cycles `lengths`. */
 interface FloeLane { x: number; w: number; dir: 1 | -1; speed: number; intervalSec: number; lengths: number[]; timer: number; next: number; }
 interface GateTile { index: number; x: number; y: number; group: string; }
@@ -141,7 +144,8 @@ function sharedIngredients(a: readonly IngredientType[], b: readonly IngredientT
 
 /** Ground a thrown item can come to rest on. Open gates count; the caller checks the gate. */
 function isLandingFloor(type: Tile['type']): boolean {
-  return type === 'floor' || type === 'road' || type === 'gate' || type === 'ice' || type === 'conveyorFloor' || type === 'portal';
+  return type === 'floor' || type === 'road' || type === 'gate' || type === 'ice' || type === 'conveyorFloor' || type === 'portal'
+    || type === 'pressurePlate';
 }
 
 /** Floor a floor fire can break out on (5-2). */
@@ -492,6 +496,14 @@ export class Sim {
         this.beltReverseSec = Math.max(dyn.periodSec, SIM_DT);
         this.beltReversePhase = dyn.phase ?? 0;
         this.state.beltsReversed = false;
+      } else if (dyn.type === 'door') {
+        const first = this.gateTiles.find((t) => t.group === dyn.group);
+        this.gateSpecs.push({
+          group: dyn.group, periodSec: 1, openFrac: 1, phase: 0,
+          x: first ? first.x : 0, y: first ? first.y : 0, hole: false, plate: dyn.plate,
+        });
+        (this.state.gates ??= []).push({ id: dyn.group, open: false, secondsToChange: DOOR_NO_TIMER });
+        for (const g of this.gateTiles) if (g.group === dyn.group) this.staticSolid[g.index] = true;
       } else if (dyn.type === 'floes') {
         this.floeLanes.push({
           x: dyn.x, w: dyn.w, dir: dyn.dir === 'up' ? -1 : 1, speed: dyn.speed,
@@ -2519,15 +2531,31 @@ export class Sim {
     for (let i = 0; i < this.gateSpecs.length; i++) {
       const spec = this.gateSpecs[i];
       const group = gates[i];
-      let t = (this.state.elapsed / spec.periodSec + spec.phase) % 1;
-      if (t < 0) t += 1;
-      const open = t < spec.openFrac;
-      group.secondsToChange = (open ? spec.openFrac - t : 1 - t) * spec.periodSec;
+      let open: boolean;
+      if (spec.plate !== undefined) {
+        open = this.plateHeld(spec.plate);
+        group.secondsToChange = DOOR_NO_TIMER;
+      } else {
+        let t = (this.state.elapsed / spec.periodSec + spec.phase) % 1;
+        if (t < 0) t += 1;
+        open = t < spec.openFrac;
+        group.secondsToChange = (open ? spec.openFrac - t : 1 - t) * spec.periodSec;
+      }
       if (open === group.open) continue;
       group.open = open;
       if (!spec.hole) for (const g of this.gateTiles) if (g.group === spec.group) this.staticSolid[g.index] = !open;
       if (events) events.push({ type: open ? 'gateOpen' : 'gateClose', x: spec.x, y: spec.y });
     }
+  }
+
+  /** True while a chef on the floor stands on a pressure plate of the group. */
+  private plateHeld(group: string): boolean {
+    for (const chef of this.state.chefs) {
+      if (isFalling(chef)) continue;
+      const tile = this.tileAt(Math.floor(chef.x), Math.floor(chef.y));
+      if (tile && tile.type === 'pressurePlate' && tile.group === group) return true;
+    }
+    return false;
   }
 
   private updatePedestrians(dt: number): void {

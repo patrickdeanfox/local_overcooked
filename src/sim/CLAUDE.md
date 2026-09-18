@@ -55,6 +55,8 @@ Mixer and steamer (`tests/sim.steamer.test.ts`): a `mixer` tile holds a `PotItem
 
 Pancakes and cakes (`tests/sim.cake.test.ts`): the bowl also takes raw egg and chopped honey and chocolate, one of each, up to four. `pour()` pours a mixed bowl into an empty pan as well as a steamer; a pan holding batter (flour or egg) empties onto a plate as a `'pancake'`. A mixed bowl set on an empty `oven` becomes `newTin()`, a `PotItem` with `ware: 'tin'` that bakes in `bakeTime` and, like a pizza base (`isWholeDish`), slides onto a plate whole as a `'cake'` and leaves with it; a tin takes nothing piece by piece.
 
+Pressure-plate doors (`tests/sim.door.test.ts`): a `door` dynamic is a `GateSpec` with `plate` set; `updateGates` opens it while `plateHeld(plate)` (a chef on the floor stands on a `pressurePlate` of that group) instead of on a clock, and reports `secondsToChange` as `DOOR_NO_TIMER` so nothing flashes. It starts closed (solid).
+
 Falling (`tests/sim.gap.test.ts`): a chef whose centre is over a `gap` loses its item, is pinned as `falling` for `FALL_PENALTY_SEC`, is ignored by separation and pushes, and comes back at its spawn. `gap` has no wall (`SOLID_TILES` excludes it) but `isWalkable` is false, so spawns and reachability treat it as a hole.
 
 ### The mechanics (`docs/MECHANICS.md`), each behind an `EffectiveSettings` flag; off is the kitchen as it shipped
