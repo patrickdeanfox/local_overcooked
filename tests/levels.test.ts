@@ -1105,6 +1105,9 @@ describe('order tuning', () => {
     'oc2-1-5': { initial: 2, intervalSec: 26, max: 4, timeSec: 100 },
     'oc2-2-4': { initial: 2, intervalSec: 26, max: 4, timeSec: 100 },
     'oc2-4-3': { initial: 2, intervalSec: 20, max: 5, timeSec: 80 },
+    'oc2-5-2': { initial: 2, intervalSec: 20, max: 5, timeSec: 80 },
+    // The dark kitchen: a lit kitchen's soup cadence; the catalog's estimate, untested.
+    'oc1-4-2': { initial: 2, intervalSec: 18, max: 4, timeSec: 60 },
     // The mechanics kitchens (docs/MECHANICS.md): estimates from the nearest shipped level, untested.
     'custom-1-1': { initial: 2, intervalSec: 22, max: 4, timeSec: 90 },   // soups with a long walk, like 1-5
     'custom-1-2': { initial: 2, intervalSec: 24, max: 4, timeSec: 110 },  // burgers down a corridor, like 1-6's drip

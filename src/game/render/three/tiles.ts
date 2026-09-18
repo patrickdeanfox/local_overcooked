@@ -33,6 +33,7 @@ const THEMES: Readonly<Record<string, ThemeDressing>> = {
   'ravenous-roads': { backdropColor: 0x3b3d42, floorColor: null, backWall: false }, // the highway under the trucks
   'buffet-balloons': { backdropColor: 0x8cc6e8, floorColor: 0xc9955e, backWall: false }, // sky under the wicker decks
   'moreish-mines': { backdropColor: 0x241d18, floorColor: null, backWall: false }, // the dark of the mine and its chasms
+  'munch-mansion': { backdropColor: 0x1d1622, floorColor: null, backWall: true }, // the haunted house
 };
 const WALL = { span: 2, height: 2, depth: 0.25, windowEvery: 3 } as const; // tiles, at the manifest scale
 /** A road that reaches the grid edge continues as asphalt into the backdrop, with parked cars up the street. */
@@ -83,7 +84,7 @@ const GROUND_TEXTURE: Readonly<Partial<Record<TileType, string>>> = {
 const FLOOR_BELT = { lift: 0.003 } as const;
 
 /** Run flags the static kitchen depends on: a shelf is a hatch while its mechanic is on and a wall while off. */
-export interface TileFlags { passThroughShelf: boolean; }
+export interface TileFlags { passThroughShelf: boolean; dark?: boolean; } // dark: the level's `dark`, lamps instead of daylight
 export const DEFAULT_TILE_FLAGS: Readonly<TileFlags> = Object.freeze({ passThroughShelf: false });
 
 export interface TileView {

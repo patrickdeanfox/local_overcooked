@@ -1,0 +1,32 @@
+{
+  "id": "oc1-4-2",
+  "name": "4-2",
+  "game": "oc1",
+  "world": 4,
+  "index": 2,
+  "theme": "munch-mansion",
+  "description": "Soups in a haunted house with the lights out. The only light is the lamp each chef carries. A long island splits the room, the pots and the serving counter are to the north, and the crates are scattered round the walls.",
+  "strategy": "Learn the room before the lights go: pots and serve along the north, onions on the west wall low down, tomatoes on the island's south face, mushrooms on the east wall. Split up so the two lamps cover more of the floor.",
+  "source": "https://overcooked.fandom.com/wiki/4-2_(Overcooked!)",
+  "unlockStars": 35,
+  "timeLimitSec": 240,
+  "timerStartsOnFirstServe": false,
+  "recipes": ["onion_soup", "tomato_soup", "mushroom_soup"],
+  "orders": { "initial": 2, "intervalSec": 18, "max": 4, "timeSec": 60 },
+  "stars": { "1": [35, 65, 100], "2": [40, 75, 110] },
+  "plates": { "mode": "sink", "count": 3 },
+  "grid": [
+    "       #ES#ppp#",
+    "##WD##B.......V",
+    "B.............R",
+    "#.............#",
+    "#.....##X######",
+    "S.....#######T#",
+    "#.............#",
+    "#.............#",
+    "O.............M",
+    "###############"
+  ],
+  "spawns": [{ "x": 4, "y": 3 }, { "x": 10, "y": 6 }],
+  "dark": true
+}

@@ -46,7 +46,6 @@ const TITLE = {
   taglineSpacing: 2,
   levelsY: 140,
   levelSpacing: 34,
-  levelAreaPx: 380,     // rows are squeezed together rather than run off the sidebar
   levelWidth: 560,
   levelGapPx: 66,       // from the last level row down to the settings block
   optionsMaxY: 560,     // however few levels there are, the settings stay above the hint
@@ -105,6 +104,8 @@ const DIORAMA = {
 } as const;
 
 const HEADING = { first: 'LOCAL ', second: 'OVERCOOKED' } as const;
+/** The game a campaign row is from, ahead of its theme in the caption. */
+const GAME_TAG: Readonly<Record<string, string>> = { oc1: 'OC1', oc2: 'OC2', tutorial: 'TUTORIAL' };
 const TAGLINE = 'TWO CHEFS  ·  ONE KITCHEN  ·  NOT ENOUGH TIME';
 const FIRST_RUN_HINT = 'First time? Controllers walks you through every button';
 const NEVER_PLAYED = 'Never played';
@@ -233,18 +234,21 @@ export class TitleScene extends Phaser.Scene {
       return {
         id: levelId,
         name: level?.name ?? levelId,
-        theme: level?.theme ?? '',
+        // Overcooked 1 and 2 both have a 1-1: the caption says which game a row is from.
+        theme: level && level.game !== 'custom' ? `${GAME_TAG[level.game]} · ${level.theme}` : level?.theme ?? '',
         stars: saved.stars,
         bestScore: saved.bestScore,
         locked: !isUnlocked(level ?? {}, this.progress, this.settings),
         unlockStars: level?.unlockStars ?? 0,
       };
     });
-    const spacing = Math.min(TITLE.levelSpacing, TITLE.levelAreaPx / Math.max(1, entries.length));
-    this.levelList = new LevelList(this, TITLE.columnX, TITLE.levelsY, entries, { spacing, width: TITLE.levelWidth });
+    const spacing = TITLE.levelSpacing;
+    // As many rows as fit above the settings block, leaving the status line and the scroll mark room.
+    const visibleRows = Math.floor((TITLE.optionsMaxY - TITLE.levelGapPx - TITLE.levelsY) / spacing) + 1;
+    this.levelList = new LevelList(this, TITLE.columnX, TITLE.levelsY, entries, { spacing, width: TITLE.levelWidth, visibleRows });
     // The settings follow the level rows, so a short list does not leave a hole.
     this.optionsY = Math.min(
-      TITLE.levelsY + Math.max(0, entries.length - 1) * spacing + TITLE.levelGapPx,
+      TITLE.levelsY + Math.max(0, this.levelList.shownRows - 1) * spacing + TITLE.levelGapPx,
       TITLE.optionsMaxY,
     );
     this.statusText.setY(this.optionsY - TITLE.statusGapPx);

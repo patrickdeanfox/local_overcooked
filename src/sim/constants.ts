@@ -66,6 +66,7 @@ export const CONVEYOR_HOLD = 0.5;          // how far along its tile a blocked i
 export const TRASH_RESPAWN_SEC = 5;
 // Deep fryer and the slippery floor (OC1 world 3). The wiki gives neither a fry time nor a friction.
 export const DEEP_FRY_TIME = PAN_COOK_TIME;  // seconds in the basket for a piece of fish or potato, matched to the pan
+export const FLOOR_FIRE_CLEARANCE = 1.2;     // tiles: a floor fire never breaks out this close to a chef's centre
 export const ICE_ACCEL = 7;                  // tiles per second squared a chef on ice gains towards the stick's speed
 export const ICE_DECEL = 3.5;                // tiles per second squared a chef on ice loses with the stick released (a slide of about 2.5 tiles)        // plates and cookware a belt carries into a bin come back after this long, where they started (wiki Trash Bin)
 

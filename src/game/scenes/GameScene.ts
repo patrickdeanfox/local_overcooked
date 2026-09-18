@@ -206,7 +206,7 @@ export class GameScene extends Phaser.Scene {
     // Dev-only hook for the headless playtest harness (tools/playtest.mjs): read sim state via window.__oc.
     if (import.meta.env.DEV) (globalThis as unknown as { __oc?: unknown }).__oc = { sim: this.sim, level, scene: this };
     const effective = this.sim.getEffectiveSettings();
-    this.kitchen = new KitchenRenderer(this, this.sim.getState(), level.theme, this.chefSkins, { passThroughShelf: effective.passThroughShelf }, {}, this.chefHats);
+    this.kitchen = new KitchenRenderer(this, this.sim.getState(), level.theme, this.chefSkins, { passThroughShelf: effective.passThroughShelf, dark: level.dark === true }, {}, this.chefHats);
     const mechanicsOn = effective.twoPlateCarry || effective.chopAssist || effective.tray || effective.passThroughShelf || effective.eightySix;
     const meta = `seed ${this.seed} · ${presetName(this.preset)}${isAssisted(this.modifiers) ? ' · assists on' : ''}${mechanicsOn ? ' · mechanics on' : ''}`;
     this.hud = new Hud(this, level.name, meta);

@@ -1,0 +1,39 @@
+# -- The title's level list scrolls: twelve rows at a time, the game in each caption, the window
+#    following the cursor down past the Overcooked 1 levels into Overcooked 2 and back up
+eval localStorage.setItem('local-overcooked.settings.v1', JSON.stringify({ version: 1, players: 2, preset: 'normal', seedMode: 'fixed', fixedSeed: 5, freePlay: true }))
+eval location.reload()
+wait 1500
+until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
+wait 6000
+shot 35-00-top.png
+tap KeyS
+tap KeyS
+tap KeyS
+tap KeyS
+tap KeyS
+tap KeyS
+tap KeyS
+tap KeyS
+tap KeyS
+tap KeyS
+tap KeyS
+tap KeyS
+tap KeyS
+tap KeyS
+tap KeyS
+tap KeyS
+wait 600
+shot 35-01-scrolled.png
+tap KeyS
+tap KeyS
+tap KeyS
+tap KeyS
+tap KeyS
+tap KeyS
+tap KeyS
+tap KeyS
+tap KeyS
+tap KeyS
+wait 600
+shot 35-02-options.png
+errors

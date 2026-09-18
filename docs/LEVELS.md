@@ -641,6 +641,44 @@ V.....»»».....#
 
 Wiki facts used: meat, cheese and lettuce-cheese burgers; 4:00; three plates; the hand-off counter on the dividing wall at (7,4); 32 stars; stars 1P 180 / 220 / 300, 2P 200 / 240 / 340. The burgers are OC2's own ids (`oc2_meat_burger` 40, `cheese_burger` 60, `lettuce_cheese_burger` 80), since OC1's burgers score by OC1's table. Orders the catalog's estimate (2, every 20 s, at most 5, 80 s), untested.
 
+## 4-2 — Munch Mansion, in the dark
+
+```
+       #ES#ppp#
+##WD##B.......V
+B.............R
+#.............#
+#.....##X######
+S.....#######T#
+#.............#
+#.............#
+O.............M
+###############
+```
+
+15 x 10, the catalog grid unchanged, with `"dark": true`: the stage's lights drop to a sliver and each chef carries a lamp (a cone about 90 degrees wide and 3 tiles long ahead of it, and a small glow round it; the catalog's estimate). The wiki's glowing raw ingredients are not modelled yet.
+
+Wiki facts used: the three soups; 4:00; three plates beside the serve; darkness, lit only by the chefs' lamps; 35 stars (table; the infobox says 22); 3-star 100 (1P) and 110 (2P), lower thresholds estimated. Orders the catalog's estimate (2, every 18 s, at most 4, 60 s), untested.
+
+## Overcooked 2 5-2 — Buffet Balloons, fires in the ring
+
+```
+###############
+#.............#
+#.##B.#U#.#B#.#
+V.#....#....E.#
+#.F...H#L...F.#
+#.#...T#A...F.#
+#.X....W....R.#
+#.#.#######.#.#
+#.............#
+##p#p#####p#p##
+```
+
+15 x 10, the catalog grid (medium confidence) with four openings: as catalogued both stations were sealed off from the ring corridor, which the catalog itself says has three exits. Each station now opens to the corridor at the top (5,2) and (9,2) and the bottom (3,7) and (11,7). The two stations share the bun crate and the sink on their dividing wall. A `floorFires` dynamic lights a fire on a random floor tile every 22 s, at most two at once, the first after 30 s (estimates: the wiki gives no period).
+
+Wiki facts used: the four burgers (OC2's own ids); 4:00; four plates round the ring; random floor fires that block corridors and can corner a chef; 47 stars; stars 1P 180 / 220 / 300, 2P 240 / 300 / 420. Orders the catalog's estimate (2, every 20 s, at most 5, 80 s), untested.
+
 ## 3-2 — Savoury Seas, the split deck
 
 ```

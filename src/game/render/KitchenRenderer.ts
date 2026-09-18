@@ -24,6 +24,12 @@ import { DEFAULT_TILE_FLAGS, TileSet, themeSceneHeight, type TileFlags } from '.
 /** Stations that cook what sits on them: burners for pots and pans, fryers for the frying basket. */
 const COOK_SITES: ReadonlySet<Tile['type']> = new Set<Tile['type']>(['stove', 'fryer']);
 const HELD = { scale: 0.9 } as const;
+/** Darkness (OC1 4-2): the stage's lights at a sliver, a warm lamp cone ahead of each chef and a small
+ *  glow round it. The wiki gives no cone: about 90 degrees and 3 tiles, the catalog's estimate. */
+const DARK = {
+  lightLevel: 0.07, lampColor: 0xffdca8, lampIntensity: 9, lampDistance: 5.5, lampAngle: 0.78, lampPenumbra: 0.6,
+  lampDecay: 1.4, lampHeight: 1.6, lampBehind: 0.2, lampReach: 2.2, glowIntensity: 1.6, glowDistance: 1.8, glowHeight: 0.9,
+} as const;
 /** Ice floes (3-4): a pale slab whose top sits just above the floor, most of it under the water. */
 const FLOE = { color: 0xcfe9f7, thickness: 0.3, top: 0.02, inset: 0.06, roughness: 0.35 } as const;
 
@@ -106,6 +112,7 @@ export class KitchenRenderer {
   private readonly wasFalling: boolean[] = [];
   private readonly pedestrians = new Map<number, ChefRig>();
   private readonly floes = new Map<number, THREE.Mesh>();
+  private readonly lamps = new Map<number, { cone: THREE.SpotLight; glow: THREE.PointLight }>();
   private readonly highlights: THREE.Mesh[] = [];
   private readonly firePositions = new Map<string, THREE.Vector3>();
   private readonly choppingBoards = new Set<number>();
@@ -176,6 +183,7 @@ export class KitchenRenderer {
     this.drawHighlights(state, targets);
     this.drawChopping(state, targets);
     this.drawChefs(state, dtSec);
+    this.drawLamps(state);
     this.drawDashDust(state, dtSec);
     this.drawPedestrians(state, dtSec);
     this.drawFires(state);
@@ -204,6 +212,9 @@ export class KitchenRenderer {
     this.pedestrians.clear();
     for (const floe of this.floes.values()) floe.removeFromParent();
     this.floes.clear();
+    for (const lamp of this.lamps.values()) { lamp.cone.removeFromParent(); lamp.cone.target.removeFromParent(); lamp.glow.removeFromParent(); }
+    this.lamps.clear();
+    this.stage.setLightLevel(1);
     for (const ring of this.highlights) ring.removeFromParent();
     this.highlights.length = 0;
     for (const badge of this.badges.values()) badge.destroy();
@@ -234,6 +245,8 @@ export class KitchenRenderer {
     this.gridW = state.width;
     this.gridH = state.height;
     this.tiles = new TileSet(this.scene, this.stage.scene, state, this.theme, this.flags);
+    this.stage.setLightLevel(this.flags.dark === true ? DARK.lightLevel : 1);
+    this.lamps.clear(); // buildGrid follows resetScene, which already took the old lamps out
     this.stage.fitToGrid(state.width, state.height, themeSceneHeight(this.theme), this.framing);
   }
 
@@ -451,6 +464,29 @@ export class KitchenRenderer {
     }
     for (const [index, rig] of this.chefs) {
       rig.group.visible = shown.has(index);
+    }
+  }
+
+  /** Darkness: each chef on the floor carries a lamp, a cone thrown ahead the way it faces and a
+   *  small glow round it. Nothing on a lit level. */
+  private drawLamps(state: Readonly<SimState>): void {
+    if (this.flags.dark !== true) return;
+    for (const chef of state.chefs) {
+      let lamp = this.lamps.get(chef.index);
+      if (!lamp) {
+        const cone = new THREE.SpotLight(DARK.lampColor, DARK.lampIntensity, DARK.lampDistance, DARK.lampAngle, DARK.lampPenumbra, DARK.lampDecay);
+        const glow = new THREE.PointLight(DARK.lampColor, DARK.glowIntensity, DARK.glowDistance, DARK.lampDecay);
+        this.stage.scene.add(cone, cone.target, glow);
+        lamp = { cone, glow };
+        this.lamps.set(chef.index, lamp);
+      }
+      const v = FACING_VECTORS[chef.facing];
+      const out = chef.action === 'falling';
+      lamp.cone.visible = !out;
+      lamp.glow.visible = !out;
+      lamp.cone.position.set(chef.x - v.dx * DARK.lampBehind, DARK.lampHeight, chef.y - v.dy * DARK.lampBehind);
+      lamp.cone.target.position.set(chef.x + v.dx * DARK.lampReach, 0, chef.y + v.dy * DARK.lampReach);
+      lamp.glow.position.set(chef.x, DARK.glowHeight, chef.y);
     }
   }
 

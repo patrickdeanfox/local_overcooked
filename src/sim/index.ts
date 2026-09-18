@@ -8,7 +8,7 @@ import type { LevelDef, OrderSettings } from '../levels/schema';
 import { isWalkable, parseGrid, SOLID_TILES } from '../levels/schema';
 import {
   ASSIST_RATE, BURN_TIME, CATCH_RADIUS, CHEF_HITBOX, CHEF_RADIUS, CHEF_SPEED, CHOP_TIME, CONVEYOR_HOLD, CONVEYOR_SPEED,
-  CONVEYOR_FLOOR_SPEED, COOK_TIME, CRATE_SIZE, DEEP_FRY_TIME, ICE_ACCEL, ICE_DECEL,
+  CONVEYOR_FLOOR_SPEED, COOK_TIME, CRATE_SIZE, DEEP_FRY_TIME, FLOOR_FIRE_CLEARANCE, ICE_ACCEL, ICE_DECEL,
   DASH_BUMP_PUSH, DASH_COOLDOWN, DASH_SPEED, DASH_THROW_BONUS, DASH_THROW_WINDOW, DASH_TIME, EXTINGUISH_RATE,
   FALL_PENALTY_SEC, FIRE_SPREAD_TIME, MAX_PUSH_ESCAPE, MAX_SIMULTANEOUS_86, MOVE_DEADZONE, ORDER_FAIL_PENALTY,
   PAN_CAPACITY, PAN_COOK_TIME, PLATE_RETURN_DELAY, PLATE_STACK_RETURN_DELAY, POT_CAPACITY, REACH,
@@ -139,6 +139,11 @@ function sharedIngredients(a: readonly IngredientType[], b: readonly IngredientT
 /** Ground a thrown item can come to rest on. Open gates count; the caller checks the gate. */
 function isLandingFloor(type: Tile['type']): boolean {
   return type === 'floor' || type === 'road' || type === 'gate' || type === 'ice' || type === 'conveyorFloor';
+}
+
+/** Floor a floor fire can break out on (5-2). */
+function isFireFloor(type: Tile['type']): boolean {
+  return type === 'floor' || type === 'road' || type === 'ice';
 }
 
 /** Tiles that carry what rests on them: counter belts and walkable belts. */
@@ -278,6 +283,10 @@ export class Sim {
   private gateSpecs: GateSpec[] = [];
   private pedLanes: PedLane[] = [];
   private floeLanes: FloeLane[] = [];
+  // Floor fires (5-2): the outbreak timer, its interval and the cap on burning floor tiles.
+  private floorFireTimer = -1;
+  private floorFireEvery = 0;
+  private floorFireMax = 0;
   private beltReverseSec = 0;     // a beltReverse dynamic's period; 0 = the belts never reverse
   private beltReversePhase = 0;
   private nextFloeId = 1;
@@ -434,6 +443,10 @@ export class Sim {
           x: first ? first.x : 0, y: first ? first.y : 0, hole,
         });
         (this.state.gates ??= []).push(hole ? { id: dyn.group, open: true, secondsToChange: 0, hole } : { id: dyn.group, open: true, secondsToChange: 0 });
+      } else if (dyn.type === 'floorFires') {
+        this.floorFireEvery = Math.max(dyn.intervalSec, SIM_DT);
+        this.floorFireMax = Math.max(1, Math.floor(dyn.max));
+        this.floorFireTimer = dyn.firstDelaySec ?? this.floorFireEvery;
       } else if (dyn.type === 'beltReverse') {
         this.beltReverseSec = Math.max(dyn.periodSec, SIM_DT);
         this.beltReversePhase = dyn.phase ?? 0;
@@ -634,6 +647,7 @@ export class Sim {
 
     this.updateCooking(dt, events);
     this.updateFires(dt, events);
+    this.updateFloorFires(dt, events);
     this.updatePlateReturns(dt, events);
     this.updateRestocks(dt, events);
     this.updateScripted(events);
@@ -1292,6 +1306,7 @@ export class Sim {
       f.health -= EXTINGUISH_RATE * dt;
       if (f.health <= 0) {
         st.fires.splice(i, 1);
+        this.clearFloorFire(f.x, f.y);
         events.push({ type: 'fireOut', chef: idx, x: f.x, y: f.y });
       }
     }
@@ -2096,6 +2111,44 @@ export class Sim {
       st.fires.push({ x: pick.x, y: pick.y, health: 1, spreadTimer: FIRE_SPREAD_TIME });
       events.push({ type: 'fireSpread', x: pick.x, y: pick.y });
     }
+  }
+
+  // ─── Floor fires ──────────────────────────────────────────────────────────
+  /** Floor that can catch: plain floor, road and ice with nothing on it. */
+  private burnableFloor(i: number): boolean {
+    return isFireFloor(this.state.tiles[i].type) && !this.state.tileItems[i];
+  }
+
+  /** Every intervalSec, while fewer than max floor tiles burn, one floor tile away from every chef
+   *  catches fire (the seed picks which). A burning floor tile is solid until it is sprayed out. */
+  private updateFloorFires(dt: number, events: SimEvent[]): void {
+    if (this.floorFireEvery <= 0) return;
+    this.floorFireTimer -= dt;
+    if (this.floorFireTimer > 0) return;
+    this.floorFireTimer += this.floorFireEvery;
+    const st = this.state;
+    let burning = 0;
+    for (const f of st.fires) if (isFireFloor(st.tiles[f.y * st.width + f.x].type)) burning += 1;
+    if (burning >= this.floorFireMax) return;
+    let n = 0;
+    for (let i = 0; i < st.tiles.length; i++) {
+      if (!this.burnableFloor(i)) continue;
+      const tile = st.tiles[i];
+      if (this.fireAt(tile.x, tile.y)) continue;
+      if (st.chefs.some((c) => Math.hypot(c.x - (tile.x + 0.5), c.y - (tile.y + 0.5)) < FLOOR_FIRE_CLEARANCE)) continue;
+      this.spreadBuf[n++] = i;
+    }
+    if (n === 0) return;
+    const pick = st.tiles[this.spreadBuf[this.rng.int(n)]];
+    if (!this.startFire(pick.x, pick.y)) return;
+    this.staticSolid[pick.y * st.width + pick.x] = true;
+    events.push({ type: 'fireStart', x: pick.x, y: pick.y });
+  }
+
+  /** A fire sprayed out on walkable floor lets chefs through again. */
+  private clearFloorFire(x: number, y: number): void {
+    const i = y * this.state.width + x;
+    if (isWalkable(this.state.tiles[i].type) && this.state.tiles[i].type !== 'gate') this.staticSolid[i] = false;
   }
 
   // ─── Plates, orders, timer ────────────────────────────────────────────────

@@ -1,0 +1,27 @@
+# -- OC1 4-2 in the dark with the chefs' lamps, then OC2 5-2 with a floor fire breaking out in the ring
+eval localStorage.setItem('local-overcooked.settings.v1', JSON.stringify({ version: 1, players: 2, preset: 'normal', seedMode: 'fixed', fixedSeed: 5, freePlay: true }))
+eval location.reload()
+wait 1500
+until 25000 Phaser.Display.Canvas.CanvasPool.pool.map(e => e.parent).some(p => p && p.scene && p.scene.sys && p.scene.sys.game && p.scene.sys.game.scene.getScenes(true).some(s => s.scene.key === 'Title'))
+wait 600
+eval (0, eval)(await (await fetch('/tools/playtests/qa-lib.txt')).text())
+eval (__ui.scene('Title').scene.start('Game', { levelId: 'oc1-4-2', seed: 7 }), 'started')
+until 20000 typeof __oc !== 'undefined' && __oc.level && __oc.level.id === 'oc1-4-2'
+wait 1000
+shot 34-00-dark.png
+hold KeyD 700
+shot 34-01-lamp-moves.png
+
+eval (__ui.scene('Game').scene.start('Game', { levelId: 'oc2-5-2', seed: 7 }), 'started')
+until 20000 __oc.level && __oc.level.id === 'oc2-5-2' && __oc.sim.getState().elapsed > 0.5
+wait 800
+shot 34-02-balloon.png
+until 45000 __oc.sim.getState().fires.length > 0
+wait 800
+eval JSON.stringify(['fires', __oc.sim.getState().fires])
+shot 34-03-floor-fire.png
+
+eval (__ui.scene('Game').scene.start('Title'), 'back to the title')
+wait 1500
+shot 34-04-title-lit.png
+errors
